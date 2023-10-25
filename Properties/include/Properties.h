@@ -3,7 +3,6 @@
 
 #include "Hashtable.h"
 #include <Arduino.h>
-#include <vector.h>
 
 class Properties {
 private:

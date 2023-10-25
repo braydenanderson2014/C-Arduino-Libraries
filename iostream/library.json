@@ -1,8 +1,8 @@
 {
-    "name": "SimpleProperties",
-    "version": "1.0.2",
-    "description": "A library for managing properties with an SD card. It is designed to be simple and easy to use. This library mimicks the Java Properties class.",
-    "keywords": ["properties", "SD card"],
+    "name": "IOStream",
+    "version": "1.0.0",
+    "description": "This Library is an easy to use Library for lcd print functions, and serial print",
+    "keywords": ["IOStream", "Serial"],
     "repositories": [
         {
             "type": "git",
@@ -25,9 +25,9 @@
     "examples": [
         {
             "name": "Example",
-            "base": "examples",
+            "base": "Properties",
             "files": [
-                "example.cpp"
+                "examples/example.cpp"
             ]
         }
     ],

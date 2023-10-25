@@ -1,7 +1,7 @@
 {
-    "name": "Hashtable",
+    "name": "SimpleArduinoTimer",
     "version": "1.0.0",
-    "description": "A hashtable implementation for Arduino",
+    "description": "A Simple Timer Library for Arduino",
     "keywords": ["Timer"],
     "authors": [
         {
