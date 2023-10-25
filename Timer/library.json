@@ -1,0 +1,18 @@
+{
+    "name": "Hashtable",
+    "version": "1.0.0",
+    "description": "A hashtable implementation for Arduino",
+    "keywords": ["Timer"],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "dependencies": {
+        "rtclib": "*",
+        "Arduino": "*"
+    },
+    "Notes": "This library is a work in progress. It is not yet ready for use. It has not been tested, USE AT YOUR OWN RISK. If you do use it, please report any bugs you find."
+}
