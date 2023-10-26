@@ -1,6 +1,6 @@
 #ifndef HASHTABLE_H
 #define HASHTABLE_H
-#include "SimpleVector.h"
+#include <SimpleVector.h>
 #include <Arduino.h>
 
 template <typename K, typename V>
@@ -34,7 +34,7 @@ private:
     }
     //Hello
     // Private function to resize the hash table
-   void resize(int newSize) {
+    void resize(int newSize) {
         int oldSize = TABLE_SIZE;
         Entry** oldTable = table;
         TABLE_SIZE = newSize;
@@ -53,6 +53,9 @@ private:
         }
 
         delete[] oldTable;
+         if (entryCount < capacity / 4 && capacity > INITIAL_TABLE_SIZE) {
+            keysVector.resize(capacity / 2);
+        }
     }
 
 public:
@@ -71,6 +74,9 @@ public:
         int TABLE_SIZE;
         int index;
         typename Hashtable<K, V>::Entry* current;
+        int entryCount; // Track the number of entries
+        int capacity;   // Track the capacity of the Hashtable
+        SimpleVector<K> keysVector; // Track the keys in a SimpleVector
 
         public:
         HashtableIterator(typename Hashtable<K, V>::Entry** t, int size) : table(t), TABLE_SIZE(size), index(0), current(nullptr) {}

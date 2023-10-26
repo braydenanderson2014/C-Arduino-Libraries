@@ -25,7 +25,7 @@
     "examples": [
         {
             "name": "Example",
-            "base": "Properties",
+            "base": "examples",
             "files": [
                 "examples/example.cpp"
             ]
@@ -37,6 +37,7 @@
         "SimpleVector.h",
         "Hashtable.h"
     ],
+    "header": "Properties.h",
     "Notes": "This library is designed to be simple and easy to use. It mimicks the Java Properties class. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "license": "Apache-2.0"
 

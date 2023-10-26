@@ -1,8 +1,12 @@
 {
     "name": "Hashtable",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "description": "A hashtable implementation for Arduino",
     "keywords": ["Hashtable", "Hashtable Iterator"],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Hashtable.git"
+    },
     "authors": [
         {
             "name": "Brayden Anderson",
@@ -14,5 +18,49 @@
         "Arduino": "*",
         "SimpleVector": "*"
     },
+    "examples": [
+        {
+            "name": "Example",
+            "base": "Example",
+            "files": [
+                "Example.cpp",
+                "Example2.cpp"
+            ]
+        }
+    ],
+    "ChangeLog": [
+        {
+            "version": "1.0.0",
+            "date": "2023-10-25",
+            "changes": [
+                "Initial release",
+                "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
+                "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them." 
+            ]
+        },
+        {
+            "version": "1.0.1",
+            "date": "2023-10-25",
+            "changes": [
+                "Added Example for how the library works (Example.cpp)",
+                "Added Example for how the library works (Example2.cpp)",
+                "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
+                "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them."   
+            ]
+
+        },
+        {
+            "version": "1.0.2",
+            "date": "2023-10-26",
+            "changes": [
+                "Added Dynamic Downsize for the Vector to save memory (Useful for Memory Constrained Environments Such As Arduino)",
+                "Added This ChangeLog :)",   
+                "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
+                "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them."
+            ]
+ 
+        }
+    ],
+
     "Notes": "This library is a work in progress. It is not yet ready for use. It has not been tested, USE AT YOUR OWN RISK. If you do use it, please report any bugs you find."
 }

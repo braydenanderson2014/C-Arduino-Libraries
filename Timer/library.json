@@ -1,8 +1,12 @@
 {
     "name": "SimpleArduinoTimer",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "A Simple Timer Library for Arduino",
     "keywords": ["Timer"],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Timer"
+    },
     "authors": [
         {
             "name": "Brayden Anderson",
@@ -14,5 +18,16 @@
         "rtclib": "*",
         "Arduino": "*"
     },
-    "Notes": "This library is a work in progress. It is not yet ready for use. It has not been tested, USE AT YOUR OWN RISK. If you do use it, please report any bugs you find."
+    "Notes": "This library is a work in progress. It is not yet ready for use. It has not been tested, USE AT YOUR OWN RISK. If you do use it, please report any bugs you find.",   
+    "header": "Timer.h",
+    "cpp": "Timer.cpp",
+    "examples": [
+        {
+            "name": "Example",
+            "base": "Example",
+            "files": [
+                "Example.cpp"
+            ]
+        }
+    ]
 }
