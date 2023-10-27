@@ -1,12 +1,12 @@
 {
-    "name": "IOStream",
+    "name": "BasicIOStream",
     "version": "1.0.0",
     "description": "This Library is an easy to use Library for lcd print functions, and serial print",
-    "keywords": ["IOStream", "Serial"],
+    "keywords": ["IOStream", "Serial", "LCD", "I2CLCD"],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Properties.git"
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/iostream.git"
         }
     ],
     "authors": [
@@ -19,15 +19,17 @@
     "dependencies": {
         "arduino-libraries/SD": "*",
         "Arduino": "*",
-        "SimpleVector": "*",
-        "Hashtable": "*"
+        "arduino-libraries/LiquidCrystal": "*",
+        "arduino-libraries/Wire": "*",
+        "arduino-libraries/SPI": "*",
+        "arduino-libraries/LiquidCrystal_I2C": "*"
     },
     "examples": [
         {
             "name": "Example",
-            "base": "examples",
+            "base": "Example",
             "files": [
-                "examples/example.cpp"
+                "Example.cpp"
             ]
         }
     ],
@@ -35,10 +37,14 @@
         "Arduino.h",
         "SD.h",
         "SimpleVector.h",
-        "Hashtable.h"
+        "Hashtable.h",
+        "LiquidCrystal.h",
+        "LiquidCrystal_I2C.h",
+        "Wire.h",
+        "SPI.h"
     ],
-    "header": "Properties.h",
-    "Notes": "This library is designed to be simple and easy to use. It mimicks the Java Properties class. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "header": "iostream.h",
+    "Notes": "This library is designed to be simple and easy to use. This Library contains basic implementations of the iostream functions. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "license": "Apache-2.0"
 
 }
