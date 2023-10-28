@@ -26,12 +26,25 @@ public:
     ~SimpleVector() {
         delete[] array;
     }
-
-    void push_back(const T& item) {
+    //Changed to add() for better naming conventions.
+    void add(const T& item) {
         if (count == capacity) {
             resize(2 * capacity);
         }
         array[count++] = item;
+    }
+
+    // Remove an element from the vector by shifting elements (Added in Version 1.0.1)
+    void remove(const T& item) {
+        unsigned int index = 0;
+        for (unsigned int i = 0; i < count; i++) {
+            if (array[i] == item) {
+                // Element found, skip it
+                continue;
+            }
+            array[index++] = array[i];
+        }
+        count = index;
     }
 
     T& operator[](unsigned int index) {

@@ -1,6 +1,6 @@
 {
     "name": "Hashtable",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "A hashtable implementation for Arduino",
     "keywords": ["Hashtable", "Hashtable Iterator"],
     "repository": {
@@ -60,6 +60,12 @@
             ]
  
         }
+        {
+            "version": "1.0.3",
+            "date": "2023-10-26",
+            "changes": [
+                "Updated Included Libraries to Latest Version"
+            ]}
     ],
 
     "Notes": "This library is a work in progress. It is not yet ready for use. It has not been tested, USE AT YOUR OWN RISK. If you do use it, please report any bugs you find."

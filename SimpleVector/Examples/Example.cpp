@@ -8,11 +8,11 @@ void setup() {
     SimpleVector<int> numbers;
 
     // Add some numbers to the vector
-    numbers.push_back(1);
-    numbers.push_back(2);
-    numbers.push_back(3);
-    numbers.push_back(4);
-    numbers.push_back(5);
+    numbers.add(1);
+    numbers.add(2);
+    numbers.add(3);
+    numbers.add(4);
+    numbers.add(5);
 
     // Access and print the elements using the [] operator
     Serial.println("Elements in the vector:");
@@ -32,6 +32,7 @@ void setup() {
     }
     Serial.println();
 
+    numbers.remove(3); //NEW in Version 1.0.1, remove an element from the vector
     // Release the memory used by the vector
     numbers.releaseMemory();
 }
