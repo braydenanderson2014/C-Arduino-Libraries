@@ -122,6 +122,15 @@ public:
         }
         return V(); // Return default value
     }
+
+    void merge(const Hashtable<K, V>& other) {
+        SimpleVector<K> keysToAdd = other.keys();
+        for (int i = 0; i < keysToAdd.size(); i++) {
+            K key = keysToAdd[i];
+            V value = other.get(key);
+            put(key, value);
+        }
+    }
     // Move your other function implementations here
     // Example:
     void put(K key, V value);
