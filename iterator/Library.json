@@ -1,0 +1,32 @@
+{
+    "name": "Iterator",
+    "version": "1.0.0",
+    "description": "This Library is an easy to use Library for lcd print functions, and serial print",
+    "keywords": ["Iterator", "Abstract"],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/iterator.git"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "examples": [
+        {
+            "name": "Example",
+            "base": "Examples",
+            "files": [
+                "Example.cpp"
+            ]
+        }
+    ],
+    "header": "iterator.h",
+    "Notes": "This library is designed to be simple and easy to use. This Library contains basic implementations of the iterator functions. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "license": "Apache-2.0"
+
+}

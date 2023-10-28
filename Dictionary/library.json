@@ -1,0 +1,41 @@
+{
+    "name": "Dictionary",
+    "version": "1.0.0",
+    "description": "This Library is an easy to use Library for Dictionary type entries, This Library Mimicks the Java Dictionary Class",
+    "keywords": ["Dictionary", "Abstract"],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Dictionary.git"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "dependencies": {
+        "braydenanderson2014/iostream": "*",
+        "braydenanderson2014/iterator": "*"
+    },
+    "examples": [
+        {
+            "name": "Example",
+            "base": "Example",
+            "files": [
+                "Example.cpp"
+            ]
+        }
+    ],
+    "headers": [
+        "Dictionary.h",
+        "iostream.h",
+        "iterator.h"
+    ],
+    "header": "Dictionary.h",
+    "Notes": "This library is designed to be simple and easy to use. This Library contains basic implementations of the Dictionary functions from the Java Language. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "license": "Apache-2.0"
+
+}
