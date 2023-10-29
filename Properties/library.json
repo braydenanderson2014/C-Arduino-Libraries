@@ -31,13 +31,47 @@
             ]
         }
     ],
+    "header": "Properties.h",
     "headers": [
         "Arduino.h",
         "SD.h",
         "SimpleVector.h",
         "Hashtable.h"
     ],
-    "Notes": "This library is designed to be simple and easy to use. It mimicks the Java Properties class. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
-    "license": "Apache-2.0"
+    "Notes": "This library is designed to be simple and easy to use. It mimicks the Java Properties class. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author. To install this library, please use the the Properties.h header file.",
+    "license": "Apache-2.0",
+    "ChangeLog": [
+        {
+            "version": "1.0.0",
+            "date": "2023-10-25",
+            "changes": [
+                "Initial release"
+            ]
+        },
+        {
+            "version": "1.0.1",
+            "date": "2023-10-26",
+            "changes": [
+                "Added the ability to get the number of properties in the file",
+                "Update to the Library Json File"
+            ]
+        },
+        {
+            "version": "1.0.2",
+            "date": "2023-10-26",
+            "changes": [
+                "Update to the Library Json File"
+            ]
+        },
+        {
+            "version": "1.0.3",
+            "date": "2023-10-28",
+            "changes": [
+                "Update to the Library Json File",
+                "Added This ChangeLog to the Library Json File"
+            ]
+        }
+        
+    ]
 
 }
