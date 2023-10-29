@@ -26,8 +26,8 @@ public:
     ~SimpleVector() {
         delete[] array;
     }
-    //Changed to add() for better naming conventions.
-    void add(const T& item) {
+    //Changed to put() for better naming conventions.
+    void put(const T& item) {
         if (count == capacity) {
             resize(2 * capacity);
         }

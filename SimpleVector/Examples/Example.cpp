@@ -8,11 +8,11 @@ void setup() {
     SimpleVector<int> numbers;
 
     // Add some numbers to the vector
-    numbers.add(1);
-    numbers.add(2);
-    numbers.add(3);
-    numbers.add(4);
-    numbers.add(5);
+    numbers.put(1);
+    numbers.put(2);
+    numbers.put(3);
+    numbers.put(4);
+    numbers.put(5);
 
     // Access and print the elements using the [] operator
     Serial.println("Elements in the vector:");
