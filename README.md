@@ -1,5 +1,6 @@
 # C-Arduino-Libraries
-This repository contains C++ and Arduino Libraries that are lightweight and easy to use. All libraries were created/mimicked by me and chatgpt. All Libraries have or will be published on Platformio. If you have any issues, please file a bug report.
+This repository contains C++ and Arduino Libraries that are lightweight and easy to use. All libraries were created/mimicked by me and chatgpt. All Libraries have or will be published on Platformio. If you have any issues, please file a bug report. The libraries can be found under the lib folder. A big example can be found under the src folder. This repository is now a platformio project so you can see how you can configure a project in a way that allows you to use these libraries and test them on a platformio compatible GPIO (General Purpose Input Ouput). 
+
 
 ## List of All Available Libraries ##
 1. Dictionary
