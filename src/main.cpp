@@ -1,11 +1,25 @@
 #include <Arduino.h>
+#include <Properties.h>
 
+
+Properties prop;
+Hashtable<String, int> hashtable;
+SimpleVector<String> keys = hashtable.keys();
 // put function declarations here:
 int myFunction(int, int);
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  prop.loadFromSD("test.txt");
+  prop.setProperty("test", "test");
+  prop.saveToSD("test.txt");
+
+  hashtable.put("apple", 5);
+  hashtable.put("banana", 3);
+  hashtable.put("cherry", 8);
+
+  int appleCount = hashtable.get("apple");
+  int bananaCount = hashtable.get("banana");
+  
 }
 
 void loop() {
