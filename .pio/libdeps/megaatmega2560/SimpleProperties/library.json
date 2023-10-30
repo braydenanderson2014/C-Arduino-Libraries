@@ -1,0 +1,43 @@
+{
+    "name": "SimpleProperties",
+    "version": "1.0.2",
+    "description": "A library for managing properties with an SD card. It is designed to be simple and easy to use. This library mimicks the Java Properties class.",
+    "keywords": ["properties", "SD card"],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Properties.git"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "dependencies": {
+        "arduino-libraries/SD": "*",
+        "Arduino": "*",
+        "SimpleVector": "*",
+        "Hashtable": "*"
+    },
+    "examples": [
+        {
+            "name": "Example",
+            "base": "examples",
+            "files": [
+                "example.cpp"
+            ]
+        }
+    ],
+    "headers": [
+        "Arduino.h",
+        "SD.h",
+        "SimpleVector.h",
+        "Hashtable.h"
+    ],
+    "Notes": "This library is designed to be simple and easy to use. It mimicks the Java Properties class. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "license": "Apache-2.0"
+
+}
