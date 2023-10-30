@@ -73,6 +73,23 @@ public:
         size = 0;
     }
 
+// Get the element at the specified index
+    T& get(unsigned int index) {
+        if (index >= count) {
+            exit(1); // You can handle this error differently if needed
+        }
+        return array[index];
+    }
+
+    // Get the index of the specified element
+    int indexOf(const T& element) {
+        for (unsigned int i = 0; i < count; i++) {
+            if (array[i] == element) {
+                return i;
+            }
+        }
+        return -1; // Element not found
+    }
     class SimpleVectorIterator {
         private:
             T* current;

@@ -19,7 +19,11 @@
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
                 "${workspaceFolder}/.pio/libdeps/megaatmega2560/SimpleProperties/include",
-                "${workspaceFolder}/.pio/libdeps/megaatmega2560/Dictionary/src"
+                "${workspaceFolder}/.pio/libdeps/megaatmega2560/Dictionary/src",
+                "${workspaceFolder}/.pio/libdeps/megaatmega2560/LiquidCrystal",
+                "${workspaceFolder}/.pio/libdeps/megaatmega2560/LiquidCrystal_I2C",
+                "${workspaceFolder}/.pio/libdeps/megaatmega2560/SD/src",
+                "${workspaceFolder}/lib/LinkedList/include"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
@@ -31,7 +35,8 @@
                     "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                     "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
                     "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
-                    "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/Wire/src"
+                    "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
+                    "${workspaceFolder}/.pio/libdeps/megaatmega2560/"
                 ]
             },
             "defines": [

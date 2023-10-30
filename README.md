@@ -8,6 +8,11 @@
 5. Properties
 6. SimpleVector
 7. Timer
+## UNPUBLISHED (In Development) (Not yet Documented)
+==========================================================
+8. UnorderedMap 
+9. LinkedList
+10. DictionaryImplementation (implemented Version of the Dictionary Class)
 
 ## ALL LIBRARIES INCLUDE A MORE INDEPTH README.md ##
 # Dictionary Class
