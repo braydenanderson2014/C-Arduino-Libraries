@@ -1,5 +1,4 @@
 # C-Arduino-Libraries
-This repository contains C++ and Arduino Libraries that are lightweight and easy to use. All libraries were created/mimicked by me and chatgpt. All Libraries have or will be published on Platformio. If you have any issues, please file a bug report.
 
 ## List of All Available Libraries ##
 1. Dictionary
