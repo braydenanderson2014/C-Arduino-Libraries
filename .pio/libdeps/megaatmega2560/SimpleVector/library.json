@@ -1,0 +1,51 @@
+{
+    "name": "SimpleVector",
+    "version": "1.0.1",
+    "description": "A lightweight and efficient implementation of a dynamic array, suitable for use in memory-constrained environments.",
+    "keywords": ["SimpleVector", "VectorIterator", "Vector"],
+    "Repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/SimpleVector.git"
+
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "headers": [
+        "SimpleVector.h"
+    ],
+    
+    "examples": [
+        {
+            "name": "Example",
+            "base": "Examples",
+            "files": [
+                "Example.cpp"
+            ]
+        }
+    ],
+    "changeLog": [
+        {
+            "version": "1.0.0",
+            "changes": [
+                "Initial release."
+            ]
+        },
+        {
+            "version": "1.0.1",
+            "changes": [
+                "Added Remove Function.",
+                "Renamed push_back function to add",
+                "Updated Example."
+            ]
+        }
+    ],
+    "Notes:": "This is a test package. It is not intended for use in production environments. This library has not yet been tested. If you would like to test it, please do so at your own risk. If you find any bugs, please report them to the author."
+    
+}
