@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <LinkedList.h>
 
 template <typename T>
 class ListNode {
@@ -97,7 +98,7 @@ public:
             }
             return current->data;
         }
-        throw std::out_of_range("Index out of bounds");
+        return 0;
     }
 
     // Check if the list contains a specific element

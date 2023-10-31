@@ -1,18 +1,21 @@
 # C-Arduino-Libraries
 
-## List of All Available Libraries ##
-1. Dictionary
-2. Hashtable
-3. iostream
-4. iterator
-5. Properties
-6. SimpleVector
-7. Timer
+## List of All Available Libraries ## [WARNING]: UNTESTED BY AUTHOR
+1. Dictionary [Active] (PURE VIRTUAL : No Concrete Implementation in this Library)
+2. Hashtable [Active]
+3. iostream [Active] (Published as : BasicIOStream)
+4. iterator [Active]
+5. Properties [Active] (Published as : SimpleProperties)
+6. SimpleVector [Active] 
+7. Timer [Active] (Published as : SimpleArduinoTimer)
+8. UnorderedMap [Active], [In-Development]
+9. LinkedList [Active], [In-Development] (Published as : BasicLinkedList)
+10. DictionaryImplementation [Active], [RENAMED] -> (MyDictionary), [In-Development] (implemented Version of the Dictionary Class)
+11. SDList [Active], [In-Development]
+
 ## UNPUBLISHED (In Development) (Not yet Documented)
-==========================================================
-8. UnorderedMap 
-9. LinkedList
-10. DictionaryImplementation (implemented Version of the Dictionary Class)
+========================================================== [WARNING]: NO DOCUMENTATION AVAILABLE YET & UNTESTED BY AUTHOR
+12. [NO-UNPUBLISHED-LIBRARIES]
 
 ## ALL LIBRARIES INCLUDE A MORE INDEPTH README.md ##
 # Dictionary Class
@@ -480,3 +483,316 @@ void loop() {
 }
 
 ```
+
+# MyDictionary Class
+
+`MyDictionary` is a custom dictionary class designed for Arduino projects. It provides a simple interface for storing and retrieving key-value pairs, where keys are strings and values are integers. This Library was renamed from DictionaryImplementation to MyDictionary.
+
+## Features
+
+- Implements a dictionary using an unordered map. (Also An Available Library)
+- Provides basic dictionary operations such as insertion, deletion, and retrieval.
+- Uses custom error handling suitable for Arduino's constrained environment.
+
+## Usage
+
+To use `MyDictionary`, include the header file in your Arduino sketch and create an instance of `MyDictionary`.
+
+```cpp
+#include "MyDictionary.h"
+
+MyDictionary myDict;
+myDict.put("key1", 100);
+
+```
+
+### Retrieving a Value
+```cpp
+int value = myDict.get("key1");
+if (value != -1) {
+    // Use the value
+}
+```
+### Removing a Value
+```cpp
+if (!myDict.remove("key1")) {
+    // Handle the error
+}
+```
+### Checking Dictionary Size
+```cpp
+
+int size = myDict.size();
+
+```
+### Checking if the Dictionary is Empty
+```cpp
+bool isEmpty = myDict.isEmpty();
+```
+## Error Handling
+The get, put, and remove methods use return values to indicate success or failure, as throwing exceptions is not supported in the Arduino environment.
+
+get returns -1 if the key is not found.
+put returns 1 as a success indicator.
+remove returns 0 if the key is not found and 1 as a success indicator.
+
+## Dependencies
+MyDictionary depends on the Dictionary and UnorderedMap classes. Make sure these classes are available in your project.
+
+Contributing
+Contributions to MyDictionary are welcome. Please adhere to the provided coding standards and include unit tests with your pull requests.
+
+License
+Specify the license under which your code is available. Common licenses for open-source projects include MIT, GPL, and Apache 2.0.
+
+# SDList Library 
+
+`SDList` is a dynamic array class for Arduino, with the additional capability to persist data on an SD card. It allows you to store and retrieve elements just like a regular array but can also save its contents to an SD card and load them back when needed.
+
+## Features
+
+- Dynamic resizing of the list when more capacity is needed.
+- Persistence of list data using an SD card.
+- Simple API for adding, accessing, and setting elements.
+- Checking the availability of an SD card.
+
+## Installation
+
+To use `SDList` in your Arduino project:
+
+1. Copy `SDList.h` and `SDList.cpp` to your project's directory.
+2. Include the `SDList.h` file in your sketch.
+
+## Usage
+
+To create an `SDList`, specify the data type you want to store and provide the Chip Select (CS) pin and a filename for the page file on the SD card.
+
+```cpp
+#include "SDList.h"
+
+SDList<int> myList(10, "mydata.dat"); // CS pin is 10, page file name is "mydata.dat"
+```
+### Appending Elements
+```cpp
+myList.append(42);
+```
+### Accessing Elements
+```cpp
+int value = myList.get(0);
+```
+### Setting Elements
+```cpp
+myList.set(0, 100);
+```
+### Checking List Size
+```cpp
+uint16_t listSize = myList.size();
+```
+### SD Card Availability
+```cpp
+if (myList.sdAvailable()) {
+    // SD card is ready for use
+}
+```
+## Methods
+* append: Add an element to the end of the list.
+* get: Retrieve the element at a specified index.
+* set: Set the value of the element at a specified index.
+* size: Get the number of elements in the list.
+* sdAvailable: Check if the SD card is available and ready for use.
+* expandCapacity: (private) Expand the list's capacity when needed.
+## Notes
+The list starts with an initial capacity, which will be doubled each time it runs out of space.
+If the SD card is not available, the list will function as a normal in-memory list without persistence.
+Ensure the SD card is formatted correctly and that the Arduino has the necessary permissions to read from and write to the SD card.
+
+## Dependencies
+SDList depends on the SD library. Ensure you have included the SD library in your project.
+
+## Contributing
+Contributions to SDList are welcome. Please adhere to the provided coding standards and include unit tests with your pull requests.
+
+# LinkedList for Arduino -> BasicLinkedList
+
+A simple, templated linked list implementation for Arduino projects. This class allows you to create and manage a linked list of any data type.
+
+## Features
+
+- Templated class: Can store any data type.
+- Dynamic resizing: Automatically manages memory as elements are added or removed.
+- Basic operations: `append`, `prepend`, `insert`, `remove`, `get`, `contains`, `getSize`, `isEmpty`, `clear`.
+
+## Installation
+
+To use `LinkedList` in your Arduino sketch:
+
+1. Copy the `LinkedList` class code to your project's directory.
+2. Include `LinkedList.h` at the top of your sketch.
+
+## Usage
+
+To create a linked list, simply declare an instance of `LinkedList` with the desired type:
+
+```cpp
+#include <LinkedList.h>
+
+LinkedList<int> myList;
+```
+## Adding Elements
+### Append an element to the end of the list:
+
+```cpp
+myList.append(1);
+```
+### Prepend an element to the beginning of the list:
+
+```cpp
+myList.prepend(0);
+```
+### Insert an element at a specific position:
+
+```cpp
+myList.insert(2, 1);  // Insert '2' at position '1'
+```
+## Accessing Elements
+### Retrieve an element at a specific position:
+
+```cpp
+int value = myList.get(1);
+```
+## Removing Elements
+### Remove an element by value:
+
+```cpp
+myList.remove(1);
+```
+## Utility Functions
+### Check if the list contains a specific value:
+
+```cpp
+if (myList.contains(2)) {
+    // Element is in the list
+}
+```
+## Get the size of the list:
+
+```cpp
+size_t size = myList.getSize();
+```
+### Check if the list is empty:
+
+```cpp
+if (myList.isEmpty()) {
+    // List is empty
+}
+```
+### Clear the list:
+
+```cpp
+myList.clear();
+```
+## Example
+```cpp
+LinkedList<int> myList;
+myList.append(1);
+myList.append(2);
+myList.prepend(0);
+myList.insert(3, 3);
+
+for (size_t i = 0; i < myList.getSize(); i++) {
+    Serial.print("Element at position ");
+    Serial.print(i);
+    Serial.print(": ");
+    Serial.println(myList.get(i));
+}
+
+myList.remove(2);
+myList.clear();
+```
+# UnorderedMap Libary for Arduino
+
+`UnorderedMap` is a custom hash map implementation designed for Arduino projects that require efficient key-value pair storage. The class provides basic hash map functionalities such as insertion, retrieval, and deletion of elements.
+
+## Features
+
+- Templated class that can handle various data types for keys and values.
+- Automatic resizing when the map reaches capacity.
+- Duplicate key checking to prevent overwriting without explicit intent.
+- Simple and intuitive API.
+
+## Installation
+
+To use `UnorderedMap` in your Arduino sketch:
+
+1. Copy the `UnorderedMap.h` file to your project's directory.
+2. Include `UnorderedMap.h` at the top of your sketch.
+
+## Usage
+
+To create an `UnorderedMap`, specify the key and value data types when declaring an instance:
+
+```cpp
+#include "UnorderedMap.h"
+
+UnorderedMap<String, int> myMap;
+```
+### Inserting Elements
+```cpp
+myMap.insert("temperature", 25);
+```
+### Retrieving Elements
+```cpp
+int temperature;
+if (myMap.get("temperature", temperature)) {
+    // Use the temperature value
+}
+```
+### Removing Elements
+```cpp
+if (myMap.remove("temperature")) {
+    // Temperature was successfully removed
+}
+```
+### Map Size and Empty Check
+```cpp
+size_t mapSize = myMap.getSize();
+
+if (myMap.isEmpty()) {
+    // Map is empty
+}
+```
+## Methods
+* insert: Add a key-value pair to the map. If the key already exists, its value is updated.
+* get: Retrieve a value associated with a given key.
+* remove: Remove a key-value pair from the map.
+* getSize: Get the number of key-value pairs in the map.
+* isEmpty: Check if the map is empty.
+
+## Example
+```cpp
+#include "UnorderedMap.h"
+
+UnorderedMap<String, int> myMap;
+
+void setup() {
+    Serial.begin(9600);
+    myMap.insert("humidity", 60);
+    myMap.insert("pressure", 1013);
+}
+
+void loop() {
+    int humidity;
+    if (myMap.get("humidity", humidity)) {
+        Serial.print("Humidity: ");
+        Serial.println(humidity);
+    }
+    delay(1000);
+}
+```
+## Notes
+This implementation is designed to be memory-efficient, which is critical for the constrained environment of Arduino devices.
+The resize method will automatically be called when the map's capacity is exceeded, doubling the map's size.
+Error handling for memory allocation failures is critical on Arduino, and the resize method includes a simple error message output to the serial monitor.
+
+## Contributing
+Contributions to UnorderedMap are welcome. Please adhere to the provided coding standards and include unit tests with your pull requests.
