@@ -17,7 +17,7 @@
         }
     ],
     "dependencies": {
-        "braydenanderson2014/iostream": "*",
+        "braydenanderson2014/BasicIOStream ": "1.0.0",
         "braydenanderson2014/iterator": "*"
     },
     "examples": [

@@ -1,0 +1,48 @@
+{
+    "name": "BasicLinkedList",
+    "version": "1.0.0",
+    "description": "This Library is an easy to use Library for Linked Lists. This Library contains basic implementations of the LinkedList functions. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "keywords": ["LinkedList", "List", "ArrayList", "Array", "BasicLinkedList"],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/LinkedList.git"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "dependencies": {
+        "Arduino": "*"
+    },
+    "examples": [
+        {
+            "name": "Example",
+            "base": "Example",
+            "files": [
+                "Example.cpp"
+            ]
+        }
+    ],
+    "headers": [
+        "Arduino.h",
+        "LinkedList.h"
+    ],
+    "header": "LinkedList.h",
+    "Notes": "This library is designed to be simple and easy to use. This Library contains basic implementations of a LinkedList Structure. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "license": "Apache-2.0",
+    "readme": "README.md",
+    "ChangeLog": [
+        {
+            "version": "1.0.0",
+            "date": "2023-10-25",
+            "changes": [
+                "Initial  UNTESTED release"
+            ]
+        }
+    ]
+}

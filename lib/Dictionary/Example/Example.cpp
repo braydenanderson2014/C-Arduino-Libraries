@@ -21,10 +21,10 @@ public:
     virtual void remove(const K& key) = 0;
 };
 
-class MyDictionary : public Dictionary<int, std::string> {
+class MyDictionary : public Dictionary<int, String> {
 private:
     SimpleVector<int> keyContainer;
-    SimpleVector<std::string> valueContainer;
+    SimpleVector<String> valueContainer;
 
 public:
     // Implementation of Dictionary's pure virtual functions
@@ -40,35 +40,36 @@ public:
         return keyContainer;
     }
 
-    SimpleVector<std::string> elements() const override {
+    SimpleVector<String> elements() const override {
         return valueContainer;
     }
 
-    std::string get(const int& key) const override {
+    String get(const int& key) const override {
         for (unsigned int i = 0; i < keyContainer.size(); ++i) {
-            if (keyContainer[i] == key) {
-                return valueContainer[i];
+            if (keyContainer.get(i) == key) {
+                return valueContainer.get(i);
             }
         }
         return ""; // Return an empty string for key not found
     }
 
-    void put(const int& key, const std::string& value) override {
+
+    void put(const int& key, const String& value) override {
         for (unsigned int i = 0; i < keyContainer.size(); ++i) {
             if (keyContainer[i] == key) {
                 valueContainer[i] = value; // Update value if key exists
                 return;
             }
         }
-        keyContainer.push_back(key);
-        valueContainer.push_back(value); // Add a new key-value pair
+        keyContainer.put(key);
+        valueContainer.put(value); // Add a new key-value pair
     }
 
     void remove(const int& key) override {
         for (unsigned int i = 0; i < keyContainer.size(); ++i) {
             if (keyContainer[i] == key) {
-                keyContainer.erase(i);
-                valueContainer.erase(i);
+                keyContainer.remove(i);
+                valueContainer.remove(i).c_str();
                 return;
             }
         }
@@ -84,17 +85,16 @@ int main() {
     dict.put(3, "Three");
 
     // Get values by keys
-    std::cout << "Value for key 2: " << dict.get(2) << std::endl;
-
+    Serial.println("Value for key 2: " + dict.get(2));
     // Remove a key-value pair
     dict.remove(1);
 
     // Print all keys and values
     SimpleVector<int> keys = dict.keys();
-    SimpleVector<std::string> values = dict.elements();
+    SimpleVector<String> values = dict.elements();
 
     for (unsigned int i = 0; i < keys.size(); ++i) {
-        std::cout << "Key: " << keys[i] << ", Value: " << values[i] << std::endl;
+        Serial.println("Key: " + keys[i] + ", Value: " + values[i]);
     }
 
     return 0;
