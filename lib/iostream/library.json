@@ -1,6 +1,6 @@
 {
     "name": "BasicIOStream",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "This Library is an easy to use Library for lcd print functions, and serial print",
     "keywords": ["IOStream", "Serial", "LCD", "I2CLCD"],
     "repositories": [
@@ -17,13 +17,16 @@
         }
     ],
     "dependencies": {
-        "arduino-libraries/SD": "*",
+        "arduino-libraries/SD": "1.2.4",
         "Arduino": "*",
-        "arduino-libraries/LiquidCrystal": "*",
-        "arduino-libraries/Wire": "*",
-        "arduino-libraries/SPI": "*",
-        "arduino-libraries/LiquidCrystal_I2C": "*"
+        "LiquidCrystal": "*",
+        "Wire": "*",
+        "SPI": "*",
+        "LiquidCrystal_I2C": "*"
     },
+    "include": [
+        "Wire.h"
+    ],
     "examples": [
         {
             "name": "Example",
@@ -45,6 +48,24 @@
     ],
     "header": "iostream.h",
     "Notes": "This library is designed to be simple and easy to use. This Library contains basic implementations of the iostream functions. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
-    "license": "Apache-2.0"
+    "license": "Apache-2.0",
+    "ChangeLog": [
+        {
+            "version": "1.0.0",
+            "date": "2023-10-25",
+            "changes": [
+                "Initial release",
+                "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
+                "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them." 
+            ]
+        },
+        {
+            "version": "1.0.1",
+            "date": "2023-10-25",
+            "changes": [
+                "Fixed a dependency issue (SD.h)"
+            ]
 
+        }
+    ]
 }

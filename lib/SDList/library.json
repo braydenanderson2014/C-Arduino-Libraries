@@ -1,6 +1,6 @@
 {
     "name": "SDList",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "description": "This Library is an easy to use Library for SD_List. This Library contains basic implementations of the List functions in a convient SD card safe manor. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["SDList", "List", "SD"],
     "repositories": [
@@ -18,8 +18,13 @@
     ],
     "dependencies": {
         "Arduino": "*",
-        "arduino_libraries/SD": "*"
+        "SD": "@1.2.4",
+        "Wire": "*"
     },
+    "include": [
+        "SD.h",
+        "Wire.h"
+    ],
     "examples": [
         {
             "name": "Example with SD Card",
@@ -51,6 +56,20 @@
             "date": "2023-10-25",
             "changes": [
                 "Initial  UNTESTED release"
+            ]
+        },
+        {
+            "version": "1.0.1",
+            "date": "2023-10-31",
+            "changes": [
+                "Dependency Update"
+            ]
+        },
+        {
+            "version": "1.0.2",
+            "date": "2023-10-31",
+            "changes": [
+                "Dependency Update: Directly including SD.h;"
             ]
         }
     ]

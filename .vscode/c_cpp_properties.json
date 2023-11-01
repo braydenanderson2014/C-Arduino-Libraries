@@ -24,9 +24,9 @@
                 "${workspaceFolder}/.pio/libdeps/megaatmega2560/LiquidCrystal_I2C",
                 "${workspaceFolder}/.pio/libdeps/megaatmega2560/SD/src",
                 "${workspaceFolder}/lib/LinkedList/include",
-                "${workspaceFolder}/lib/UnorderedMap/include",
                 "${workspaceFolder}/lib/SDList/include",
-                "${workspaceFolder}/lib/UnorderedMap/src"
+                "${workspaceFolder}/lib/UnorderedMap/src",
+                "${workspaceFolder}/lib/MyDictionary/src"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
