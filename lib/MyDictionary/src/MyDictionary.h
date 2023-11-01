@@ -28,9 +28,8 @@ public:
         }
     }
 
-    int put(const String& key, const int& value) override {
+    void put(const String& key, const int& value) override {
         data.insert(key, value);
-        return 1; // or some other success indicator
     }
 
     int remove(const String& key) override {

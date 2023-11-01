@@ -1,6 +1,6 @@
 {
     "name": "BasicLinkedList",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "This Library is an easy to use Library for Linked Lists. This Library contains basic implementations of the LinkedList functions. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["LinkedList", "List", "ArrayList", "Array", "BasicLinkedList"],
     "repositories": [
@@ -42,6 +42,13 @@
             "date": "2023-10-25",
             "changes": [
                 "Initial  UNTESTED release"
+            ]
+        },
+        {
+            "version": "1.0.1",
+            "date": "2023-11-01",
+            "changes": [
+                "Library was not Building correctly, Updated so now it should build correctly"
             ]
         }
     ]

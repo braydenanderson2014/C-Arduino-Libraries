@@ -44,9 +44,17 @@ If you want to Utilize this Library. Please include the
 ```
 
 ## ChangeLog
-    Version 1.0.0:
-        * Initial Release 
+### Version 1.0.0:
+* Initial Release 
+### Version 1.0.1:
+* Dependency Update. Issues with a certain Dependency.
+### Version 1.0.2:
+* Fixed STD namespace issue -> made a mistake where i used std namespace instead of returning an error code
+* Verified the Iterator and IOStream dependencies should be working now
+### Version 1.0.3:
+* Update to this Readme
 
+        
 ## Example
 
 Here's an example of how to create a derived dictionary class and use it:

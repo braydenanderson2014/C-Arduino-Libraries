@@ -15,6 +15,14 @@ To use `LinkedList` in your Arduino sketch:
 1. Copy the `LinkedList` class code to your project's directory.
 2. Include `LinkedList.h` at the top of your sketch.
 
+## Change Log
+### Version 1.0.0
+* Initial Release
+### Version 1.0.1
+* Fixed Issues Related to Library Not Building.
+* Syntax Errors that were not discovered originally when Library was update have not been rectified. Library Should now work as intended.
+### Version 1.0.2
+* Update to README
 ## Usage
 
 To create a linked list, simply declare an instance of `LinkedList` with the desired type:
