@@ -33,8 +33,13 @@ If you want to Utilize this Library. Please include the
 ```
 
 ## ChangeLog
-    Version 1.0.0:
-        * Initial Release 
+### Version 1.0.0:
+* Initial Release 
+### Version 1.0.1: 
+* Dependency Update: Issues with SD, Wire, and SPI
+### Version 1.0.2: (TO COME SOON)
+* Update to README
+
     
 
 ## Example

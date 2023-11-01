@@ -44,21 +44,23 @@ If you want to Utilize this Library. Please include the
 ```
 
 ## ChangeLog
-    Version 1.0.0:
-        * Initial Release 
-    Version 1.0.1:
-        * "Added Example for how the library works (Example.cpp)",
-        * "Added Example for how the library works (Example2.cpp)",
-        * "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
-        * "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them."
-    Version 1.0.2:
-        * "Added Dynamic Downsize for the Vector to save memory (Useful for Memory Constrained Environments Such As Arduino)",
-        * "Added This ChangeLog :) ",   
-        * "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
-        * "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them."
-    Version 1.0.3:
-        * "Updated Included Libraries to Latest Version",
-        * "Added merge Function that allows you to merge two Hashtables together"
+### Version 1.0.0:
+* Initial Release 
+### Version 1.0.1:
+* "Added Example for how the library works (Example.cpp)",
+* "Added Example for how the library works (Example2.cpp)",
+* "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
+* "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them."
+### Version 1.0.2:
+* "Added Dynamic Downsize for the Vector to save memory (Useful for Memory Constrained Environments Such As Arduino)",
+* "Added This ChangeLog :) ",   
+* "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
+* "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them."
+### Version 1.0.3:
+* "Updated Included Libraries to Latest Version",
+* "Added merge Function that allows you to merge two Hashtables together"
+
+
 ## Example
 
 Here's an example of how to use the `Hashtable` class:

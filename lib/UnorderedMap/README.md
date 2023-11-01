@@ -16,6 +16,18 @@ To use `UnorderedMap` in your Arduino sketch:
 1. Copy the `UnorderedMap.h` file to your project's directory.
 2. Include `UnorderedMap.h` at the top of your sketch.
 
+## Change Log
+### Version 1.0.0
+* Initial Release
+### Version 1.0.1
+* Added more documentation
+* Removed UnorderedMap.cpp and moved all code to UnorderedMap.h
+* Added Dynamic Resizing to UnorderedMap
+* Added Duplicate check on set Function
+### Version 1.0.2 (Coming Soon)
+* Update to README
+
+
 ## Usage
 
 To create an `UnorderedMap`, specify the key and value data types when declaring an instance:

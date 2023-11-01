@@ -16,6 +16,16 @@ To use `SDList` in your Arduino project:
 1. Copy `SDList.h` and `SDList.cpp` to your project's directory.
 2. Include the `SDList.h` file in your sketch.
 
+## ChangeLog
+### Version 1.0.0
+* Initial Release
+### Version 1.0.1
+* Dependency Update (Issues with certain Dependencies)
+### Version 1.0.2
+* Dependency Update (Issue was not resolved in 1.0.1 but is now properly resolved)
+### Version 1.0.3 (Coming Soon)
+* Update to README
+    
 ## Usage
 
 To create an `SDList`, specify the data type you want to store and provide the Chip Select (CS) pin and a filename for the page file on the SD card.

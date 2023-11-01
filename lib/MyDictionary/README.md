@@ -8,6 +8,16 @@
 - Provides basic dictionary operations such as insertion, deletion, and retrieval.
 - Uses custom error handling suitable for Arduino's constrained environment.
 
+## ChangeLog
+### Version 1.0.0
+* Initial Release
+### Version 1.0.1
+* Renamed Library from DictionaryImplementation to MyDictionary (This is a Dictionary class Implementation)
+* This Library is not tested and may not work. USE AT YOUR OWN RISK! Please report any Bugs to the Author
+### Version 1.0.2
+* Update to README
+
+    
 ## Usage
 
 To use `MyDictionary`, include the header file in your Arduino sketch and create an instance of `MyDictionary`.
