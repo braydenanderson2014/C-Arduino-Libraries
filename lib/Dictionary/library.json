@@ -56,8 +56,8 @@
             "version": "1.0.2",
             "date": "2023-10-31",
             "changes": [
-                "Fixed STD namespace issue -> made a mistake where i used std namespace instead of returning an error code"
-                 
+                "Fixed STD namespace issue -> made a mistake where i used std namespace instead of returning an error code",
+                "Verified the Iterator and IOStream dependencies should be working now" 
             ]
         }
     ]

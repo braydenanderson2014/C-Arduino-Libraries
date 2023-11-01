@@ -1,5 +1,8 @@
+// LinkedList.h
+#ifndef LINKEDLIST_H
+#define LINKEDLIST_H
+
 #include <Arduino.h>
-#include <LinkedList.h>
 
 template <typename T>
 class ListNode {
@@ -19,11 +22,8 @@ private:
 public:
     LinkedList() : head(nullptr), size(0) {}
 
-    ~LinkedList() {
-        clear();
-    }
+    ~LinkedList();
 
-    // Add an element to the end of the list
     void append(const T& value) {
         ListNode<T>* newNode = new ListNode<T>(value);
         if (!head) {
@@ -37,15 +37,12 @@ public:
         }
         size++;
     }
-
-    // Add an element to the beginning of the list
     void prepend(const T& value) {
         ListNode<T>* newNode = new ListNode<T>(value);
         newNode->next = head;
         head = newNode;
         size++;
     }
-
     // Insert an element at a specific position
     void insert(const T& value, size_t position) {
         if (position == 0) {
@@ -63,7 +60,6 @@ public:
             size++;
         }
     }
-
     // Remove the first occurrence of an element from the list
     void remove(const T& value) {
         if (!head) {
@@ -88,7 +84,6 @@ public:
             current = current->next;
         }
     }
-
     // Get the element at a specific position
     T& get(size_t position) const {
         if (position < size) {
@@ -99,8 +94,7 @@ public:
             return current->data;
         }
         return 0;
-    }
-
+    }    
     // Check if the list contains a specific element
     bool contains(const T& value) const {
         ListNode<T>* current = head;
@@ -134,26 +128,4 @@ public:
     }
 };
 
-int main() {
-    LinkedList<int> myList;
-
-    myList.append(1);
-    myList.append(2);
-    myList.prepend(0);
-    myList.insert(3, 3);
-
-    Serial.println("Size: " + myList.getSize());
-
-    for (size_t i = 0; i < myList.getSize(); i++) {
-        Serial.println("Element at position " + String(i) + ": " + String(myList.get(i)));
-    }
-
-    if (myList.contains(2)) {
-        Serial.println("List contains 2.");
-    }
-
-    myList.remove(2);
-    myList.clear();
-
-    return 0;
-}
+#endif // LINKEDLIST_H
