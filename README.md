@@ -1,20 +1,21 @@
 # C-Arduino-Libraries
 
 ## List of All Available Libraries ## [WARNING]: UNTESTED BY AUTHOR
-1. Dictionary [Active] (PURE VIRTUAL : No Concrete Implementation in this Library)
-2. Hashtable [Active]
-3. iostream [Active] (Published as : BasicIOStream)
-4. iterator [Active]
-5. Properties [Active] (Published as : SimpleProperties)
-6. SimpleVector [Active] 
-7. Timer [Active] (Published as : SimpleArduinoTimer)
-8. UnorderedMap [Active], [In-Development]
-9. LinkedList [Active], [In-Development] (Published as : BasicLinkedList)
-10. DictionaryImplementation [Active], [RENAMED] -> (MyDictionary), [In-Development] (implemented Version of the Dictionary Class)
-11. SDList [Active], [In-Development]
+1. Dictionary [Active] (PURE VIRTUAL : No Concrete Implementation in this Library), [UNTESTED]
+2. Hashtable [Active], [UNTESTED]
+3. iostream [Active] (Published as : BasicIOStream), [UNTESTED]
+4. iterator [Active], [UNTESTED]
+5. Properties [Active] (Published as : SimpleProperties), [UNTESTED]
+6. SimpleVector [Active] , [UNTESTED]
+7. Timer [Active] (Published as : SimpleArduinoTimer), [UNTESTED]
+8. UnorderedMap [Active], [In-Development], [UNTESTED]
+9. LinkedList [Active], [In-Development] (Published as : BasicLinkedList), [UNTESTED]
+10. DictionaryImplementation [Active], [RENAMED] -> (MyDictionary), [In-Development] (implemented Version of the Dictionary Class), [UNTESTED]
+11. SDList [Active], [In-Development], [UNTESTED]
 
 ## UNPUBLISHED (In Development) (Not yet Documented)
-========================================================== [WARNING]: NO DOCUMENTATION AVAILABLE YET & UNTESTED BY AUTHOR
+========================================================== 
+[WARNING]: NO DOCUMENTATION AVAILABLE YET & UNTESTED BY AUTHOR
 12. [NO-UNPUBLISHED-LIBRARIES]
 
 ## ALL LIBRARIES INCLUDE A MORE INDEPTH README.md ##
