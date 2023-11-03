@@ -17,6 +17,7 @@ void setup() {
   prop.setProperty("test", "test");
   prop.saveToSD("test.txt");
 
+  prop.setProperty("item1", "test2", "test.txt");
   hashtable.put("apple", 5);
   hashtable.put("banana", 3);
   hashtable.put("cherry", 8);
