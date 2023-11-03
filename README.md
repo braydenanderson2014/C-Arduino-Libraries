@@ -1,11 +1,11 @@
 # C-Arduino-Libraries
 
-## List of All Available Libraries ## [WARNING]: UNTESTED BY AUTHOR
+## List of All Available Libraries ## [WARNING]: UNTESTED/Partially Tested BY AUTHOR
 1. Dictionary [Active] (PURE VIRTUAL : No Concrete Implementation in this Library), [UNTESTED]
-2. Hashtable [Active], [UNTESTED]
+2. Hashtable [Active], [PARTIALLY-TESTED]
 3. iostream [Active] (Published as : BasicIOStream), [UNTESTED]
 4. iterator [Active], [UNTESTED]
-5. Properties [Active] (Published as : SimpleProperties), [UNTESTED]
+5. Properties [Active] (Published as : SimpleProperties), [PARTIALLY-TESTED]
 6. SimpleVector [Active] , [UNTESTED]
 7. Timer [Active] (Published as : SimpleArduinoTimer), [UNTESTED]
 8. UnorderedMap [Active], [In-Development], [UNTESTED]

@@ -189,6 +189,30 @@ public:
         return keys;
     }
 
+    bool containsKey(const K& key) const {
+        int index = hash(key);
+        Entry* entry = table[index];
+        while (entry != nullptr) {
+            if (entry->key == key) {
+                return true;
+            }
+            entry = entry->next;
+        }
+        return false;
+    }
+
+    bool containsValue(const V& value) const {
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            Entry* entry = table[i];
+            while (entry != nullptr) {
+                if (entry->value == value) {
+                    return true;
+                }
+                entry = entry->next;
+            }
+        }
+        return false;
+    }
     // More functions can be added here
 };
 

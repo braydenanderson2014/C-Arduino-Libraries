@@ -1,4 +1,4 @@
-#include <Arduino>
+#include <Arduino.h>
 #include <Hashtable.h>
 
 int main() {

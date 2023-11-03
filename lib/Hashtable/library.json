@@ -1,6 +1,6 @@
 {
     "name": "Hashtable",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "A hashtable implementation for Arduino",
     "keywords": ["Hashtable", "Hashtable Iterator"],
     "repository": {
@@ -66,6 +66,16 @@
             "changes": [
                 "Updated Included Libraries to Latest Version",
                 "Added merge Function that allows you to merge two Hashtables together"
+            ]
+        },
+        {
+            "version": "1.0.4",
+            "date": "2023-11-03",
+            "changes": [
+                "Fixed Issue with get function: Conversion from 'int' to 'const String' is ambiguous. -> Issue appears to happen when you use the get function with a int as the key",
+                "Fixed Hashing Issue: Hashing was not working correctly, causing the get function to not work correctly",
+                "Added containsKey() Function: This function allows you to check if a key exists in the Hashtable",
+                "Added containsValue() Function: This function allows you to check if a value exists in the Hashtable"
             ]
         }
     ],

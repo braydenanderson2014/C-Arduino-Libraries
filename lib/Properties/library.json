@@ -1,6 +1,6 @@
 {
     "name": "SimpleProperties",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "A library for managing properties with an SD card. It is designed to be simple and easy to use. This library mimicks the Java Properties class.",
     "keywords": ["properties", "SD card"],
     "repositories": [
@@ -70,7 +70,9 @@
             "date": "2023-10-28",
             "changes": [
                 "Update to the Library Json File",
-                "Added This ChangeLog to the Library Json File"
+                "Added This ChangeLog to the Library Json File",
+                "Updated to work properly with the latest Version of the Hashtable Library",
+                "This library has been partially tested and is now considered largely stable"
             ]
         }
         
