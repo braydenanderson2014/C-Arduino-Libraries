@@ -3,10 +3,34 @@
 
 #include <SimpleVector.h>
 #include <Arduino.h>
+    // Forward declaration of KeyHash
+template<typename K>
+struct KeyHash;
 
-template <typename K, typename V>
+// Specialization for String
+template<>
+struct KeyHash<String> {
+    unsigned long operator()(const String& key) const {
+        unsigned long hash = 0;
+        for (char c : key) {
+            hash = 31 * hash + c;
+        }
+        return hash;
+    }
+};
+
+// Specialization for int
+template<>
+struct KeyHash<int> {
+    unsigned long operator()(const int& key) const {
+        return static_cast<unsigned long>(key);
+    }
+};
+
+template <typename K, typename V, typename Hash = KeyHash<K>>
 class Hashtable {
 private:
+    
     struct Entry {
         K key;
         V value;
@@ -19,22 +43,20 @@ private:
     int TABLE_SIZE;
     int count;
     float loadFactorThreshold = 0.7;
+    Hash hashFunction;
 
-    int stringHash(const String& str) const {
-        unsigned int hash = 0;
+    int stringHash(const String& str) {
+        int hash = 0;
         for (unsigned int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
             hash = (hash * 31) + str.charAt(i);
         }
         return hash % TABLE_SIZE;
     }
 
+    // Simplified hash function that delegates to the Hash functor
     int hash(const K& key) const {
-        // Assuming that the key K has a proper hash function for non-String types
-        if constexpr (std::is_same<K, String>::value) {
-            return stringHash(key);
-        } else {
-            return std::hash<K>{}(key) % TABLE_SIZE;
-        }
+        return hashFunction(key) % TABLE_SIZE;
     }
 
     // Private function to resize the hash table
@@ -88,6 +110,18 @@ public:
             resize(TABLE_SIZE * 2);
         }
     }
+    V* get(const K& key) const {
+    int index = hash(key);
+    Entry* entry = table[index];
+    while (entry != nullptr) {
+        if (entry->key == key) {
+            return &(entry->value); // Return the address of the value
+        }
+        entry = entry->next;
+    }
+    return nullptr; // Return null if the key is not found
+}
+
 
     bool get(const K& key, V& value) const {
         int index = hash(key);
