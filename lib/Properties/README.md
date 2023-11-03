@@ -24,16 +24,18 @@ If you want to Utilize this Library. Please include the
 ```
 
 ## ChangeLog
-    Version 1.0.0:
-        * Initial Release 
-    Version 1.0.1:
-        * "Added the ability to get the number of properties in the file",
-        * "Update to the Library Json File"
-    Version 1.0.2:
-        * "Update to the Library Json File"
-    Version 1.0.3:
-        * "Update to the Library Json File",
-        * "Added This ChangeLog to the Library Json File"
+### Version 1.0.0:
+* Initial Release 
+### Version 1.0.1:
+* Added the ability to get the number of properties in the file
+* Update to the Library Json File
+### Version 1.0.2:
+* Update to the Library Json File
+### Version 1.0.3:
+* Update to the Library Json File
+* Added This ChangeLog to the Library Json File
+* Library has been updated to work properly with the latest Hashtable Release.
+* This Library has been partially tested. USE AT YOUR OWN RISK. Library Considered [Semi-Stable].
 
 Here's an example of how to use the `Properties` class:
 
