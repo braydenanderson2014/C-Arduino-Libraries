@@ -23,57 +23,58 @@ public:
     void saveToSD(const String& filename);
     void loadFromSD(const String& filename);
     bool containsKey(const String& key);
+    
     class KeyIterator {
-        private:
-            const Hashtable<String, String>& table;
-            int index;
-            SimpleVector<String> keys;
+    private:
+        const Hashtable<String, String>& table;
+        int index;
+        SimpleVector<String> keys;
     
-        public:
-            KeyIterator(const Hashtable<String, String>& t) : table(t), index(0) {
-                keys = table.keys();
-            }
+    public:
+        KeyIterator(const Hashtable<String, String>& t) : table(t), index(0) {
+            keys = table.keys();
+        }
     
-            bool hasNext() {
-                return index < keys.size();
-            }
+        bool hasNext() {
+            return index < keys.size();
+        }
     
-            String next() {
-                if (!hasNext()) {
-                    // Handle iterator reaching the end
-                    return "";
-                }
-                return keys[index++];
+        String next() {
+            if (!hasNext()) {
+                return "";
             }
+            return keys[index++];
+        }
     };
 
-    // Iterator for values
     class ValueIterator {
-        private:
-            const Hashtable<String, String>& table;
-            int index;
-            SimpleVector<String> keys;
+    private:
+        const Hashtable<String, String>& table;
+        int index;
+        SimpleVector<String> keys;
 
-        public:
-            ValueIterator(const Hashtable<String, String>& t) : table(t), index(0) {
-                keys = table.keys();
-            }
+    public:
+        ValueIterator(const Hashtable<String, String>& t) : table(t), index(0) {
+            keys = table.keys();
+        }
 
-            bool hasNext() {
-                return index < keys.size();
-            }
+        bool hasNext() {
+            return index < keys.size();
+        }
 
-            String next() {
-                if (!hasNext()) {
-                    // Handle iterator reaching the end
-                    return "";
-                }
-                String key = keys[index++];
-                return table.get(key);
+        String next() {
+            if (!hasNext()) {
+                return "";
             }
+            String* valuePtr = table.get(keys[index++]);
+            if (valuePtr) {
+                return *valuePtr;
+            } else {
+                return "";
+            }
+        }
     };
 
-    // Functions to get iterators
     KeyIterator keysIterator() const {
         return KeyIterator(table);
     }

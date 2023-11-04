@@ -21,10 +21,12 @@ void setup() {
   hashtable.put("apple", 5);
   hashtable.put("banana", 3);
   hashtable.put("cherry", 8);
-
-  int appleCount = hashtable.get("apple");
-  int bananaCount = hashtable.get("banana");
   
+  int* applePointer = hashtable.get("apple");
+  int appleCount = applePointer ? *applePointer : 0; // checks if applePointer is not null before dereferencing
+
+  int* bananaPointer = hashtable.get("banana");
+  int bananaCount = bananaPointer ? *bananaPointer : 0; // checks if bananaPointer is not null before dereferencing
 }
 
 void loop() {
