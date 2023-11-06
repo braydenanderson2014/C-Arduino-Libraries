@@ -1,6 +1,7 @@
 #ifndef SIMPLEVECTOR_H
 #define SIMPLEVECTOR_H
 
+#include <Arduino.h>
 template<typename T>
 class SimpleVector {
 private:
@@ -19,14 +20,24 @@ private:
     }
 
 public:
-    SimpleVector() : count(0), capacity(4) {
-        array = new T[capacity];
-    }
+    // The SimpleVectorIterator class will be defined below
+    class SimpleVectorIterator;
 
+    SimpleVector() : array(new T[4]), count(0), capacity(4) {}
+    
     ~SimpleVector() {
         delete[] array;
     }
-    //Changed to put() for better naming conventions.
+
+    // ... Other methods ...
+
+    void releaseMemory() {
+        delete[] array;
+        array = nullptr;
+        capacity = 0;
+        count = 0;
+    }
+//Changed to put() for better naming conventions.
     void put(const T& item) {
         if (count == capacity) {
             resize(2 * capacity);
@@ -58,20 +69,6 @@ public:
         return count;
     }
 
-    T* begin() {
-        return &array[0];
-    }
-
-    T* end() {
-        return &array[count];
-    }
-
-    void releaseMemory() {
-        delete[] array;
-        array = nullptr;
-        capacity = 0;
-        size = 0;
-    }
 
 // Get the element at the specified index
     T& get(unsigned int index) {
@@ -90,21 +87,54 @@ public:
         }
         return -1; // Element not found
     }
+
+    // ... Other methods ...
+
+    // SimpleVectorIterator related methods
+    SimpleVectorIterator begin() {
+        return SimpleVectorIterator(array, array + count);
+    }
+
+    SimpleVectorIterator end() {
+        return SimpleVectorIterator(array + count, array + count);
+    }
+
+    // The iterator type should be defined after the SimpleVectorIterator class.
+    typedef SimpleVectorIterator iterator;
+
+    // Definition of the SimpleVectorIterator class
     class SimpleVectorIterator {
-        private:
-            T* current;
-            T* end;
-        
-        public:
-            SimpleVectorIterator(T* start, T* stop) : current(start), end(stop) {}
-        
-            bool hasNext() {
-                return current != end;
+    private:
+        T* current;
+        T* end;
+
+    public:
+        SimpleVectorIterator(T* start, T* stop) : current(start), end(stop) {}
+
+        bool hasNext() {
+            return current != end;
+        }
+
+        T& next() {
+            if (current == end) {
+                Serial.println("Error: Iterator has reached the end of the vector.");
             }
-        
-            T& next() {
-                return *current++;
-            }
-        };
+            return *current++;
+        }
+
+        // The iterator needs to be compatible with STL-style iteration
+        SimpleVectorIterator& operator++() {
+            ++current;
+            return *this;
+        }
+
+        bool operator!=(const SimpleVectorIterator& other) const {
+            return current != other.current;
+        }
+
+        T& operator*() {
+            return *current;
+        }
+    };
 };
 #endif // SIMPLEVECTOR_H

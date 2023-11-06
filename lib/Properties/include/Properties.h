@@ -41,7 +41,7 @@ public:
     
         String next() {
             if (!hasNext()) {
-                return "";
+                return "EMPTY";
             }
             return keys[index++];
         }
@@ -64,7 +64,7 @@ public:
 
         String next() {
             if (!hasNext()) {
-                return "";
+                return "EMPTY";
             }
             String* valuePtr = table.get(keys[index++]);
             if (valuePtr) {
