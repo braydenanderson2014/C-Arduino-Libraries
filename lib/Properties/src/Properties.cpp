@@ -59,6 +59,20 @@ void Properties::saveToSD(const String& filename) {
         Serial.println("Failed to initialize SD card.");
         return;
     }
+
+    // Check if file exists, if not, create it by opening it for writing
+    if (!SD.exists(filename.c_str())) {
+        File file = SD.open(filename.c_str(), FILE_WRITE);
+        if (file) {
+            Serial.println("File created successfully.");
+            file.close(); // Close the file after creating it
+        } else {
+            Serial.println("Error creating file.");
+            return;
+        }
+    }
+
+    // Now that we know the file exists, open it for writing
     File file = SD.open(filename.c_str(), FILE_WRITE);
 
     if (file) {
@@ -74,6 +88,7 @@ void Properties::saveToSD(const String& filename) {
         Serial.println("Error opening file for writing.");
     }
 }
+
 
 void Properties::loadFromSD(const String& filename) {
     if (!SD.begin(4)) {
