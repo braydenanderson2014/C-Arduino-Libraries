@@ -183,7 +183,7 @@ public:
         SimpleVector<K> keys;
         for (int i = 0; i < TABLE_SIZE; ++i) {
             for (Entry* entry = table[i]; entry != nullptr; entry = entry->next) {
-                keys.push_back(entry->key);
+                keys.put(entry->key);
             }
         }
         return keys;
