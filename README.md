@@ -1,9 +1,9 @@
 # C-Arduino-Libraries
 
 ## List of All Available Libraries ## [WARNING]: UNTESTED/Partially Tested BY AUTHOR
-1. Dictionary [Active] (PURE VIRTUAL : No Concrete Implementation in this Library), [UNTESTED]
+1. Dictionary [Active] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING NOT NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
 2. Hashtable [Active], [PARTIALLY-TESTED]
-3. iostream [Active] (Published as : BasicIOStream), [UNTESTED]
+3. iostream [Active] (Published as : BasicIOStream), [PARTIALLY-TESTED]
 4. iterator [Active], [UNTESTED]
 5. Properties [Active] (Published as : SimpleProperties), [PARTIALLY-TESTED]
 6. SimpleVector [Active] , [UNTESTED]
@@ -108,6 +108,8 @@ The `Hashtable` class is designed to offer a dynamic and scalable hash table wit
 - `isEmpty()`: Checks if the hash table is empty.
 - `keys()`: Returns an iterator for iterating over the keys in the hash table.
 - `merge(const Hashtable<K, V>& other)`: Merges the contents of another hash table into the current one.
+- `containsKey(const K& key)`: Check if a Table contains a key.
+- `containsValue(const V& value)`: Check if a Table contains a Value.
 
 ## Usage
 

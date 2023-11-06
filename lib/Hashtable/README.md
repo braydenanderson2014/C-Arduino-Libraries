@@ -20,8 +20,8 @@ The `Hashtable` class is designed to offer a dynamic and scalable hash table wit
 - `isEmpty()`: Checks if the hash table is empty.
 - `keys()`: Returns an iterator for iterating over the keys in the hash table.
 - `merge(const Hashtable<K, V>& other)`: Merges the contents of another hash table into the current one.
-- `containsKey()`: Check if the Hashtable contains a certain key
-- `containsValue()`: Check if the Hashtable contains a certain value
+- `containsKey(const K& key)`: Check if a Table contains a key.
+- `containsValue(const V& value)`: Check if a Table contains a Value.
 
 
 
