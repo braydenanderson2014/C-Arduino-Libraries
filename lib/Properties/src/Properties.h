@@ -25,63 +25,39 @@ public:
     void loadFromSD(const String& filename);
     bool containsKey(const String& key);
     
-    class KeyIterator {
-    private:
-        const Hashtable<String, String>& table;
-        int index;
-        SimpleVector<String> keys;
-    
-    public:
-        KeyIterator(const Hashtable<String, String>& t) : table(t), index(0) {
-            keys = table.keys();
+    class PropertiesIterator {
+        private:
+            Hashtable<String, String>::Iterator it;
+        public:
+            PropertiesIterator(Hashtable<String, String>::Iterator itr) : it(itr) {}
+
+        PropertiesIterator& operator++() {
+            ++it;
+            return *this;
         }
-    
-        bool hasNext() {
-            return index < keys.size();
+
+        bool operator!=(const PropertiesIterator& other) const {
+            return it != other.it;
         }
-    
-        String next() {
-            if (!hasNext()) {
-                return "EMPTY";
-            }
-            return keys[index++];
+
+        // Assuming `Hashtable::Iterator` properly dereferences to an `Entry`
+        Hashtable<String, String>::KeyValuePair operator*() const {
+            auto entry = *it; // This assumes that `*it` gives you an `Entry` or something similar.
+            return {entry->key, entry->value}; // Construct and return a KeyValuePair.
         }
+
+    
+        // To make it easier to use without std::pair, you could provide methods to get the key and value:
+        String key() const { return (*it)->key; }
+        String value() const { return (*it)->value; }
     };
 
-    class ValueIterator {
-    private:
-        const Hashtable<String, String>& table;
-        int index;
-        SimpleVector<String> keys;
-
-    public:
-        ValueIterator(const Hashtable<String, String>& t) : table(t), index(0) {
-            keys = table.keys();
-        }
-
-        bool hasNext() {
-            return index < keys.size();
-        }
-
-        String next() {
-            if (!hasNext()) {
-                return "EMPTY";
-            }
-            String* valuePtr = table.get(keys[index++]);
-            if (valuePtr) {
-                return *valuePtr;
-            } else {
-                return "";
-            }
-        }
-    };
-
-    KeyIterator keysIterator() const {
-        return KeyIterator(table);
+    PropertiesIterator begin() {
+        return PropertiesIterator(table.begin());
     }
 
-    ValueIterator valuesIterator() const {
-        return ValueIterator(table);
+    PropertiesIterator end() {
+        return PropertiesIterator(table.end());
     }
 };
 

@@ -79,8 +79,11 @@ private:
 
         delete[] oldTable;
     }
-
 public:
+    struct KeyValuePair {
+        K key;
+        V value;
+    };
 class Iterator {
     private:
         const Hashtable<K, V, Hash>* hashtable;
@@ -95,8 +98,13 @@ class Iterator {
         }
 
     public:
+         // Define the dereference operator to return a key-value pair.
+        KeyValuePair operator*() const {
+            return KeyValuePair{currentEntry->key, currentEntry->value};
+        }
+
         Iterator(const Hashtable<K, V, Hash>* ht, int bucket, Entry* entry)
-            : hashtable(ht), currentBucket(bucket), currentEntry(entry) {
+        : hashtable(ht), currentBucket(bucket), currentEntry(entry) {
             if (!currentEntry) {
                 goToNextEntry();
             }
@@ -111,9 +119,7 @@ class Iterator {
             return *this;
         }
 
-        Entry* operator*() const {
-            return currentEntry;
-        }
+       
     };
 
     Iterator begin() const {
@@ -128,7 +134,7 @@ class Iterator {
     Iterator end() const {
         return Iterator(this, TABLE_SIZE, nullptr);
     }
-    
+
     Hashtable() : TABLE_SIZE(INITIAL_TABLE_SIZE), count(0) {
         table = new Entry*[TABLE_SIZE]();
     }
