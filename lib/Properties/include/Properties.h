@@ -1,7 +1,7 @@
 #ifndef PROPERTIES_H
 #define PROPERTIES_H
 
-#include "Hashtable.h"
+#include <Hashtable.h>
 #include <Arduino.h>
 
 class Properties {

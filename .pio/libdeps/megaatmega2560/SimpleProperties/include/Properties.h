@@ -19,6 +19,7 @@ public:
     void removeProperty(const String& key);
     void clear();
     int size();
+    int elements();
     bool isEmpty();
     void saveToSD(const String& filename);
     void loadFromSD(const String& filename);
@@ -41,7 +42,7 @@ public:
     
         String next() {
             if (!hasNext()) {
-                return "";
+                return "EMPTY";
             }
             return keys[index++];
         }
@@ -64,7 +65,7 @@ public:
 
         String next() {
             if (!hasNext()) {
-                return "";
+                return "EMPTY";
             }
             String* valuePtr = table.get(keys[index++]);
             if (valuePtr) {

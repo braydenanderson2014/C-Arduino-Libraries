@@ -1,6 +1,6 @@
 {
     "name": "Hashtable",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "A hashtable implementation for Arduino",
     "keywords": ["Hashtable", "Hashtable Iterator"],
     "repository": {
@@ -76,6 +76,15 @@
                 "Fixed Hashing Issue: Hashing was not working correctly, causing the get function to not work correctly",
                 "Added containsKey() Function: This function allows you to check if a key exists in the Hashtable",
                 "Added containsValue() Function: This function allows you to check if a value exists in the Hashtable"
+            ]
+        },
+        {
+            "version": "1.0.5",
+            "date": "2023-11-06",
+            "changes": [
+                "Added Iterator to the Hashtable: This allows you to iterate through the Hashtable",
+                "This Iterator is Untested, Please Report any bugs you find if you use it"
+
             ]
         }
     ],
