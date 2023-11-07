@@ -66,6 +66,10 @@ public:
     }
 
     unsigned int size() const {
+        return capacity;
+    }
+
+    unsigned int elements() const {
         return count;
     }
 

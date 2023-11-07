@@ -111,16 +111,16 @@ public:
         }
     }
     V* get(const K& key) const {
-    int index = hash(key);
-    Entry* entry = table[index];
-    while (entry != nullptr) {
-        if (entry->key == key) {
-            return &(entry->value); // Return the address of the value
+        int index = hash(key);
+        Entry* entry = table[index];
+        while (entry != nullptr) {
+            if (entry->key == key) {
+                return &(entry->value); // Return the address of the value
+            }
+            entry = entry->next;
         }
-        entry = entry->next;
+        return nullptr; // Return null if the key is not found
     }
-    return nullptr; // Return null if the key is not found
-}
 
 
     bool get(const K& key, V& value) const {
@@ -172,11 +172,14 @@ public:
     }
 
     int size() const {
-        return count;
+        return TABLE_SIZE;
     }
 
     bool isEmpty() const {
         return size() == 0;
+    }
+    int elements() const {
+        return count;
     }
 
     SimpleVector<K> keys() const {

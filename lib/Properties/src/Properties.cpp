@@ -50,6 +50,10 @@ int Properties::size() {
     return table.size();
 }
 
+int Properties::elements() {
+    return table.elements();
+}
+
 bool Properties::isEmpty() {
     return table.isEmpty();
 }

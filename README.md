@@ -4,14 +4,22 @@
 1. Dictionary [Active] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING NOT NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
 2. Hashtable [Active], [PARTIALLY-TESTED]
 3. iostream [Active] (Published as : BasicIOStream), [PARTIALLY-TESTED]
-4. iterator [Active], [UNTESTED]
-5. Properties [Active] (Published as : SimpleProperties), [PARTIALLY-TESTED]
-6. SimpleVector [Active] , [UNTESTED]
+4. iterator [Active], [PARTIALLY-TESTED]
+5. Properties [Active] (Published as : SimpleProperties), [PARTIALLY-TESTED], [KNOWN-ISSUES]
+6. SimpleVector [Active] , [PARTIALLY-TESTED], [KNOWN-ISSUES]
 7. Timer [Active] (Published as : SimpleArduinoTimer), [UNTESTED]
-8. UnorderedMap [Active], [In-Development], [UNTESTED]
-9. LinkedList [Active], [In-Development] (Published as : BasicLinkedList), [UNTESTED]
+8. UnorderedMap [Active], [PARTIALLY-TESTED]
+9. LinkedList [Active] (Published as : BasicLinkedList), [UNTESTED]
 10. DictionaryImplementation [Active], [RENAMED] -> (MyDictionary), [In-Development] (implemented Version of the Dictionary Class), [UNTESTED]
 11. SDList [Active], [In-Development], [UNTESTED]
+
+
+## ACTIVELY WORKING ON LISTED LIBRARIES (Bug Fixing or Feature Adding):
+1. Properties [KNOWN-ISSUES] (See Issues)
+2. SimpleVector [KNOWN-ISSUES] (See Issues)
+3. UnorderedMap [FEATURE-ADDITION] (See Issues)
+4. Hashtable []
+
 
 ## UNPUBLISHED (In Development) (Not yet Documented)
 ========================================================== 

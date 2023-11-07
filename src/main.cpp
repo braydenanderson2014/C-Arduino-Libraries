@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <Properties.h>
+#include "Properties.h"
 #include "MyDictionary.h"
 #include "LinkedList.h"
 #include "UnorderedMap.h"

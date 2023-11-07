@@ -19,6 +19,7 @@ public:
     void removeProperty(const String& key);
     void clear();
     int size();
+    int elements();
     bool isEmpty();
     void saveToSD(const String& filename);
     void loadFromSD(const String& filename);

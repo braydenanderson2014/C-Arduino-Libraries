@@ -172,11 +172,14 @@ public:
     }
 
     int size() const {
-        return count;
+        return TABLE_SIZE;
     }
 
     bool isEmpty() const {
         return size() == 0;
+    }
+    int elements() const {
+        return count;
     }
 
     SimpleVector<K> keys() const {
