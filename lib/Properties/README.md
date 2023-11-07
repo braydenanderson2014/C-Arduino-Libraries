@@ -36,6 +36,12 @@ If you want to Utilize this Library. Please include the
 * Added This ChangeLog to the Library Json File
 * Library has been updated to work properly with the latest Hashtable Release.
 * This Library has been partially tested. USE AT YOUR OWN RISK. Library Considered [Semi-Stable].
+### Version 1.0.4:
+* Update to the Library Json File
+* Patching the iterator, and the save Function. Iterator may still have issues, Working toward fixing issue.
+* Patch is untested
+* This library has been partially tested and is now considered largely stable
+
 
 Here's an example of how to use the `Properties` class:
 

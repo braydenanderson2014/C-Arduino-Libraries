@@ -21,21 +21,21 @@ void Properties::setProperty(const String& key, const String& value, const Strin
 }
 
 String Properties::getProperty(const String& key) {
-    String value = table.get(key);
-    if (value == "") { // Assuming an empty String indicates a lack of the property
+    String* valuePtr = table.get(key);
+    if (!valuePtr) {
         Serial.println("Error: Property with key '" + key + "' not found.");
-        return "[ERROR]";  // Return a special error value
+        return "[ERROR]";
     }
-    return value;
+    return *valuePtr;
 }
 
 String Properties::getProperty(const String& key, const String& defaultValue, const String& filePath) {
     loadFromSD(filePath);
-    String value = table.get(key);
-    if (value == "") { // Assuming an empty String indicates a lack of the property
+    String* valuePtr = table.get(key);
+    if (!valuePtr) {
         return defaultValue;
     }
-    return value;
+    return *valuePtr;
 }
 
 void Properties::removeProperty(const String& key) {
@@ -62,9 +62,12 @@ void Properties::saveToSD(const String& filename) {
     File file = SD.open(filename.c_str(), FILE_WRITE);
 
     if (file) {
-        for (auto& key : table.keys()) {  // Assuming you have a keys() method in Hashtable
-            String line = key + "=" + table.get(key) + "\n";
-            file.print(line);
+        for (auto& key : table.keys()) {  
+            String* valuePtr = table.get(key);
+            if (valuePtr) {
+                String line = key + "=" + *valuePtr + "\n";
+                file.print(line);
+            }
         }
         file.close();
     } else {
@@ -73,11 +76,11 @@ void Properties::saveToSD(const String& filename) {
 }
 
 void Properties::loadFromSD(const String& filename) {
-if (!SD.begin(4)) {
-    Serial.println("Failed to initialize SD card.");
-    return;
-}
-File file = SD.open(filename.c_str(), FILE_READ);
+    if (!SD.begin(4)) {
+        Serial.println("Failed to initialize SD card.");
+        return;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
 
     if (file) {
         while (file.available()) {
@@ -96,6 +99,5 @@ File file = SD.open(filename.c_str(), FILE_READ);
 }
 
 bool Properties::containsKey(const String& key) {
-    return table.get(key) != "";
+    return table.get(key) != nullptr;
 }
-

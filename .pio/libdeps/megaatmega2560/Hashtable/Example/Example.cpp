@@ -1,8 +1,8 @@
-#include <Arduino>
+#include <Arduino.h>
 #include <Hashtable.h>
 
 int main() {
-    Hashtable<std::string, int> myHashtable;
+    Hashtable<String, int> myHashtable;
 
     // Adding key-value pairs to the hashtable
     myHashtable.put("apple", 5);

@@ -1,256 +1,219 @@
 #ifndef HASHTABLE_H
 #define HASHTABLE_H
+
 #include <SimpleVector.h>
 #include <Arduino.h>
+    // Forward declaration of KeyHash
+template<typename K>
+struct KeyHash;
 
-template <typename K, typename V>
+// Specialization for String
+template<>
+struct KeyHash<String> {
+    unsigned long operator()(const String& key) const {
+        unsigned long hash = 0;
+        for (char c : key) {
+            hash = 31 * hash + c;
+        }
+        return hash;
+    }
+};
+
+// Specialization for int
+template<>
+struct KeyHash<int> {
+    unsigned long operator()(const int& key) const {
+        return static_cast<unsigned long>(key);
+    }
+};
+
+template <typename K, typename V, typename Hash = KeyHash<K>>
 class Hashtable {
 private:
+    
     struct Entry {
         K key;
         V value;
-        Entry *next;
-
-        Entry(K k, V v) : key(k), value(v), next(nullptr) {} // Inline constructor
+        Entry* next;
+        Entry(K k, V v) : key(k), value(v), next(nullptr) {}
     };
 
-    const static int INITIAL_TABLE_SIZE = 16; // Initial size, adjust based on your needs
+    static const int INITIAL_TABLE_SIZE = 16;
     Entry** table;
     int TABLE_SIZE;
     int count;
-    float loadFactorThreshold = 0.7; // Adjust the threshold as needed
+    float loadFactorThreshold = 0.7;
+    Hash hashFunction;
 
     int stringHash(const String& str) {
         int hash = 0;
         for (unsigned int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
-            hash = (hash * 31) + c;
+            hash = (hash * 31) + str.charAt(i);
         }
-        return hash;
+        return hash % TABLE_SIZE;
     }
 
-    int hash(const String& key) const {
-        return stringHash(key) % TABLE_SIZE;
+    // Simplified hash function that delegates to the Hash functor
+    int hash(const K& key) const {
+        return hashFunction(key) % TABLE_SIZE;
     }
-    //Hello
+
     // Private function to resize the hash table
     void resize(int newSize) {
-        int oldSize = TABLE_SIZE;
         Entry** oldTable = table;
+        int oldSize = TABLE_SIZE;
         TABLE_SIZE = newSize;
-        table = new Entry*[TABLE_SIZE](); // Initialize to nullptr
+        table = new Entry*[TABLE_SIZE]();
 
-        // Rehash all existing elements into the new table
-        for (int i = 0; i < oldSize; i++) {
-            Entry* current = oldTable[i];
-            while (current) {
-                int index = hash(current->key);
-                Entry* temp = current->next;
-                current->next = table[index];
-                table[index] = current;
-                current = temp;
+        for (int i = 0; i < oldSize; ++i) {
+            Entry* entry = oldTable[i];
+            while (entry) {
+                Entry* next = entry->next;
+                int index = hash(entry->key);
+                entry->next = table[index];
+                table[index] = entry;
+                entry = next;
             }
         }
 
         delete[] oldTable;
-         if (entryCount < capacity / 4 && capacity > INITIAL_TABLE_SIZE) {
-            keysVector.resize(capacity / 2);
-        }
     }
 
 public:
-    Hashtable() : count(0), TABLE_SIZE(INITIAL_TABLE_SIZE) {
+    Hashtable() : TABLE_SIZE(INITIAL_TABLE_SIZE), count(0) {
         table = new Entry*[TABLE_SIZE]();
     }
 
-   ~Hashtable() {
+    ~Hashtable() {
         clear();
         delete[] table;
     }
 
-    class HashtableIterator {
-        private:
-        typename Hashtable<K, V>::Entry** table;
-        int TABLE_SIZE;
-        int index;
-        typename Hashtable<K, V>::Entry* current;
-        int entryCount; // Track the number of entries
-        int capacity;   // Track the capacity of the Hashtable
-        SimpleVector<K> keysVector; // Track the keys in a SimpleVector
-
-        public:
-        HashtableIterator(typename Hashtable<K, V>::Entry** t, int size) : table(t), TABLE_SIZE(size), index(0), current(nullptr) {}
-
-        bool hasNext() {
-            while (!current && index < TABLE_SIZE) {
-                current = table[index++];
+    void put(const K& key, const V& value) {
+        int index = hash(key);
+        Entry* entry = table[index];
+        while (entry != nullptr) {
+            if (entry->key == key) {
+                entry->value = value;
+                return;
             }
-            return current != nullptr;
+            entry = entry->next;
         }
 
-        typename Hashtable<K, V>::Entry* next() {
-            if (!hasNext()) {
-                return nullptr;
-            }
-            typename Hashtable<K, V>::Entry* result = current;
-            current = current->next;
-            return result;
+        Entry* newEntry = new Entry(key, value);
+        newEntry->next = table[index];
+        table[index] = newEntry;
+        ++count;
+
+        if (static_cast<float>(count) / TABLE_SIZE > loadFactorThreshold) {
+            resize(TABLE_SIZE * 2);
         }
-    };
-    
-    void releaseMemory() {
-        for (int i = 0; i < TABLE_SIZE; i++) {
-            Entry *current = table[i];
-            while (current) {
-                Entry *next = current->next;
+    }
+    V* get(const K& key) const {
+    int index = hash(key);
+    Entry* entry = table[index];
+    while (entry != nullptr) {
+        if (entry->key == key) {
+            return &(entry->value); // Return the address of the value
+        }
+        entry = entry->next;
+    }
+    return nullptr; // Return null if the key is not found
+}
+
+
+    bool get(const K& key, V& value) const {
+        int index = hash(key);
+        Entry* entry = table[index];
+        while (entry != nullptr) {
+            if (entry->key == key) {
+                value = entry->value;
+                return true;
+            }
+            entry = entry->next;
+        }
+        return false;
+    }
+
+    bool remove(const K& key) {
+        int index = hash(key);
+        Entry* current = table[index];
+        Entry* prev = nullptr;
+
+        while (current != nullptr) {
+            if (current->key == key) {
+                if (prev != nullptr) {
+                    prev->next = current->next;
+                } else {
+                    table[index] = current->next;
+                }
                 delete current;
-                current = next;
+                --count;
+                return true;
+            }
+            prev = current;
+            current = current->next;
+        }
+        return false;
+    }
+
+    void clear() {
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            Entry* entry = table[i];
+            while (entry != nullptr) {
+                Entry* toDelete = entry;
+                entry = entry->next;
+                delete toDelete;
             }
             table[i] = nullptr;
         }
         count = 0;
     }
 
-    V get(K key) const {
+    int size() const {
+        return count;
+    }
+
+    bool isEmpty() const {
+        return size() == 0;
+    }
+
+    SimpleVector<K> keys() const {
+        SimpleVector<K> keys;
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            for (Entry* entry = table[i]; entry != nullptr; entry = entry->next) {
+                keys.push_back(entry->key);
+            }
+        }
+        return keys;
+    }
+
+    bool containsKey(const K& key) const {
         int index = hash(key);
-        Entry *current = table[index];
-        while (current) {
-            if (current->key == key) {
-                return current->value;
+        Entry* entry = table[index];
+        while (entry != nullptr) {
+            if (entry->key == key) {
+                return true;
             }
-            current = current->next;
+            entry = entry->next;
         }
-        return V(); // Return default value
+        return false;
     }
 
-    void merge(const Hashtable<K, V>& other) {
-        SimpleVector<K> keysToAdd = other.keys();
-        for (int i = 0; i < keysToAdd.size(); i++) {
-            K key = keysToAdd[i];
-            V value = other.get(key);
-            put(key, value);
-        }
-    }
-    // Move your other function implementations here
-    // Example:
-    void put(K key, V value);
-    V get(K key);
-    void remove(K key);
-    void clear();
-    int size();
-    bool isEmpty();
-    SimpleVector<K> keys() const;
-
-
-    // Repeat for other functions...
-};
-//template <typename K, typename V>
-//int Hashtable<K, V>::TABLE_SIZE = 16; // Initialize it to your desired size
-
-
-template <typename K, typename V>
-void Hashtable<K, V>::put(K key, V value) {
-    int index = hash(key);
-    Entry *newEntry = new Entry(key, value);
-    if (!table[index]) {
-        table[index] = newEntry;
-    } else{
-        Entry *prev = nullptr;
-        Entry *current = table[index];
-        while (current) {
-            if (current->key == key) {
-                if (prev) {
-                    prev->next = newEntry;
-                    newEntry->next = current->next;
-                    delete current;
-                } else {
-                    table[index] = newEntry;
-                    newEntry->next = current->next;
-                    delete current;
+    bool containsValue(const V& value) const {
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            Entry* entry = table[i];
+            while (entry != nullptr) {
+                if (entry->value == value) {
+                    return true;
                 }
-                return;
+                entry = entry->next;
             }
-            prev = current;
-            current = current->next;
         }
-        prev->next = newEntry;
+        return false;
     }
-    count++;
-    float currentLoadFactor = static_cast<float>(count) / TABLE_SIZE;
-        if (currentLoadFactor >= loadFactorThreshold) {
-            // Resize to double the current size
-            resize(TABLE_SIZE * 2);
-        }
-}
+    // More functions can be added here
+};
 
-template <typename K, typename V>
-V Hashtable<K, V>::get(K key) {
-    int index = hash(key);
-    Entry *current = table[index];
-    while (current) {
-        if (current->key == key) {
-            return current->value;
-        }
-        current = current->next;
-    }
-    return V(); // Return default value
-}
-
-template <typename K, typename V>
-void Hashtable<K, V>::remove(K key) {
-    int index = hash(key);
-    Entry *current = table[index];
-    Entry *prev = nullptr;
-    while (current) {
-        if (current->key == key) {
-            if (prev) {
-                prev->next = current->next;
-            } else {
-                table[index] = current->next;
-            }
-            delete current;
-            count--;
-            return;
-        }
-        prev = current;
-        current = current->next;
-    }
-}
-
-template <typename K, typename V>
-void Hashtable<K, V>::clear() {
-    for (int i = 0; i < TABLE_SIZE; i++) {
-        Entry *current = table[i];
-        while (current) {
-            Entry *next = current->next;
-            delete current;
-            current = next;
-        }
-        table[i] = nullptr;
-    }
-    count = 0;
-}
-
-template <typename K, typename V>
-int Hashtable<K, V>::size() {
-    return count;
-}
-
-template <typename K, typename V>
-bool Hashtable<K, V>::isEmpty() {
-    return count == 0;
-}
-
-template <typename K, typename V>
-SimpleVector<K> Hashtable<K, V>::keys() const {
-    SimpleVector<K> result;
-    for (int i = 0; i < TABLE_SIZE; i++) {
-        Entry* current = table[i];
-        while (current) {
-            result.push_back(current->key);
-            current = current->next;
-        }
-    }
-    return result;
-}
 #endif // HASHTABLE_H
