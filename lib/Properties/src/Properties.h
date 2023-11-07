@@ -28,13 +28,25 @@ public:
     class PropertiesIterator {
         private:
             Hashtable<String, String>::Iterator it;
+            Hashtable<String, String>::Iterator hashtableEnd;  // Add this line
+
         public:
-            PropertiesIterator(Hashtable<String, String>::Iterator itr) : it(itr) {}
+            PropertiesIterator(Hashtable<String, String>::Iterator begin, Hashtable<String, String>::Iterator end)
+        : it(begin), hashtableEnd(end) {}  // Modify this line
 
         PropertiesIterator& operator++() {
+            // Advance the iterator at least once before checking for empty values.
             ++it;
+            // Skip over empty values. Check if the length of the value string is 0.
+            while (it != hashtableEnd && (*it).value.length() == 0) {
+                ++it;
+            }
             return *this;
         }
+
+
+
+
 
         // Postfix increment
         PropertiesIterator operator++(int) {
@@ -71,13 +83,13 @@ public:
         }
     };
 
-    PropertiesIterator begin() {
-        return PropertiesIterator(table.begin());
-    }
+PropertiesIterator begin() {
+    return PropertiesIterator(table.begin(), table.end());
+}
 
-    PropertiesIterator end() {
-        return PropertiesIterator(table.end());
-    }
+PropertiesIterator end() {
+    return PropertiesIterator(table.end(), table.end());
+}
 };
 
 #endif // PROPERTIES_H
