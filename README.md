@@ -15,10 +15,10 @@
 
 
 ## ACTIVELY WORKING ON LISTED LIBRARIES (Bug Fixing or Feature Adding):
-1. Properties [KNOWN-ISSUES] (See Issues)
-2. SimpleVector [KNOWN-ISSUES] (See Issues)
+1. Properties [PATCHED], [AWAITING-NEXT-RELEASE]
+2. SimpleVector [PATCHED], [AWAITING-NEXT-RELEASE] 
 3. UnorderedMap [FEATURE-ADDITION] (See Issues)
-4. Hashtable []
+4. Hashtable [PATCHED], [AWAITING-NEXT-RELEASE]
 
 
 ## UNPUBLISHED (In Development) (Not yet Documented)
