@@ -81,6 +81,54 @@ private:
     }
 
 public:
+class Iterator {
+    private:
+        const Hashtable<K, V, Hash>* hashtable;
+        int currentBucket;
+        Entry* currentEntry;
+
+        void goToNextEntry() {
+            currentEntry = currentEntry->next;
+            while (!currentEntry && currentBucket < hashtable->TABLE_SIZE - 1) {
+                currentEntry = hashtable->table[++currentBucket];
+            }
+        }
+
+    public:
+        Iterator(const Hashtable<K, V, Hash>* ht, int bucket, Entry* entry)
+            : hashtable(ht), currentBucket(bucket), currentEntry(entry) {
+            if (!currentEntry) {
+                goToNextEntry();
+            }
+        }
+
+        bool operator!=(const Iterator& other) const {
+            return currentEntry != other.currentEntry || currentBucket != other.currentBucket;
+        }
+
+        Iterator& operator++() {
+            goToNextEntry();
+            return *this;
+        }
+
+        Entry* operator*() const {
+            return currentEntry;
+        }
+    };
+
+    Iterator begin() const {
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            if (table[i]) {
+                return Iterator(this, i, table[i]);
+            }
+        }
+        return Iterator(this, TABLE_SIZE, nullptr);
+    }
+
+    Iterator end() const {
+        return Iterator(this, TABLE_SIZE, nullptr);
+    }
+    
     Hashtable() : TABLE_SIZE(INITIAL_TABLE_SIZE), count(0) {
         table = new Entry*[TABLE_SIZE]();
     }

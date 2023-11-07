@@ -77,6 +77,14 @@
                 "Added containsKey() Function: This function allows you to check if a key exists in the Hashtable",
                 "Added containsValue() Function: This function allows you to check if a value exists in the Hashtable"
             ]
+        },
+        {
+            "version": "1.0.5",
+            "date": "2023-11-06",
+            "changes": [
+                ""
+
+            ]
         }
     ],
 

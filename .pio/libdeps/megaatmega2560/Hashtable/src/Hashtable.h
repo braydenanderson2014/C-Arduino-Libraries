@@ -81,6 +81,54 @@ private:
     }
 
 public:
+class Iterator {
+    private:
+        const Hashtable<K, V, Hash>* hashtable;
+        int currentBucket;
+        Entry* currentEntry;
+
+        void goToNextEntry() {
+            currentEntry = currentEntry->next;
+            while (!currentEntry && currentBucket < hashtable->TABLE_SIZE - 1) {
+                currentEntry = hashtable->table[++currentBucket];
+            }
+        }
+
+    public:
+        Iterator(const Hashtable<K, V, Hash>* ht, int bucket, Entry* entry)
+            : hashtable(ht), currentBucket(bucket), currentEntry(entry) {
+            if (!currentEntry) {
+                goToNextEntry();
+            }
+        }
+
+        bool operator!=(const Iterator& other) const {
+            return currentEntry != other.currentEntry || currentBucket != other.currentBucket;
+        }
+
+        Iterator& operator++() {
+            goToNextEntry();
+            return *this;
+        }
+
+        Entry* operator*() const {
+            return currentEntry;
+        }
+    };
+
+    Iterator begin() const {
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            if (table[i]) {
+                return Iterator(this, i, table[i]);
+            }
+        }
+        return Iterator(this, TABLE_SIZE, nullptr);
+    }
+
+    Iterator end() const {
+        return Iterator(this, TABLE_SIZE, nullptr);
+    }
+    
     Hashtable() : TABLE_SIZE(INITIAL_TABLE_SIZE), count(0) {
         table = new Entry*[TABLE_SIZE]();
     }
@@ -111,16 +159,16 @@ public:
         }
     }
     V* get(const K& key) const {
-    int index = hash(key);
-    Entry* entry = table[index];
-    while (entry != nullptr) {
-        if (entry->key == key) {
-            return &(entry->value); // Return the address of the value
+        int index = hash(key);
+        Entry* entry = table[index];
+        while (entry != nullptr) {
+            if (entry->key == key) {
+                return &(entry->value); // Return the address of the value
+            }
+            entry = entry->next;
         }
-        entry = entry->next;
+        return nullptr; // Return null if the key is not found
     }
-    return nullptr; // Return null if the key is not found
-}
 
 
     bool get(const K& key, V& value) const {
@@ -172,18 +220,21 @@ public:
     }
 
     int size() const {
-        return count;
+        return TABLE_SIZE;
     }
 
     bool isEmpty() const {
         return size() == 0;
+    }
+    int elements() const {
+        return count;
     }
 
     SimpleVector<K> keys() const {
         SimpleVector<K> keys;
         for (int i = 0; i < TABLE_SIZE; ++i) {
             for (Entry* entry = table[i]; entry != nullptr; entry = entry->next) {
-                keys.push_back(entry->key);
+                keys.put(entry->key);
             }
         }
         return keys;
