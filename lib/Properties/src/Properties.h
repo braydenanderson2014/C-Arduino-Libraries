@@ -1,7 +1,7 @@
 #ifndef PROPERTIES_H
 #define PROPERTIES_H
 
-#include <Hashtable.h>
+#include "Hashtable.h"
 #include <Arduino.h>
 
 class Properties {
@@ -26,69 +26,56 @@ public:
     bool containsKey(const String& key);
     
     class PropertiesIterator {
-        private:
-            Hashtable<String, String>::Iterator it;
-            Hashtable<String, String>::Iterator hashtableEnd;  // Add this line
+private:
+    Hashtable<String, String>::Iterator it;
 
-        public:
-            PropertiesIterator(Hashtable<String, String>::Iterator begin, Hashtable<String, String>::Iterator end)
-        : it(begin), hashtableEnd(end) {}  // Modify this line
+public:
+    // Constructor
+    PropertiesIterator(Hashtable<String, String>::Iterator begin)
+        : it(begin) {}
 
-        PropertiesIterator& operator++() {
-            // Advance the iterator at least once before checking for empty values.
-            ++it;
-            // Skip over empty values. Check if the length of the value string is 0.
-            while (it != hashtableEnd && (*it).value.length() == 0) {
-                ++it;
-            }
-            return *this;
-        }
+    // Prefix increment
+    PropertiesIterator& operator++() {
+        ++it; // Move to the next element
+        return *this;
+    }
 
+    // Postfix increment
+    PropertiesIterator operator++(int) {
+        PropertiesIterator tmp(*this);
+        ++(*this); // Use the prefix increment
+        return tmp;
+    }
 
+    // Inequality check
+    bool operator!=(const PropertiesIterator& other) const {
+        return it != other.it; // Directly compare the Hashtable iterators
+    }
 
+    // Dereference operator
+    Hashtable<String, String>::KeyValuePair operator*() const {
+        return *it; // Delegate to the Hashtable iterator
+    }
 
+    // Key accessor
+    String key() const { 
+        return it.operator*().key; // Access the key of the current KeyValuePair
+    }
 
-        // Postfix increment
-        PropertiesIterator operator++(int) {
-            PropertiesIterator tmp(*this);
-            operator++(); // prefix-increment this instance
-            return tmp;   // return value before increment
-        }
+    // Value accessor
+    String value() const { 
+        return it.operator*().value; // Access the value of the current KeyValuePair
+    }
+};
 
-        bool operator!=(const PropertiesIterator& other) const {
-            return it != other.it;
-        }
-
-        // Assuming `Hashtable::Iterator` properly dereferences to an `Entry`
-            Hashtable<String, String>::KeyValuePair operator*() const {
-                return *it; // This assumes that `*it` dereferences to a KeyValuePair
-            }
-        /*
-        // Dereference operator to return a key-value pair
-            
-
-             Hashtable<String, String>::KeyValuePair operator*() const {
-            auto entry = *it; // This assumes that `*it` gives you an `Entry` or something similar.
-            return {entry->key, entry->value}; // Construct and return a KeyValuePair.
-        }
-
-        */
-        // To make it easier to use without std::pair, you could provide methods to get the key and value:
-        String key() const { 
-            return (*it).key; 
-        }
-
-        String value() const { 
-            return (*it).value; 
-        }
-    };
-
+// Iterator begin
 PropertiesIterator begin() {
-    return PropertiesIterator(table.begin(), table.end());
+    return PropertiesIterator(table.begin());
 }
 
+// Iterator end
 PropertiesIterator end() {
-    return PropertiesIterator(table.end(), table.end());
+    return PropertiesIterator(table.end());
 }
 };
 
