@@ -114,6 +114,7 @@ void Properties::loadFromSD(const String& filename) {
             }
         }
         file.close();
+        Serial.println("Properties loaded successfully.");
     } else {
         Serial.println("Error opening file for reading.");
     }
