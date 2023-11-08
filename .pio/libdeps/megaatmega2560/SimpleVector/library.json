@@ -1,6 +1,6 @@
 {
     "name": "SimpleVector",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "A lightweight and efficient implementation of a dynamic array, suitable for use in memory-constrained environments.",
     "keywords": ["SimpleVector", "VectorIterator", "Vector"],
     "Repositories": [
@@ -30,6 +30,7 @@
             ]
         }
     ],
+    "license": "Apache-2.0",
     "changeLog": [
         {
             "version": "1.0.0",
@@ -43,6 +44,14 @@
                 "Added Remove Function.",
                 "Renamed push_back function to add",
                 "Updated Example."
+            ]
+        },
+        {
+            "version": "1.0.2",
+            "changes": [
+                "Added Elements Function.",
+                "Added Iterators to the library",
+                "Modified the size Function to return size of array and not how many elements are on the array"
             ]
         }
     ],

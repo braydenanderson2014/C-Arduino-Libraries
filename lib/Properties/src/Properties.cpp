@@ -1,5 +1,5 @@
 #include "Properties.h"
-#include "Hashtable.h"
+#include <Hashtable.h>
 #include <Arduino.h>
 #include <SD.h>
 
@@ -64,34 +64,36 @@ void Properties::saveToSD(const String& filename) {
         return;
     }
 
-    // Check if file exists, if not, create it by opening it for writing
-    if (!SD.exists(filename.c_str())) {
-        File file = SD.open(filename.c_str(), FILE_WRITE);
-        if (file) {
-            Serial.println("File created successfully.");
-            file.close(); // Close the file after creating it
-        } else {
-            Serial.println("Error creating file.");
+    // Remove the existing file if it exists to start fresh
+    if (SD.exists(filename.c_str())) {
+        if (!SD.remove(filename.c_str())) {
+            Serial.println("Error removing existing file.");
             return;
         }
     }
 
-    // Now that we know the file exists, open it for writing
+    // Create a new file or replace the old one
     File file = SD.open(filename.c_str(), FILE_WRITE);
 
     if (file) {
-        for (auto& key : table.keys()) {  
-            String* valuePtr = table.get(key);
-            if (valuePtr) {
-                String line = key + "=" + *valuePtr + "\n";
+        // Iterate through the properties using the custom iterator and write them to the file
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                String line = it.key() + "=" + it.value() + "\n";
                 file.print(line);
+                Serial.println("Writing Line to file: " + line);
+            }else {
+                break;
             }
         }
-        file.close();
+        file.close(); // Make sure to close the file to save the data
+        Serial.println("Properties saved successfully.");
     } else {
         Serial.println("Error opening file for writing.");
     }
 }
+
+
 
 
 void Properties::loadFromSD(const String& filename) {
@@ -112,6 +114,7 @@ void Properties::loadFromSD(const String& filename) {
             }
         }
         file.close();
+        Serial.println("Properties loaded successfully.");
     } else {
         Serial.println("Error opening file for reading.");
     }

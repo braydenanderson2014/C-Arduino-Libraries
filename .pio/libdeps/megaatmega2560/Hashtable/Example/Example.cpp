@@ -30,8 +30,8 @@ int main() {
     }
 
     // Iterating through keys
-    SimpleVector<std::string> keys = myHashtable.keys();
-    for (const std::string& key : keys) {
+    SimpleVector<String> keys = myHashtable.keys();
+    for (const String& key : keys) {
         Serial.print("Key: ");
         Serial.print(key.c_str());
         Serial.print(", Value: ");

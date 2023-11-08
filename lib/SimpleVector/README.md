@@ -30,13 +30,18 @@ If you want to Utilize this Library. Please include the
 ```
 
 ## ChangeLog
-    Version 1.0.0:
-        * Initial Release 
-    Version 1.0.1:
-        * "Added Remove Function.",
-        * "Renamed push_back function to add",
-        * "Updated Example."
-    
+### Version 1.0.0:
+* Initial Release 
+### Version 1.0.1:
+* Added Remove Function.
+* Renamed push_back function to add
+* Updated Example.
+### Version 1.0.2:
+* Added Elements Function.
+* Added Iterators to the library
+* Modified the size Function to return size of array and not how many elements are on the array
+
+
 Here's an example of how to use the `SimpleVector` class:
 
 ```cpp

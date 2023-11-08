@@ -16,12 +16,23 @@ The `Hashtable` class is designed to offer a dynamic and scalable hash table wit
 - `get(K key)`: Retrieves the value associated with the given key.
 - `remove(K key)`: Removes the key-value pair associated with the given key.
 - `clear()`: Clears all key-value pairs from the hash table.
-- `size()`: Returns the number of key-value pairs in the hash table.
+- `size()`: Returns the size of the table.
+- `elements()`: Returns the number of elements in the table.
 - `isEmpty()`: Checks if the hash table is empty.
 - `keys()`: Returns an iterator for iterating over the keys in the hash table.
 - `merge(const Hashtable<K, V>& other)`: Merges the contents of another hash table into the current one.
 - `containsKey(const K& key)`: Check if a Table contains a key.
 - `containsValue(const V& value)`: Check if a Table contains a Value.
+- `begin()` : Begins Iteration
+- `end()` : ends Iteration
+
+
+#### Iterator Functions
+
+- `Iterator const Hashtable<K, V, Hash>* ht, int bucket, Entry* entry): hashtable(ht), currentBucket(bucket), currentEntr (entry) ` : Constructor
+- `bool operator!=(const Iterator& other)` : Return currentEntry != other.currentEntry || currentBucket != other.currentBucket
+- `Iterator& operator++()` : Moves iteration to the next element, the returns that element
+- `Entry* operator*()` : returns currentEntry
 
 
 
@@ -68,6 +79,9 @@ If you want to Utilize this Library. Please include the
 * Fixed Hashing Issue: Hashing was not working correctly, causing the get function to not work correctly
 * Added containsKey() Function: This function allows you to check if a key exists in the Hashtable
 * Added containsValue() Function: This function allows you to check if a value exists in the Hashtable
+### Version 1.0.5:
+* Added new Iteration Feature to the library
+* Feature is untested
 
 
 ## Example

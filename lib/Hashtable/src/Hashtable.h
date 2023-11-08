@@ -79,8 +79,80 @@ private:
 
         delete[] oldTable;
     }
-
 public:
+    struct KeyValuePair {
+        K key;
+        V value;
+    };
+class Iterator {
+    private:
+        const Hashtable<K, V, Hash>* hashtable;
+        int currentBucket;
+        Entry* currentEntry;
+
+        void goToNextEntry() {
+    Serial.println("Advancing to the next entry");
+
+    if (currentEntry && currentEntry->next) {
+        currentEntry = currentEntry->next;
+        Serial.println("Moved to next entry in the same bucket");
+    } else {
+        do {
+            currentBucket++;
+            if (currentBucket < hashtable->TABLE_SIZE) {
+                currentEntry = hashtable->table[currentBucket];
+                Serial.print("Checking bucket "); Serial.println(currentBucket);
+            }
+        } while (!currentEntry && currentBucket < hashtable->TABLE_SIZE - 1);
+        
+        if (!currentEntry) {
+            Serial.println("Reached the end of the hashtable");
+        } else {
+            Serial.println("Moved to the next available bucket");
+        }
+    }
+}
+
+
+
+    public:
+         // Define the dereference operator to return a key-value pair.
+        KeyValuePair operator*() const {
+            return KeyValuePair{currentEntry->key, currentEntry->value};
+        }
+
+        Iterator(const Hashtable<K, V, Hash>* ht, int bucket, Entry* entry)
+        : hashtable(ht), currentBucket(bucket), currentEntry(entry) {
+            if (!currentEntry) {
+                goToNextEntry();
+            }
+        }
+
+        bool operator!=(const Iterator& other) const {
+            return currentEntry != other.currentEntry || currentBucket != other.currentBucket;
+        }
+
+        Iterator& operator++() {
+            goToNextEntry();
+            return *this;
+        }
+
+       
+    };
+
+    Iterator begin() const {
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            if (table[i]) {
+                return Iterator(this, i, table[i]);
+            }
+        }
+        return Iterator(this, TABLE_SIZE, nullptr);
+    }
+
+    Iterator end() const {
+        return Iterator(this, TABLE_SIZE, nullptr);
+    }
+
     Hashtable() : TABLE_SIZE(INITIAL_TABLE_SIZE), count(0) {
         table = new Entry*[TABLE_SIZE]();
     }
@@ -159,17 +231,27 @@ public:
     }
 
     void clear() {
-        for (int i = 0; i < TABLE_SIZE; ++i) {
-            Entry* entry = table[i];
-            while (entry != nullptr) {
-                Entry* toDelete = entry;
-                entry = entry->next;
-                delete toDelete;
-            }
-            table[i] = nullptr;
-        }
-        count = 0;
+        Serial.println("Clearing Hashtable");
+       for (int i = 0; i < TABLE_SIZE; ++i) {
+           Entry* entry = table[i];
+           while (entry != nullptr) {
+               Entry* toDelete = entry;
+               entry = entry->next;
+               delete toDelete;
+               Serial.println("Deleted entry");
+           }
+           table[i] = nullptr; // Make sure to still nullify the bucket after deletion
+       }
+       count = 0;
+        Serial.println("Cleared Hashtable/ Now Resizing back to defualt size");
+       // Resize the table back to the initial size if it's not already
+       if (TABLE_SIZE > INITIAL_TABLE_SIZE) {
+           resize(INITIAL_TABLE_SIZE);
+           return;
+       }
     }
+
+
 
     int size() const {
         return TABLE_SIZE;
