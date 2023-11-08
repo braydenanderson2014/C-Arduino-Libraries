@@ -1,24 +1,27 @@
 # C-Arduino-Libraries
 
 ## List of All Available Libraries ## [WARNING]: UNTESTED/Partially Tested BY AUTHOR
-1. Dictionary [Active] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING NOT NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
-2. Hashtable [Active], [PARTIALLY-TESTED]
-3. iostream [Active] (Published as : BasicIOStream), [PARTIALLY-TESTED]
-4. iterator [Active], [PARTIALLY-TESTED]
-5. Properties [Active] (Published as : SimpleProperties), [PARTIALLY-TESTED], [KNOWN-ISSUES]
-6. SimpleVector [Active] , [PARTIALLY-TESTED], [KNOWN-ISSUES]
-7. Timer [Active] (Published as : SimpleArduinoTimer), [UNTESTED]
-8. UnorderedMap [Active], [PARTIALLY-TESTED]
-9. LinkedList [Active] (Published as : BasicLinkedList), [UNTESTED]
-10. DictionaryImplementation [Active], [RENAMED] -> (MyDictionary), [In-Development] (implemented Version of the Dictionary Class), [UNTESTED]
-11. SDList [Active], [In-Development], [UNTESTED]
+1. Dictionary [PASSIVE-DEVELOPMENT] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING NOT NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
+2. Hashtable [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED]
+3. iostream [PASSIVE-DEVELOPMENT] (Published as : BasicIOStream), [PARTIALLY-TESTED]
+4. iterator [PASSIVE-DEVELOPMENT], [PARTIALLY-TESTED]
+5. Properties [PASSIVE-DEVELOPMENT] (Published as : SimpleProperties), [MOSTLY-TESTED], 
+6. SimpleVector [PASSIVE-DEVELOPMENT] , [MOSTLY-TESTED]
+7. Timer [PASSIVE_DEVELOPMENT] (Published as : SimpleArduinoTimer), [UNTESTED]
+8. UnorderedMap [ACTIVE-DEVELOPMENT], [PARTIALLY-TESTED]
+9. LinkedList [ACTIVE-DEVELOPENT] (Published as : BasicLinkedList), [UNTESTED]
+10. MyDictionary [ACTIVE-DEVELOPMENT],(implemented Version of the Dictionary Class), [UNTESTED]
+11. SDList [ACTIVE-DEVELOPMENT], [UNTESTED]
 
 
 ## ACTIVELY WORKING ON LISTED LIBRARIES (Bug Fixing or Feature Adding):
-1. Properties [PATCHED], [AWAITING-NEXT-RELEASE]
-2. SimpleVector [PATCHED], [AWAITING-NEXT-RELEASE] 
-3. UnorderedMap [FEATURE-ADDITION] (See Issues)
-4. Hashtable [PATCHED], [AWAITING-NEXT-RELEASE]
+1. UnorderedMap [FEATURE-ADDITION] (See Issues), [TESTING]
+2. LinkedList [FEATURE-ADDITION], [TESTING]
+3. MyDictionary [FEATURE-ADDITION], [TESTING]
+4. SDList [FEATURE-ADDITION], [TESTING]
+
+
+
 
 
 ## UNPUBLISHED (In Development) (Not yet Documented)
@@ -112,7 +115,8 @@ The `Hashtable` class is designed to offer a dynamic and scalable hash table wit
 - `get(K key)`: Retrieves the value associated with the given key.
 - `remove(K key)`: Removes the key-value pair associated with the given key.
 - `clear()`: Clears all key-value pairs from the hash table.
-- `size()`: Returns the number of key-value pairs in the hash table.
+- `size()`: Returns the current capacity of the hash table.
+- `elements()`: Returns the number of key-value pairs in the hash table
 - `isEmpty()`: Checks if the hash table is empty.
 - `keys()`: Returns an iterator for iterating over the keys in the hash table.
 - `merge(const Hashtable<K, V>& other)`: Merges the contents of another hash table into the current one.
@@ -143,24 +147,17 @@ int main() {
     dictionary.put(3, "Three");
 
     // Retrieve values using keys
-    std::string value = dictionary.get(2);
-    std::cout << "Value for key 2: " << value << std::endl;
+    String value = dictionary.get(2);
+    Serial.println("Value for key 2: " + value);
 
     // Remove a key-value pair
     dictionary.remove(1);
 
     // Check if the hash table is empty
     if (dictionary.isEmpty()) {
-        std::cout << "Hash table is empty." << std::endl;
+       Serial.println("Hash table is empty.");
     } else {
-        std::cout << "Hash table is not empty." << std::endl;
-    }
-
-    // Iterate through the keys
-    Hashtable<int, std::string>::HashtableIterator it = dictionary.keys();
-    while (it.hasNext()) {
-        int key = it.next();
-        std::cout << "Key: " << key << std::endl;
+        Serial.println("Hash table is not empty.")
     }
 
     return 0;
