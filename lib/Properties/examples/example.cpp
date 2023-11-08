@@ -10,8 +10,11 @@ void setup() {
     properties.setProperty("name", "John");
     properties.setProperty("age", "30");
     properties.setProperty("city", "New York");
-
-    properties.setProperty("country", "USA", "test.txt");
+    //Save Properties
+    properties.saveToSD("test.txt");
+    
+    //Set Properties with file path
+    properties.setProperty("country", "USA", "test2.txt");
     properties.setProperty("state", "New York", "test.properties");
 
     // Retrieve properties
@@ -27,23 +30,24 @@ void setup() {
     bool hasCountry = properties.containsKey("country");
     Serial.println("Has 'country' property: " + String(hasCountry));
 
-    // Iterate through keys
-    Properties::KeyIterator keyIterator = properties.keysIterator();
-    while (keyIterator.hasNext()) {
-        String key = keyIterator.next();
-        Serial.println("Key: " + key);
-    }
+    Serial.println("Properties Current Capacity: " + String(properties.size()));
+    Serial.println("Properties Current Size: " + String(properties.elements()));
 
-    // Iterate through values
-    Properties::ValueIterator valueIterator = properties.valuesIterator();
-    while (valueIterator.hasNext()) {
-        String value = valueIterator.next();
-        Serial.println("Value: " + value);
+    for(Properties:PropertiesIterator it = properties.begin(); it != properties.end(); ++it) {
+        Serial.println("Key: " + it.key() + ", Value: " + it.value());
     }
-
+    
     properties.removeProperty("name");
     properties.removeProperty("age");
 
     // Clear the properties
     properties.clear();
+
+    // Check if the properties are empty
+    bool isEmpty = properties.isEmpty();
+    Serial.println("Properties is empty: " + String(isEmpty));
+
+    // Load Properties
+    Properties.loadFromSD("test.txt");
+
 }

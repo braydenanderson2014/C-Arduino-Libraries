@@ -82,6 +82,12 @@ If you want to Utilize this Library. Please include the
 ### Version 1.0.5:
 * Added new Iteration Feature to the library
 * Feature is untested
+### Version 1.0.6:
+* Repaired Iterator so it now works properly [Tested-Using-Properties-Library]
+* Added elements() function to return the number of elements currently on the table.
+* Adjusted size() function to return current capacity
+* Adjusted clear() function to properly clear the table [Tested-Using-Properties-Library]
+
 
 
 ## Example

@@ -42,23 +42,50 @@ public:
         delete[] data;
     }
 
-    void insert(const KeyType& key, const ValueType& value) {
-        // Check for duplicates first
-        for (size_t i = 0; i < size; ++i) {
-            if (data[i].key == key) {
-                // Key already exists, update the value and return
-                data[i].value = value;
-                return;
-            }
-        }
-
-        // Insert new element if there's space and no duplicate was found
-        if (size < capacity) {
-            data[size++] = {key, value};
-        } else {
-            resize(capacity * 2);
+   void insert(const KeyType& key, const ValueType& value) {
+    // Check for duplicates first
+    for (size_t i = 0; i < size; ++i) {
+        if (data[i].key == key) {
+            // Key already exists, update the value and return
+            data[i].value = value;
+            return;
         }
     }
+
+    // Insert new element if there's space and no duplicate was found
+    if (size >= capacity) {
+        // Attempt to resize before inserting the new element
+        resize(capacity * 2);
+        // If resize failed, newCapacity will not be greater than size.
+        if (capacity <= size) {
+            // Handle the error. For example:
+            // return false; if the function has a boolean return type
+            // Otherwise, consider other error handling strategies appropriate for Arduino.
+            return;
+        }
+    }
+
+    // Now we have space for sure
+    data[size].key = key;
+    data[size].value = value;
+    ++size;
+}
+
+
+   ValueType get(const KeyType& key) const {
+    for (size_t i = 0; i < size; ++i) {
+        if (data[i].key == key) {
+            return data[i].value;
+        }
+    }
+    // Possible solution is to set a global error flag, or return a sentinel value that indicates failure.
+    Serial.println("Key not found.");
+    // Assuming ValueType can be a pointer, you could return nullptr as an error value.
+    // Or, if ValueType is numeric, return a specific error code.
+    // Adjust according to your use-case.
+    return ValueType(); // Return default-constructed value or error value for ValueType.
+}
+
 
 
     bool get(const KeyType& key, ValueType& value) const {
@@ -86,6 +113,9 @@ public:
         return size;
     }
 
+    size_t getCapacity() const {
+        return capacity;
+    }
     bool isEmpty() const {
         return size == 0;
     }

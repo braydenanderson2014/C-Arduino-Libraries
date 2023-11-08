@@ -1,6 +1,6 @@
 {
     "name": "Hashtable",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "A hashtable implementation for Arduino",
     "keywords": ["Hashtable", "Hashtable Iterator"],
     "repository": {
@@ -84,10 +84,20 @@
             "changes": [
                 "Added Iterator to the Hashtable: This allows you to iterate through the Hashtable",
                 "This Iterator is Untested, Please Report any bugs you find if you use it"
-
+            ]
+        },
+        {
+            "version": "1.0.6",
+            "date": "2023-11-07",
+            "changes": [
+                "Fixed Iterator: Iterator was getting stuck",
+                "Fixed clear() Function: clear() function was not clearing the Hashtable or was getting stuck at times.",
+                "Added elements() function to return the number of elements currently on the table.",
+                "Adjusted size() function to return current capacity",
+                "Adjusted clear() function to properly clear the table"
             ]
         }
     ],
 
-    "Notes": "This library is a work in progress. It is not yet ready for use. It has not been tested, USE AT YOUR OWN RISK. If you do use it, please report any bugs you find."
+    "Notes": "This library is a work in progress. It has been mostly tested now and is considered mostly stable, however issue may still arise, please report any bugs you find!"
 }
