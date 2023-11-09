@@ -91,29 +91,27 @@ class Iterator {
         Entry* currentEntry;
 
         void goToNextEntry() {
-    Serial.println("Advancing to the next entry");
+            Serial.println("Advancing to the next entry");
 
-    if (currentEntry && currentEntry->next) {
-        currentEntry = currentEntry->next;
-        Serial.println("Moved to next entry in the same bucket");
-    } else {
-        do {
-            currentBucket++;
-            if (currentBucket < hashtable->TABLE_SIZE) {
-                currentEntry = hashtable->table[currentBucket];
-                Serial.print("Checking bucket "); Serial.println(currentBucket);
+            if (currentEntry && currentEntry->next) {
+                currentEntry = currentEntry->next;
+                Serial.println("Moved to next entry in the same bucket");
+            } else {
+                do {
+                    currentBucket++;
+                    if (currentBucket < hashtable->TABLE_SIZE) {
+                        currentEntry = hashtable->table[currentBucket];
+                        Serial.print("Checking bucket "); Serial.println(currentBucket);
+                    }
+                } while (!currentEntry && currentBucket < hashtable->TABLE_SIZE - 1);
+
+                if (!currentEntry) {
+                    Serial.println("Reached the end of the hashtable");
+                } else {
+                    Serial.println("Moved to the next available bucket");
+                }
             }
-        } while (!currentEntry && currentBucket < hashtable->TABLE_SIZE - 1);
-        
-        if (!currentEntry) {
-            Serial.println("Reached the end of the hashtable");
-        } else {
-            Serial.println("Moved to the next available bucket");
         }
-    }
-}
-
-
 
     public:
          // Define the dereference operator to return a key-value pair.

@@ -12,29 +12,29 @@ UnorderedMap <int, int> IntMap;
 UnorderedMap <int, String> IntStringMap;
 void setup() {
     Serial.begin(9600);
-    StringMap.insert("Hello", "World");
-    StringMap.insert("Hello1", "World1");
-    StringMap.insert("Hello2", "World2");
-    StringMap.insert("Hello3", "World3");
-    StringMap.insert("Hello4", "World4");
+    StringMap.put("Hello", "World");
+    StringMap.put("Hello1", "World1");
+    StringMap.put("Hello2", "World2");
+    StringMap.put("Hello3", "World3");
+    StringMap.put("Hello4", "World4");
 
-    StringIntMap.insert("Hello", 1);
-    StringIntMap.insert("Hello1", 2);
-    StringIntMap.insert("Hello2", 3);
-    StringIntMap.insert("Hello3", 4);
-    StringIntMap.insert("Hello4", 5);
+    StringIntMap.put("Hello", 1);
+    StringIntMap.put("Hello1", 2);
+    StringIntMap.put("Hello2", 3);
+    StringIntMap.put("Hello3", 4);
+    StringIntMap.put("Hello4", 5);
 
-    IntMap.insert(1, 1);
-    IntMap.insert(2, 2);
-    IntMap.insert(3, 3);
-    IntMap.insert(4, 4);
-    IntMap.insert(5, 5);
+    IntMap.put(1, 1);
+    IntMap.put(2, 2);
+    IntMap.put(3, 3);
+    IntMap.put(4, 4);
+    IntMap.put(5, 5);
 
-    IntStringMap.insert(1, "Hello");
-    IntStringMap.insert(2, "Hello1");
-    IntStringMap.insert(3, "Hello2");
-    IntStringMap.insert(4, "Hello3");
-    IntStringMap.insert(5, "Hello4");
+    IntStringMap.put(1, "Hello");
+    IntStringMap.put(2, "Hello1");
+    IntStringMap.put(3, "Hello2");
+    IntStringMap.put(4, "Hello3");
+    IntStringMap.put(5, "Hello4");
 
     Serial.println(StringMap.get("Hello"));
 

@@ -29,7 +29,7 @@ public:
     }
 
     void put(const String& key, const int& value) override {
-        data.insert(key, value);
+        data.put(key, value);
     }
 
     int remove(const String& key) override {
