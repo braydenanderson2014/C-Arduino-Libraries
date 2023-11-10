@@ -25,6 +25,10 @@ The `Hashtable` class is designed to offer a dynamic and scalable hash table wit
 - `containsValue(const V& value)`: Check if a Table contains a Value.
 - `begin()` : Begins Iteration
 - `end()` : ends Iteration
+- `loadFactor()` : Returns calculated load factor
+- `checkLoadFactorAndRehash()`: checks the load factor and rehashes the table if needed
+- `bucketCount()` : returns the number of buckets in the table
+- `bucketSize()` : returns the size of a bucket in the table
 
 
 #### Iterator Functions
@@ -87,7 +91,14 @@ If you want to Utilize this Library. Please include the
 * Added elements() function to return the number of elements currently on the table.
 * Adjusted size() function to return current capacity
 * Adjusted clear() function to properly clear the table [Tested-Using-Properties-Library]
-
+### Version 1.0.7:
+* New Overloaded Constructor to allow you to set the initial capacity and load factor
+* Added new loadFactor() function to return the current calculated load factor
+* Added new checkLoadFactorAndRehash() which checks the load factor and rehashes the table if needed
+* Added new bucketCount() function to return the number of buckets in the table
+* Added new bucketSize() function to return the size of a bucket
+* All new functions are untested, please report any bugs you find!
+* These functions are desinged to open up the library to allow you to use it in more ways, such as using it as a hashset
 
 
 ## Example

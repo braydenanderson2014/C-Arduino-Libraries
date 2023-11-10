@@ -10,14 +10,15 @@ private:
 
 public:
     // Forward the constructor arguments
-    UnorderedMap(size_t initialCapacity = 16, float loadFactor = 0.7) 
-        : hashtable(initialCapacity, loadFactor) {}
+    // Forward the constructor arguments
+    UnorderedMap(size_t initialCapacity = 16, float loadFactor = 0.7) : hashtable(initialCapacity, loadFactor) {}
+
 
     // Forward the destructor
     ~UnorderedMap() = default;
 
     // Forward the put operation
-    void insert(const KeyType& key, const ValueType& value) {
+    void put(const KeyType& key, const ValueType& value) {
         hashtable.put(key, value);
     }
 
@@ -32,17 +33,21 @@ public:
     }
 
     // Forward the remove operation
-    bool erase(const KeyType& key) {
+    bool remove(const KeyType& key) {
         return hashtable.remove(key);
     }
 
     // Forward the size operation
-    size_t size() const {
+    size_t getSize() const {
         return hashtable.elements();
     }
 
+    size_t getCapacity() const {
+        return hashtable.size();
+    }
+
     // Forward the isEmpty operation
-    bool empty() const {
+    bool isEmpty() const {
         return hashtable.isEmpty();
     }
 
@@ -57,6 +62,35 @@ public:
     }
 
     // Forward other operations as needed...
+    // Inside UnorderedMap
+    Hash hashFunction() const {
+        return hashtable.hashFunction;
+    }
+
+    // Inside UnorderedMap
+    ValueType& operator[](const KeyType& key) {
+        // Attempt to get the value, and if it doesn't exist, insert a new one
+        ValueType* value = hashtable.get(key);
+        if (!value) {
+            hashtable.put(key, ValueType());
+            value = hashtable.get(key);
+        }
+        return *value;
+    }
+
+    // Inside UnorderedMap
+    typename Hashtable<KeyType, ValueType, Hash>::Iterator find(const KeyType& key) const {
+        return hashtable.find(key); // Assuming Hashtable has a find method
+    }
+
+    size_t count(const KeyType& key) const {
+        return hashtable.containsKey(key) ? 1 : 0;
+    }
+
+// Implement equal_range if needed, returning a pair of iterators
+
+// Key equality is implicit in your design, so you can provide a placeholder if needed.
+
 };
 
 #endif // UNORDERED_MAP_H

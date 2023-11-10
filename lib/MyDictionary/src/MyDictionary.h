@@ -20,7 +20,7 @@ public:
 
     int get(const String& key) const override {
         int value;
-        if (data.get(key, value)) {
+        if (data.get(key)) {
             return value;
         } else {
             Serial.println("Key not found");

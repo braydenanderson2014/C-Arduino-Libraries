@@ -84,7 +84,7 @@ public:
         K key;
         V value;
     };
-class Iterator {
+    class Iterator {
     private:
         const Hashtable<K, V, Hash>* hashtable;
         int currentBucket;
@@ -155,6 +155,12 @@ class Iterator {
         table = new Entry*[TABLE_SIZE]();
     }
 
+     Hashtable(size_t initialCapacity, float loadFactor) 
+        : TABLE_SIZE(initialCapacity), count(0), loadFactorThreshold(loadFactor) {
+        table = new Entry*[TABLE_SIZE]();
+        // Initialize buckets to nullptr...
+    }
+    
     ~Hashtable() {
         clear();
         delete[] table;
@@ -180,6 +186,7 @@ class Iterator {
             resize(TABLE_SIZE * 2);
         }
     }
+    
     V* get(const K& key) const {
         int index = hash(key);
         Entry* entry = table[index];
@@ -249,6 +256,31 @@ class Iterator {
        }
     }
 
+    // Inside Hashtable
+    float loadFactor() const {
+        return static_cast<float>(count) / TABLE_SIZE;
+    }
+
+    void checkLoadFactorAndRehash() {
+        if (loadFactor() > loadFactorThreshold) {
+            resize(TABLE_SIZE * 2);
+        }
+    }
+
+    // Inside Hashtable
+    size_t bucketCount() const {
+        return TABLE_SIZE;
+    }
+
+    size_t bucketSize(size_t index) const {
+        size_t size = 0;
+        Entry* entry = table[index];
+        while (entry != nullptr) {
+            ++size;
+            entry = entry->next;
+        }
+        return size;
+    }
 
 
     int size() const {

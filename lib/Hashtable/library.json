@@ -1,6 +1,6 @@
 {
     "name": "Hashtable",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "description": "A hashtable implementation for Arduino",
     "keywords": ["Hashtable", "Hashtable Iterator"],
     "repository": {
@@ -95,6 +95,19 @@
                 "Added elements() function to return the number of elements currently on the table.",
                 "Adjusted size() function to return current capacity",
                 "Adjusted clear() function to properly clear the table"
+            ]
+        },
+        {
+            "version": "1.0.7",
+            "date": "2023-11-09",
+            "changes": [
+                "New Overloaded Constructor to allow you to set the initial capacity and load factor",
+                "Added new loadFactor() function to return the current calculated load factor",
+                "Added new checkLoadFactorAndRehash() which checks the load factor and rehashes the table if needed",
+                "Added new bucketCount() function to return the number of buckets in the table",
+                "Added new bucketSize() function to return the size of a bucket",
+                "All new functions are untested, please report any bugs you find!",
+                "These functions are desinged to open up the library to allow you to use it in more ways, such as using it as a hashset"
             ]
         }
     ],
