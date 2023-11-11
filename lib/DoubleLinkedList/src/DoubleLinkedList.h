@@ -1,6 +1,5 @@
-// LinkedList.h
-#ifndef LINKEDLIST_H
-#define LINKEDLIST_H
+#ifndef DOUBLELINKEDLIST_H
+#define DOUBLELINKEDLIST_H
 
 #include <Arduino.h>
 
@@ -9,31 +8,34 @@ class ListNode {
 public:
     T data;
     ListNode* next;
+    ListNode* prev;  // Pointer to the previous node
 
-    ListNode(T value) : data(value), next(nullptr) {}
+    ListNode(T value) : data(value), next(nullptr), prev(nullptr) {}
 };
 
 template <typename T>
-class LinkedList {
+class DoubleLinkedList {
 private:
     ListNode<T>* head;
+    ListNode<T>* tail;  // Pointer to the last node
     size_t size;
 
 public:
-    LinkedList() : head(nullptr), size(0) {}
+    DoubleLinkedList() : head(nullptr), tail(nullptr), size(0) {}
 
-    ~LinkedList();
+    ~DoubleLinkedList() {
+        clear();
+    }
 
     void append(const T& value) {
         ListNode<T>* newNode = new ListNode<T>(value);
         if (!head) {
             head = newNode;
+            tail = newNode;
         } else {
-            ListNode<T>* current = head;
-            while (current->next) {
-                current = current->next;
-            }
-            current->next = newNode;
+            tail->next = newNode;
+            newNode->prev = tail;
+            tail = newNode;
         }
         size++;
     }
@@ -41,79 +43,60 @@ public:
     void prepend(const T& value) {
         ListNode<T>* newNode = new ListNode<T>(value);
         newNode->next = head;
+        if (head) {
+            head->prev = newNode;
+        } else {
+            tail = newNode;
+        }
         head = newNode;
         size++;
     }
 
-    void insert(const T& value){
-        int randomNum = random(0, size);
-        Serial.println("Random Index to add data: " + String(random));
-        if (randomNum == 0) {
-            Serial.println("Prepending");
-            prepend(value);
-        } else if (randomNum >= size) {
-            Serial.println("Appending");
-            append(value);
-        } else {
-            Serial.println("Inserting");
-            ListNode<T>* newNode = new ListNode<T>(value);
-            ListNode<T>* current = head;
-            for (size_t i = 1; i < randomNum; i++) {
-                current = current->next;
-            }
-            newNode->next = current->next;
-            current->next = newNode;
-            size++;
-        }
-    }
     // Insert an element at a specific position
     void insert(const T& value, size_t position) {
         if (position == 0) {
-            Serial.println("Prepending");
             prepend(value);
         } else if (position >= size) {
-            Serial.println("Appending");
             append(value);
         } else {
-            Serial.println("Inserting");
             ListNode<T>* newNode = new ListNode<T>(value);
             ListNode<T>* current = head;
-            for (size_t i = 1; i < position; i++) {
+            for (size_t i = 0; i < position; i++) {
                 current = current->next;
             }
-            newNode->next = current->next;
-            current->next = newNode;
+            newNode->next = current;
+            newNode->prev = current->prev;
+            current->prev->next = newNode;
+            current->prev = newNode;
             size++;
         }
     }
+
     // Remove the first occurrence of an element from the list
     void remove(const T& value) {
-        if (!head) {
-            Serial.println("List is empty");
-            return; // List is empty
-        }
-        if (head->data == value) {
-            ListNode<T>* temp = head;
-            head = head->next;
-            delete temp;
-            size--;
-            Serial.println("Removed head");
-            return;
-        }
         ListNode<T>* current = head;
-        while (current->next) {
-            if (current->next->data == value) {
-                ListNode<T>* temp = current->next;
-                current->next = current->next->next;
-                delete temp;
+        while (current) {
+            if (current->data == value) {
+                if (current->prev) {
+                    current->prev->next = current->next;
+                } else {
+                    head = current->next;
+                }
+                if (current->next) {
+                    current->next->prev = current->prev;
+                } else {
+                    tail = current->prev;
+                }
+                delete current;
                 size--;
-                Serial.println("Removed element");
                 return;
             }
             current = current->next;
         }
     }
-    // Get the element at a specific position
+
+    // Rest of the methods...
+     // Get the element at a specific position
     T& get(size_t position) const {
         if (position < size) {
             ListNode<T>* current = head;
@@ -181,4 +164,4 @@ public:
     }
 };
 
-#endif // LINKEDLIST_H
+#endif // DOUBLELINKEDLIST_H
