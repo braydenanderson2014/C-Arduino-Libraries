@@ -18,10 +18,10 @@ class DoubleLinkedList {
 private:
     ListNode<T>* head;
     ListNode<T>* tail;  // Pointer to the last node
-    size_t size;
+    size_t Size;
 
 public:
-    DoubleLinkedList() : head(nullptr), tail(nullptr), size(0) {}
+    DoubleLinkedList() : head(nullptr), tail(nullptr), Size(0) {}
 
     ~DoubleLinkedList() {
         clear();
@@ -37,7 +37,7 @@ public:
             newNode->prev = tail;
             tail = newNode;
         }
-        size++;
+        Size++;
     }
 
     void prepend(const T& value) {
@@ -49,14 +49,14 @@ public:
             tail = newNode;
         }
         head = newNode;
-        size++;
+        Size++;
     }
 
     // Insert an element at a specific position
     void insert(const T& value, size_t position) {
         if (position == 0) {
             prepend(value);
-        } else if (position >= size) {
+        } else if (position >= Size) {
             append(value);
         } else {
             ListNode<T>* newNode = new ListNode<T>(value);
@@ -68,7 +68,7 @@ public:
             newNode->prev = current->prev;
             current->prev->next = newNode;
             current->prev = newNode;
-            size++;
+            Size++;
         }
     }
 
@@ -88,7 +88,7 @@ public:
                     tail = current->prev;
                 }
                 delete current;
-                size--;
+                Size--;
                 return;
             }
             current = current->next;
@@ -98,7 +98,7 @@ public:
     // Rest of the methods...
      // Get the element at a specific position
     T& get(size_t position) const {
-        if (position < size) {
+        if (position < Size) {
             ListNode<T>* current = head;
             for (size_t i = 0; i < position; i++) {
                 current = current->next;
@@ -121,13 +121,13 @@ public:
     }
 
     // Get the number of elements in the list
-    size_t getSize() const {
-        return size;
+    size_t size() const {
+        return Size;
     }
 
     // Check if the list is empty
     bool isEmpty() const {
-        return size == 0;
+        return Size == 0;
     }
 
     // Clear the list and release memory
@@ -137,20 +137,10 @@ public:
             head = head->next;
             delete temp;
         }
-        size = 0;
+        Size = 0;
         Serial.println("Cleared list");
     }
 
-    bool keyExists(const T& key) const {
-        ListNode<T>* current = head;
-        while (current) {
-            if (current->data == key) {
-                return true;
-            }
-            current = current->next;
-        }
-        return false;
-    }
 
     bool valueExists(const T& value) const {
         ListNode<T>* current = head;

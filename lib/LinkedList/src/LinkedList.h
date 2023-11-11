@@ -17,10 +17,10 @@ template <typename T>
 class LinkedList {
 private:
     ListNode<T>* head;
-    size_t size;
+    size_t Size;
 
 public:
-    LinkedList() : head(nullptr), size(0) {}
+    LinkedList() : head(nullptr), Size(0) {}
 
     ~LinkedList();
 
@@ -35,23 +35,23 @@ public:
             }
             current->next = newNode;
         }
-        size++;
+        Size++;
     }
 
     void prepend(const T& value) {
         ListNode<T>* newNode = new ListNode<T>(value);
         newNode->next = head;
         head = newNode;
-        size++;
+        Size++;
     }
 
     void insert(const T& value){
-        int randomNum = random(0, size);
+        int randomNum = random(0, Size);
         Serial.println("Random Index to add data: " + String(random));
         if (randomNum == 0) {
             Serial.println("Prepending");
             prepend(value);
-        } else if (randomNum >= size) {
+        } else if (randomNum >= Size) {
             Serial.println("Appending");
             append(value);
         } else {
@@ -63,7 +63,7 @@ public:
             }
             newNode->next = current->next;
             current->next = newNode;
-            size++;
+            Size++;
         }
     }
     // Insert an element at a specific position
@@ -83,7 +83,7 @@ public:
             }
             newNode->next = current->next;
             current->next = newNode;
-            size++;
+            Size++;
         }
     }
     // Remove the first occurrence of an element from the list
@@ -96,7 +96,7 @@ public:
             ListNode<T>* temp = head;
             head = head->next;
             delete temp;
-            size--;
+            Size--;
             Serial.println("Removed head");
             return;
         }
@@ -106,7 +106,7 @@ public:
                 ListNode<T>* temp = current->next;
                 current->next = current->next->next;
                 delete temp;
-                size--;
+                Size--;
                 Serial.println("Removed element");
                 return;
             }
@@ -115,7 +115,7 @@ public:
     }
     // Get the element at a specific position
     T& get(size_t position) const {
-        if (position < size) {
+        if (position < Size) {
             ListNode<T>* current = head;
             for (size_t i = 0; i < position; i++) {
                 current = current->next;
@@ -138,13 +138,13 @@ public:
     }
 
     // Get the number of elements in the list
-    size_t getSize() const {
-        return size;
+    size_t size() const {
+        return Size;
     }
 
     // Check if the list is empty
     bool isEmpty() const {
-        return size == 0;
+        return Size == 0;
     }
 
     // Clear the list and release memory
@@ -154,7 +154,7 @@ public:
             head = head->next;
             delete temp;
         }
-        size = 0;
+        Size = 0;
         Serial.println("Cleared list");
     }
 
