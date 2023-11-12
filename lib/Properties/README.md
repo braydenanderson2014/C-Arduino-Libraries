@@ -48,6 +48,7 @@ If you want to Utilize this Library. Please include the
 * Adjusted size() Function that returns the current capacity of the underlying table.
 ### Version 1.0.6:
 * Added [PROPERTIES]: to the beginning of each Print Statement for easier debugging
+* Added a deleteFile() function to delete a file off of an SD Card.
 * Update to the README.md file
 * [WARNING]: Underlying Libraries that the Properties library depends on have been updated. This may cause issues. Please report any issues to the Author. This library will be tested and patched (if needed) as soon as possible.
             

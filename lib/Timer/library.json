@@ -1,6 +1,6 @@
 {
     "name": "SimpleArduinoTimer",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "A Simple Timer Library for Arduino",
     "keywords": ["Timer"],
     "repository": {

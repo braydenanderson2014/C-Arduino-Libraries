@@ -29,6 +29,7 @@ To use `LinkedList` in your Arduino sketch:
 * Added Overloaded Insert Function() to insert a value at a specific index
 * Added Insert Function to insert a value randomly into the list
 * Adjusted size Variable to be capitalized as Size. That way the compiler will not get confused with the size() function
+* Added an Iterator to the LinkedList. This will allow you to iterate through the list
 * This Library Has been partially tested. Please report any bugs to the Author
 
 

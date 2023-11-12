@@ -1,6 +1,6 @@
 {
     "name": "SimpleVector",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "A lightweight and efficient implementation of a dynamic array, suitable for use in memory-constrained environments.",
     "keywords": ["SimpleVector", "VectorIterator", "Vector"],
     "Repositories": [

@@ -24,6 +24,7 @@ public:
     void saveToSD(const String& filename);
     void loadFromSD(const String& filename);
     bool containsKey(const String& key);
+    bool deleteFile(const String& filename);
     
     class PropertiesIterator {
 private:

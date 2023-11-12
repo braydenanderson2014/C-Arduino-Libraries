@@ -1,6 +1,6 @@
 {
     "name": "SimpleProperties",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "A library for managing properties with an SD card. It is designed to be simple and easy to use. This library mimicks the Java Properties class.",
     "keywords": ["properties", "SD card"],
     "repositories": [
@@ -97,9 +97,10 @@
         },
         {
             "version": "1.0.6",
-            "date": "2023-11-11",
+            "date": "2023-11-12",
             "changes": [
                 "Added [PROPERTIES]: to the beginning of each Print Statement for easier debugging.",
+                "Added a deleteFile() function to delete the file from the SD card.",
                 "Update to the README.md file",
                 "[WARNING]: Underlying Libraries have been updated. This may cause issues. Please report any issues to the Author. This library will be tested and patched (if needed) as soon as possible."
             ]

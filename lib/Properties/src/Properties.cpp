@@ -135,3 +135,18 @@ bool Properties::containsKey(const String& key) {
     Serial.println("[SIMPLE PROPERTIES]: Checking if properties contain key: " + key);
     return table.get(key) != nullptr;
 }
+
+bool deleteFile(const String& filename) {
+    Serial.println("[SIMPLE PROPERTIES]: Deleting file: " + filename);
+    if (!SD.begin(4)) {
+        Serial.println("[SIMPLE PROPERTIES]: Failed to initialize SD card.");
+        return false;
+    }
+    if (SD.exists(filename.c_str())) {
+        if (!SD.remove(filename.c_str())) {
+            Serial.println("[SIMPLE PROPERTIES]: Error removing existing file.");
+            return false;
+        }
+    }
+    return true;
+}
