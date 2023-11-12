@@ -21,9 +21,10 @@ To use `SDList` in your Arduino project:
 * Initial Release
 ### Version 1.0.1
 * Dependency Update (Issues with certain Dependencies)
-### Version 1.0.2
+### Version 1.0.2  (Coming Soon)
 * Dependency Update (Issue was not resolved in 1.0.1 but is now properly resolved)
-### Version 1.0.3 (Coming Soon)
+* Added [SD LIST]: in front of all Serial.prints to make it easier to debug
+### Version 1.0.3 (DEVELOPMENT UNDERWAY)
 * Update to README
     
 ## Usage

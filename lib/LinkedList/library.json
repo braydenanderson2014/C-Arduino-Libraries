@@ -1,6 +1,6 @@
 {
     "name": "BasicLinkedList",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "This Library is an easy to use Library for Linked Lists. This Library contains basic implementations of the LinkedList functions. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["LinkedList", "List", "ArrayList", "Array", "BasicLinkedList"],
     "repositories": [
@@ -49,6 +49,19 @@
             "date": "2023-11-01",
             "changes": [
                 "Library was not Building correctly, Updated so now it should build correctly"
+            ]
+        },
+        {
+            "version": "1.0.2",
+            "date": "2023-11-12",
+            "changes": [
+                "Added [LINKED LIST]: to the Serial Print Statements to make it easier to debug",
+                "Added Overloaded Insert Function() to insert a value at a specific index",
+                "Added Insert Function to insert a value randomly into the list",
+                "Adjusted size Variable to be capitalized as Size. That way the compiler will not get confused with the size() function",
+                "This Library Has been partially tested. Please report any bugs to the Author, Check readme for more info",
+                "Added an Iterator to the LinkedList. This will allow you to iterate through the list"
+
             ]
         }
     ]

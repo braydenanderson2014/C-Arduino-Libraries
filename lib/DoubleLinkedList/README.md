@@ -1,4 +1,4 @@
-# LinkedList for Arduino
+# DoubleLinkedList for Arduino
 
 A simple, templated linked list implementation for Arduino projects. This class allows you to create and manage a linked list of any data type.
 
@@ -10,47 +10,29 @@ A simple, templated linked list implementation for Arduino projects. This class 
 
 ## WARNING: This Library Utilizes POINTERS *. This is due to the Libraries ability to utilize any return type. (Bool, String, int, float, etc)
 
+
 ## Installation
 
-To use `LinkedList` in your Arduino sketch:
+To use `DoubleLinkedList` in your Arduino sketch:
 
-1. Copy the `LinkedList` class code to your project's directory.
-2. Include `LinkedList.h` at the top of your sketch.
+1. Copy the `DoubleLinkedList` class code to your project's directory.
+2. Include `DoubleLinkedList.h` at the top of your sketch.
 
 ## Change Log
 ### Version 1.0.0
 * Initial Release
-### Version 1.0.1
-* Fixed Issues Related to Library Not Building.
-* Syntax Errors that were not discovered originally when Library was update have not been rectified. Library Should now work as intended.
-### Version 1.0.2
-* Update to README
-* Added [LINKED LIST]: to the Serial Print Statements to make it easier to debug
-* Added Overloaded Insert Function() to insert a value at a specific index
-* Added Insert Function to insert a value randomly into the list
-* Adjusted size Variable to be capitalized as Size. That way the compiler will not get confused with the size() function
-* Added an Iterator to the LinkedList. This will allow you to iterate through the list
-* This Library Has been partially tested. Please report any bugs to the Author
-
-
-## Currently Tested Functions
-`cpp
-    insert(1 parameter version)
-    prepend()
-    append()
-    size()
-    get()
-`
-prepend, and append were used automatically by the insert function
+* Added Library name in the Serial Outputs for debugging purposes
+* This particular version is not tested and may not work as intended. USE AT YOUR OWN RISK!",
+* This Library is extremely similar to the LinkedList Library, but with a few changes to the code to make it a double linked list instead of a single linked list.
 
 ## Usage
 
-To create a linked list, simply declare an instance of `LinkedList` with the desired type:
+To create a linked list, simply declare an instance of `DoubleLinkedList` with the desired type:
 
 ```cpp
-#include <LinkedList.h>
+#include <DoubleLinkedList.h>
 
-LinkedList<int> myList;
+DoubleLinkedList<int> myList;
 ```
 ## Adding Elements
 ### Append an element to the end of the list:
@@ -67,10 +49,6 @@ myList.prepend(0);
 
 ```cpp
 myList.insert(2, 1);  // Insert '2' at position '1'
-```
-
-```cpp
-myList.insert(1); //Insert '1' anywhere in the List.
 ```
 ## Accessing Elements
 ### Retrieve an element at a specific position:
@@ -95,7 +73,7 @@ if (myList.contains(2)) {
 ## Get the size of the list:
 
 ```cpp
-size_t size = myList.size();
+size_t size = myList.getSize();
 ```
 ### Check if the list is empty:
 
@@ -117,7 +95,7 @@ myList.append(2);
 myList.prepend(0);
 myList.insert(3, 3);
 
-for (size_t i = 0; i < myList.size(); i++) {
+for (size_t i = 0; i < myList.getSize(); i++) {
     Serial.print("Element at position ");
     Serial.print(i);
     Serial.print(": ");

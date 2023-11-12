@@ -24,8 +24,12 @@ To use `UnorderedMap` in your Arduino sketch:
 * Removed UnorderedMap.cpp and moved all code to UnorderedMap.h
 * Added Dynamic Resizing to UnorderedMap
 * Added Duplicate check on set Function
-### Version 1.0.2 (Coming Soon)
+### Version 1.0.2 
 * Update to README
+* Rebuilt library to utilize hashtable as its underlying structure. This allows for faster lookups and better memory usage
+* This also means, since the Hashtable has already been tested, this library is considered stable and ready for use (except for maybe a few functions)
+* Added a few more functions that Hashtable does not have.
+
 
 
 ## Usage
@@ -39,7 +43,7 @@ UnorderedMap<String, int> myMap;
 ```
 ### Inserting Elements
 ```cpp
-myMap.insert("temperature", 25);
+myMap.put("temperature", 25);
 ```
 ### Retrieving Elements
 ```cpp

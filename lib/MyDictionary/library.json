@@ -1,6 +1,6 @@
 {
     "name": "MyDictionary",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "This Library is an easy to use Library for Dictionary.h, It takes Dictionary.h and expands it into an implementation for use. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["Dictionary", "MyDictionary"],
     "repositories": [
@@ -53,6 +53,15 @@
                 "Renamed Library from DictionaryImplementation to MyDictionary",
                 "Implemented the library.",
                 "This Library is not tested and may not work. USE AT YOUR OWN RISK! Please report any Bugs to the Author"
+            ]
+        },
+        {
+            "version": "1.0.2",
+            "date": "2023-11-12",
+            "changes": [
+                "Modified the Library to utilize <String, String> instead of <String, int>",
+                "This Library is not tested and may not work. USE AT YOUR OWN RISK! Please report any Bugs to the Author",
+                "Added [Dictionary]: to Serial.print() statements to make it easier to read the output"
             ]
         }
     ]

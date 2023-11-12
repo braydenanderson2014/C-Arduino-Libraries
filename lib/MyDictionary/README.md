@@ -16,6 +16,9 @@
 * This Library is not tested and may not work. USE AT YOUR OWN RISK! Please report any Bugs to the Author
 ### Version 1.0.2
 * Update to README
+* Modified the Library to utilize `<String, String>` instead of `<String, int>`
+* This Library is not tested and may not work. USE AT YOUR OWN RISK! Please report any Bugs to the Author
+* Added [Dictionary]: to `Serial.print()` statements to make it easier to read the output
 
     
 ## Usage

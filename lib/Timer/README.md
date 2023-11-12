@@ -31,10 +31,13 @@ If you want to Utilize this Library. Please include the
 ```
 
 ## ChangeLog
-    Version 1.0.0:
-        * Initial Release 
-    Version 1.0.1:
-        * "Update to Libary.json"
+### Version 1.0.0:
+* Initial Release 
+### Version 1.0.1:
+* Update to Libary.json
+### Version 1.0.2:
+* Added Debug Statements [TIMER]: 
+
     
 
 Here's an example of how to use the `Timer` class:

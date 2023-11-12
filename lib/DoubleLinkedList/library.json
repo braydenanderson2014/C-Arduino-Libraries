@@ -1,0 +1,54 @@
+{
+    "name": "DoubleLinkedList",
+    "version": "1.0.0",
+    "description": "This Library is an easy to use Library for Double Linked Lists. This Library contains basic implementations of a double linked list structure. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "keywords": ["LinkedList", "List", "ArrayList", "Array", "BasicLinkedList", "DoubleLinkedList"],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/DoubleLinkedList.git"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "dependencies": {
+        "Arduino": "*"
+    },
+    "examples": [
+        {
+            "name": "Example",
+            "base": "Example",
+            "files": [
+                "Example.cpp"
+            ]
+        }
+    ],
+    "headers": [
+        "Arduino.h",
+        "DoubleLinkedList.h"
+    ],
+    "header": "DoubleLinkedList.h",
+    "Notes": "This Library is an easy to use Library for Double Linked Lists. This Library contains basic implementations of a double linked list structure. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "license": "Apache-2.0",
+    "readme": "README.md",
+    "ChangeLog": [
+        {
+            "version": "1.0.0",
+            "date": "2023-11-12",
+            "changes": [
+                "Initial  UNTESTED release",
+                "Added Library name in the Serial Outputs for debugging purposes",
+                "This particular version is not tested and may not work as intended. USE AT YOUR OWN RISK!",
+                "This Library is extremely similar to the LinkedList Library, but with a few changes to the code to make it a double linked list instead of a single linked list.",
+                "Added 3 new Iterators to this Library. They are: ForwardIterator, BackwardIterator, and RandomIterator. They are all used for iterating through the list. They are currently untested",
+                "Redefinition of the LinkedNode. It is now called DoubledLinkedNode so it will not clash with the LinkedList Version.",
+                "This Library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author"
+            ]
+        }
+    ]
+}

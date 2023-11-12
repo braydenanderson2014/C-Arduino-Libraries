@@ -1,6 +1,6 @@
 {
     "name": "SimpleProperties",
-    "version": "1.0.4",
+    "version": "1.0.6",
     "description": "A library for managing properties with an SD card. It is designed to be simple and easy to use. This library mimicks the Java Properties class.",
     "keywords": ["properties", "SD card"],
     "repositories": [
@@ -83,6 +83,26 @@
                 "Patching the iterator, and the save Function. ",
                 "Patch is untested",
                 "This library has been partially tested and is now considered largely stable"
+            ]
+        },
+        {
+            "version": "1.0.5",
+            "date": "2023-11-7",
+            "changes": [
+                "Patched the Iterator. It now seems to work with no issues.",
+                "Patched the Save Function. It now seems to save and create files as expected.",
+                "Added Elements(); Function that returns the current number of elements in the properties.",
+                "Adjusted size() Function that returns the current capacity of the underlying table."
+            ]
+        },
+        {
+            "version": "1.0.6",
+            "date": "2023-11-12",
+            "changes": [
+                "Added [PROPERTIES]: to the beginning of each Print Statement for easier debugging.",
+                "Added a deleteFile() function to delete the file from the SD card.",
+                "Update to the README.md file",
+                "[WARNING]: Underlying Libraries have been updated. This may cause issues. Please report any issues to the Author. This library will be tested and patched (if needed) as soon as possible."
             ]
         }
         

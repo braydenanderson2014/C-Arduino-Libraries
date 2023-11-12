@@ -41,6 +41,17 @@ If you want to Utilize this Library. Please include the
 * Patching the iterator, and the save Function. Iterator may still have issues, Working toward fixing issue.
 * Patch is untested
 * This library has been partially tested and is now considered largely stable
+### Version 1.0.5:
+* Patched the Iterator. It now seems to work with no issues. [TESTED]
+* Patched the Save Function. It now seems to save and create files as expected. [PARTIALLY-TESTED]
+* Added Elements(); Function that returns the current number of elements in the properties.
+* Adjusted size() Function that returns the current capacity of the underlying table.
+### Version 1.0.6:
+* Added [PROPERTIES]: to the beginning of each Print Statement for easier debugging
+* Added a deleteFile() function to delete a file off of an SD Card.
+* Update to the README.md file
+* [WARNING]: Underlying Libraries that the Properties library depends on have been updated. This may cause issues. Please report any issues to the Author. This library will be tested and patched (if needed) as soon as possible.
+            
 
 
 Here's an example of how to use the `Properties` class:

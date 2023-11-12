@@ -40,6 +40,9 @@ If you want to Utilize this Library. Please include the
 * Added Elements Function.
 * Added Iterators to the library
 * Modified the size Function to return size of array and not how many elements are on the array
+### Version 1.0.3:
+* Added [SIMPLE VECTOR]: to the start of the Serial.print() statements to make it easier to debug
+
 
 
 Here's an example of how to use the `SimpleVector` class:

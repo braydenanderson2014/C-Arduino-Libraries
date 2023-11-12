@@ -121,7 +121,7 @@ public:
 
         T& next() {
             if (current == end) {
-                Serial.println("Error: Iterator has reached the end of the vector.");
+                Serial.println("[SIMPLE VECTOR]: WARNING: Iterator has reached the end of the vector.");
             }
             return *current++;
         }

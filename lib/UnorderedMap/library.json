@@ -1,6 +1,6 @@
 {
     "name": "UnorderedMap",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "This Library is an easy to use Library for Unordered Maps. This Library contains basic implementations of the LinkedList functions. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["UnorderedMap", "Map"],
     "repositories": [
@@ -17,7 +17,8 @@
         }
     ],
     "dependencies": {
-        "Arduino": "*"
+        "Arduino": "*",
+        "braydenanderson2014/Hashtable": "*"
     },
     "examples": [
         {
@@ -29,11 +30,8 @@
         }
     ],
     "headers": [
-        "Arduino.h",
-        "LinkedList.h",
-        "UnorderedMap.h",
-        "SimpleVector.h",
-        "BasicIOStream.h"
+        "Hashtable.h",
+        "UnorderedMap.h"
     ],
     "header": "UnorderedMap.h",
     "Notes": "This library is designed to be simple and easy to use. This Library contains basic implementations of a UnorderedMap Structure. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
@@ -54,6 +52,15 @@
                 "Removed UnorderedMap.cpp and moved all code to UnorderedMap.h",
                 "Added Dynamic Resizing to UnorderedMap",
                 "Added Duplicate check on set Function"
+            ]
+        },
+        {
+            "version": "1.0.2",
+            "date": "2023-11-9",
+            "changes": [
+                "Rebuilt library to utilize hashtable as its underlying structure. This allows for faster lookups and better memory usage",
+                "This also means, since the Hashtable has already been tested, this library is considered stable and ready for use",
+                "Added a few more functions that Hashtable does not have."
             ]
         }
     ]
