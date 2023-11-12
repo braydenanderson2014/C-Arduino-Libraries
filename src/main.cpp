@@ -2,6 +2,7 @@
 #include "Properties.h"
 #include "MyDictionary.h"
 #include "LinkedList.h"
+#include "DoubleLinkedList.h"
 #include "UnorderedMap.h"
 #include "SDList.h"
 

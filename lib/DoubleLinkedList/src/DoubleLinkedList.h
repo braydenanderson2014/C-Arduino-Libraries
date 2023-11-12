@@ -4,23 +4,146 @@
 #include <Arduino.h>
 
 template <typename T>
-class ListNode {
+class DoubleListNode {
 public:
     T data;
-    ListNode* next;
-    ListNode* prev;  // Pointer to the previous node
+    DoubleListNode* next;
+    DoubleListNode* prev;  // Pointer to the previous node
 
-    ListNode(T value) : data(value), next(nullptr), prev(nullptr) {}
+    DoubleListNode(T value) : data(value), next(nullptr), prev(nullptr) {}
 };
 
 template <typename T>
 class DoubleLinkedList {
 private:
-    ListNode<T>* head;
-    ListNode<T>* tail;  // Pointer to the last node
+    DoubleListNode<T>* head;
+    DoubleListNode<T>* tail;  // Pointer to the last node
     size_t Size;
 
+    // Random Iterator Helper
+    mutable bool* visited;  // Array to keep track of visited nodes
+    mutable size_t visitedCount;  // Number of visited nodes
+
 public:
+class ForwardIterator {
+    private:
+        DoubleListNode<T>* current;
+
+    public:
+        ForwardIterator(DoubleListNode<T>* start) : current(start) {}
+
+        T& operator*() {
+            return current->data;
+        }
+
+        bool operator!=(const ForwardIterator& other) const {
+            return current != other.current;
+        }
+
+        ForwardIterator& operator++() {
+            if (current) current = current->next;
+            return *this;
+        }
+    };
+
+    // Backward iterator class definition
+    class BackwardIterator {
+    private:
+        DoubleListNode<T>* current;
+
+    public:
+        BackwardIterator(DoubleListNode<T>* start) : current(start) {}
+
+        T& operator*() {
+            return current->data;
+        }
+
+        bool operator!=(const BackwardIterator& other) const {
+            return current != other.current;
+        }
+
+        BackwardIterator& operator--() {
+            if (current) current = current->prev;
+            return *this;
+        }
+    };
+
+    // Random iterator class definition
+    class RandomIterator {
+    private:
+        DoubleLinkedList<T>* list;
+
+        void resetVisited() const {
+            for (size_t i = 0; i < list->Size; ++i) {
+                list->visited[i] = false;
+            }
+            list->visitedCount = 0;
+        }
+
+    public:
+        RandomIterator(DoubleLinkedList<T>* list) : list(list) {
+            list->visited = new bool[list->Size]();
+            resetVisited();
+        }
+
+        ~RandomIterator() {
+            delete[] list->visited;
+        }
+
+        T& operator*() {
+            size_t index = random(0, list->Size - list->visitedCount);
+            size_t count = 0;
+            for (size_t i = 0; i < list->Size; ++i) {
+                if (!list->visited[i]) {
+                    if (count == index) {
+                        list->visited[i] = true;
+                        list->visitedCount++;
+                        return *list->get(i);
+                    }
+                    count++;
+                }
+            }
+            // Return the first unvisited element as a fallback
+            for (size_t i = 0; i < list->Size; ++i) {
+                if (!list->visited[i]) {
+                    list->visited[i] = true;
+                    list->visitedCount++;
+                    return *list->get(i);
+                }
+            }
+            // Should not reach here
+        }
+
+        bool hasNext() const {
+            return list->visitedCount < list->Size;
+        }
+
+        void reset() {
+            resetVisited();
+        }
+    };
+
+    // Methods to get iterators
+    ForwardIterator begin() const {
+        return ForwardIterator(head);
+    }
+
+    ForwardIterator end() const {
+        return ForwardIterator(nullptr);
+    }
+
+    BackwardIterator rbegin() const {
+        return BackwardIterator(tail);
+    }
+
+    BackwardIterator rend() const {
+        return BackwardIterator(nullptr);
+    }
+
+    RandomIterator randomBegin() {
+        return RandomIterator(this);
+    }
+
     DoubleLinkedList() : head(nullptr), tail(nullptr), Size(0) {}
 
     ~DoubleLinkedList() {
@@ -28,7 +151,7 @@ public:
     }
 
     void append(const T& value) {
-        ListNode<T>* newNode = new ListNode<T>(value);
+        DoubleListNode<T>* newNode = new DoubleListNode<T>(value);
         if (!head) {
             head = newNode;
             tail = newNode;
@@ -41,7 +164,7 @@ public:
     }
 
     void prepend(const T& value) {
-        ListNode<T>* newNode = new ListNode<T>(value);
+        DoubleListNode<T>* newNode = new DoubleListNode<T>(value);
         newNode->next = head;
         if (head) {
             head->prev = newNode;
@@ -63,8 +186,8 @@ public:
             append(value);
         } else {
             Serial.println("[DOUBLE LINKED LIST]: Inserting: " + String(value));
-            ListNode<T>* newNode = new ListNode<T>(value);
-            ListNode<T>* current = head;
+            DoubleListNode<T>* newNode = new DoubleListNode<T>(value);
+            DoubleListNode<T>* current = head;
             for (size_t i = 1; i < randomNum; i++) {
                 current = current->next;
             }
@@ -83,8 +206,8 @@ public:
             append(value);
         } else {
             Serial.println("[DOUBLE LINKED LIST]: Inserting: " + String(value));
-            ListNode<T>* newNode = new ListNode<T>(value);
-            ListNode<T>* current = head;
+            DoubleListNode<T>* newNode = new DoubleListNode<T>(value);
+            DoubleListNode<T>* current = head;
             for (size_t i = 0; i < position; i++) {
                 current = current->next;
             }
@@ -98,7 +221,7 @@ public:
 
     // Remove the first occurrence of an element from the list
     void remove(const T& value) {
-        ListNode<T>* current = head;
+        DoubleListNode<T>* current = head;
         Serial.println("[DOUBLE LINKED LIST]: Removing: " + String(value));
         while (current) {
             if (current->data == value) {
@@ -123,7 +246,7 @@ public:
     // Rest of the methods...
     // Change the return type to a pointer
     T* get(size_t position) const {
-        ListNode<T>* current = head;
+        DoubleListNode<T>* current = head;
         for (size_t i = 0; i < position; i++) {
             if (!current) {
                 return nullptr; // Out of bounds
@@ -138,7 +261,7 @@ public:
     }  
     // Check if the list contains a specific element
     bool contains(const T& value) const {
-        ListNode<T>* current = head;
+        DoubleListNode<T>* current = head;
         while (current) {
             if (current->data == value) {
                 return true;
@@ -161,7 +284,7 @@ public:
     // Clear the list and release memory
     void clear() {
         while (head) {
-            ListNode<T>* temp = head;
+            DoubleListNode<T>* temp = head;
             head = head->next;
             delete temp;
         }
@@ -170,7 +293,7 @@ public:
     }
 
     bool valueExists(const T& value) const {
-        ListNode<T>* current = head;
+        DoubleListNode<T>* current = head;
         while (current) {
             if (current->data == value) {
                 return true;
