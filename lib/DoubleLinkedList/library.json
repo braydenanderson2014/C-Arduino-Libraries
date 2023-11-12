@@ -39,9 +39,12 @@
     "ChangeLog": [
         {
             "version": "1.0.0",
-            "date": "2023-10-25",
+            "date": "2023-11-11",
             "changes": [
-                "Initial  UNTESTED release"
+                "Initial  UNTESTED release",
+                "Added Library name in the Serial Outputs for debugging purposes",
+                "This particular version is not tested and may not work as intended. USE AT YOUR OWN RISK!",
+                "This Library is extremely similar to the LinkedList Library, but with a few changes to the code to make it a double linked list instead of a single linked list."
             ]
         }
     ]

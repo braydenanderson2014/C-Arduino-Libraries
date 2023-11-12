@@ -67,9 +67,10 @@
         },
         {
             "version": "1.0.2",
-            "date": "2023-10-31",
+            "date": "2023-11-11",
             "changes": [
-                "Dependency Update: Directly including SD.h;"
+                "Dependency Update: Directly including SD.h;",
+                "Added [SD LIST]: in front of all Serial.prints to make it easier to debug"
             ]
         }
     ]

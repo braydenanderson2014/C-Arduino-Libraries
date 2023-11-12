@@ -109,6 +109,13 @@
                 "All new functions are untested, please report any bugs you find!",
                 "These functions are desinged to open up the library to allow you to use it in more ways, such as using it as a hashset"
             ]
+        },
+        {
+            "version": "1.0.8",
+            "date": "2023-11-11",
+            "changes": [
+                "Added [HASHTABLE]: to the start of all Serial.print() statements to make it easier to debug"
+            ]
         }
     ],
 

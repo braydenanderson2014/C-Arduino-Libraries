@@ -5,9 +5,9 @@
 #include "Dictionary.h"
 #include "UnorderedMap.h"
 
-class MyDictionary : public Dictionary<String, int> {
+class MyDictionary : public Dictionary<String, String> {
 private:
-    UnorderedMap<String, int> data;
+    UnorderedMap<String, String> data;
 
 public:
     int size() const override {
@@ -18,26 +18,26 @@ public:
         return data.isEmpty();
     }
 
-    int get(const String& key) const override {
-        int value;
+    String get(const String& key) const override {
+        String value;
         if (data.get(key)) {
             return value;
         } else {
-            Serial.println("Key not found");
-            return -1; // or some other error indicator
+            Serial.println("[Dictionary]: Unable to get(), Key not found");
+            return "null"; // or some other error indicator
         }
     }
 
-    void put(const String& key, const int& value) override {
+    void put(const String& key, const String& value) override {
         data.put(key, value);
     }
 
-    int remove(const String& key) override {
+    String remove(const String& key) override {
         if (!data.remove(key)) {
-            Serial.println("Key not found");
-            return 0; // or some other error indicator
+            Serial.println("Dictionary]: Unable to remove(), Key not found");
+            return "null"; // or some other error indicator
         }
-        return 1; // or some other success indicator
+        return "success"; // or some other success indicator
     }
 };
 

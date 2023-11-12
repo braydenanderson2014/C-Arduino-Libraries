@@ -52,13 +52,37 @@ public:
         Size++;
     }
 
+    void insert(const T& value){
+        int randomNum = random(0, Size);
+        Serial.println("[DOUBLE LINKED LIST]: Random Index to add data: " + String(randomNum));
+        if (randomNum == 0) {
+            Serial.println("[DOUBLE LINKED LIST]: Prepending: " + String(value));
+            prepend(value);
+        } else if (randomNum >= Size) {
+            Serial.println("[DOUBLE LINKED LIST]: Appending: " + String(value));
+            append(value);
+        } else {
+            Serial.println("[DOUBLE LINKED LIST]: Inserting: " + String(value));
+            ListNode<T>* newNode = new ListNode<T>(value);
+            ListNode<T>* current = head;
+            for (size_t i = 1; i < randomNum; i++) {
+                current = current->next;
+            }
+            newNode->next = current->next;
+            current->next = newNode;
+            Size++;
+        }
+    }
     // Insert an element at a specific position
     void insert(const T& value, size_t position) {
         if (position == 0) {
+            Serial.println("[DOUBLE LINKED LIST]: Prepending: " + String(value));
             prepend(value);
         } else if (position >= Size) {
+            Serial.println("[DOUBLE LINKED LIST]: Appending: " + String(value));
             append(value);
         } else {
+            Serial.println("[DOUBLE LINKED LIST]: Inserting: " + String(value));
             ListNode<T>* newNode = new ListNode<T>(value);
             ListNode<T>* current = head;
             for (size_t i = 0; i < position; i++) {
@@ -75,6 +99,7 @@ public:
     // Remove the first occurrence of an element from the list
     void remove(const T& value) {
         ListNode<T>* current = head;
+        Serial.println("[DOUBLE LINKED LIST]: Removing: " + String(value));
         while (current) {
             if (current->data == value) {
                 if (current->prev) {
@@ -96,18 +121,21 @@ public:
     }
 
     // Rest of the methods...
-     // Get the element at a specific position
-    T& get(size_t position) const {
-        if (position < Size) {
-            ListNode<T>* current = head;
-            for (size_t i = 0; i < position; i++) {
-                current = current->next;
+    // Change the return type to a pointer
+    T* get(size_t position) const {
+        ListNode<T>* current = head;
+        for (size_t i = 0; i < position; i++) {
+            if (!current) {
+                return nullptr; // Out of bounds
             }
-            return current->data;
+            current = current->next;
         }
-        Serial.println("Index out of bounds");
-        return 0;
-    }    
+        if (current) {
+            return &(current->data);
+        } else {
+            return nullptr;
+        }
+    }  
     // Check if the list contains a specific element
     bool contains(const T& value) const {
         ListNode<T>* current = head;
@@ -138,9 +166,8 @@ public:
             delete temp;
         }
         Size = 0;
-        Serial.println("Cleared list");
+        Serial.println("[DOUBLE LINKED LIST]: Cleared list");
     }
-
 
     bool valueExists(const T& value) const {
         ListNode<T>* current = head;

@@ -50,6 +50,17 @@
             "changes": [
                 "Library was not Building correctly, Updated so now it should build correctly"
             ]
+        },
+        {
+            "version": "1.0.2",
+            "date": "2023-11-11",
+            "changes": [
+                "Added [LINKED LIST]: to the Serial Print Statements to make it easier to debug",
+                "Added Overloaded Insert Function() to insert a value at a specific index",
+                "Added Insert Function to insert a value randomly into the list",
+                "Adjusted size Variable to be capitalized as Size. That way the compiler will not get confused with the size() function",
+                "This Library Has been partially tested. Please report any bugs to the Author, Check readme for more info"
+            ]
         }
     ]
 }

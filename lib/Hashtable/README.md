@@ -10,6 +10,8 @@ The `Hashtable` class is designed to offer a dynamic and scalable hash table wit
 - **Collision Handling**: It uses separate chaining to handle collisions, allowing multiple key-value pairs with the same hash value to be stored and retrieved correctly.
 - **Iterator Support**: You can iterate through the keys in the hash table using iterators, making it easy to perform operations on the keys and their associated values.
 
+## WARNING: This Library Utilizes POINTERS *. This is due to the Libraries ability to utilize any return type. (Bool, String, int, float, etc)
+
 ### Key Features
 
 - `put(K key, V value)`: Associates the given key with the specified value in the hash table.
@@ -99,7 +101,8 @@ If you want to Utilize this Library. Please include the
 * Added new bucketSize() function to return the size of a bucket
 * All new functions are untested, please report any bugs you find!
 * These functions are desinged to open up the library to allow you to use it in more ways, such as using it as a hashset
-
+### Version 1.0.8: [FUTURE-RELEASE]
+* Added [HASHTABLE]: to the front of each Serial.println() statement to make it easier to debug.
 
 ## Example
 

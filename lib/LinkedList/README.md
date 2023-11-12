@@ -8,6 +8,8 @@ A simple, templated linked list implementation for Arduino projects. This class 
 - Dynamic resizing: Automatically manages memory as elements are added or removed.
 - Basic operations: `append`, `prepend`, `insert`, `remove`, `get`, `contains`, `getSize`, `isEmpty`, `clear`.
 
+## WARNING: This Library Utilizes POINTERS *. This is due to the Libraries ability to utilize any return type. (Bool, String, int, float, etc)
+
 ## Installation
 
 To use `LinkedList` in your Arduino sketch:
@@ -23,6 +25,23 @@ To use `LinkedList` in your Arduino sketch:
 * Syntax Errors that were not discovered originally when Library was update have not been rectified. Library Should now work as intended.
 ### Version 1.0.2
 * Update to README
+* Added [LINKED LIST]: to the Serial Print Statements to make it easier to debug
+* Added Overloaded Insert Function() to insert a value at a specific index
+* Added Insert Function to insert a value randomly into the list
+* Adjusted size Variable to be capitalized as Size. That way the compiler will not get confused with the size() function
+* This Library Has been partially tested. Please report any bugs to the Author
+
+
+## Currently Tested Functions
+`cpp
+    insert(1 parameter version)
+    prepend()
+    append()
+    size()
+    get()
+`
+prepend, and append were used automatically by the insert function
+
 ## Usage
 
 To create a linked list, simply declare an instance of `LinkedList` with the desired type:
@@ -48,6 +67,10 @@ myList.prepend(0);
 ```cpp
 myList.insert(2, 1);  // Insert '2' at position '1'
 ```
+
+```cpp
+myList.insert(1); //Insert '1' anywhere in the List.
+```
 ## Accessing Elements
 ### Retrieve an element at a specific position:
 
@@ -71,7 +94,7 @@ if (myList.contains(2)) {
 ## Get the size of the list:
 
 ```cpp
-size_t size = myList.getSize();
+size_t size = myList.size();
 ```
 ### Check if the list is empty:
 
@@ -93,7 +116,7 @@ myList.append(2);
 myList.prepend(0);
 myList.insert(3, 3);
 
-for (size_t i = 0; i < myList.getSize(); i++) {
+for (size_t i = 0; i < myList.size(); i++) {
     Serial.print("Element at position ");
     Serial.print(i);
     Serial.print(": ");

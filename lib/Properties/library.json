@@ -94,6 +94,15 @@
                 "Added Elements(); Function that returns the current number of elements in the properties.",
                 "Adjusted size() Function that returns the current capacity of the underlying table."
             ]
+        },
+        {
+            "version": "1.0.6",
+            "date": "2023-11-11",
+            "changes": [
+                "Added [PROPERTIES]: to the beginning of each Print Statement for easier debugging.",
+                "Update to the README.md file",
+                "[WARNING]: Underlying Libraries have been updated. This may cause issues. Please report any issues to the Author. This library will be tested and patched (if needed) as soon as possible."
+            ]
         }
         
     ]

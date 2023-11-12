@@ -8,6 +8,9 @@ A simple, templated linked list implementation for Arduino projects. This class 
 - Dynamic resizing: Automatically manages memory as elements are added or removed.
 - Basic operations: `append`, `prepend`, `insert`, `remove`, `get`, `contains`, `getSize`, `isEmpty`, `clear`.
 
+## WARNING: This Library Utilizes POINTERS *. This is due to the Libraries ability to utilize any return type. (Bool, String, int, float, etc)
+
+
 ## Installation
 
 To use `DoubleLinkedList` in your Arduino sketch:
@@ -18,7 +21,9 @@ To use `DoubleLinkedList` in your Arduino sketch:
 ## Change Log
 ### Version 1.0.0
 * Initial Release
-
+* Added Library name in the Serial Outputs for debugging purposes
+* This particular version is not tested and may not work as intended. USE AT YOUR OWN RISK!",
+* This Library is extremely similar to the LinkedList Library, but with a few changes to the code to make it a double linked list instead of a single linked list.
 
 ## Usage
 
