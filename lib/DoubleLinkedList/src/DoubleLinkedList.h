@@ -25,7 +25,7 @@ private:
     mutable size_t visitedCount;  // Number of visited nodes
 
 public:
-class ForwardIterator {
+    class ForwardIterator {
     private:
         DoubleListNode<T>* current;
 

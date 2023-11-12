@@ -20,6 +20,26 @@ private:
     size_t Size;
 
 public:
+class ForwardIterator {
+    private:
+        ListNode<T>* current;
+
+    public:
+        ForwardIterator(ListNode<T>* start) : current(start) {}
+
+        T& operator*() {
+            return current->data;
+        }
+
+        bool operator!=(const ForwardIterator& other) const {
+            return current != other.current;
+        }
+
+        ForwardIterator& operator++() {
+            if (current) current = current->next;
+            return *this;
+        }
+    };
     LinkedList() : head(nullptr), Size(0) {}
 
     ~LinkedList() {
