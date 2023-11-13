@@ -9,19 +9,14 @@
 6. SimpleVector [PASSIVE-DEVELOPMENT] , [MOSTLY-TESTED]
 7. Timer [PASSIVE_DEVELOPMENT] (Published as : SimpleArduinoTimer), [UNTESTED]
 8. UnorderedMap [ACTIVE-DEVELOPMENT], [PARTIALLY-TESTED]
-9. LinkedList [ACTIVE-DEVELOPENT] (Published as : BasicLinkedList), [UNTESTED]
-10. MyDictionary [ACTIVE-DEVELOPMENT],(implemented Version of the Dictionary Class), [UNTESTED]
-11. SDList [ACTIVE-DEVELOPMENT], [UNTESTED]
+9. LinkedList [ACTIVE-DEVELOPENT] (Published as : BasicLinkedList), [MOSTLY-TESTED]
+10. DoubleLinkedList [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED]
+11. MyDictionary [ACTIVE-DEVELOPMENT],(implemented Version of the Dictionary Class), [UNTESTED]
+12. SDList [ACTIVE-DEVELOPMENT], [FAILED-TESTING]
 
 
 ## ACTIVELY WORKING ON LISTED LIBRARIES (Bug Fixing or Feature Adding):
-1. UnorderedMap [FEATURE-ADDITION] (See Issues), [TESTING]
-2. LinkedList [FEATURE-ADDITION], [TESTING]
-3. MyDictionary [FEATURE-ADDITION], [TESTING]
-4. SDList [FEATURE-ADDITION], [TESTING]
-
-
-
+1. SDList [BUG-FIXING, ACTIVE-DEVELOPMENT, KNOWN-ISSUES], [FAILED-TESTING]
 
 
 ## UNPUBLISHED (In Development) (Not yet Documented)
