@@ -15,6 +15,7 @@ public:
     void set(uint16_t index, const T& value);
     uint16_t size() const;
     bool sdAvailable() const;
+    bool initializePageFile();
 
 private:
     T* data;

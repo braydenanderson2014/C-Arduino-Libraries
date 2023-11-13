@@ -3,28 +3,26 @@
 template <typename T>
 SDList<T>::SDList(uint8_t csPin, const String& pageFileName)
     : data(nullptr), capacity(0), length(0), csPin(csPin), pageFileName(pageFileName) {
-        Serial.println("[SD LIST]: Initializing SDList Library");
-    if (checkSD()) {
-        // Attempt to load existing data from SD
-        Serial.println("[SD LIST]: SD Card Detected");
+    Serial.flush();
+    Serial.println("[SD LIST]: Initializing SDList Library");
+
+    if (initializePageFile()) {
+        // Now that the page file is ensured to exist, proceed with the rest of the initialization
         File file = SD.open(pageFileName.c_str(), FILE_READ);
-        Serial.println("[SD LIST]: Opening Page File");
-        if (file) {
-            Serial.println("[SD LIST]: Page File Opened");
+        if (file && file.size() > 0) {
+            // File exists and is not empty, load existing data from SD
             length = file.size() / sizeof(T);
-            Serial.println("[SD LIST]: Length of Page File: " + String(length));
             data = new T[length];
-            Serial.println("[SD LIST]: Reading Page File/Loading Data");
             file.read(data, length * sizeof(T));
-            Serial.println("[SD LIST]: Closing Page File");
             file.close();
+        } else {
+            // File does not exist or is empty, initialize with default capacity
+            capacity = 10; // or any other initial capacity you deem appropriate
+            data = new T[capacity];
         }
-        Serial.println("[SD LIST]: Page File Closed");
     } else {
-        Serial.println("[SD LIST]: SD Card Not Detected");
-        Serial.println("[SD LIST]: Creating New List");
-        data = new T[10];  // start with a small capacity
-        capacity = 10;
+        // Handle the error if the page file could not be initialized
+        Serial.println("[SD LIST]: Unable to Initialize Page File");
     }
 }
 
@@ -51,11 +49,41 @@ SDList<T>::~SDList() {
 }
 
 template <typename T>
+bool SDList<T>::initializePageFile() {
+    Serial.println("[SD LIST]: Initializing Page File");
+
+    // Check if the SD card is available
+    if (!checkSD()) {
+        Serial.println("[SD LIST]: SD Card Not Detected");
+        return false;
+    }
+
+    // Check if the page file exists
+    if (SD.exists(pageFileName.c_str())) {
+        Serial.println("[SD LIST]: Page File Exists");
+        return true;
+    } else {
+        // Create a new page file
+        Serial.println("[SD LIST]: Creating New Page File");
+        File file = SD.open(pageFileName.c_str(), FILE_WRITE);
+        if (file) {
+            Serial.println("[SD LIST]: New Page File Created");
+            file.close();
+            return true;
+        } else {
+            Serial.println("[SD LIST]: Failed to Create Page File");
+            return false;
+        }
+    }
+}
+
+template <typename T>
 void SDList<T>::append(const T& value) {
     Serial.println("[SD LIST]: Appending Data to List");
     if (length == capacity) {
         if (!expandCapacity()) {
             Serial.println("[SD LIST]: Unable to expand capacity");
+            Serial.println("[SD LIST]: Failed to add Data to List");
             // Handle the error (e.g., by not appending the item)
             return;
         }
@@ -77,7 +105,7 @@ T SDList<T>::get(uint16_t index) const {
 }
 
 template <typename T>
-void SDList<T>::set(uint16_t index, const T& value) {
+void SDList<T>::set(uint16_t index, const T& value) { //Specialized for certain index
     Serial.println("[SD LIST]: Setting Data in List");
     if (index < length) {
         Serial.println("[SD LIST]: Inserting Data");
@@ -122,6 +150,7 @@ bool SDList<T>::expandCapacity() {
 template <typename T>
 bool SDList<T>::checkSD() const {
     Serial.println("[SD LIST]: Checking if SD Card is Available");
+    Serial.println("[SD LIST]: " + String(SD.begin(csPin)));
     return SD.begin(csPin);
 }
 
