@@ -3,7 +3,6 @@
 template <typename T>
 SDList<T>::SDList(uint8_t csPin, const String& pageFileName)
     : data(nullptr), capacity(0), length(0), csPin(csPin), pageFileName(pageFileName), useSD(false) {
-    Serial.begin(9600);
     Serial.println("[SD LIST]: Initializing SDList Library");
 
     if (initializePageFile()) {
@@ -11,7 +10,7 @@ SDList<T>::SDList(uint8_t csPin, const String& pageFileName)
         loadFromSD();
     } else {
         useSD = false;
-        Serial.flush();
+        delay(50);
         Serial.println("[SD LIST]: SD Card not used. Switching to in-memory operation.");
         capacity = 10; // default initial capacity
         data = new T[capacity];
@@ -96,17 +95,24 @@ void SDList<T>::append(const T& value) {
         }
     }
 
+    // Check if SD card usage is intended and available before attempting to write
     if (useSD && checkSD()) {
         File file = SD.open(pageFileName.c_str(), FILE_WRITE);
         if (file) {
-            file.seek(length * sizeof(T));
-            file.write(reinterpret_cast<const byte*>(&value), sizeof(T));
+            file.seek(length * sizeof(T)); // Move to the end of the file
+            if(file.write(reinterpret_cast<const byte*>(&value), sizeof(T)) == sizeof(T)) {
+                Serial.println("[SD LIST]: Data Appended to SD File");
+            } else {
+                Serial.println("[SD LIST]: Failed to append data to SD File");
+            }
             file.close();
+        } else {
+            Serial.println("[SD LIST]: Failed to open SD File for appending");
         }
-        length++;
+        length++; // Increase length only if data is written
     } else {
-        data[length++] = value;
-        Serial.println("[SD LIST]: Data Appended to List");
+        data[length++] = value; // In-memory operation
+        Serial.println("[SD LIST]: Data Appended to In-Memory List");
     }
 }
 
@@ -228,9 +234,14 @@ bool SDList<T>::expandCapacity() {
 
 template <typename T>
 bool SDList<T>::checkSD() const {
-    Serial.println("[SD LIST]: Checking if SD Card is Available");
-    Serial.println("[SD LIST]: " + String(SD.begin(csPin)));
-    return SD.begin(csPin);
+    Serial.print("[SD LIST]: Initializing SD Card on CS pin: ");
+    Serial.println(csPin);
+    if (!SD.begin(csPin)) {
+        Serial.println("[SD LIST]: SD Card initialization failed!");
+        return false;
+    }
+    Serial.println("[SD LIST]: SD Card initialized successfully");
+    return true;
 }
 
 // Explicitly instantiate the template with some expected types
