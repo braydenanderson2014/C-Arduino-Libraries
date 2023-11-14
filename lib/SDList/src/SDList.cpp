@@ -10,6 +10,8 @@ SDList<T>::SDList(uint8_t csPin, const String& pageFileName)
         useSD = true;
         loadFromSD();
     } else {
+        useSD = false;
+        Serial.flush();
         Serial.println("[SD LIST]: SD Card not used. Switching to in-memory operation.");
         capacity = 10; // default initial capacity
         data = new T[capacity];
@@ -160,6 +162,7 @@ uint16_t SDList<T>::size() const {
 template <typename T>
 bool SDList<T>::sdAvailable() const {
     Serial.println("[SD LIST]: Checking if SD Card is Available");
+    Serial.println("[SD LIST]: " + String(checkSD()));
     return checkSD();
 }
 
