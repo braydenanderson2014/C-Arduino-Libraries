@@ -15,6 +15,7 @@ SDList<T>::SDList(uint8_t csPin, const String& pageFileName)
         Serial.println("[SD LIST]: SD Card not used. Switching to in-memory operation.");
         capacity = 10; // default initial capacity
         data = new T[capacity];
+        Serial.println("[SD LIST]: SDList Library Initialized. [In-memory operation] [Default capacity: 10]");
     }
 }
 
@@ -105,6 +106,7 @@ void SDList<T>::append(const T& value) {
         length++;
     } else {
         data[length++] = value;
+        Serial.println("[SD LIST]: Data Appended to List");
     }
 }
 
