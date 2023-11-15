@@ -1,52 +1,117 @@
 #include "SDList.h"
 
 template <typename T>
-SDList<T>::SDList(uint8_t csPin, const String& pageFileName)
-    : data(nullptr), capacity(0), length(0), csPin(csPin), pageFileName(pageFileName), useSD(false) {
-    Serial.println("[SD LIST]: Initializing SDList Library");
-    delay(50);
-    if (initializePageFile()) {
-        useSD = true;
-        loadFromSD();
-    } else {
-        useSD = false;
-        delay(50);
-        Serial.println("[SD LIST]: SD Card not used. Switching to in-memory operation.");
-        capacity = 10; // default initial capacity
+SDList<T>::SDList(uint8_t csPin, const String& pageFileName, StorageMode mode)
+    : data(nullptr), capacity(0), length(0), csPin(csPin), pageFileName(pageFileName), storageMode(mode) {
+    
+    Serial.println("[SD LIST]: Initializing SDList");
+
+    if (storageMode == SD_CARD) {
+        if (!initializePageFile()) {
+            Serial.println("[SD LIST]: SD Card not available or failed to initialize. Switching to in-memory operation.");
+            storageMode = MEMORY; // Fallback to memory if SD card initialization fails
+        }
+    }
+
+    if (storageMode == MEMORY) {
+        capacity = 10; // default initial capacity for in-memory operation
         data = new T[capacity];
-        Serial.println("[SD LIST]: SDList Library Initialized. [In-memory operation] [Default capacity: 10]");
+        Serial.println("[SD LIST]: SDList initialized in MEMORY mode with default capacity.");
+    } else {
+        loadFromSD(); // Load existing data from SD card
+        Serial.println("[SD LIST]: SDList initialized in SD_CARD mode.");
     }
 }
+
 
 template <typename T>
 void SDList<T>::loadFromSD() {
-    // Assuming initializePageFile has been called and useSD is true
+    Serial.println("[SD LIST]: Loading data from SD");
+
     File file = SD.open(pageFileName.c_str(), FILE_READ);
-    if (file && file.size() > 0) {
-        // Read existing data from SD
-        length = file.size() / sizeof(T);
-        capacity = length;
-        data = new T[capacity];
-        file.read(reinterpret_cast<byte*>(data), length * sizeof(T));
-    } else {
-        // Initialize with default capacity
-        capacity = 10;
-        data = new T[capacity];
+    if (!file) {
+        Serial.println("[SD LIST]: Error - Failed to open file for reading");
+        return;
     }
+
+    // Calculate the number of elements
+    length = file.size() / sizeof(T);
+    capacity = length;
+
+    // Allocate memory for data
+    delete[] data; // Free existing data
+    data = new T[capacity];
+    if (!data) {
+        Serial.println("[SD LIST]: Error - Memory allocation failed for loading");
+        file.close();
+        return;
+    }
+
+    // Read the data
+    file.read(reinterpret_cast<byte*>(data), length * sizeof(T));
     file.close();
+    Serial.println("[SD LIST]: Data loaded from SD");
 }
+
 
 template <typename T>
 void SDList<T>::writeToSD() {
-    // Save the entire list to SD card
-    if (useSD) {
-        File file = SD.open(pageFileName.c_str(), FILE_WRITE);
-        if (file) {
-            file.seek(0); // Go to the beginning of the file
-            file.write(reinterpret_cast<byte*>(data), length * sizeof(T));
-            file.close();
-        }
+    Serial.println("[SD LIST]: Writing data to SD");
+
+    File file = SD.open(pageFileName.c_str(), FILE_WRITE);
+    if (!file) {
+        Serial.println("[SD LIST]: Error - Failed to open file for writing");
+        return;
     }
+
+    file.seek(0); // Go to the beginning of the file
+    file.write(reinterpret_cast<const byte*>(data), length * sizeof(T));
+    file.close();
+    Serial.println("[SD LIST]: Data written to SD");
+}
+
+template <typename T>
+T SDList<T>::loadElementFromSD(uint16_t index) const {
+    Serial.println("[SD LIST]: Loading element from SD at index " + String(index));
+
+    File file = SD.open(pageFileName.c_str(), FILE_READ);
+    if (!file) {
+        Serial.println("[SD LIST]: Error - Failed to open file for reading");
+        return T(); // Return default-constructed object
+    }
+
+    file.seek(index * sizeof(T)); // Move the file pointer to the correct position
+
+    T element;
+    if (file.read(reinterpret_cast<byte*>(&element), sizeof(T)) != sizeof(T)) {
+        Serial.println("[SD LIST]: Error - Failed to read element");
+        file.close();
+        return T(); // Return default-constructed object
+    }
+
+    file.close();
+    return element;
+}
+
+template <typename T>
+void SDList<T>::writeElementToSD(uint16_t index, const T& value) {
+    Serial.println("[SD LIST]: Writing element to SD at index " + String(index));
+
+    File file = SD.open(pageFileName.c_str(), FILE_WRITE);
+    if (!file) {
+        Serial.println("[SD LIST]: Error - Failed to open file for writing");
+        return;
+    }
+
+    file.seek(index * sizeof(T)); // Move the file pointer to the correct position
+
+    if (file.write(reinterpret_cast<const byte*>(&value), sizeof(T)) != sizeof(T)) {
+        Serial.println("[SD LIST]: Error - Failed to write element");
+    } else {
+        Serial.println("[SD LIST]: Element written to SD successfully");
+    }
+
+    file.close();
 }
 
 template <typename T>
@@ -59,194 +124,131 @@ template <typename T>
 bool SDList<T>::initializePageFile() {
     Serial.println("[SD LIST]: Initializing Page File");
 
-    // Check if the SD card is available
     if (!checkSD()) {
-        Serial.println("[SD LIST]: SD Card Not Detected");
+        Serial.println("[SD LIST]: Error - SD Card Not Detected");
         return false;
     }
 
-    // Check if the page file exists
     if (SD.exists(pageFileName.c_str())) {
         Serial.println("[SD LIST]: Page File Exists");
         return true;
     } else {
-        // Create a new page file
-        Serial.println("[SD LIST]: Creating New Page File");
         File file = SD.open(pageFileName.c_str(), FILE_WRITE);
         if (file) {
-            Serial.println("[SD LIST]: New Page File Created");
             file.close();
+            Serial.println("[SD LIST]: New Page File Created");
             return true;
         } else {
-            Serial.println("[SD LIST]: Failed to Create Page File");
+            Serial.println("[SD LIST]: Error - Failed to Create Page File");
             return false;
         }
     }
 }
 
+
 template <typename T>
 void SDList<T>::append(const T& value) {
-    Serial.println("[SD LIST]: Appending Data to List");
     if (length >= capacity) {
         if (!expandCapacity()) {
-            Serial.println("[SD LIST]: Unable to expand capacity");
-            Serial.println("[SD LIST]: Failed to add Data to List");
+            Serial.println("[SD LIST]: Error - Unable to expand capacity");
             return;
         }
     }
 
-    // Check if SD card usage is intended and available before attempting to write
-    if (useSD && checkSD()) {
-        File file = SD.open(pageFileName.c_str(), FILE_WRITE);
-        if (file) {
-            file.seek(length * sizeof(T)); // Move to the end of the file
-            if(file.write(reinterpret_cast<const byte*>(&value), sizeof(T)) == sizeof(T)) {
-                Serial.println("[SD LIST]: Data Appended to SD File");
-            } else {
-                Serial.println("[SD LIST]: Failed to append data to SD File");
-            }
-            file.close();
-        } else {
-            Serial.println("[SD LIST]: Failed to open SD File for appending");
-        }
-        length++; // Increase length only if data is written
+    if (storageMode == SD_CARD && checkSD()) {
+        writeElementToSD(length, value);
     } else {
-        data[length++] = value; // In-memory operation
-        Serial.println("[SD LIST]: Data Appended to In-Memory List");
+        data[length] = value;
     }
+    length++;
+    Serial.println("[SD LIST]: Element appended");
 }
+
 
 
 template <typename T>
 T SDList<T>::get(uint16_t index) const {
-    if (useSD && checkSD()) {
-        File file = SD.open(pageFileName.c_str(), FILE_READ);
-        T value;
-        if (file) {
-            file.seek(index * sizeof(T));
-            if (file.read(reinterpret_cast<char*>(&value), sizeof(T)) == sizeof(T)) {
-                file.close();
-                return value;
-            }
-            file.close();
-        }
-        return T(); // Return default-constructed object if read failed
+    if (index >= length) {
+        Serial.println("[SD LIST]: Error - Index out of bounds");
+        return T(); // Return default-constructed object
+    }
+
+    if (storageMode == SD_CARD && checkSD()) {
+        return loadElementFromSD(index);
     } else {
-        // In-memory operation as before
-        if (index < length) {
-            return data[index];
-        }
-        return T();
+        return data[index];
     }
 }
 
+
 template <typename T>
 void SDList<T>::set(uint16_t index, const T& value) {
-    Serial.println("[SD LIST]: Setting Data in List");
-    if (index < length) {
-        if (useSD && checkSD()) {
-            File file = SD.open(pageFileName.c_str(), FILE_WRITE);
-            if (file) {
-                file.seek(index * sizeof(T));
-                file.write(reinterpret_cast<const byte*>(&value), sizeof(T));
-                file.close();
-            }
-        } else {
-            data[index] = value;
-        }
-    } else {
-        Serial.println("[SD LIST]: Unable to insert data, index out of bounds");
-        // Handle error case
+    if (index >= length) {
+        Serial.println("[SD LIST]: Error - Index out of bounds");
+        return;
     }
+
+    if (storageMode == SD_CARD && checkSD()) {
+        writeElementToSD(index, value);
+    } else {
+        data[index] = value;
+    }
+    Serial.println("[SD LIST]: Element set at index " + String(index));
 }
+
 
 
 template <typename T>
 uint16_t SDList<T>::size() const {
-    Serial.println("[SD LIST]: Getting Size of List");
+    Serial.println("[SD LIST]: Getting size of list");
     return length;
 }
 
+
 template <typename T>
 bool SDList<T>::sdAvailable() const {
-    Serial.println("[SD LIST]: Checking if SD Card is Available");
-    Serial.println("[SD LIST]: " + String(checkSD()));
-    return checkSD();
+    bool isAvailable = checkSD();
+    Serial.println("[SD LIST]: SD Card is " + String(isAvailable ? "available" : "not available"));
+    return isAvailable;
 }
+
 
 template <typename T>
 bool SDList<T>::expandCapacity() {
-    Serial.println("[SD LIST]: Expanding Capacity of List");
+    Serial.println("[SD LIST]: Expanding Capacity");
     uint16_t newCapacity = capacity * 2;
 
-    if (useSD && checkSD()) {
-        // Create a new file with increased capacity
-        String newFileName = pageFileName + ".new";
-        File oldFile = SD.open(pageFileName.c_str(), FILE_READ);
-        File newFile = SD.open(newFileName.c_str(), FILE_WRITE);
-
-        if (oldFile && newFile) {
-            byte buffer[512]; // Buffer to hold data chunks
-            while (oldFile.available()) {
-                int bytesRead = oldFile.read(buffer, sizeof(buffer));
-                newFile.write(buffer, bytesRead);
-            }
-            oldFile.close();
-            newFile.close();
-
-            // Remove the old file and check if the new file can be opened to confirm it was created successfully
-            if (SD.remove(pageFileName.c_str())) {
-                // Check if the new file exists to confirm the data is safe
-                if (SD.exists(newFileName.c_str())) {
-                    // At this point, you can choose to keep the new file with the new name
-                    // or inform the user to manually rename it to the original file name if needed.
-                    Serial.println("[SD LIST]: Old file removed, new file needs to be renamed manually.");
-                    capacity = newCapacity;
-                    return true;
-                } else {
-                    Serial.println("[SD LIST]: New file does not exist after old file removal.");
-                    return false;
-                }
-            } else {
-                Serial.println("[SD LIST]: Failed to remove old file on SD card.");
-                return false;
-            }
-        } else {
-            if (oldFile) oldFile.close();
-            if (newFile) newFile.close();
-            Serial.println("[SD LIST]: Failed to create expanded file on SD card.");
-            return false;
-        }
+    if (storageMode == SD_CARD) {
+        // Handle SD card capacity expansion (you may need a different approach here)
+        Serial.println("[SD LIST]: Currently, SD Card expansion is not supported");
+        return false;
     } else {
         T* newData = new T[newCapacity];
-        if (newData) {
-            memcpy(newData, data, length * sizeof(T));
-            delete[] data;
-            data = newData;
-            capacity = newCapacity;
-            return true;
+        if (!newData) {
+            Serial.println("[SD LIST]: Error - Memory allocation failed");
+            return false;
         }
+        memcpy(newData, data, length * sizeof(T));
+        delete[] data;
+        data = newData;
+        capacity = newCapacity;
+        Serial.println("[SD LIST]: In-memory capacity expanded");
+        return true;
     }
-
-    Serial.println("[SD LIST]: Unable to expand capacity.");
-    return false;
 }
+
 
 template <typename T>
 bool SDList<T>::checkSD() const {
-    Serial.print("[SD LIST]: Initializing SD Card on CS pin: ");
-    Serial.println(csPin);
-    /*
-        if(!SD.begin(csPin)) {
-            Serial.println("[SD LIST]: SD Card initialization failed!");
-            return false;
-        }
-    */
-    
-    //Serial.println("[SD LIST]: SD Card initialized successfully");
-    //return true;
-    return false;
+    Serial.println("[SD LIST]: Checking SD Card");
+    if (!SD.begin(csPin)) {
+        Serial.println("[SD LIST]: SD Card initialization failed!");
+        return false;
+    }
+    Serial.println("[SD LIST]: SD Card initialized successfully");
+    return true;
 }
+
 
 // Explicitly instantiate the template with some expected types
 template class SDList<int>;
