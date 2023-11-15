@@ -6,21 +6,13 @@
 #include "SDList.h"
 #include "DoubleLinkedList.h"
 
-SDList <String> strings(10, "pagefile.dat");
-SDList <int> ints(10, "pagefile.dat");
+//SDList <String> strings(10, "pagefile.dat");
 void setup(){
-  Serial.begin(115200);
-  if(strings.sdAvailable()){
-    strings.append("Hello");
-    strings.append("World!");
-    strings.append("!");
-  }
+  Serial.begin(9600);
+  Serial.println("Hello World");
+    
 
-  if(ints.sdAvailable()){
-    ints.append(1);
-    ints.append(2);
-    ints.append(3);
-  }
+  
 
 }
 

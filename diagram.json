@@ -2,7 +2,7 @@
     "version": 1,
     "author": "Brayden Anderson",
     "editor": "wokwi",
-    "parts": [ { "type": "wokwi-arduino-uno", "id": "uno", "top": 0.6, "left": -0.6, "attrs": {} } ],
+    "parts": [ { "type": "wokwi-arduino-mega", "id": "mega", "top": 0, "left": 0, "attrs": {} } ],
     "connections": [
       [ "esp:TX", "$serialMonitor:RX", "", [] ],
       [ "esp:RX", "$serialMonitor:TX", "", [] ]

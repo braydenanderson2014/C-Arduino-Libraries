@@ -4,7 +4,7 @@ template <typename T>
 SDList<T>::SDList(uint8_t csPin, const String& pageFileName)
     : data(nullptr), capacity(0), length(0), csPin(csPin), pageFileName(pageFileName), useSD(false) {
     Serial.println("[SD LIST]: Initializing SDList Library");
-
+    delay(50);
     if (initializePageFile()) {
         useSD = true;
         loadFromSD();
@@ -236,12 +236,16 @@ template <typename T>
 bool SDList<T>::checkSD() const {
     Serial.print("[SD LIST]: Initializing SD Card on CS pin: ");
     Serial.println(csPin);
-    if (!SD.begin(csPin)) {
-        Serial.println("[SD LIST]: SD Card initialization failed!");
-        return false;
-    }
-    Serial.println("[SD LIST]: SD Card initialized successfully");
-    return true;
+    /*
+        if(!SD.begin(csPin)) {
+            Serial.println("[SD LIST]: SD Card initialization failed!");
+            return false;
+        }
+    */
+    
+    //Serial.println("[SD LIST]: SD Card initialized successfully");
+    //return true;
+    return false;
 }
 
 // Explicitly instantiate the template with some expected types
@@ -258,5 +262,4 @@ template class SDList<int8_t>;
 template class SDList<int16_t>;
 template class SDList<int32_t>;
 template class SDList<int64_t>;
-template class SDList<size_t>;
 // Add more if necessary
