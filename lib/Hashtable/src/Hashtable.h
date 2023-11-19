@@ -46,15 +46,7 @@ private:
     float loadFactorThreshold = 0.7;
     Hash hashFunction;
 
-    int stringHash(const String& str) {
-        int hash = 0;
-        for (unsigned int i = 0; i < str.length(); i++) {
-            char c = str.charAt(i);
-            hash = (hash * 31) + str.charAt(i);
-        }
-        Serial.println("[HASHTABLE]: Hash of " + str + " is " + String(hash));
-        return hash % TABLE_SIZE;
-    }
+    
 
     // Simplified hash function that delegates to the Hash functor
     int hash(const K& key) const {
