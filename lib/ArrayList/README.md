@@ -16,14 +16,14 @@ The `ArrayList` class is designed to offer a dynamic and scalable ArrayList with
 
 - `Constructor(SizeType type, size_t initialSize)`: Creates a new Instance of the ArrayList object
 - `add(T item)`: Adds an Item to a List
-- `remove(T item)`: Removes the value stored at a certain index.
+- `remove(size_t index)`: Removes the value stored at a certain index.
 - `clear()`: Clears all values in the list.
 - `capacity()`: Returns the capacity of the list.
 - `size()`: Returns the number of elements in the list.
 - `isEmpty()`: Checks if the list is empty.
 - `contains(T item)`: Checks if the list contains the value specified
 - `resize()` : Private function: resizes the List
-- `removeAt(size_t index)` : Private Function: Removes an item at the index specified (remove function utilizes this function to work)
+- `removeAt(T item)` : Private Function: Removes an item at the index specified (remove function utilizes this function to work)
 
 
 #### Iterator Functions

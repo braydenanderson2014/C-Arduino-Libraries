@@ -19,10 +19,17 @@
     },
     "examples": [
         {
-            "name": "Example",
+            "name": "Auto Dynamic Example",
             "base": "Example",
             "files": [
                 "Example.cpp"
+            ]
+        },
+        {
+            "name": "Fixed Size Example",
+            "base": "Example",
+            "files": [
+                "Example2.cpp"
             ]
         }
     ],
