@@ -29,8 +29,6 @@ void setup(){
   for(int i = 0; i < theStrings.size(); i++){
     Serial.println(theStrings.get(i));
   }
-
-
 }
 
 void loop(){
