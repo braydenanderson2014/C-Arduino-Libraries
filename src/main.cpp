@@ -5,14 +5,31 @@
 #include "UnorderedMap.h"
 #include "SDList.h"
 #include "DoubleLinkedList.h"
+#include "ArrayList.h"
+
+ArrayList <String> theStrings;
 
 //SDList <String> strings(10, "pagefile.dat");
 void setup(){
   Serial.begin(9600);
   Serial.println("Hello World");
-    
+  
+  theStrings.add("Hello");
+  theStrings.add("World");
+  theStrings.add("!");
+
+  for(int i = 0; i < theStrings.size(); i++){
+    Serial.println(theStrings.get(i));
+  }
+
+  theStrings.remove(1);
+  theStrings.remove(0);
 
   
+  for(int i = 0; i < theStrings.size(); i++){
+    Serial.println(theStrings.get(i));
+  }
+
 
 }
 
