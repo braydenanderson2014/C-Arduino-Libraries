@@ -58,10 +58,17 @@ public:
         return T(); // Return default value if index is out of bounds
     }
 
+    size_t capacity() const {
+        return capacity;
+    }
+
     size_t size() const {
         return count;
     }
 
+    bool isEmpty() const {
+        return count == 0;
+    }
     // Iterator support
     T* begin() const { return &array[0]; }
     T* end() const { return &array[count]; }

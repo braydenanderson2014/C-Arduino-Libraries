@@ -1,0 +1,42 @@
+{
+    "name": "ArrayList",
+    "version": "1.0.0",
+    "description": "A Basic ArrayList Structure which supports Dynamic and Fixed Arrays",
+    "keywords": ["ArrayList", "Dynamic List", "Fixed List", "List", "Array", "Dynamic Array", "Fixed Array", "Array List", "Dynamic Array List", "Fixed Array List", "Dynamic List Array", "Fixed List Array"],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/ArrayList.git"
+    },
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "dependencies": {
+        "Arduino": "*"
+    },
+    "examples": [
+        {
+            "name": "Example",
+            "base": "Example",
+            "files": [
+                "Example.cpp"
+            ]
+        }
+    ],
+    "ChangeLog": [
+        {
+            "version": "1.0.0",
+            "date": "2023-11-20",
+            "changes": [
+                "Initial release",
+                "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
+                "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them." 
+            ]
+        }
+    ],
+
+    "Notes": "This library is a work in progress. It has not been tested as of 11/20/23 "
+}
