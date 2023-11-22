@@ -7,7 +7,7 @@ template <typename T>
 class ArrayList {
 public:
     enum SizeType { FIXED, DYNAMIC };
-
+    //Constructor and Destructor
     ArrayList(SizeType type = DYNAMIC, size_t initialSize = 8) 
     : sizeType(type), arrayCapacity(initialSize), count(0) {
         Serial.println("[ArrayList]: Creating new instance of ArrayList");
@@ -18,7 +18,7 @@ public:
         Serial.println("[ArrayList]: Deleting instance of ArrayList");
         delete[] array;
     }
-
+    //Add
     void add(T item) {
         Serial.println("[ArrayList]: Adding item to ArrayList");
         if (sizeType == DYNAMIC && count == arrayCapacity) {
@@ -127,6 +127,27 @@ public:
         count += length;
         return true;
     }
+    //Remove
+    bool removeItem(T item) {
+        Serial.println("[ArrayList]: Removing item from ArrayList");
+        for (size_t i = 0; i < count; ++i) {
+            if (array[i] == item) {
+                removeAt(i);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    void remove(size_t index) {
+        Serial.println("[ArrayList]: Removing item from ArrayList at index: " + String(index));
+        if (index < count) {
+            for (size_t i = index; i < count - 1; ++i) {
+                array[i] = array[i + 1];
+            }
+            --count;
+        }
+    }
 
     bool removeIf(bool (*predicate)(T)) {
         Serial.println("[ArrayList]: Removing items from ArrayList");
@@ -145,6 +166,100 @@ public:
         return false;
     }
 
+    void removeRange(size_t fromIndex, size_t toIndex) {
+        Serial.println("[ArrayList]: Removing items from ArrayList");
+        if (fromIndex > toIndex) {
+            Serial.println("[ArrayList]: Error - fromIndex is greater than toIndex");
+            return;
+        }
+        if (fromIndex < 0 || toIndex > count) {
+            Serial.println("[ArrayList]: Error - Index out of bounds");
+            return;
+        }
+        size_t removed = toIndex - fromIndex;
+        for (size_t i = fromIndex; i < count - removed; ++i) {
+            array[i] = array[i + removed];
+        }
+        count -= removed;
+    }
+
+    bool retainAll(const ArrayList<T>& other) {
+        Serial.println("[ArrayList]: Retaining items from other ArrayList");
+        size_t removed = 0;
+        for (size_t i = 0; i < count; ++i) {
+            if (!other.contains(array[i])) {
+                ++removed;
+            } else {
+                array[i - removed] = array[i];
+            }
+        }
+        if (removed > 0) {
+            count -= removed;
+            return true;
+        }
+        return false;
+    }
+
+    void clear() {
+        Serial.println("[ArrayList]: Clearing ArrayList");
+        delete[] array;
+        array = new T[arrayCapacity];
+        count = 0;
+    }
+
+    //Query and Access
+    T get(size_t index) const {
+        if (index < count) {
+            return array[index];
+        }
+        return T(); // Return default value if index is out of bounds
+    }
+
+    bool contains(T item) const {
+        for (size_t i = 0; i < count; ++i) {
+            if (array[i] == item) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    size_t indexOf(T item) const {
+        for (size_t i = 0; i < count; ++i) {
+            if (array[i] == item) {
+                return i;
+            }
+        }
+        Serial.println("[ArrayList]: Error - Item not found");
+        return static_cast<size_t>(-1); // Indicate not found
+    } 
+
+    size_t capacity() const {
+        return arrayCapacity;
+    }
+
+    size_t size() const {
+        return count;
+    }
+
+    bool isEmpty() const {
+        return count == 0;
+    }
+
+    //Modifying Elements
+    bool set(size_t index, T item) {
+        if (index < count) {
+            array[index] = item;
+            if(array[index] == item){
+                return true;
+            }
+        }
+        if(index >= count){
+            Serial.println("[ArrayList]: Error - Index out of bounds");
+            return false;
+        }
+    }
+
     void replaceAll(T (*operatorFunction)(T)) {
         Serial.println("[ArrayList]: Replacing items in ArrayList");
         for (size_t i = 0; i < count; ++i) {
@@ -152,6 +267,8 @@ public:
         }
     }
 
+
+    //Utility Functions
     void forEach(void (*consumer)(T)) const {
         Serial.println("[ArrayList]: Performing action on all items in ArrayList");
         for (size_t i = 0; i < count; ++i) {
@@ -159,11 +276,10 @@ public:
         }
     }
 
-    T* toArray() const {
+    T* toArray(T* outputArray) const {
         Serial.println("[ArrayList]: Converting ArrayList to array");
-        T* newArray = new T[count];
-        memcpy(newArray, array, count * sizeof(T));
-        return newArray;
+        memcpy(outputArray, array, count * sizeof(T));
+        return outputArray;
     }
 
     ArrayList<T>* sublist(size_t fromIndex, size_t toIndex) const {
@@ -182,16 +298,23 @@ public:
         }
         return newList;
     }
-    boolean set(size_t index, T item) {
-        if (index < count) {
-            array[index] = item;
-            if(array[index] == item){
-                return true;
-            }
-        }
-        if(index >= count){
-            Serial.println("[ArrayList]: Error - Index out of bounds");
-            return false;
+
+    ArrayList<T>* clone() const {
+        Serial.println("[ArrayList]: Cloning ArrayList");
+        ArrayList<T>* clone = new ArrayList<T>(sizeType, arrayCapacity);
+        clone->addAll(*this);
+        return clone;
+    }
+
+    void ensureCapacity(size_t minCapacity) {
+        Serial.println("[ArrayList]: Ensuring ArrayList capacity");
+        if (minCapacity > arrayCapacity) {
+            Serial.println("[ArrayList]: Resizing ArrayList to " + String(minCapacity) + " elements");
+            T* newArray = new T[minCapacity];
+            memcpy(newArray, array, count * sizeof(T));
+            delete[] array;
+            array = newArray;
+            arrayCapacity = minCapacity;
         }
     }
 
@@ -206,77 +329,17 @@ public:
         }
     }
 
-    ArrayList<T>* clone() const {
-        Serial.println("[ArrayList]: Cloning ArrayList");
-        ArrayList<T>* clone = new ArrayList<T>(sizeType, arrayCapacity);
-        clone->addAll(*this);
-        return clone;
-    }
-
-    bool removeItem(T item) {
-        Serial.println("[ArrayList]: Removing item from ArrayList");
-        for (size_t i = 0; i < count; ++i) {
-            if (array[i] == item) {
-                removeAt(i);
-                return true;
+    void sort(bool (*comparator)(T, T)) {
+        Serial.println("[ArrayList]: Sorting ArrayList");
+        for (size_t i = 0; i < count - 1; ++i) {
+            for (size_t j = 0; j < count - i - 1; ++j) {
+                if (comparator(array[j], array[j + 1])) {
+                    T temp = array[j];
+                    array[j] = array[j + 1];
+                    array[j + 1] = temp;
+                }
             }
         }
-        return false;
-    }
-
-    void remove(size_t index) {
-        Serial.println("[ArrayList]: Removing item from ArrayList at index: " + String(index));
-        if (index < count) {
-            for (size_t i = index; i < count - 1; ++i) {
-                array[i] = array[i + 1];
-            }
-            --count;
-        }
-    }
-    
-    void clear() {
-        Serial.println("[ArrayList]: Clearing ArrayList");
-        delete[] array;
-        array = new T[arrayCapacity];
-        count = 0;
-    }
-
-    bool contains(T item) const {
-        for (size_t i = 0; i < count; ++i) {
-            if (array[i] == item) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    T get(size_t index) const {
-        if (index < count) {
-            return array[index];
-        }
-        return T(); // Return default value if index is out of bounds
-    }
-
-    size_t capacity() const {
-        return arrayCapacity;
-    }
-
-    size_t size() const {
-        return count;
-    }
-
-    bool isEmpty() const {
-        return count == 0;
-    }
-
-    size_t indexOf(T item) const {
-        for (size_t i = 0; i < count; ++i) {
-            if (array[i] == item) {
-                return i;
-            }
-        }
-        Serial.println("[ArrayList]: Error - Item not found");
-        return static_cast<size_t>(-1); // Indicate not found
     }
 
     // Iterator support
