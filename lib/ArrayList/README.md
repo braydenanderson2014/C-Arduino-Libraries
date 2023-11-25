@@ -1,4 +1,4 @@
-# Hashtable Class
+# ArrayList Class
 
 The `ArrayList` class is a C++ template class that provides an implementation of a ArrayList for easy storing of a Value of any designated type. It allows you to efficiently store and retrieve data using indexes, similar to an ArrayList in Java.
 
