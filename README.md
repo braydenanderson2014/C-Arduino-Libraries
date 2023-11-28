@@ -7,6 +7,8 @@
 ```cpp
     Serial.begin(115400);
 ```
+
+### All Libraries are Contained under the lib Folder. All other folders are platformio project folders for testing the code. Please note the main.cpp changes constantly so it is unimportant. Feel free to modify ### as you see fit.
 =======
 ## List of All Available Libraries ## [WARNING]: UNTESTED/Partially Tested BY AUTHOR
 1. Dictionary [PASSIVE-DEVELOPMENT] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING NOT NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
