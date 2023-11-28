@@ -7,6 +7,21 @@
 ```cpp
     Serial.begin(115400);
 ```
+=======
+## List of All Available Libraries ## [WARNING]: UNTESTED/Partially Tested BY AUTHOR
+1. Dictionary [PASSIVE-DEVELOPMENT] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING NOT NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
+2. Hashtable [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED]
+3. iostream [PASSIVE-DEVELOPMENT] (Published as : BasicIOStream), [PARTIALLY-TESTED]
+4. iterator [PASSIVE-DEVELOPMENT], [PARTIALLY-TESTED]
+5. Properties [PASSIVE-DEVELOPMENT] (Published as : SimpleProperties), [MOSTLY-TESTED], 
+6. SimpleVector [PASSIVE-DEVELOPMENT] , [MOSTLY-TESTED]
+7. Timer [PASSIVE_DEVELOPMENT] (Published as : SimpleArduinoTimer), [UNTESTED]
+8. UnorderedMap [ACTIVE-DEVELOPMENT], [PARTIALLY-TESTED]
+9. LinkedList [ACTIVE-DEVELOPENT] (Published as : BasicLinkedList), [MOSTLY-TESTED]
+10. DoubleLinkedList [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED]
+11. MyDictionary [ACTIVE-DEVELOPMENT],(implemented Version of the Dictionary Class), [UNTESTED]
+12. SDList [ACTIVE-DEVELOPMENT], [FAILED-TESTING]
+
 
 ## List of All Available Libraries ## [WARNING]: UNTESTED/Partially Tested BY AUTHOR
 * [Dictionary](#dictionary-class) [PASSIVE-DEVELOPMENT] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING-NOT-NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
@@ -38,6 +53,8 @@ Total Libraries (13)
 7.  [SimpleMutex]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
 8.  [SimpleThreadManager]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
 
+=======
+1. SDList [BUG-FIXING, ACTIVE-DEVELOPMENT, KNOWN-ISSUES], [FAILED-TESTING]
 
 
 ## UNPUBLISHED (In Development) (Not yet Documented)
