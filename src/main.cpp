@@ -2,71 +2,35 @@
 #include "Properties.h"
 #include "MyDictionary.h"
 #include "LinkedList.h"
-#include "DoubleLinkedList.h"
 #include "UnorderedMap.h"
 #include "SDList.h"
+#include "DoubleLinkedList.h"
+#include "ArrayList.h"
 
+ArrayList <String> theStrings;
 
-UnorderedMap <String, String> StringMap;
-UnorderedMap <String, int> StringIntMap;
-UnorderedMap <int, int> IntMap;
-UnorderedMap <int, String> IntStringMap;
-void setup() {
-    Serial.begin(9600);
-    StringMap.put("Hello", "World");
-    StringMap.put("Hello1", "World1");
-    StringMap.put("Hello2", "World2");
-    StringMap.put("Hello3", "World3");
-    StringMap.put("Hello4", "World4");
+//SDList <String> strings(10, "pagefile.dat");
+void setup(){
+  Serial.begin(9600);
+  Serial.println("Hello World");
+  
+  theStrings.add("Hello");
+  theStrings.add("World");
+  theStrings.add("!");
 
-    StringIntMap.put("Hello", 1);
-    StringIntMap.put("Hello1", 2);
-    StringIntMap.put("Hello2", 3);
-    StringIntMap.put("Hello3", 4);
-    StringIntMap.put("Hello4", 5);
+  for(int i = 0; i < theStrings.size(); i++){
+    Serial.println(theStrings.get(i));
+  }
 
-    IntMap.put(1, 1);
-    IntMap.put(2, 2);
-    IntMap.put(3, 3);
-    IntMap.put(4, 4);
-    IntMap.put(5, 5);
+  theStrings.remove(1);
+  theStrings.remove(0);
 
-    IntStringMap.put(1, "Hello");
-    IntStringMap.put(2, "Hello1");
-    IntStringMap.put(3, "Hello2");
-    IntStringMap.put(4, "Hello3");
-    IntStringMap.put(5, "Hello4");
-
-    Serial.println(StringMap.get("Hello"));
-
-    Serial.println(StringIntMap.get("Hello"));
-
-    Serial.println(IntMap.get(1));
-
-    Serial.println(IntStringMap.get(1));
-
-  //Capacity
-  Serial.println("Capacity" + String(StringMap.getCapacity()));
-  Serial.println("Size" + String(StringMap.getSize()));
-
-  Serial.println("Capacity" + String(StringIntMap.getCapacity()));
-  Serial.println("Size" + String(StringIntMap.getSize()));
-
-  Serial.println("Capacity" + String(IntMap.getCapacity()));
-  Serial.println("Size" + String(IntMap.getSize()));
-
-  Serial.println("Capacity" + String(IntStringMap.getCapacity()));
-  Serial.println("Size" + String(IntStringMap.getSize()));
-}
-    
-
-
-
-void loop() {
-  // put your main code here, to run repeatedly:
+  
+  for(int i = 0; i < theStrings.size(); i++){
+    Serial.println(theStrings.get(i));
+  }
 }
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+void loop(){
+
 }

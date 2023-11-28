@@ -7,7 +7,9 @@
 template <typename T>
 class SDList {
 public:
-    SDList(uint8_t csPin, const String& pageFileName);
+    enum StorageMode { MEMORY, SD_CARD };
+
+    SDList(uint8_t csPin, const String& pageFileName, StorageMode mode = SD_CARD);
     ~SDList();
 
     void append(const T& value);
@@ -22,9 +24,16 @@ private:
     uint16_t length;
     uint8_t csPin;
     String pageFileName;
+    StorageMode storageMode;
 
-    bool expandCapacity();
+    bool initializePageFile();
     bool checkSD() const;
+    bool expandCapacity();
+    void loadFromSD();
+    void writeToSD();
+    T loadElementFromSD(uint16_t index) const;
+    void writeElementToSD(uint16_t index, const T& value);
 };
+
 
 #endif // SDLIST_H

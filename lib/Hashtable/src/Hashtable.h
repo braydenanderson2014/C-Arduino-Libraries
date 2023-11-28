@@ -3,19 +3,27 @@
 
 #include <SimpleVector.h>
 #include <Arduino.h>
-    // Forward declaration of KeyHash
+// Forward declaration of KeyHash
 template<typename K>
-struct KeyHash;
+struct KeyHash {
+    bool debug;
+    KeyHash(bool debug = false) : debug(debug) {}
+};
 
 // Specialization for String
 template<>
 struct KeyHash<String> {
+    bool debug;
+
+    KeyHash(bool debug = false) : debug(debug) {}
     unsigned long operator()(const String& key) const {
         unsigned long hash = 0;
         for (char c : key) {
             hash = 31 * hash + c;
         }
-        Serial.println("[HASHTABLE]: Hash of " + key + " is " + String(hash));
+        if (debug){
+            Serial.println("[HASHTABLE]: Hash of " + key + " is " + String(hash));
+        }        
         return hash;
     }
 };
@@ -28,6 +36,35 @@ struct KeyHash<int> {
     }
 };
 
+// Specialization for boolean
+template<>
+struct KeyHash<bool> {
+    unsigned long operator()(const bool& key) const {
+        return static_cast<unsigned long>(key);
+    }
+};
+
+// Specialization for float
+template<>
+struct KeyHash<float> {
+    unsigned long operator()(const float& key) const {
+        // This approach treats the binary representation of the float as an integer.
+        // Caution: This is a simple method and might not be the best for all use cases.
+        unsigned long hash = *reinterpret_cast<const unsigned long*>(&key);
+        return hash;
+    }
+};
+
+// Specialization for double
+template<>
+struct KeyHash<double> {
+    unsigned long operator()(const double& key) const {
+        // This approach treats the binary representation of the double as an integer.
+        // Caution: This is a simple method and might not be the best for all use cases.
+        unsigned long hash = *reinterpret_cast<const unsigned long*>(&key);
+        return hash;
+    }
+};
 template <typename K, typename V, typename Hash = KeyHash<K>>
 class Hashtable {
 private:
@@ -45,44 +82,46 @@ private:
     int count;
     float loadFactorThreshold = 0.7;
     Hash hashFunction;
-
-    int stringHash(const String& str) {
-        int hash = 0;
-        for (unsigned int i = 0; i < str.length(); i++) {
-            char c = str.charAt(i);
-            hash = (hash * 31) + str.charAt(i);
-        }
-        Serial.println("[HASHTABLE]: Hash of " + str + " is " + String(hash));
-        return hash % TABLE_SIZE;
-    }
-
-    // Simplified hash function that delegates to the Hash functor
+    bool debug;
+        
+// Simplified hash function that delegates to the Hash functor
     int hash(const K& key) const {
-        Serial.println("[HASHTABLE]: Hashing key " + String(key));
+        if(debug){
+            Serial.println("[HASHTABLE]: Hashing key " + String(key));
+        }
         return hashFunction(key) % TABLE_SIZE;
     }
+ // Private function to resize the hash table
+    bool resize(int newSize) {
+        if(debug){
+            Serial.println("[HASHTABLE]: Attempting to resize to " + String(newSize));
+        }
+        Entry** newTable = new Entry*[newSize]();
+        if (!newTable) {
+            if(debug){
+                Serial.println("[HASHTABLE]: Error - Unable to allocate memory for resizing");
+            }
+            return false; // Memory allocation failed
+        }
 
-    // Private function to resize the hash table
-    void resize(int newSize) {
-        Serial.println("[HASHTABLE]: Resizing to " + String(newSize));
-        Entry** oldTable = table;
-        int oldSize = TABLE_SIZE;
-        TABLE_SIZE = newSize;
-        table = new Entry*[TABLE_SIZE]();
-
-        for (int i = 0; i < oldSize; ++i) {
-            Entry* entry = oldTable[i];
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            Entry* entry = table[i];
             while (entry) {
                 Entry* next = entry->next;
-                int index = hash(entry->key);
-                entry->next = table[index];
-                table[index] = entry;
+                int index = hash(entry->key) % newSize; // Hash with respect to the new table size
+                entry->next = newTable[index];
+                newTable[index] = entry;
                 entry = next;
             }
         }
-        Serial.println("[HASHTABLE]: Resized to " + String(TABLE_SIZE));
-        Serial.println("[HASHTABLE]: Deleting old table");
-        delete[] oldTable;
+
+        delete[] table; // Free the old table
+        table = newTable; // Update the pointer to the new table
+        TABLE_SIZE = newSize; // Update the size
+        if(debug){
+            Serial.println("[HASHTABLE]: Successfully resized to " + String(TABLE_SIZE));
+        }
+        return true;
     }
 public:
     struct KeyValuePair {
@@ -94,27 +133,38 @@ public:
         const Hashtable<K, V, Hash>* hashtable;
         int currentBucket;
         Entry* currentEntry;
+        bool debug;
 
         void goToNextEntry() {
-            Serial.println("[HASHTABLE]: Advancing to the next entry");
+            if(debug){
+                Serial.println("[HASHTABLE]: Advancing to the next entry");
+            }
 
             if (currentEntry && currentEntry->next) {
                 currentEntry = currentEntry->next;
-                Serial.println("[HASHTABLE]: Moved to next entry in the same bucket");
+                if(debug){
+                    Serial.println("[HASHTABLE]: Moved to next entry in the same bucket");
+                }
             } else {
                 do {
                     currentBucket++;
                     if (currentBucket < hashtable->TABLE_SIZE) {
                         currentEntry = hashtable->table[currentBucket];
-                        Serial.print("[HASHTABLE]: Checking bucket "); 
-                        Serial.println("[HASHTABLE]: " + String(currentBucket));
+                        if(debug){
+                            Serial.print("[HASHTABLE]: Checking bucket "); 
+                            Serial.println("[HASHTABLE]: " + String(currentBucket));
+                        }
                     }
                 } while (!currentEntry && currentBucket < hashtable->TABLE_SIZE - 1);
 
                 if (!currentEntry) {
-                    Serial.println("[HASHTABLE]: Reached the end of the hashtable");
+                    if(debug){
+                        Serial.println("[HASHTABLE]: Reached the end of the hashtable");
+                    }
                 } else {
-                    Serial.println("[HASHTABLE]: Moved to the next available bucket");
+                    if(debug){
+                        Serial.println("[HASHTABLE]: Moved to the next available bucket");
+                    }
                 }
             }
         }
@@ -122,27 +172,37 @@ public:
     public:
          // Define the dereference operator to return a key-value pair.
         KeyValuePair operator*() const {
-            Serial.println("[HASHTABLE]: Dereferencing iterator");
-            Serial.println("[HASHTABLE]: Current bucket: " + String(currentBucket));
+            if(debug){
+                Serial.println("[HASHTABLE]: Dereferencing iterator");
+                Serial.println("[HASHTABLE]: Current bucket: " + String(currentBucket));
+            }
             return KeyValuePair{currentEntry->key, currentEntry->value};
         }
 
-        Iterator(const Hashtable<K, V, Hash>* ht, int bucket, Entry* entry)
-        : hashtable(ht), currentBucket(bucket), currentEntry(entry) {
-            Serial.println("[HASHTABLE]: Initializing iterator");
+        Iterator(const Hashtable<K, V, Hash>* ht, int bucket, Entry* entry, bool debug = false)
+        : hashtable(ht), currentBucket(bucket), currentEntry(entry), debug(debug) {
+            if(debug){
+                Serial.println("[HASHTABLE]: Initializing iterator");
+            }
             if (!currentEntry) {
-                Serial.println("[HASHTABLE]: Iterator moving to next entry");
+                if(debug){
+                    Serial.println("[HASHTABLE]: Iterator moving to next entry");
+                }
                 goToNextEntry();
             }
         }
 
         bool operator!=(const Iterator& other) const {
-            Serial.println("[HASHTABLE]: Comparing Buckets and Entries");
+            if(debug){
+                Serial.println("[HASHTABLE]: Comparing Buckets and Entries");
+            }
             return currentEntry != other.currentEntry || currentBucket != other.currentBucket;
         }
 
         Iterator& operator++() {
-            Serial.println("[HASHTABLE]: Incrementing iterator");
+            if(debug){
+                Serial.println("[HASHTABLE]: Incrementing iterator");
+            }
             goToNextEntry();
             return *this;
         }
@@ -151,28 +211,43 @@ public:
     };
 
     Iterator begin() const {
-        Serial.println("[HASHTABLE]: Initializing iterator");
+        if(debug){
+            Serial.println("[HASHTABLE]: Initializing iterator");
+        }
         for (int i = 0; i < TABLE_SIZE; ++i) {
             if (table[i]) {
-                return Iterator(this, i, table[i]);
+                return Iterator(this, i, table[i], debug);
             }
         }
-        return Iterator(this, TABLE_SIZE, nullptr);
+        return Iterator(this, TABLE_SIZE, nullptr, debug);
     }
 
     Iterator end() const {
-        Serial.println("[HASHTABLE]: End of Iterator");
-        return Iterator(this, TABLE_SIZE, nullptr);
+        if(debug){
+            Serial.println("[HASHTABLE]: End of Iterator");
+        }
+        return Iterator(this, TABLE_SIZE, nullptr, debug);
     }
 
     Hashtable() : TABLE_SIZE(INITIAL_TABLE_SIZE), count(0) {
-        Serial.println("[HASHTABLE]: Initializing Hashtable");
+        if(debug){
+            Serial.println("[HASHTABLE]: Initializing Hashtable");
+        }
+        table = new Entry*[TABLE_SIZE]();
+    }
+    Hashtable(bool debug = false) : debug(debug), TABLE_SIZE(INITIAL_TABLE_SIZE), count(0), hashFunction(debug) {
+        if(debug){
+            Serial.println("[HASHTABLE]: Initializing Hashtable with debug mode");
+        }
         table = new Entry*[TABLE_SIZE]();
     }
 
-     Hashtable(size_t initialCapacity, float loadFactor) 
-        : TABLE_SIZE(initialCapacity), count(0), loadFactorThreshold(loadFactor) {
-        Serial.println("[HASHTABLE]: Initializing Hashtable with custom size and load factor");
+
+    Hashtable(size_t initialCapacity, float loadFactor, bool debug = false) 
+        : TABLE_SIZE(initialCapacity), count(0), loadFactorThreshold(loadFactor), debug(debug), hashFunction(debug) {
+        if(debug){
+            Serial.println("[HASHTABLE]: Initializing Hashtable with custom size and load factor");
+        }
         table = new Entry*[TABLE_SIZE]();
         // Initialize buckets to nullptr...
     }
@@ -183,8 +258,21 @@ public:
         delete[] table;
     }
 
+    void setDebug(bool debug) {
+        if(this -> debug == debug){
+            Serial.println("[HASHTABLE]: Setting debug mode");
+        }
+        this->debug = debug;
+    }
+
+    bool getDebug() const {
+        return this->debug;
+    }
+
     void put(const K& key, const V& value) {
-        Serial.println("[HASHTABLE]: Putting key " + String(key) + " with value " + String(value));
+        if(debug){
+            Serial.println("[HASHTABLE]: Putting key " + String(key) + " with value " + String(value));
+        }
         int index = hash(key);
         Entry* entry = table[index];
         while (entry != nullptr) {
@@ -199,15 +287,25 @@ public:
         newEntry->next = table[index];
         table[index] = newEntry;
         ++count;
-        Serial.println("[HASHTABLE]: Count is " + String(count));
-        Serial.println("[HASHTABLE]: Checking load factor for possible resize");
+        //Serial.println("[HASHTABLE]: Count is " + String(count));
+        if(debug){
+            Serial.println("[HASHTABLE]: Checking load factor for possible resize");
+        }
         if (static_cast<float>(count) / TABLE_SIZE > loadFactorThreshold) {
-            resize(TABLE_SIZE * 2);
+            if (!resize(TABLE_SIZE * 2)) {
+                if(debug){
+                    Serial.println("[HASHTABLE]: Resize failed. Ignoring the new element");
+                }
+                // Handle the error as necessary, such as by not adding the new element
+                return;
+            }
         }
     }
     
     V* get(const K& key) const {
-        Serial.println("[HASHTABLE]: Getting value for key " + String(key));
+        if(debug){
+            Serial.println("[HASHTABLE]: Getting value for key " + String(key));
+        }
         int index = hash(key);
         Entry* entry = table[index];
         while (entry != nullptr) {
@@ -221,7 +319,9 @@ public:
 
 //Changed to exists instead of get
     bool exists(const K& key, V& value) const {
-        Serial.println("[HASHTABLE]: Checking if key: " + String(key) + " exists");
+        if(debug){
+            Serial.println("[HASHTABLE]: Checking if key: " + String(key) + " exists");
+        }
         int index = hash(key);
         Entry* entry = table[index];
         while (entry != nullptr) {
@@ -235,7 +335,9 @@ public:
     }
 
     bool remove(const K& key) {
-        Serial.println("[HASHTABLE]: Removing key " + String(key));
+        if(debug){
+            Serial.println("[HASHTABLE]: Removing key " + String(key));
+        }
         int index = hash(key);
         Entry* current = table[index];
         Entry* prev = nullptr;
@@ -258,19 +360,25 @@ public:
     }
 
     void clear() {
-        Serial.println("[HASHTABLE]: Clearing Hashtable");
+        if(debug){
+            Serial.println("[HASHTABLE]: Clearing Hashtable");
+        }
        for (int i = 0; i < TABLE_SIZE; ++i) {
            Entry* entry = table[i];
            while (entry != nullptr) {
                Entry* toDelete = entry;
                entry = entry->next;
                delete toDelete;
-               Serial.println("[HASHTABLE]: Deleted entry");
+                if(debug){
+                    Serial.println("[HASHTABLE]: Deleted entry");
+                }
            }
            table[i] = nullptr; // Make sure to still nullify the bucket after deletion
        }
        count = 0;
-        Serial.println("[HASHTABLE]: Cleared Hashtable/ Now Resizing back to defualt size");
+        if(debug){
+            Serial.println("[HASHTABLE]: Cleared Hashtable/ Now Resizing back to defualt size");
+        }
        // Resize the table back to the initial size if it's not already
        if (TABLE_SIZE > INITIAL_TABLE_SIZE) {
            resize(INITIAL_TABLE_SIZE);
@@ -280,25 +388,33 @@ public:
 
     // Inside Hashtable
     float loadFactor() const {
-        Serial.println("[HASHTABLE]: Calculating load factor");
+        if(debug){
+            Serial.println("[HASHTABLE]: Calculating load factor");
+        }
         return static_cast<float>(count) / TABLE_SIZE;
     }
 
     void checkLoadFactorAndRehash() {
-        Serial.println("[HASHTABLE]: Checking load factor for possible resize");
-        if (loadFactor() > loadFactorThreshold) {
+        if(debug){
+            Serial.println("[HASHTABLE]: Checking load factor for possible resize");
+        }
+        if (loadFactor() >= loadFactorThreshold) {
             resize(TABLE_SIZE * 2);
         }
     }
 
     // Inside Hashtable
     size_t bucketCount() const {
-        Serial.println("[HASHTABLE]: Calculating bucket count");
+        if(debug){
+            Serial.println("[HASHTABLE]: Calculating bucket count");
+        }
         return TABLE_SIZE;
     }
 
     size_t bucketSize(size_t index) const {
-        Serial.println("[HASHTABLE]: Calculating bucket size");
+        if(debug){
+            Serial.println("[HASHTABLE]: Calculating bucket size");
+        }
         size_t size = 0;
         Entry* entry = table[index];
         while (entry != nullptr) {
@@ -310,21 +426,29 @@ public:
 
 
     int size() const {
-        Serial.println("[HASHTABLE]: Calculating size");
+        if(debug){
+            Serial.println("[HASHTABLE]: Calculating size");
+        }
         return TABLE_SIZE;
     }
 
     bool isEmpty() const {
-        Serial.println("[HASHTABLE]: Checking if Hashtable is empty");
+        if(debug){
+            Serial.println("[HASHTABLE]: Checking if Hashtable is empty");
+        }
         return size() == 0;
     }
     int elements() const {
-        Serial.println("[HASHTABLE]: Calculating element count");
+        if(debug){
+            Serial.println("[HASHTABLE]: Calculating element count");
+        }
         return count;
     }
 
     SimpleVector<K> keys() const {
-        Serial.println("[HASHTABLE]: Getting keys");
+        if(debug){
+            Serial.println("[HASHTABLE]: Getting keys");
+        }
         SimpleVector<K> keys;
         for (int i = 0; i < TABLE_SIZE; ++i) {
             for (Entry* entry = table[i]; entry != nullptr; entry = entry->next) {
@@ -335,7 +459,9 @@ public:
     }
 
     bool containsKey(const K& key) const {
-        Serial.println("[HASHTABLE]: Checking if key exists");
+        if(debug){
+            Serial.println("[HASHTABLE]: Checking if key exists");
+        }
         int index = hash(key);
         Entry* entry = table[index];
         while (entry != nullptr) {
@@ -348,7 +474,9 @@ public:
     }
 
     bool containsValue(const V& value) const {
-        Serial.println("[HASHTABLE]: Checking if value exists");
+        if(debug){
+            Serial.println("[HASHTABLE]: Checking if value exists");
+        }
         for (int i = 0; i < TABLE_SIZE; ++i) {
             Entry* entry = table[i];
             while (entry != nullptr) {

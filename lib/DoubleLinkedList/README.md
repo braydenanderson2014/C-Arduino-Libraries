@@ -24,6 +24,13 @@ To use `DoubleLinkedList` in your Arduino sketch:
 * Added Library name in the Serial Outputs for debugging purposes
 * This particular version is not tested and may not work as intended. USE AT YOUR OWN RISK!",
 * This Library is extremely similar to the LinkedList Library, but with a few changes to the code to make it a double linked list instead of a single linked list.
+### Version 1.0.1
+* "Added a boolean to the Constructor that determines if the Library should print the Debug Messages to the Serial Monitor or not. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.
+* Added a new function called setDebugMode() that allows you to change the Debug Mode after the Library has been initialized. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.
+* Added a new function called getDebugMode() that allows you to get the current Debug Mode of the Library. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.
+* By default, the Debug Mode is set to false. This means that the Debug Messages will not be printed to the Serial Monitor if you do not pass the boolean in. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.
+            
+
 
 ## Usage
 
@@ -33,6 +40,7 @@ To create a linked list, simply declare an instance of `DoubleLinkedList` with t
 #include <DoubleLinkedList.h>
 
 DoubleLinkedList<int> myList;
+DoubleLinkedList<int> debugList(true);
 ```
 ## Adding Elements
 ### Append an element to the end of the list:

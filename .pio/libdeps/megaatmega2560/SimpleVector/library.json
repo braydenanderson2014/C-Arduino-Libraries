@@ -1,6 +1,6 @@
 {
     "name": "SimpleVector",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "A lightweight and efficient implementation of a dynamic array, suitable for use in memory-constrained environments.",
     "keywords": ["SimpleVector", "VectorIterator", "Vector"],
     "Repositories": [
@@ -52,6 +52,12 @@
                 "Added Elements Function.",
                 "Added Iterators to the library",
                 "Modified the size Function to return size of array and not how many elements are on the array"
+            ]
+        },
+        {
+            "version": "1.0.3",
+            "changes": [
+                "Added [SIMPLE VECTOR]: to the start of the Serial.print() statements to make it easier to debug."
             ]
         }
     ],

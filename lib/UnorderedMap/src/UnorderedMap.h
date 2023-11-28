@@ -6,12 +6,13 @@
 template <typename KeyType, typename ValueType, typename Hash = KeyHash<KeyType>>
 class UnorderedMap {
 private:
-    Hashtable<KeyType, ValueType, Hash> hashtable;
+    bool debug;
+    Hashtable<KeyType, ValueType, Hash> hashtable = Hashtable<KeyType, ValueType, Hash>(debug);
 
 public:
     // Forward the constructor arguments
     // Forward the constructor arguments
-    UnorderedMap(size_t initialCapacity = 16, float loadFactor = 0.7) : hashtable(initialCapacity, loadFactor) {}
+    UnorderedMap(size_t initialCapacity = 16, float loadFactor = 0.7, bool debug = false) : hashtable(initialCapacity, loadFactor), debug(debug) {}
 
 
     // Forward the destructor
@@ -34,7 +35,12 @@ public:
 
     // Forward the remove operation
     bool remove(const KeyType& key) {
-        return hashtable.remove(key);
+        hashtable.remove(key);
+        return true;
+    }
+
+    void clear() {
+        return hashtable.clear();
     }
 
     // Forward the size operation

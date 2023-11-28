@@ -37,6 +37,9 @@ If you want to Utilize this Library. Please include the
 * Update to Libary.json
 ### Version 1.0.2:
 * Added Debug Statements [TIMER]: 
+### Version 1.0.3:
+* Modified constructor to take in a ```bool``` to allow you to set whether or not the library displays debug messages.
+
 
     
 

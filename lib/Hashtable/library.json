@@ -1,6 +1,6 @@
 {
     "name": "Hashtable",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "description": "A hashtable implementation for Arduino",
     "keywords": ["Hashtable", "Hashtable Iterator"],
     "repository": {
@@ -115,6 +115,15 @@
             "date": "2023-11-11",
             "changes": [
                 "Added [HASHTABLE]: to the start of all Serial.print() statements to make it easier to debug"
+            ]
+        },
+        {
+            "version": "1.0.9",
+            "date": "2023-11-26",
+            "changes": [
+                "Modified the Constructor to accept a boolean value to allow you to disable the Serial.print() statements",
+                "Added support for 3 new types: float, double, boolean",
+                "Please note you can add your own specializations for other types if you wish, please see the README.md for more information"
             ]
         }
     ],

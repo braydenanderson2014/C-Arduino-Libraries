@@ -42,6 +42,10 @@ If you want to Utilize this Library. Please include the
 * Modified the size Function to return size of array and not how many elements are on the array
 ### Version 1.0.3:
 * Added [SIMPLE VECTOR]: to the start of the Serial.print() statements to make it easier to debug
+### Version 1.0.4:
+* Modified Constructor to take in a boolean value to determine if the Library should print Debug Messages
+* Added a new function called setDebug() to set the debug value
+* Added a new function called getDebug() to get the debug value"
 
 
 

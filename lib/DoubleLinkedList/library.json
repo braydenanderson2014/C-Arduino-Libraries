@@ -1,6 +1,6 @@
 {
     "name": "DoubleLinkedList",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "This Library is an easy to use Library for Double Linked Lists. This Library contains basic implementations of a double linked list structure. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["LinkedList", "List", "ArrayList", "Array", "BasicLinkedList", "DoubleLinkedList"],
     "repositories": [
@@ -41,13 +41,23 @@
             "version": "1.0.0",
             "date": "2023-11-12",
             "changes": [
-                "Initial  UNTESTED release",
+                "Initial Partially tested release",
                 "Added Library name in the Serial Outputs for debugging purposes",
                 "This particular version is not tested and may not work as intended. USE AT YOUR OWN RISK!",
                 "This Library is extremely similar to the LinkedList Library, but with a few changes to the code to make it a double linked list instead of a single linked list.",
                 "Added 3 new Iterators to this Library. They are: ForwardIterator, BackwardIterator, and RandomIterator. They are all used for iterating through the list. They are currently untested",
                 "Redefinition of the LinkedNode. It is now called DoubledLinkedNode so it will not clash with the LinkedList Version.",
                 "This Library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author"
+            ]
+        },
+        {
+            "version": "1.0.1",
+            "date": "2023-11-27",
+            "changes": [
+                "Added a boolean to the Constructor that determines if the Library should print the Debug Messages to the Serial Monitor or not. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.",
+                "Added a new function called setDebugMode() that allows you to change the Debug Mode after the Library has been initialized. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.",
+                "Added a new function called getDebugMode() that allows you to get the current Debug Mode of the Library. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.",
+                "By default, the Debug Mode is set to false. This means that the Debug Messages will not be printed to the Serial Monitor if you do not pass the boolean in. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing."
             ]
         }
     ]

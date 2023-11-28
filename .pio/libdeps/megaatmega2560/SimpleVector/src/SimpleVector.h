@@ -66,11 +66,11 @@ public:
     }
 
     unsigned int size() const {
-        return capacity;
+        return this -> capacity;
     }
 
     unsigned int elements() const {
-        return count;
+        return this -> count;
     }
 
 
@@ -121,7 +121,7 @@ public:
 
         T& next() {
             if (current == end) {
-                Serial.println("Error: Iterator has reached the end of the vector.");
+                Serial.println("[SIMPLE VECTOR]: WARNING: Iterator has reached the end of the vector.");
             }
             return *current++;
         }

@@ -2,7 +2,6 @@
 #define TIMER_H
 
 #include <Arduino.h>
-#include <RTClib.h>
 
 class Timer {
 private:
@@ -36,6 +35,7 @@ public:
     void setTargetDuration(unsigned long duration);
     void setTargetMinutes(unsigned long minutes);
     bool checkTimer(unsigned long duration) const;
+    bool debug;
 };
 
 #endif // TIMER_H

@@ -1,6 +1,6 @@
 {
     "name": "MyDictionary",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "This Library is an easy to use Library for Dictionary.h, It takes Dictionary.h and expands it into an implementation for use. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["Dictionary", "MyDictionary"],
     "repositories": [
@@ -62,6 +62,16 @@
                 "Modified the Library to utilize <String, String> instead of <String, int>",
                 "This Library is not tested and may not work. USE AT YOUR OWN RISK! Please report any Bugs to the Author",
                 "Added [Dictionary]: to Serial.print() statements to make it easier to read the output"
+            ]
+        },
+        {
+            "version": "1.0.3",
+            "date": "2023-11-27",
+            "changes": [
+                "Modified the Constructor to take in a boolean value to determine if the Dictionary should print to Serial or not",
+                "Modified the UnorderedMap creation to take in a boolean value to determine if the Map should print to Serial or not",
+                "Modified the Hashtable creation to take in a boolean value to determine if the Hashtable should print to Serial or not",
+                "Added new clear() function to clear the Dictionary"
             ]
         }
     ]
