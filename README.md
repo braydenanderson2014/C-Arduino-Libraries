@@ -27,7 +27,7 @@
 * [Dictionary](#dictionary-class) [PASSIVE-DEVELOPMENT] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING-NOT-NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
 * [Hashtable](#hashtable-class) [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED], [STABLE]
 * [iostream](#iostream-class) [PASSIVE-DEVELOPMENT] (Published as : BasicIOStream), [PARTIALLY-TESTED], [STABLE]
-* [iterator] [PASSIVE-DEVELOPMENT], (PURE VIRTUAL : No Concrete Implementation in this Library)  [TESTING-NOT-NECESSARY] 
+* [iterator](#iterator-class) [PASSIVE-DEVELOPMENT], (PURE VIRTUAL : No Concrete Implementation in this Library)  [TESTING-NOT-NECESSARY] 
 * [Properties](#properties-class) [PASSIVE-DEVELOPMENT] (Published as : SimpleProperties), [MOSTLY-TESTED], [STABLE]
 * [SimpleVector](#simplevector-class) [PASSIVE-DEVELOPMENT] , [MOSTLY-TESTED], [STABLE]
 * [Timer](#timer-class) [PASSIVE_DEVELOPMENT] (Published as : SimpleArduinoTimer), [UNTESTED]
@@ -40,8 +40,8 @@
 * [SimpleMutex]() [ACTIVE-DEVELOPMENT]
 * [SimpleThreadManager]() [ACTIVE-DEVELOPMENT]
 
-Total Available Libraries (12)
-Total Libraries (13)
+Total Available Libraries (13)
+Total Libraries (15)
 
 ## ACTIVELY WORKING ON LISTED LIBRARIES (Bug Fixing or Feature Adding):
 1. UnorderedMap [TESTING]
@@ -60,7 +60,8 @@ Total Libraries (13)
 ## UNPUBLISHED (In Development) (Not yet Documented)
 ========================================================== 
 [WARNING]: NO DOCUMENTATION AVAILABLE YET &&|| UNTESTED BY AUTHOR
-1. ArrayList [ACTIVE-DEVELOPMENT], [UNTESTED], [UNPUBLISHED]
+1.  [SimpleMutex]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
+2.  [SimpleThreadManager]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
 
 ## ALL LIBRARIES INCLUDE A MORE INDEPTH README.md ##
 # Dictionary Class
