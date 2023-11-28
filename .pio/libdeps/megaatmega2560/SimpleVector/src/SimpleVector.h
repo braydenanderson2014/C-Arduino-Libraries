@@ -66,11 +66,11 @@ public:
     }
 
     unsigned int size() const {
-        return capacity;
+        return this -> capacity;
     }
 
     unsigned int elements() const {
-        return count;
+        return this -> count;
     }
 
 

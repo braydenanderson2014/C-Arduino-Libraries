@@ -19,6 +19,12 @@
 * Modified the Library to utilize `<String, String>` instead of `<String, int>`
 * This Library is not tested and may not work. USE AT YOUR OWN RISK! Please report any Bugs to the Author
 * Added [Dictionary]: to `Serial.print()` statements to make it easier to read the output
+### Version 1.0.3
+* Modified the Constructor to take in a boolean value to determine if the Dictionary should print to Serial or not
+* Modified the UnorderedMap creation to take in a boolean value to determine if the Map should print to Serial or not
+* Modified the Hashtable creation to take in a boolean value to determine if the Hashtable should print to Serial or not
+* Added new clear() function to clear the Dictionary
+
 
     
 ## Usage

@@ -18,31 +18,43 @@ class LinkedList {
 private:
     ListNode<T>* head;
     size_t Size;
-
+    bool debug;
 public:
 class ForwardIterator {
     private:
         ListNode<T>* current;
-
+        bool debug;
     public:
-        ForwardIterator(ListNode<T>* start) : current(start) {}
+        ForwardIterator(ListNode<T>* start) : current(start), debug(debug) {}
 
         T& operator*() {
+            if(debug){
+                Serial.println("[LINKED LIST]: Iterator Dereference");
+            }
             return current->data;
         }
 
         bool operator!=(const ForwardIterator& other) const {
+            if(debug){
+                Serial.println("[LINKED LIST]: Iterator Inequality check");
+            }
             return current != other.current;
         }
 
         ForwardIterator& operator++() {
             if (current) current = current->next;
+            if(debug){
+                Serial.println("[LINKED LIST]: Iterator Prefix increment");
+            }
             return *this;
         }
     };
-    LinkedList() : head(nullptr), Size(0) {}
+    LinkedList() : head(nullptr), Size(0), debug(debug) {}
 
     ~LinkedList() {
+        if(debug){
+            Serial.println("[LINKED LIST]: Destroying LinkedList");
+        }
         clear();
     }
 
@@ -51,12 +63,21 @@ class ForwardIterator {
         ListNode<T>* newNode = new ListNode<T>(value);
         if (!head) {
             head = newNode;
+            if(debug){
+                Serial.println("[LINKED LIST]: Appended to empty list");
+            }
         } else {
             ListNode<T>* current = head;
             while (current->next) {
                 current = current->next;
+                if(debug){
+                    Serial.println("[LINKED LIST]: Appended to non-empty list");
+                }
             }
             current->next = newNode;
+            if(debug){
+                Serial.println("[LINKED LIST]: Appended to non-empty list" + String(value));
+            }
         }
         Size++;
     }
@@ -65,6 +86,9 @@ class ForwardIterator {
         ListNode<T>* newNode = new ListNode<T>(value);
         newNode->next = head;
         head = newNode;
+        if(debug){
+            Serial.println("[LINKED LIST]: Prepended: " + String(value));
+        }
         Size++;
     }
 
@@ -86,6 +110,9 @@ class ForwardIterator {
             }
             newNode->next = current->next;
             current->next = newNode;
+            if(debug){
+                Serial.println("[LINKED LIST]: Inserted: " + String(value));
+            }
             Size++;
         }
     }
@@ -106,9 +133,27 @@ class ForwardIterator {
             }
             newNode->next = current->next;
             current->next = newNode;
+            if(debug){
+                Serial.println("[LINKED LIST]: Inserted: " + String(value));
+            }
             Size++;
         }
     }
+
+    void setDebug(bool debug){
+        if(debug){
+            Serial.println("[LINKED LIST]: Debug mode enabled");
+        } else {
+            Serial.println("[LINKED LIST]: Debug mode disabled");
+        }
+        this->debug = debug;
+    }
+
+    bool getDebug(){
+        return debug;
+    }
+
+    
     // Remove the first occurrence of an element from the list
     void remove(const T& value) {
         if (!head) {
@@ -142,13 +187,25 @@ class ForwardIterator {
         ListNode<T>* current = head;
         for (size_t i = 0; i < position; i++) {
             if (!current) {
+                if(debug){
+                    Serial.println("[LINKED LIST]: Out of bounds" + String(position));
+                }
                 return nullptr; // Out of bounds
+            }
+            if(debug){
+                Serial.println("[LINKED LIST]: Getting element at position" + String(position));
             }
             current = current->next;
         }
         if (current) {
+            if(debug){
+                Serial.println("[LINKED LIST]: Returning element at position" + String(position));
+            }
             return &(current->data);
         } else {
+            if(debug){
+                Serial.println("[LINKED LIST]: Out of bounds or unable to get element at position" + String(position));
+            }
             return nullptr;
         }
     }
@@ -158,20 +215,32 @@ class ForwardIterator {
         ListNode<T>* current = head;
         while (current) {
             if (current->data == value) {
+                if(debug){
+                    Serial.println("[LINKED LIST]: Contains element" + String(value));
+                }
                 return true;
             }
             current = current->next;
+        }
+        if(debug){
+            Serial.println("[LINKED LIST]: Does not contain element" + String(value));
         }
         return false;
     }
 
     // Get the number of elements in the list
     size_t size() const {
+        if(debug){
+            Serial.println("[LINKED LIST]: Size: " + String(Size));
+        }
         return Size;
     }
 
     // Check if the list is empty
     bool isEmpty() const {
+        if(debug){
+            Serial.println("[LINKED LIST]: Is empty: " + String(Size == 0));
+        }
         return Size == 0;
     }
 
@@ -180,6 +249,9 @@ class ForwardIterator {
         while (head) {
             ListNode<T>* temp = head;
             head = head->next;
+            if(debug){
+                Serial.println("[LINKED LIST]: Deleting node: " + String(temp->data) + " from list");
+            }
             delete temp;
         }
         Size = 0;
@@ -190,9 +262,15 @@ class ForwardIterator {
         ListNode<T>* current = head;
         while (current) {
             if (current->data == key) {
+                if(debug){
+                    Serial.println("[LINKED LIST]: Key exists" + String(key));
+                }
                 return true;
             }
             current = current->next;
+        }
+        if(debug){
+            Serial.println("[LINKED LIST]: Key does not exist" + String(key));
         }
         return false;
     }
@@ -201,9 +279,15 @@ class ForwardIterator {
         ListNode<T>* current = head;
         while (current) {
             if (current->data == value) {
+                if(debug){
+                    Serial.println("[LINKED LIST]: Value exists" + String(value));
+                }
                 return true;
             }
             current = current->next;
+        }
+        if(debug){
+            Serial.println("[LINKED LIST]: Value does not exist" + String(value));
         }
         return false;
     }

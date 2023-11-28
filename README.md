@@ -1,5 +1,13 @@
 # C-Arduino-Libraries
 
+## Please Ensure you start the Serial interface before using these libraries!!!
+```cpp
+    Serial.begin(9600);
+```
+```cpp
+    Serial.begin(115400);
+```
+
 ## List of All Available Libraries ## [WARNING]: UNTESTED/Partially Tested BY AUTHOR
 * [Dictionary](#dictionary-class) [PASSIVE-DEVELOPMENT] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING-NOT-NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
 * [Hashtable](#hashtable-class) [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED], [STABLE]
@@ -13,7 +21,9 @@
 * [DoubleLinkedList](#doublelinkedlist-class) [ACTIVE-DEVELOPMENT], [PARTIALLY-TESTED], [STABLE]
 * [MyDictionary](#mydictionary-class) [ACTIVE-DEVELOPMENT],(implemented Version of the Dictionary Class), [UNTESTED]
 * [SDList](#sdlist-class) [ACTIVE-DEVELOPMENT], [FAILED-TESTING]
-* [ArrayList](#arraylist-class) [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED], [NO-DOCUMENTATION](DOCUMENTATION AVAILABLE IN LIBRARY, JUST NOT THIS README FILE)
+* [ArrayList](#arraylist-class) [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED]
+* [SimpleMutex]() [ACTIVE-DEVELOPMENT]
+* [SimpleThreadManager]() [ACTIVE-DEVELOPMENT]
 
 Total Available Libraries (12)
 Total Libraries (13)
@@ -23,10 +33,10 @@ Total Libraries (13)
 2. LinkedList [TESTING]
 3. MyDictionary [TESTING]
 4. SDList [ACTIVE-DEVELOPMENT], [BUG-FIXING], [TESTING]
-5. ArrayList [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED], [NO-DOCUMENTATION](DOCUMENTATION AVAILABLE IN LIBRARY, JUST NOT THIS README FILE)
+5. ArrayList [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED], 
 6. DoubleLinkedList [TESTING], [DOCUMENTATION-PENDING] (DOCUMENTATION AVAILABLE IN LIBRARY, JUST NOT THIS README FILE)
-
-
+7.  [SimpleMutex]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
+8.  [SimpleThreadManager]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
 
 
 

@@ -101,8 +101,14 @@ If you want to Utilize this Library. Please include the
 * Added new bucketSize() function to return the size of a bucket
 * All new functions are untested, please report any bugs you find!
 * These functions are desinged to open up the library to allow you to use it in more ways, such as using it as a hashset
-### Version 1.0.8: [FUTURE-RELEASE]
+### Version 1.0.8: 
 * Added [HASHTABLE]: to the front of each Serial.println() statement to make it easier to debug.
+### Version 1.0.9: 
+* Modified the Constructor to accept a boolean value to allow you to disable the Serial.print() statements
+* Added support for 3 new types: float, double, boolean
+* Please note you can add your own specializations for other types if you wish, please see the README.md for more information          
+### Version 1.0.10: [FUTURE-RELEASE]
+
 
 ## Example
 

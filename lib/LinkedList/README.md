@@ -31,7 +31,10 @@ To use `LinkedList` in your Arduino sketch:
 * Adjusted size Variable to be capitalized as Size. That way the compiler will not get confused with the size() function
 * Added an Iterator to the LinkedList. This will allow you to iterate through the list
 * This Library Has been partially tested. Please report any bugs to the Author
-
+### Version 1.0.3
+* Added a boolean variable to the LinkedList Constructor to determine if the LinkedList should print to the Serial Monitor or not.
+* Added a setDebug() function to set the debug variable to true or false
+* Added a getDebug() function to get the debug variable
 
 ## Currently Tested Functions
 `cpp

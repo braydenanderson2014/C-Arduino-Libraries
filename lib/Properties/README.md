@@ -14,6 +14,8 @@ To use the `Properties` class, follow these steps:
 
 ```powershell
 git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Properties.git"
+git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Hashtable.git"
+git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/SimpleVector.git"
 
 ```
 ## Header
@@ -22,6 +24,18 @@ If you want to Utilize this Library. Please include the
 ```cpp 
 #include <Properties.h> 
 ```
+
+If you use the Properties library outside of platformio, please also add the 
+```cpp
+#include <Hashtable.h>
+#include <SimpleVector.h>
+#include <iostream.h>
+```
+
+You may also need:
+* RTCLib
+* LiquidCrystal
+* LiquidCrystal_I2C
 
 ## ChangeLog
 ### Version 1.0.0:
@@ -51,6 +65,12 @@ If you want to Utilize this Library. Please include the
 * Added a deleteFile() function to delete a file off of an SD Card.
 * Update to the README.md file
 * [WARNING]: Underlying Libraries that the Properties library depends on have been updated. This may cause issues. Please report any issues to the Author. This library will be tested and patched (if needed) as soon as possible.
+### Version 1.0.7:
+* [WARNING]: Underlying Libraries have been updated. This may cause issues. This library has been partially tested since the last update. Please report any issues to the Author.
+* Modified the Serial.print() statements so that they dont print by default. You have to pass a bool to the constructor to activate them.
+* Debug Variable gets passed to the Hashtable Constructor, so that library also conforms to your wishes.
+
+            
             
 
 
