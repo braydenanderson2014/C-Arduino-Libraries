@@ -86,10 +86,17 @@ If you want to Utilize this Library. Please include the
 ## ChangeLog
 ### Version 1.0.0:
 * Initial Release 
-### Version 1.0.1
+### Version 1.0.1:
 * Updated the constructor to accept a boolean value to determine if the Serial.println should be used or not
 * Added a bunch new functions to the library which have not been tested yet... These functions are based off of Java's ArrayList Class" 
 * MASSIVE update to the Readme 
+### Version 1.0.2:
+* Added new SubLibrary ArrayListOperations which allows you to run mathmatics on your ArrayList. (Note: ArrayList *MUST* be an Integer or other number type ArrayList. Strings may not behave correctly);
+* Added Documentation for new SubLibrary in this Readme
+* Some functions in the ArrayListOperations are exactly the same, just with a different function name. Just be aware of this when utilizing the library.
+
+
+
 ## Example
 
 Here's an example of how to use the `ArrayList` class:
@@ -209,15 +216,24 @@ Feel free to fork this repository and contribute to expanding the library's func
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 
+*** Please make sure you use the setGlobalMultiplier before utilizing the functions that need it. Otherwise its default value is 0 *** 
+
+*** Please Make sure you add items to the Internal Array before using Mathmatical functions that have no arguments, otherwise you will end up with a 0 ***
+
+*** Please note that any functions that uses the word "is" infront will return a boolean value. (example: isPrime(), isPositive(), isOdd(), etc.) ***
+
+
 ## List of Available Functions 
-***(Please make sure you use the setGlobalMultiplier before utilizing the functions that need it. Otherwise its default value is 0)*** 
 * incrementByOne(T element)
 * doubleValue(T element)
 * setGlobalMultiplier(T multiplier)
 * multiply(T value)
+* multiply(T value, T value2)
 * divide(T value)
 * add(T value)
+* add(T value, T value2)
 * subtract(T value)
+* subtract(T value, T value2)
 * modulo(T value)
 * multiplyByTwo(T value)
 * divideByTwo(T value)
@@ -235,6 +251,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 * absoluteValue(T value)
 * factorial(T value)
 * fibonacci(T value)
+* fibonacciPrint(T value)
 * greatestCommonDivisor(T value)
 * leastCommonMultiple(T value)
 * isPrime(T value)
@@ -314,9 +331,17 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 * range(T value)
 * standardDeviation(T value)
 * variance(T value)
+* sum()
 * sum(T value)
+* product()
 * product(T value)
-* findMin(T value)
+* findMin()
 * minimum(T* array, size_t size)
-* findMax(T value)
+* findMax()
 * count(T value)
+* isGreaterThan(T value)
+* isGreaterThan(T value, T value2)
+* isLessThan(T value)
+* isLessThan(T value, T value2)
+* isEqual(T value)
+* isEqual(T value, T value2)
