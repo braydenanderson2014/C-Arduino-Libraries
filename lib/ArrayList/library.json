@@ -1,6 +1,6 @@
 {
     "name": "ArrayList",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "A Basic ArrayList Structure which supports Dynamic and Fixed Arrays",
     "keywords": ["ArrayList", "Dynamic List", "Fixed List", "List", "Array", "Dynamic Array", "Fixed Array", "Array List", "Dynamic Array List", "Fixed Array List", "Dynamic List Array", "Fixed List Array"],
     "repository": {
@@ -49,6 +49,15 @@
             "changes": [
                 "Updated the constructor to accept a boolean value to determine if the Serial.println should be used or not",
                 "Added a bunch new functions to the library which have not been tested yet... These functions are based off of Java's ArrayList Class" 
+            ]
+        },
+        {
+            "version": "1.0.2",
+            "date": "2023-11-29",
+            "changes": [
+                "Added new SubLibrary ArrayListOperations which allows you to run mathmatics on your ArrayList. (Note: ArrayList *MUST* be an Integer or other number type ArrayList. Strings may not behave correctly);",
+                "Documentation for new SubLibrary ArrayListOperations has been added to the README.md file",
+                "Some functions in the ArrayListOperations are exactly the same, just with a different function name. Just be aware of this when utilizing the library." 
             ]
         }   
     ],
