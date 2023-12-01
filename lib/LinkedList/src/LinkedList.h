@@ -210,6 +210,32 @@ class ForwardIterator {
         }
     }
 
+    String getAsString(size_t position) const {
+        ListNode<T>* current = head;
+        for (size_t i = 0; i < position; i++) {
+            if (!current) {
+                if(debug){
+                    Serial.println("[LINKED LIST]: Out of bounds" + String(position));
+                }
+                return nullptr; // Out of bounds
+            }
+            if(debug){
+                Serial.println("[LINKED LIST]: Getting element at position" + String(position));
+            }
+            current = current->next;
+        }
+        if (current) {
+            if(debug){
+                Serial.println("[LINKED LIST]: Returning element at position" + String(position));
+            }
+            return String(current->data);
+        } else {
+            if(debug){
+                Serial.println("[LINKED LIST]: Out of bounds or unable to get element at position" + String(position));
+            }
+            return nullptr;
+        }
+    }
     // Check if the list contains a specific element
     bool contains(const T& value) const {
         ListNode<T>* current = head;

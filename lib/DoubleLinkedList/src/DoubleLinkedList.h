@@ -387,6 +387,30 @@ public:
             return nullptr;
         }
     }
+
+    String getAsString(size_t position) const {
+        DoubleListNode<T> *current = head;
+        for (size_t i = 0; i < position; i++) {
+            if (!current) {
+                if(debug) {
+                    Serial.println("[DOUBLE LINKED LIST]: Out of bounds");
+                }
+                return nullptr; // Out of bounds
+            }
+            current = current->next;
+        }
+        if (current) {
+            if(debug) {
+                Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(current->data));
+            }
+            return String(current->data);
+        } else {
+            if(debug) {
+                Serial.println("[DOUBLE LINKED LIST]: Out of bounds or unable to get data");
+            }
+            return nullptr;
+        }
+    }
     // Check if the list contains a specific element
     bool contains(const T &value) const {
         DoubleListNode<T> *current = head;

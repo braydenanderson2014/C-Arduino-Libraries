@@ -1,8 +1,3 @@
-//
-// !!! WARNING !!! AUTO-GENERATED FILE!
-// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
-// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
-//
 {
     "configurations": [
         {
@@ -33,6 +28,8 @@
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/cores/arduino",
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/variants/mega",
                 "C:/Users/Admin/Documents/GitHub/SystemCommands/C-Arduino-Libraries/lib/Dictionary/src",
+                "C:/Users/Admin/Documents/GitHub/SystemCommands/C-Arduino-Libraries/lib/New folder",
+                "C:/Users/Admin/Documents/GitHub/SystemCommands/C-Arduino-Libraries/lib/Operators",
                 "C:/Users/Admin/Documents/GitHub/SystemCommands/C-Arduino-Libraries/lib/Properties/src",
                 "C:/Users/Admin/Documents/GitHub/SystemCommands/C-Arduino-Libraries/lib/SD-master/src",
                 "C:/Users/Admin/Documents/GitHub/SystemCommands/C-Arduino-Libraries/lib/SimpleMutex",
@@ -48,7 +45,9 @@
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
-                ""
+                "",
+                "${workspaceFolder}/lib/Operators/src",
+                "${workspaceFolder}/lib/Predicates/src"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
@@ -78,6 +77,8 @@
                     "C:/Users/Admin/.platformio/packages/framework-arduino-avr/cores/arduino",
                     "C:/Users/Admin/.platformio/packages/framework-arduino-avr/variants/mega",
                     "C:/Users/Admin/Documents/GitHub/SystemCommands/C-Arduino-Libraries/lib/Dictionary/src",
+                    "C:/Users/Admin/Documents/GitHub/SystemCommands/C-Arduino-Libraries/lib/New folder",
+                    "C:/Users/Admin/Documents/GitHub/SystemCommands/C-Arduino-Libraries/lib/Operators",
                     "C:/Users/Admin/Documents/GitHub/SystemCommands/C-Arduino-Libraries/lib/Properties/src",
                     "C:/Users/Admin/Documents/GitHub/SystemCommands/C-Arduino-Libraries/lib/SD-master/src",
                     "C:/Users/Admin/Documents/GitHub/SystemCommands/C-Arduino-Libraries/lib/SimpleMutex",
