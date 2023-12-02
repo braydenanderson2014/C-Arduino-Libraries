@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <ArrayList.h>
 #include <LinkedList.h>
-#include "Operations.h"
+#include "Operators.h"
 #include "Predicates.h"
 
 ArrayList<int> list(ArrayList<int>::DYNAMIC, 10);
@@ -21,8 +21,8 @@ void setup(){
     }
 
     for(int i = 0; i < list.size(); i++){
-        list.set(Operations<int>::add(list.get(i)), i);
-        linkedList.insert(Operations<int>::add(linkedList.getAsString(i).toInt()), i);
+        list.set(Operators<int>::add(list.get(i)), i);
+        linkedList.insert(Operators<int>::add(linkedList.getAsString(i).toInt()), i);
     }
 
     for(int i = 0; i < list.size(); i++){
@@ -31,8 +31,8 @@ void setup(){
     }
 
     for(int i = 0; i < list.size(); i++){
-        list.set(Operations<int>::subtract(list.get(i)), i);
-        linkedList.insert(Operations<int>::subtract(linkedList.getAsString(i).toInt()), i);
+        list.set(Operators<int>::subtract(list.get(i)), i);
+        linkedList.insert(Operators<int>::subtract(linkedList.getAsString(i).toInt()), i);
 
         if(Predicates<int>::isEven(list.get(i))){
             list.remove(i);

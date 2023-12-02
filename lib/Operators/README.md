@@ -12,7 +12,7 @@ The ArrayListOperations library provides a comprehensive set of operations that 
 * Customizable global multiplier for scalable operations
 
 ## Installation
-* Download the Operations.h file.
+* Download the Operators.h file.
 
 * Place it in your Arduino project's directory.
 
@@ -26,15 +26,15 @@ The ArrayListOperations library provides a comprehensive set of operations that 
 You can perform basic operations on array list elements:
 
 ```cpp
-Operations<int>::setGlobalMultiplier(5);
-int result = Operations<int>::multiply(10);  // result is 50
+Operators<int>::setGlobalMultiplier(5);
+int result = Operators<int>::multiply(10);  // result is 50
 ```
 
 ## Mathematical Operations
 Perform mathematical operations like square, cube, or roots:
 
 ```cpp
-int squared = Operations<int>::square(4);  // squared is 16
+int squared = Operators<int>::square(4);  // squared is 16
 ```
 
 
@@ -42,7 +42,7 @@ int squared = Operations<int>::square(4);  // squared is 16
 Convert between different number systems:
 
 ```cpp
-int binary = Operations<int>::decimalToBinary(5);  // binary is 101
+int binary = Operators<int>::decimalToBinary(5);  // binary is 101
 ```
 
 ## Statistical Calculations
@@ -50,7 +50,7 @@ int binary = Operations<int>::decimalToBinary(5);  // binary is 101
 
 ```cpp
 int array[] = {1, 2, 3, 4, 5};
-int mean = Operations<int>::average(array, 5);  // mean is 3
+int mean = Operators<int>::average(array, 5);  // mean is 3
 ```
 ## Customization
 You can modify the Operations class to include more operations as needed for your specific use case.
