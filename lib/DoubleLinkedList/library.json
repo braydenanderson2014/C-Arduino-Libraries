@@ -59,6 +59,13 @@
                 "Added a new function called getDebugMode() that allows you to get the current Debug Mode of the Library. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.",
                 "By default, the Debug Mode is set to false. This means that the Debug Messages will not be printed to the Serial Monitor if you do not pass the boolean in. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing."
             ]
+        },
+        {
+            "version": "1.0.2",
+            "date": "2023-12-01",
+            "changes": [
+                "Added new getAsString() function that returns the list element as a String. This is useful for when you want to print the list to the Serial Monitor or to a LCD Screen."
+            ]
         }
     ]
 }

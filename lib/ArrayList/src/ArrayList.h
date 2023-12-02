@@ -279,7 +279,18 @@ public:
         if (index < count) {
             return array[index];
         }
-        return T(); // Return default value if index is out of bounds
+        return T();// Return default value if index is out of bounds
+    }
+
+    String getAsString(size_t index) const {
+        if (index < count) {
+            return toString(array[index]);
+        }
+        return toString(T());// Return default value if index is out of bounds
+    }
+
+    String toString(const T& value) {
+        return String(value);
     }
 
     bool contains(T item) const {

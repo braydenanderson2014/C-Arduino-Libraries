@@ -6,7 +6,8 @@
 #include "SDList.h"
 #include "DoubleLinkedList.h"
 #include "ArrayList.h"
-#include "ArrayListOperations.h"
+#include "Operators.h"
+#include "Predicates.h"
 
 ArrayList <String> theStrings;
 

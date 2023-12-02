@@ -11,21 +11,6 @@
 ### All Libraries are Contained under the lib Folder. All other folders are platformio project folders for testing the code. Please note the main.cpp changes constantly so it is unimportant. Feel free to modify ### as you see fit.
 =======
 ## List of All Available Libraries ## [WARNING]: UNTESTED/Partially Tested BY AUTHOR
-1. Dictionary [PASSIVE-DEVELOPMENT] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING NOT NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
-2. Hashtable [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED]
-3. iostream [PASSIVE-DEVELOPMENT] (Published as : BasicIOStream), [PARTIALLY-TESTED]
-4. iterator [PASSIVE-DEVELOPMENT], [PARTIALLY-TESTED]
-5. Properties [PASSIVE-DEVELOPMENT] (Published as : SimpleProperties), [MOSTLY-TESTED], 
-6. SimpleVector [PASSIVE-DEVELOPMENT] , [MOSTLY-TESTED]
-7. Timer [PASSIVE_DEVELOPMENT] (Published as : SimpleArduinoTimer), [UNTESTED]
-8. UnorderedMap [ACTIVE-DEVELOPMENT], [PARTIALLY-TESTED]
-9. LinkedList [ACTIVE-DEVELOPENT] (Published as : BasicLinkedList), [MOSTLY-TESTED]
-10. DoubleLinkedList [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED]
-11. MyDictionary [ACTIVE-DEVELOPMENT],(implemented Version of the Dictionary Class), [UNTESTED]
-12. SDList [ACTIVE-DEVELOPMENT], [FAILED-TESTING]
-
-
-## List of All Available Libraries ## [WARNING]: UNTESTED/Partially Tested BY AUTHOR
 * [Dictionary](#dictionary-class) [PASSIVE-DEVELOPMENT] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING-NOT-NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
 * [Hashtable](#hashtable-class) [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED], [STABLE]
 * [iostream](#iostream-class) [PASSIVE-DEVELOPMENT] (Published as : BasicIOStream), [PARTIALLY-TESTED], [STABLE]
@@ -41,9 +26,10 @@
 * [ArrayList](#arraylist-class) [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED]
 * [SimpleMutex]() [ACTIVE-DEVELOPMENT]
 * [SimpleThreadManager]() [ACTIVE-DEVELOPMENT]
-
-Total Available Libraries (13)
-Total Libraries (15)
+* [ArrayListOperations]() [ACTIVE-DEVELOPMENT], [SUBLIBRARY](SubLibrary of ArrayList)
+SubLibraries: (1)
+Total Available Libraries: (14)
+Total Libraries: (16)
 
 ## ACTIVELY WORKING ON LISTED LIBRARIES (Bug Fixing or Feature Adding):
 1. UnorderedMap [TESTING]

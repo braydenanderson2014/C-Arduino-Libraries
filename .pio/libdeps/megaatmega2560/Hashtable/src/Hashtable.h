@@ -55,6 +55,16 @@ struct KeyHash<float> {
     }
 };
 
+// Specialization for double
+template<>
+struct KeyHash<double> {
+    unsigned long operator()(const double& key) const {
+        // This approach treats the binary representation of the double as an integer.
+        // Caution: This is a simple method and might not be the best for all use cases.
+        unsigned long hash = *reinterpret_cast<const unsigned long*>(&key);
+        return hash;
+    }
+};
 template <typename K, typename V, typename Hash = KeyHash<K>>
 class Hashtable {
 private:
@@ -225,6 +235,13 @@ public:
         }
         table = new Entry*[TABLE_SIZE]();
     }
+    Hashtable(bool debug = false) : debug(debug), TABLE_SIZE(INITIAL_TABLE_SIZE), count(0), hashFunction(debug) {
+        if(debug){
+            Serial.println("[HASHTABLE]: Initializing Hashtable with debug mode");
+        }
+        table = new Entry*[TABLE_SIZE]();
+    }
+
 
     Hashtable(size_t initialCapacity, float loadFactor, bool debug = false) 
         : TABLE_SIZE(initialCapacity), count(0), loadFactorThreshold(loadFactor), debug(debug), hashFunction(debug) {

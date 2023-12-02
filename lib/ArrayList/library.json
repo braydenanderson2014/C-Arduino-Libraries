@@ -1,6 +1,6 @@
 {
     "name": "ArrayList",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "A Basic ArrayList Structure which supports Dynamic and Fixed Arrays",
     "keywords": ["ArrayList", "Dynamic List", "Fixed List", "List", "Array", "Dynamic Array", "Fixed Array", "Array List", "Dynamic Array List", "Fixed Array List", "Dynamic List Array", "Fixed List Array"],
     "repository": {
@@ -58,6 +58,15 @@
                 "Added new SubLibrary ArrayListOperations which allows you to run mathmatics on your ArrayList. (Note: ArrayList *MUST* be an Integer or other number type ArrayList. Strings may not behave correctly);",
                 "Documentation for new SubLibrary ArrayListOperations has been added to the README.md file",
                 "Some functions in the ArrayListOperations are exactly the same, just with a different function name. Just be aware of this when utilizing the library." 
+            ]
+        },
+        {
+            "version": "1.0.3",
+            "date": "2023-12-01",
+            "changes": [
+                "Removed the ArrayListOperations SubLibrary. It has been moved to its own library called Operators",
+                "Added new toString() function to the ArrayList Class",
+                "Added new getAsString() function to return a String instead of a type T"
             ]
         }   
     ],

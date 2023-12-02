@@ -72,6 +72,13 @@
                 "Added a setDebug() function to set the debug variable to true or false",
                 "Added a getDebug() function to get the debug variable"
             ]
+        },
+        {
+            "version": "1.0.4",
+            "date": "2023-12-01",
+            "changes": [
+                "Added a new function called getAsString() to return the LinkedList element as a String"
+            ]
         }
     ]
 }
