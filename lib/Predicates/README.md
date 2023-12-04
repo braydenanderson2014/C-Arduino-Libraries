@@ -18,6 +18,18 @@ The ArrayListPredicates library provides a comprehensive set of Predicates that 
 #include "Predicates.h"
 #include "Operators.h"
 ```
+
+## ChangeLog
+### Version 1.0.0
+* Initial Release
+* Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK
+* Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them.
+### Version 1.0.1
+* Added Function Comments to the Library
+* Fixed a bug where the library would not build due to an issue with an overloaded function. It was overloaded exactly the same way.
+            
+
+
 ## Usage
 ### Basic Operations
 You can perform basic Predicate Checks on array list elements:

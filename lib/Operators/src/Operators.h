@@ -13,6 +13,7 @@ public:
     static T globalMultiplier = 0;
     static T array = new T[100];
     // Example operation: Increment each element (assuming T supports the ++ operator)
+    /***/
     static T incrementByOne(T element) {
         if(debug){
             Serial.println("[OPERATORS]: Incrementing each element by one: " + (element + 1));

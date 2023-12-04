@@ -68,7 +68,17 @@
                 "Added new toString() function to the ArrayList Class",
                 "Added new getAsString() function to return a String instead of a type T"
             ]
-        }   
+        },
+        {
+            "version": "1.0.4",
+            "date": "2023-12-04",
+            "changes": [
+                "Fixed the getDebug function to actually return the debug", 
+                "Added Function Comments to all functions. This will help with the documentation of the library",
+                "Adjusted the add function to check if the ArrayList is over capacity before resizing the array. This will help to ensure the array can be resized.",
+                "Adjusted the add funciton to utilize a load factor instead of it waiting to fill to capacity. This will help to ensure the array can be resized."
+            ]
+        }  
     ],
 
     "Notes": "This library is a work in progress. It has been mostly tested and found to be stable. Please use at your own risk. (EXCEPTION: The New functions have not been tested yet)"
