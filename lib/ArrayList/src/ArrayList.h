@@ -8,6 +8,7 @@ class ArrayList {
 public:
     bool debug; // Debug mode
     enum SizeType { FIXED, DYNAMIC }; // Size type
+    enum SortAlgorithm { BUBBLE_SORT, QUICK_SORT }; // Sorting algorithms
     //Constructor and Destructor
     
     /**
@@ -567,6 +568,7 @@ public:
     bool getDebug() const{
         return debug;
     }
+
     /**
      * @brief Sets the item at a specific index in the ArrayList.
      *
@@ -751,15 +753,35 @@ public:
     }
 
     /**
-     * @brief Sorts the ArrayList using the specified comparator function.
+     * @brief Sorts the ArrayList.
      *
-     * This function sorts the ArrayList using the specified comparator function.
+     * This function sorts the ArrayList using the specified comparator function and sorting algorithm.
      * The comparator function is a function that takes two items of type T and returns true if the first item is less than the second item, or false otherwise.
-     * The function uses the Bubble Sort algorithm to sort the ArrayList.
-     * The function can use the Predicates library, which can be found at: https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib
-     * 
-     */
-    void sort(bool (*comparator)(T, T)) {
+     * The sorting algorithm is an enum value that specifies the sorting algorithm to use. The available sorting algorithms are BUBBLE_SORT and QUICK_SORT.
+     * The function uses the bubble sort algorithm by default.
+     * The function can use the Predicates library, which can be found at:
+    */ 
+    void sort(bool (*comparator)(T, T), SortAlgorithm algorithm = BUBBLE_SORT) { 
+        switch (algorithm) { 
+            case BUBBLE_SORT: 
+                bubbleSort(comparator); 
+            break; 
+            case QUICK_SORT: 
+                quickSort(comparator, 0, count - 1); 
+            break; // Add cases for additional sorting algorithms 
+        } 
+    }
+
+    /**
+     * @brief Sorts the ArrayList using the bubble sort algorithm.
+     *
+     * This function sorts the items in the ArrayList using the bubble sort algorithm.
+     * The order of the items is determined by the specified comparator function.
+     * The comparator function should take two items of type T and return true if the first item should come after the second item in the sorted ArrayList, and false otherwise.
+     *
+     * @param comparator The comparator function that determines the order of the items.
+    */
+    void bubbleSort(bool (*comparator)(T, T)) {
         if(debug){
             Serial.println("[ArrayList]: Sorting ArrayList");
         }
@@ -775,6 +797,23 @@ public:
     }
 
     /**
+     * @brief Sorts the ArrayList using the quick sort algorithm.
+     *
+     * This function sorts the items in the ArrayList using the quick sort algorithm.
+     * The order of the items is determined by the specified comparator function.
+     * The comparator function should take two items of type T and return true if the first item should come after the second item in the sorted ArrayList, and false otherwise.
+     *
+     * @param comparator The comparator function that determines the order of the items.
+    */
+    void quickSort(bool (*comparator)(T, T)) {
+        if(debug){
+            Serial.println("[ArrayList]: Sorting ArrayList");
+        }
+        quickSortHelper(comparator, 0, count - 1);
+    }
+
+
+    /**
      * @brief Returns a pointer to the first item in the ArrayList.
      *
      * This function returns a pointer to the first item in the ArrayList.
@@ -782,7 +821,9 @@ public:
      *
      * @return A pointer to the first item in the ArrayList.
     */
-    T* begin() const { return &array[0]; }
+    T* begin() const { 
+        return &array[0]; 
+    }
     
     /**
      * @brief Returns a pointer to the item after the last item in the ArrayList.
@@ -792,7 +833,9 @@ public:
      *
      * @return A pointer to the item after the last item in the ArrayList.
     */
-    T* end() const { return &array[count]; }
+    T* end() const { 
+        return &array[count]; 
+    }
 
 private:
     T* array;
@@ -826,6 +869,63 @@ private:
             arrayCapacity = oldCapacity;
         }
     }
+
+    /**
+     * @brief Sorts the ArrayList using the quick sort algorithm.
+     *
+     * This function sorts the items in the ArrayList using the quick sort algorithm.
+     * The order of the items is determined by the specified comparator function.
+     * The comparator function should take two items of type T and return true if the first item should come after the second item in the sorted ArrayList, and false otherwise.
+     *
+     * @param comparator The comparator function that determines the order of the items.
+     * @param low The lowest index of the sublist to sort.
+     * @param high The highest index of the sublist to sort.
+    */
+    int partition(bool (*comparator)(T, T), int low, int high) { 
+        T pivot = array[high]; 
+        int i = (low - 1); 
+        for (int j = low; j <= high - 1; j++) { 
+            if (comparator(array[j], pivot)) { 
+                i++; 
+                swap(&array[i], &array[j]); 
+            } 
+        } 
+        swap(&array[i + 1], &array[high]); 
+        return (i + 1); 
+    } 
+
+    /**
+     * @brief Sorts the ArrayList using the quick sort algorithm.
+     *
+     * This function sorts the items in the ArrayList using the quick sort algorithm.
+     * The order of the items is determined by the specified comparator function.
+     * The comparator function should take two items of type T and return true if the first item should come after the second item in the sorted ArrayList, and false otherwise.
+     *
+     * @param comparator The comparator function that determines the order of the items.
+     * @param low The lowest index of the sublist to sort.
+     * @param high The highest index of the sublist to sort.
+    */
+    void quickSortHelper(bool (*comparator)(T, T), int low, int high) {
+        if (low < high) { 
+            int pi = partition(comparator, low, high); 
+            quickSortHelper(comparator, low, pi - 1); 
+            quickSortHelper(comparator, pi + 1, high);
+        } 
+    }
+ 
+    /**
+     * @brief Swaps two items in the ArrayList.
+     *
+     * This function swaps the items at the specified indices in the ArrayList.
+     *
+     * @param a The index of the first item to swap.
+     * @param b The index of the second item to swap.
+    */
+    void swap(T* a, T* b) { 
+        T t = *a; 
+        *a = *b; 
+        *b = t; 
+    } 
 };
 
 #endif // ARRAYLIST_H

@@ -76,7 +76,9 @@
                 "Fixed the getDebug function to actually return the debug", 
                 "Added Function Comments to all functions. This will help with the documentation of the library",
                 "Adjusted the add function to check if the ArrayList is over capacity before resizing the array. This will help to ensure the array can be resized.",
-                "Adjusted the add funciton to utilize a load factor instead of it waiting to fill to capacity. This will help to ensure the array can be resized."
+                "Adjusted the add funciton to utilize a load factor instead of it waiting to fill to capacity. This will help to ensure the array can be resized.",
+                "Added new Sort Algorithm. (Quick Sort) ",
+                "Modified the sort function so the user can select between bubble sort and quick sort."
             ]
         }  
     ],

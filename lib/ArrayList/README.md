@@ -94,6 +94,17 @@ If you want to Utilize this Library. Please include the
 * Added new SubLibrary ArrayListOperations which allows you to run mathmatics on your ArrayList. (Note: ArrayList *MUST* be an Integer or other number type ArrayList. Strings may not behave correctly);
 * Added Documentation for new SubLibrary in this Readme
 * Some functions in the ArrayListOperations are exactly the same, just with a different function name. Just be aware of this when utilizing the library.
+### Version 1.0.3:
+* Removed the ArrayListOperations SubLibrary. It has been moved to its own library called Operators
+* Added new toString() function to the ArrayList Class
+* Added new getAsString() function to return a String instead of a type T
+### Version 1.0.4:
+* Fixed the getDebug function to actually return the debug
+* Added Function Comments to all functions. This will help with the documentation of the library
+* Adjusted the add function to check if the ArrayList is over capacity before resizing the array. This will help to ensure the array can be resized.
+* Adjusted the add funciton to utilize a load factor instead of it waiting to fill to capacity. This will help to ensure the array can be resized.
+* Added new Sort Algorithm. (Quick Sort)
+* Modified the sort function so the user can select between bubble sort and quick sort.
 
 
 
