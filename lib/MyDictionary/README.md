@@ -24,7 +24,10 @@
 * Modified the UnorderedMap creation to take in a boolean value to determine if the Map should print to Serial or not
 * Modified the Hashtable creation to take in a boolean value to determine if the Hashtable should print to Serial or not
 * Added new clear() function to clear the Dictionary
-
+### Version 1.0.4
+* Added Function Comments for Ease of understanding
+* Removed Serial.print() statements, this is to save memory.
+### Version 1.0.5 [FUTURE-RELEASE]
 
     
 ## Usage

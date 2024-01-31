@@ -35,6 +35,13 @@ To use `LinkedList` in your Arduino sketch:
 * Added a boolean variable to the LinkedList Constructor to determine if the LinkedList should print to the Serial Monitor or not.
 * Added a setDebug() function to set the debug variable to true or false
 * Added a getDebug() function to get the debug variable
+### Version 1.0.4
+* Added a new function called getAsString() to return the LinkedList element as a String
+* Deprecated the keyExists() and valueExists() functions. They will be removed in the next release.. (Use contains() instead)
+* Removed debug statements from the library, this is to save memory. A duplicate Library will be created with debug statements in it.
+* Added Function Comments to the Library
+### Version 1.0.5 [FUTURE-RELEASE]
+* REMOVING Two Deprecated Functions -> Use contains()
 
 ## Currently Tested Functions
 `cpp

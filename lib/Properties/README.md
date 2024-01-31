@@ -69,6 +69,8 @@ You may also need:
 * [WARNING]: Underlying Libraries have been updated. This may cause issues. This library has been partially tested since the last update. Please report any issues to the Author.
 * Modified the Serial.print() statements so that they dont print by default. You have to pass a bool to the constructor to activate them.
 * Debug Variable gets passed to the Hashtable Constructor, so that library also conforms to your wishes.
+### Version 1.0.8:
+* Removed Debug Messages From Library to keep library imprint small... Plan is to create a secondary library that will be used for debugging.
 
             
             

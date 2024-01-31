@@ -3,6 +3,13 @@
 
 #include <Arduino.h>
 
+/**
+ * @brief Double Linked List Node
+ * @param T Data type
+ * @note This class is used to create a node for the double linked list
+ * 
+ * @return Double Linked List Node
+*/
 template <typename T>
 class DoubleListNode {
 public:
@@ -12,139 +19,145 @@ public:
     DoubleListNode(T value) : data(value), next(nullptr), prev(nullptr) {}
 };
 
+/**
+ * @brief Double Linked List
+ * @param T Data type
+ * @note This class is used to create a double linked list
+ * @details A Double Linked List is a List that has a pointer to the next and previous node
+*/
 template <typename T>
 class DoubleLinkedList {
 private:
-    DoubleListNode<T> *head;
+    DoubleListNode<T> *head; // Pointer to the first node
     DoubleListNode<T> *tail; // Pointer to the last node
-    size_t Size;
+    size_t Size;            // Number of elements in the list
     // Random Iterator Helper
     mutable bool *visited;       // Array to keep track of visited nodes
     mutable size_t visitedCount; // Number of visited nodes
-    bool debug;
 
 public:
+    /**
+     * @brief Forward Iterator
+     * @param T Data type
+     * @note This class is used to create a forward iterator for the double linked list
+    */
     class ForwardIterator {
     private:
         DoubleListNode<T> *current;
-        bool debug;
 
     public:
-        ForwardIterator(DoubleListNode<T> *start) : current(start), debug(debug) {}
+        /**
+         * @brief Construct a new Forward Iterator object
+        */
+        ForwardIterator(DoubleListNode<T> *start) : current(start) {}
 
-        ~ForwardIterator()
-        {
-            if (debug)
-            {
-                Serial.println("[DOUBLE LINKED LIST]: Forward Iterator Destroyed");
-            }
-        }
+        /**
+         * @brief Destroy the Forward Iterator object
+        */
+        ~ForwardIterator(){}
 
-        T &operator*()
-        {
-            if (debug)
-            {
-                Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(current->data));
-            }
+        /**
+         * @brief Dereference operator
+        */
+        T &operator*() {
             return current->data;
         }
 
-        bool operator!=(const ForwardIterator &other) const
-        {
-            if (debug)
-            {
-                Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(current->data));
-                Serial.println("[DOUBLE LINKED LIST]: Other Node: " + String(other.current->data));
-            }
+        /**
+         * @brief Not equal operator
+        */
+        bool operator!=(const ForwardIterator &other) const {
             return current != other.current;
         }
 
-        ForwardIterator &operator++()
-        {
-            if (current)
-                current = current->next;
-
-            if (debug)
-            {
-                Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(current->data));
-            }
+        /**
+         * @brief Increment operator
+        */
+        ForwardIterator &operator++() {
+            if (current) current = current->next;
             return *this;
         }
     };
 
     // Backward iterator class definition
+    /**
+     * @brief Backward Iterator
+    */
     class BackwardIterator {
     private:
         DoubleListNode<T> *current;
-        bool debug;
-
     public:
-        BackwardIterator(DoubleListNode<T> *start) : current(start), debug(debug) {}
+        /**
+         * @brief Construct a new Backward Iterator object
+        */
+        BackwardIterator(DoubleListNode<T> *start) : current(start) {}
 
-        ~BackwardIterator() {
-            if (debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Backward Iterator Destroyed");
-            }
-        }
+        /**
+         * @brief Destroy the Backward Iterator object
+        */
+        ~BackwardIterator() {}
 
+        /**
+         * @brief Dereference operator
+        */
         T &operator*() {
-            if (debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(current->data));
-            }
             return current->data;
         }
 
+        /**
+         * @brief Not equal operator
+        */
         bool operator!=(const BackwardIterator &other) const {
-            if (debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(current->data));
-                Serial.println("[DOUBLE LINKED LIST]: Other Node: " + String(other.current->data));
-            }
             return current != other.current;
         }
 
+        /**
+         * @brief Decrement operator
+        */
         BackwardIterator &operator--() {
-            if (current)
-                current = current->prev;
-
-            if (debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(current->data));
-            }
+            if (current) current = current->prev;
             return *this;
         }
     };
 
     // Random iterator class definition
+    /**
+     * @brief Random Iterator
+    */
     class RandomIterator {
     private:
         DoubleLinkedList<T> *list;
-        bool debug;
 
+        /**
+         * @brief Reset the visited list
+         * @details This method resets the visited list
+        */
         void resetVisited() const {
             for (size_t i = 0; i < list->Size; ++i) {
                 list->visited[i] = false;
             }
             list->visitedCount = 0;
-            if (debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Resetted Visited list");
-            }
         }
 
     public:
-        RandomIterator(DoubleLinkedList<T> *list) : list(list), debug(debug) {
+        /**
+         * @brief Construct a new Random Iterator object
+        */
+        RandomIterator(DoubleLinkedList<T> *list) : list(list) {
             list->visited = new bool[list->Size]();
-            if (debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Random Iterator Created");
-            }
             resetVisited();
         }
 
+        /**
+         * @brief Destroy the Random Iterator object
+        */
         ~RandomIterator() {
-            if (debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Random Iterator Destroyed");
-            }
             delete[] list->visited;
         }
 
+        /**
+         * @brief Dereference operator
+        */
         T &operator*() {
             size_t index = random(0, list->Size - list->visitedCount);
             size_t count = 0;
@@ -153,140 +166,154 @@ public:
                     if (count == index) {
                         list->visited[i] = true;
                         list->visitedCount++;
-                        if (debug) {
-                            Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(list->get(i)->data));
-                        }
                         return *list->get(i);
                     }
                     count++;
-                    if (debug) {
-                        Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(list->get(i)->data));
-                    }
-                }
-                if (debug) {
-                    Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(list->get(i)->data));
                 }
                 // Return the first unvisited element as a fallback
                 for (size_t i = 0; i < list->Size; ++i) {
                     if (!list->visited[i]) {
                         list->visited[i] = true;
                         list->visitedCount++;
-                        if (debug) {
-                            Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(list->get(i)->data));
-                        }
                         return *list->get(i);
-                    }
-                    if (debug) {
-                        Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(list->get(i)->data));
                     }
                 }
                 // Should not reach here
             }
         }
+
+        /**
+         * @brief has next operator
+         * @details This method checks if there is a next element
+        */
         bool hasNext() const {
-            if (debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Has Next: " + String(list->visitedCount < list->Size));
-            }
             return list->visitedCount < list->Size;
         }
+
+        /**
+         * @brief Reset the iterator
+         * @details This method resets the iterator
+        */
         void reset() {
             resetVisited();
         }
     };
 
     // Methods to get iterators
+    /**
+     * @brief Get the begin Forward iterator
+     * @details This method gets the begin forward iterator
+     * 
+     * @return ForwardIterator
+    */
     ForwardIterator begin() const {
-        if (debug) {
-            Serial.println("[DOUBLE LINKED LIST]: Forward Iterator Begin Defined");
-        }
         return ForwardIterator(head);
     }
 
+    /**
+     * @brief Get the end Forward iterator
+     * @details This method gets the end forward iterator
+     * 
+     * @return ForwardIterator
+    */
     ForwardIterator end() const {
-        if (debug) {
-            Serial.println("[DOUBLE LINKED LIST]: Forward Iterator End Defined");
-        }
         return ForwardIterator(nullptr);
     }
 
+    /**
+     * @brief Get the begin Backward iterator
+     * @details This method gets the begin backward iterator
+     * 
+     * @return BackwardIterator
+    */
     BackwardIterator rbegin() const {
-        if (debug) {
-            Serial.println("[DOUBLE LINKED LIST]: Backward Iterator Begin Defined");
-        }
         return BackwardIterator(tail);
     }
 
+    /**
+     * @brief Get the end Backward iterator
+     * @details This method gets the end backward iterator
+     * 
+     * @return BackwardIterator
+    */
     BackwardIterator rend() const {
-        if (debug) {
-            Serial.println("[DOUBLE LINKED LIST]: Backward Iterator End Defined");
-        }
         return BackwardIterator(nullptr);
     }
 
+    /**
+     * @brief Get the Random Iterator
+     * @details This method gets the random iterator
+     * 
+     * @return RandomIterator
+    */
     RandomIterator randomBegin() {
-        if (debug) {
-            Serial.println("[DOUBLE LINKED LIST]: Random Iterator Created");
-        }
         return RandomIterator(this);
     }
 
-    DoubleLinkedList() : head(nullptr), tail(nullptr), Size(0), debug(debug) {}
+    /**
+     * @brief Construct a new Double Linked List object
+     * @details This method constructs a new double linked list
+    */
+    DoubleLinkedList() : head(nullptr), tail(nullptr), Size(0) {}
 
+    /**
+     * @brief Destroy the Double Linked List object
+     * @details This method destroys the double linked list
+    */
     ~DoubleLinkedList() {
-        if (debug) {
-            Serial.println("[DOUBLE LINKED LIST]: Double Linked List Destroyed");
-        }
         clear();
     }
 
+    /**
+     * @brief Append an element to the end of the list
+     * @details This method appends an element to the end of the list
+     * 
+     * @param value Value to append
+    */
     void append(const T &value) {
         DoubleListNode<T> *newNode = new DoubleListNode<T>(value);
         if (!head) {
             head = newNode;
             tail = newNode;
-            if(debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Head and Tail are the same");
-            }
         } else {
             tail->next = newNode;
             newNode->prev = tail;
             tail = newNode;
-            if(debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Tail is now: " + String(tail->data));
-            }
         }
         Size++;
     }
 
+    /**
+     * @brief Prepend an element to the beginning of the list
+     * @details This method prepends an element to the beginning of the list
+     * 
+     * @param value Value to prepend
+    */
     void prepend(const T &value) {
         DoubleListNode<T> *newNode = new DoubleListNode<T>(value);
         newNode->next = head;
         if (head) {
             head->prev = newNode;
-            if(debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Head is now: " + String(head->data));
-            }
         } else {
             tail = newNode;
-            if(debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Tail is now: " + String(tail->data));
-            }
         }
         head = newNode;
         Size++;
     }
 
+    /**
+     * @brief Insert an element at a random position
+     * @details This method inserts an element at a random position
+     * 
+     * @param value Value to insert
+    */
     void insert(const T &value) {
         int randomNum = random(0, Size);
-        Serial.println("[DOUBLE LINKED LIST]: Random Index to add data: " + String(randomNum));
         if (randomNum == 0) {
-            Serial.println("[DOUBLE LINKED LIST]: Prepending: " + String(value));
             prepend(value);
         } else if (randomNum >= Size) {
-            Serial.println("[DOUBLE LINKED LIST]: Appending: " + String(value));
             append(value);
         } else {
-            Serial.println("[DOUBLE LINKED LIST]: Inserting: " + String(value));
             DoubleListNode<T> *newNode = new DoubleListNode<T>(value);
             DoubleListNode<T> *current = head;
             for (size_t i = 1; i < randomNum; i++) {
@@ -298,61 +325,53 @@ public:
         }
     }
     // Insert an element at a specific position
+    /**
+     * @brief Insert an element at a specific position
+     * @details This method inserts an element at a specific position
+     * 
+     * @param value Value to insert
+     * @param position Position to insert
+     * @note If the position is 0, the element will be prepended
+     * @note If the position is greater than or equal to the size, the element will be appended
+     * @note If the position is within the size, the element will be inserted at that position
+    */
     void insert(const T &value, size_t position) {
         if (position == 0) {
-            Serial.println("[DOUBLE LINKED LIST]: Prepending: " + String(value));
             prepend(value);
         } else if (position >= Size) {
-            Serial.println("[DOUBLE LINKED LIST]: Appending: " + String(value));
             append(value);
         } else {
-            Serial.println("[DOUBLE LINKED LIST]: Inserting: " + String(value));
             DoubleListNode<T> *newNode = new DoubleListNode<T>(value);
             DoubleListNode<T> *current = head;
             for (size_t i = 0; i < position; i++) {
                 current = current->next;
-                if(debug) {
-                    Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(current->data));
-                }
             }
             newNode->next = current;
             newNode->prev = current->prev;
             current->prev->next = newNode;
             current->prev = newNode;
             Size++;
-            if(debug){
-                Serial.println("[DOUBLE LINKED LIST]: Size: " + String(Size));
-            }
         }
     }
 
     // Remove the first occurrence of an element from the list
+    /**
+     * @brief Remove the first occurrence of an element from the list
+     * @details This method removes the first occurrence of an element from the list
+    */
     void remove(const T &value) {
         DoubleListNode<T> *current = head;
-        Serial.println("[DOUBLE LINKED LIST]: Removing: " + String(value));
         while (current) {
             if (current->data == value) {
                 if (current->prev) {
                     current->prev->next = current->next;
-                    if(debug) {
-                        Serial.println("[DOUBLE LINKED LIST]: Previous Node: " + String(current->prev->data));
-                    }
                 } else {
                     head = current->next;
-                    if(debug) {
-                        Serial.println("[DOUBLE LINKED LIST]: Head is now: " + String(head->data));
-                    }
                 }
                 if (current->next) {
                     current->next->prev = current->prev;
-                    if(debug) {
-                        Serial.println("[DOUBLE LINKED LIST]: Next Node: " + String(current->next->data));
-                    }
                 } else {
                     tail = current->prev;
-                    if(debug) {
-                        Serial.println("[DOUBLE LINKED LIST]: Tail is now: " + String(tail->data));
-                    }
                 }
                 delete current;
                 Size--;
@@ -364,88 +383,100 @@ public:
 
     // Rest of the methods...
     // Change the return type to a pointer
+    /**
+     * @brief Get the element at a specific position
+     * @details This method gets the element at a specific position
+     * 
+     * @param position Position to get
+     * @return T* Pointer to the element
+     * @note If the position is out of bounds, nullptr will be returned
+     * @note If the position is within bounds, a pointer to the element will be returned
+     * @note If the position is within bounds, but the element is nullptr, nullptr will be returned
+     * @warning This method returns a pointer to the element, not the element itself
+    */
     T *get(size_t position) const {
         DoubleListNode<T> *current = head;
         for (size_t i = 0; i < position; i++) {
             if (!current) {
-                if(debug) {
-                    Serial.println("[DOUBLE LINKED LIST]: Out of bounds");
-                }
                 return nullptr; // Out of bounds
             }
             current = current->next;
         }
         if (current) {
-            if(debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(current->data));
-            }
             return &(current->data);
         } else {
-            if(debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Out of bounds or unable to get data");
-            }
             return nullptr;
         }
     }
 
+    /**
+     * @brief Get the element at a specific position as a string
+     * @details This method gets the element at a specific position and returns it as a string
+     * 
+     * @param position Position to get
+     * @return String Element at the position
+     * 
+    */
     String getAsString(size_t position) const {
         DoubleListNode<T> *current = head;
         for (size_t i = 0; i < position; i++) {
             if (!current) {
-                if(debug) {
-                    Serial.println("[DOUBLE LINKED LIST]: Out of bounds");
-                }
                 return nullptr; // Out of bounds
             }
             current = current->next;
         }
         if (current) {
-            if(debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Current Node: " + String(current->data));
-            }
             return String(current->data);
         } else {
-            if(debug) {
-                Serial.println("[DOUBLE LINKED LIST]: Out of bounds or unable to get data");
-            }
             return nullptr;
         }
     }
     // Check if the list contains a specific element
+    /**
+     * @brief Check if the list contains a specific element
+     * @details This method checks if the list contains a specific element
+     * 
+     * @param value Value to check
+     * @return true If the list contains the element
+    */
     bool contains(const T &value) const {
         DoubleListNode<T> *current = head;
         while (current) {
             if (current->data == value) {
-                if(debug) {
-                    Serial.println("[DOUBLE LINKED LIST]: Value exists: " + String(value));
-                }
                 return true;
             }
             current = current->next;
-        }
-        if(debug) {
-            Serial.println("[DOUBLE LINKED LIST]: Value does not exist: " + String(value));
         }
         return false;
     }
 
     // Get the number of elements in the list
+    /**
+     * @brief Get the number of elements in the list
+     * @details This method gets the number of elements in the list
+     * 
+     * @return size_t Number of elements in the list
+    */
     size_t size() const {
-        if(debug) {
-            Serial.println("[DOUBLE LINKED LIST]: Size: " + String(Size));
-        }
         return Size;
     }
 
     // Check if the list is empty
+    /**
+     * @brief Check if the list is empty
+     * @details This method checks if the list is empty
+     * 
+     * @return true If the list is empty
+    */
     bool isEmpty() const {
-        if(debug) {
-            Serial.println("[DOUBLE LINKED LIST]: Is Empty: " + String(Size == 0));
-        }
         return Size == 0;
     }
 
     // Clear the list and release memory
+    /**
+     * @brief Clear the list and release memory
+     * @details This method clears the list and releases memory
+    */
     void clear() {
         while (head) {
             DoubleListNode<T> *temp = head;
@@ -453,36 +484,25 @@ public:
             delete temp;
         }
         Size = 0;
-        Serial.println("[DOUBLE LINKED LIST]: Cleared list");
     }
 
+    /**
+     * @brief checks if the value exists in the list
+     * @details This method checks if the value exists in the list
+     * @deprecated This method is deprecated and will be removed in the next version
+     * @see contains()
+     * 
+     * @param value Value to check
+    */
     bool valueExists(const T &value) const {
         DoubleListNode<T> *current = head;
         while (current) {
             if (current->data == value) {
-                if(debug) {
-                    Serial.println("[DOUBLE LINKED LIST]: Value exists: " + String(value));
-                }
                 return true;
             }
             current = current->next;
         }
-        if(debug) {
-            Serial.println("[DOUBLE LINKED LIST]: Value does not exist: " + String(value));
-        }
         return false;
     }
-
-    void setDebug(bool debug) {
-        if(debug) {
-            Serial.println("[DOUBLE LINKED LIST]: Debug Mode: " + String(debug));
-        }
-        this->debug = debug;
-    }
-
-    bool getDebug() const {
-        return debug;
-    }
-    
 };
 #endif // DOUBLELINKEDLIST_H

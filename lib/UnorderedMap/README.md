@@ -29,6 +29,12 @@ To use `UnorderedMap` in your Arduino sketch:
 * Rebuilt library to utilize hashtable as its underlying structure. This allows for faster lookups and better memory usage
 * This also means, since the Hashtable has already been tested, this library is considered stable and ready for use (except for maybe a few functions)
 * Added a few more functions that Hashtable does not have.
+### Version 1.0.3
+* Modified the Constructor to take in a ```bool``` value to determine if the UnorderedMap should display debug messages. Default is ```false```
+* Adjusted the ```remove``` function to return a ```bool``` value to determine if the key was found and removed or not... Since it calls for Hashtabes remove, it now properly calls the Hashtable remove function.
+### Version 1.0.4
+* Removed Debug Messages to save memory space, Will implement a version with debug messages later.
+* Added Function Comments to all functions
 
 
 

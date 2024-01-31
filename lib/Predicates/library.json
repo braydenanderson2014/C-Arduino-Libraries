@@ -1,6 +1,6 @@
 {
     "name": "Predicates",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "description": "This Library is an easy to use Library to perform Mathmatical Operations on List structures such as Vectors, Lists, and ArrayLists. This Library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["Predicates", "boolean", "Conditionals", "MathPredicates", "MathmaticalPredicates", "ArrayListPredicates", "vector", "simplevector", "list", "arraylist", "arraylistpredicates", "vectorpredicates", "listpredicates"],
     "repositories": [
@@ -19,15 +19,6 @@
     "include": [
         "Predicates.h"
     ],
-    "examples": [
-        {
-            "name": "Example",
-            "base": "Example",
-            "files": [
-                "Example.cpp"
-            ]
-        }
-    ],
     "headers": [
         "Arduino.h",
         "Predicates.h"
@@ -43,6 +34,21 @@
                 "Initial release",
                 "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
                 "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them."
+            ]
+        },
+        {
+            "version": "1.0.1",
+            "date": "2023-12-02",
+            "changes": [
+                "Added Function Comments to the Library",
+                "Fixed a bug where the library would not build due to an issue with an overloaded function. It was overloaded exactly the same way."
+            ]
+        },
+        {
+            "version": "1.0.2",
+            "date": "2024-01-30",
+            "changes": [
+                "Removed the debug messages from library to save memory space"
             ]
         }
     ]

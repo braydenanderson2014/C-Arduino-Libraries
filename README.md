@@ -26,20 +26,23 @@
 * [ArrayList](#arraylist-class) [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED]
 * [SimpleMutex]() [ACTIVE-DEVELOPMENT]
 * [SimpleThreadManager]() [ACTIVE-DEVELOPMENT]
-* [ArrayListOperations]() [ACTIVE-DEVELOPMENT], [SUBLIBRARY](SubLibrary of ArrayList)
-SubLibraries: (1)
-Total Available Libraries: (14)
-Total Libraries: (16)
+* [Operators]() [ACTIVE-DEVELOPMENT]
+* [Predicates]()[ACTIVE-DEVELOPMENT]
+
+Total Available Libraries: (15)
+Total Libraries: (17)
 
 ## ACTIVELY WORKING ON LISTED LIBRARIES (Bug Fixing or Feature Adding):
 1. UnorderedMap [TESTING]
 2. LinkedList [TESTING]
 3. MyDictionary [TESTING]
 4. SDList [ACTIVE-DEVELOPMENT], [BUG-FIXING], [TESTING]
-5. ArrayList [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED], 
+5. ArrayList [ACTIVE-DEVELOPMENT], [PARTIALLY-TESTED], [FAILING-TESTING]
 6. DoubleLinkedList [TESTING], [DOCUMENTATION-PENDING] (DOCUMENTATION AVAILABLE IN LIBRARY, JUST NOT THIS README FILE)
 7.  [SimpleMutex]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
 8.  [SimpleThreadManager]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
+9. Predicates
+10. Operators
 
 =======
 1. SDList [BUG-FIXING, ACTIVE-DEVELOPMENT, KNOWN-ISSUES], [FAILED-TESTING]

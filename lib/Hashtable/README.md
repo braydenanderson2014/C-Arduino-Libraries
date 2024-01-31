@@ -31,6 +31,8 @@ The `Hashtable` class is designed to offer a dynamic and scalable hash table wit
 - `checkLoadFactorAndRehash()`: checks the load factor and rehashes the table if needed
 - `bucketCount()` : returns the number of buckets in the table
 - `bucketSize()` : returns the size of a bucket in the table
+- `values()` : Returns an iterator for iterating over the values in the hash table.
+- `exists()` : Checks to see if a item exists on the table.
 
 
 #### Iterator Functions
@@ -107,8 +109,11 @@ If you want to Utilize this Library. Please include the
 * Modified the Constructor to accept a boolean value to allow you to disable the Serial.print() statements
 * Added support for 3 new types: float, double, boolean
 * Please note you can add your own specializations for other types if you wish, please see the README.md for more information          
-### Version 1.0.10: [FUTURE-RELEASE]
-
+### Version 1.1.0: [Latest-Release]
+* Added new exists() Function that only takes in 1 parameter, the key, this function returns a boolean value
+* Added new values() Function that returns a SimpleVector of all the values in the Hashtable
+* Added function comments.
+### Version 1.1.1: [CURRENTLY-UNPLANNED]
 
 ## Example
 
