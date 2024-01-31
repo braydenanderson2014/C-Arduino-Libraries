@@ -1,6 +1,6 @@
 {
     "name": "UnorderedMap",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "This Library is an easy to use Library for Unordered Maps. This Library contains basic implementations of the LinkedList functions. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["UnorderedMap", "Map"],
     "repositories": [
@@ -70,7 +70,16 @@
                 "Modified the Constructor to take in a ```bool``` value to determine if the UnorderedMap should display debug messages. Default is ```false```",
                 "Adjusted the ```remove``` function to return a ```bool``` value to determine if the key was found and removed or not... Since it calls for Hashtabes remove, it now properly calls the Hashtable remove function."
             ]
+        },
+        {
+            "version": "1.0.4",
+            "date": "2024-01-30",
+            "changes": [
+                "Removed Debug Messages to save memory space, Will implement a version with debug messages later.",
+                "Added Function Comments to all functions"
+            ]
         }
+
     ]
 
 }

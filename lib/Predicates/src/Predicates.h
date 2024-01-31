@@ -5,31 +5,9 @@
 template <typename T>
 class Predicates {
 private:
-    static bool debug;
     static int globalMultiplier;
 public:
-    /**
-    * @brief Sets the debug mode for the Predicates class.
-    *
-    * This function sets the debug mode for the Predicates class. If debug mode is enabled,
-    * the class will print additional information to the console for debugging purposes.
-    *
-    * @param debug A boolean value indicating whether debug mode should be enabled (true) or disabled (false).
-    */
-    static void setDebug(bool debug) {
-        Predicates<T>::debug = debug;
-    }
 
-    /**
-     * @brief Gets the debug mode for the Predicates class.
-     * 
-     * This function gets the debug mode for the Predicates class. If debug mode is enabled, All SerialPrints run, if not enabled, then they dont 
-     * 
-     * @return A boolean value indicating whether debug mode is enabled (true) or disabled (false).
-    */
-    static bool isDebug() {
-        return Predicates<T>::debug;
-    }
 
     /**
      * @brief Sets the global multiplier for the Predicates class.
@@ -64,9 +42,6 @@ public:
      * @return A boolean value indicating whether the value is even (true) or odd (false).
     */
     static bool isEven(const T& value) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isEven: " + String(value % 2 == 0) + " for value: " + String(value));
-        }
         return value % 2 == 0;
     }
 
@@ -79,9 +54,6 @@ public:
      * @return A boolean value indicating whether the value is odd (true) or even (false).
     */
     static bool isOdd(const T& value) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isOdd: " + String(value % 2 != 0) + " for value: " + String(value));
-        }
         return value % 2 != 0;
     }
 
@@ -93,9 +65,6 @@ public:
      * @return A boolean value indicating whether the value is positive (true) or negative (false).
     */
     static bool isPositive(const T& value) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isPositive: " + String(value > 0) + " for value: " + String(value));
-        }
         return value > 0;
     }
 
@@ -107,9 +76,6 @@ public:
      * @return A boolean value indicating whether the value is negative (true) or positive (false).
     */
     static bool isNegative(const T& value) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNegative: " + String(value < 0) + " for value: " + String(value));
-        }
         return value < 0;
     }
 
@@ -121,9 +87,6 @@ public:
      * @return A boolean value indicating whether the value is zero (true) or non-zero (false).
     */
     static bool isZero(const T& value) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isZero: " + String(value == 0) + " for value: " + String(value));
-        }
         return value == 0;
     }
 
@@ -135,9 +98,6 @@ public:
      * @return A boolean value indicating whether the value is non-zero (true) or zero (false).
     */
     static bool isNonZero(const T& value) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNonZero: " + String(value != 0) + " for value: " + String(value));
-        }
         return value != 0;
     }
 
@@ -149,9 +109,6 @@ public:
      * @return A boolean value indicating whether the value is greater than zero (true) or less than or equal to zero (false).
     */
     static bool isGreaterThan(T value) {
-        if(debug){
-            Serial.println("[PREDICATES]: Checking if " + String(value) + " is greater than globalMultiplier: " + String(globalMultiplier));
-        }
         return value > globalMultiplier;
     }
 
@@ -165,9 +122,6 @@ public:
      * @return A boolean value indicating whether the value is greater than the 2nd passed in value (true) or less than or equal to the 2nd passed in value (false).
     */
     static bool isGreaterThan(T value, T value2){
-        if(debug){
-            Serial.println("[PREDICATES]: Checking if " + String(value) + " is greater than " + String(value2));
-        }
         return value > value2;
     }
 
@@ -179,9 +133,6 @@ public:
      * @return A boolean value indicating whether the value is less than the Global Multiplier (true) or greater than the Global Multiplier (false).
     */
     static bool isLessThan(T value){
-        if(debug){
-            Serial.println("[PREDICATES]: Checking if " + String(value) + " is less than globalMultiplier: " + String(globalMultiplier));
-        }
         return value < globalMultiplier;
     }
 
@@ -194,9 +145,6 @@ public:
      * @return A boolean value indicating whether the value is less than value2 (true) or greater than value2 (false)
     */
     static bool isLessThan(T value, T value2){
-        if(debug){
-            Serial.println("[PREDICATES]: Checking if " + String(value) + " is less than " + String(value2));
-        }
         return value < value2;
     }
 
@@ -208,9 +156,6 @@ public:
      * @return A boolean value to indicate whether the value was equals to the Global Multiplier (true) or if it is not equal (false)
     */
     static bool isEqual(T value){
-        if(debug){
-            Serial.println("[PREDICATES]: Checking if " + String(value) + " is equal to globalMultiplier: " + String(globalMultiplier));
-        }
         return value == globalMultiplier;
     }
 
@@ -223,9 +168,6 @@ public:
      * @return A boolean value to indicate whether the value was equals to value2 (true) or if it is not equal (false)
     */
     static bool isEqual(T value, T value2){
-        if(debug){
-            Serial.println("[PREDICATES]: Checking if " + String(value) + " is equal to " + String(value2));
-        }
         return value == value2;
     }
 
@@ -237,9 +179,6 @@ public:
      * @return A boolean value to indicate whether the value was Less than or equal to to the Global Multiplier (true) or if it is Not (false)
     */
     static bool isLessThan(const T& value, const T& threshold) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isLessThan: " + String(value < threshold) + " for value: " + String(value) + " and threshold: " + String(threshold));
-        }
         return value < threshold;
     }
 
@@ -252,9 +191,6 @@ public:
      * @return A boolean value to indicate whether the value was Less than or equal to to value2 (true) or if it is Not (false)
     */
     static bool isGreaterThanOrEqualTo(const T& value, const T& threshold) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isGreaterThanOrEqualTo: " + String(value >= threshold) + " for value: " + String(value) + " and threshold: " + String(threshold));
-        }
         return value >= threshold;
     }
 
@@ -267,9 +203,6 @@ public:
      * @return A boolean value to indicate whether the value was greaterThan or equal to to value2 (true) or if it is Not (false)
     */
     static bool isLessThanOrEqualTo(const T& value, const T& threshold) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isLessThanOrEqualTo: " + String(value <= threshold) + " for value: " + String(value) + " and threshold: " + String(threshold));
-        }
         return value <= threshold;
     }
 
@@ -282,9 +215,6 @@ public:
      * @return A boolean value to indicate whether the value was equal to to the Threshold (true) or if it is Not (false)
     */
     static bool isEqualTo(const T& value, const T& threshold) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isEqualTo: " + String(value == threshold) + " for value: " + String(value) + " and threshold: " + String(threshold));
-        }
         return value == threshold;
     }
 
@@ -297,9 +227,6 @@ public:
      * @return A boolean value to indicate whether the value was not equal to to the Threshold (true) or if it is (false)
     */
     static bool isNotEqualTo(const T& value, const T& threshold) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotEqualTo: " + String(value != threshold) + " for value: " + String(value) + " and threshold: " + String(threshold));
-        }
         return value != threshold;
     }
 
@@ -316,9 +243,6 @@ public:
      * @return true if the value is between the lower and upper values (inclusive), false otherwise.
     */
     static bool isBetween(const T& value, const T& lower, const T& upper) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isBetween: " + String(value >= lower && value <= upper) + " for value: " + String(value) + " and lower: " + String(lower) + " and upper: " + String(upper));
-        }
         return value >= lower && value <= upper;
     }
 
@@ -335,9 +259,6 @@ public:
      * @return true if the value is not between the lower and upper values (exclusive), false otherwise.
      */
     static bool isNotBetween(const T& value, const T& lower, const T& upper) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotBetween: " + String(value < lower || value > upper) + " for value: " + String(value) + " and lower: " + String(lower) + " and upper: " + String(upper));
-        }
         return value < lower || value > upper;
     }
 
@@ -358,9 +279,6 @@ public:
      * @return true if the value is within the specified radius of the center value, false otherwise.
     */
     static bool isWithin(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isWithin: " + String(value >= center - radius && value <= center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));
-        }
         return value >= center - radius && value <= center + radius;
     }
 
@@ -381,9 +299,6 @@ public:
      * @return true if the value is not within the specified radius of the center value, false otherwise.
     */
     static bool isNotWithin(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotWithin: " + String(value < center - radius || value > center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));
-        }
         return value < center - radius || value > center + radius;
     }
 
@@ -404,9 +319,6 @@ public:
      * @return true if the value is within the specified radius of the center value, excluding the boundaries, false otherwise.
     */
     static bool isWithinExclusive(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isWithinExclusive: " + String(value > center - radius && value < center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));
-        }
         return value > center - radius && value < center + radius;
     }
 
@@ -427,9 +339,6 @@ public:
      * @return true if the value is not within the specified radius of the center value, including the boundaries, false otherwise.
     */
     static bool isNotWithinExclusive(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotWithinExclusive: " + String(value <= center - radius || value >= center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));
-        }
         return value <= center - radius || value >= center + radius;
     }
 
@@ -450,9 +359,6 @@ public:
      * @return true if the value is within the specified radius of the center value, including the boundaries, false otherwise.
     */
     static bool isWithinInclusive(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isWithinInclusive: " + String(value >= center - radius && value <= center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));
-        }
         return value >= center - radius && value <= center + radius;
     }
 
@@ -473,9 +379,6 @@ public:
      * @return true if the value is not within the specified radius of the center value, including the boundaries, false otherwise.
     */
     static bool isNotWithinInclusive(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotWithinInclusive: " + String(value < center - radius || value > center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));
-        }
         return value < center - radius || value > center + radius;
     }
 
@@ -496,9 +399,6 @@ public:
      * @return true if the value is within the specified radius of the center value, excluding the lower boundary and including the upper boundary, false otherwise.
     */
     static bool isWithinLeftExclusive(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isWithinLeftExclusive: " + String(value > center - radius && value <= center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));
-        }
         return value > center - radius && value <= center + radius;
     }
 
@@ -519,9 +419,6 @@ public:
      * @return true if the value is not within the specified radius of the center value, including the lower boundary and excluding the upper boundary, false otherwise.
     */
     static bool isNotWithinLeftExclusive(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotWithinLeftExclusive: " + String(value <= center - radius || value > center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));
-        }
         return value <= center - radius || value > center + radius;
     }
 
@@ -542,9 +439,6 @@ public:
      * @return true if the value is within the specified radius of the center value, including the lower boundary and excluding the upper boundary, false otherwise.
     */
     static bool isWithinRightExclusive(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isWithinRightExclusive: " + String(value >= center - radius && value < center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));
-        }
         return value >= center - radius && value < center + radius;
     }
 
@@ -565,9 +459,6 @@ public:
      * @return true if the value is not within the specified radius of the center value, including the lower boundary and excluding the upper boundary, false otherwise.
     */
     static bool isNotWithinRightExclusive(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotWithinRightExclusive: " + String(value < center - radius || value >= center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));
-        }
         return value < center - radius || value >= center + radius;
     }
 
@@ -589,32 +480,26 @@ public:
      * @return true if the value is within the specified radius of the center value, including the lower boundary and excluding the upper boundary, false otherwise.
     */
     static bool isWithinLeftInclusive(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isWithinLeftInclusive: " + String(value >= center - radius && value <= center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));
-        }
         return value >= center - radius && value <= center + radius;
     }
 
     /**
- * @brief Checks if a value is not within a certain radius of a center value, including the lower boundary and excluding the upper boundary.
- *
- * This function checks if the provided value is not within a certain radius of a center value, or equal to
- * (center - radius) and strictly greater than (center + radius). In other words, it checks if the value is less than or equal to 
- * (center - radius) or greater than (center + radius). If the value is not within this range, 
- * the function returns true; otherwise, it returns false.
- *
- * This can be visualized as checking if a point is outside a circle in a one-dimensional space,
- * where the center value represents the center of the circle and the radius represents the radius of the circle.
- *
- * @param value The value to check.
- * @param center The center value.
- * @param radius The radius.
- * @return true if the value is not within the specified radius of the center value, including the lower boundary and excluding the upper boundary, false otherwise.
- */
+     * @brief Checks if a value is not within a certain radius of a center value, including the lower boundary and excluding the upper boundary.
+     *
+     * This function checks if the provided value is not within a certain radius of a center value, or equal to
+     * (center - radius) and strictly greater than (center + radius). In other words, it checks if the value is less than or equal to 
+     * (center - radius) or greater than (center + radius). If the value is not within this range, 
+     * the function returns true; otherwise, it returns false.
+     *
+     * This can be visualized as checking if a point is outside a circle in a one-dimensional space,
+     * where the center value represents the center of the circle and the radius represents the radius of the circle.
+     *
+     * @param value The value to check.
+     * @param center The center value.
+     * @param radius The radius.
+     * @return true if the value is not within the specified radius of the center value, including the lower boundary and excluding the upper boundary, false otherwise.
+     */
     static bool isNotWithinLeftInclusive(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotWithinLeftInclusive: " + String(value < center - radius || value > center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));
-        }
         return value < center - radius || value > center + radius;
     }
 
@@ -636,9 +521,6 @@ public:
      * @return true if the value is within the specified radius of the center value, including the lower boundary and excluding the upper boundary, false otherwise.
     */
     static bool isWithinRightInclusive(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isWithinRightInclusive: " + String(value >= center - radius && value <= center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius)); 
-        }
         return value >= center - radius && value <= center + radius;
     }
 
@@ -659,9 +541,6 @@ public:
      * @return true if the value is not within the specified radius of the center value, including the lower boundary and excluding the upper boundary, false otherwise.
     */
     static bool isNotWithinRightInclusive(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotWithinRightInclusive: " + String(value < center - radius || value > center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius)); 
-        }
         return value < center - radius || value > center + radius;
     }
 
@@ -681,9 +560,6 @@ public:
      * @param radius The radius.
     */
     static bool isWithinLeft(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isWithinLeft: " + String(value > center - radius && value <= center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius)); 
-        }
         return value > center - radius && value <= center + radius;
     }
 
@@ -703,9 +579,6 @@ public:
      * @param radius The radius.
     */
     static bool isNotWithinLeft(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotWithinLeft: " + String(value <= center - radius || value > center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius)); 
-        }
         return value <= center - radius || value > center + radius;
     }
 
@@ -725,9 +598,6 @@ public:
      * @param radius The radius.
     */
     static bool isWithinRight(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isWithinRight: " + String(value >= center - radius && value < center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius)); 
-        }
         return value >= center - radius && value < center + radius;
     }
 
@@ -747,9 +617,6 @@ public:
      * @param radius The radius.
     */
     static bool isNotWithinRight(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotWithinRight: " + String(value < center - radius || value >= center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius)); 
-        }
         return value < center - radius || value >= center + radius;
     }
 
@@ -769,9 +636,6 @@ public:
      * @param radius The radius.
     */
     static bool isWithinInclusiveLeft(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isWithinInclusiveLeft: " + String(value >= center - radius && value <= center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius)); 
-        }
         return value >= center - radius && value <= center + radius;
     }
 
@@ -791,9 +655,6 @@ public:
      * @param radius The radius.
     */
     static bool isNotWithinInclusiveLeft(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotWithinInclusiveLeft: " + String(value < center - radius || value > center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius)); 
-        }
         return value < center - radius || value > center + radius;
     }
 
@@ -815,9 +676,6 @@ public:
      * @return true if the value is within the specified radius of the center value, including the lower boundary and excluding the upper boundary, false otherwise.
     */
     static bool isWithinInclusiveRight(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isWithinInclusiveRight: " + String(value >= center - radius && value <= center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius)); 
-        }
         return value >= center - radius && value <= center + radius;
     }
     
@@ -838,9 +696,6 @@ public:
      * @return true if the value is not within the specified radius of the center value, excluding the lower boundary and including the upper boundary, false otherwise.
     */
     static bool isNotWithinInclusiveRight(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotWithinInclusiveRight: " + String(value < center - radius || value > center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius)); 
-        }
         return value < center - radius || value > center + radius;
     }
 
@@ -861,9 +716,6 @@ public:
      * @return true if the value is within the specified radius of the center value, excluding both boundaries, false otherwise.
     */
     static bool isWithinExclusiveLeft(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isWithinExclusiveLeft: " + String(value > center - radius && value < center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));  
-        }
         return value > center - radius && value < center + radius;
     }
 
@@ -884,9 +736,6 @@ public:
      * @return true if the value is not within the specified radius of the center value, excluding both boundaries, false otherwise.
     */
     static bool isNotWithinExclusiveLeft(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotWithinExclusiveLeft: " + String(value <= center - radius || value >= center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));  
-        }
         return value <= center - radius || value >= center + radius;
     }
 
@@ -907,9 +756,6 @@ public:
      * @return true if the value is within the specified radius of the center value, excluding both boundaries, false otherwise.
     */
     static bool isWithinExclusiveRight(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isWithinExclusiveRight: " + String(value > center - radius && value < center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));  
-        }
         return value > center - radius && value < center + radius;
     }
 
@@ -930,9 +776,6 @@ public:
      * @return true if the value is not within the specified radius of the center value, excluding both boundaries, false otherwise.
     */
     static bool isNotWithinExclusiveRight(const T& value, const T& center, const T& radius) {
-        if(debug) {
-            Serial.println("[PREDICATES]: isNotWithinExclusiveRight: " + String(value <= center - radius || value >= center + radius) + " for value: " + String(value) + " and center: " + String(center) + " and radius: " + String(radius));  
-        }
         return value <= center - radius || value >= center + radius;
     }
 
@@ -949,9 +792,6 @@ public:
     */
     static bool isPrime(T value){
         if (value <= 1) {
-            if(debug){
-                Serial.println("[PREDICATES]: Value is Negative: " + value);
-            }
             return false;
         }
         for (static T i = 2; i < value; i++) {
@@ -961,9 +801,6 @@ public:
                 }
                 return false;
             }
-        }
-        if(debug){
-            Serial.println("[PREDICATES]: Value is Prime: " + value);
         }
         return true;
     }
@@ -984,9 +821,6 @@ public:
             }
             return true;
         }
-        if(debug){
-            Serial.println("[PREDICATES]: Value is Not Divisible by Global Multiplier: " + value);
-        }
         return false;
     }
 
@@ -1002,13 +836,7 @@ public:
     */
     static bool isDivisibleBy(T value, T divisor) {
         if (value % divisor == 0) {
-            if(debug){
-                Serial.println("[PREDICATES]: Value is Divisible by Divisor: " + value);
-            }
             return true;
-        }
-        if(debug){
-            Serial.println("[PREDICATES]: Value is Not Divisible by Divisor: " + value);
         }
         return false;
     }
@@ -1024,13 +852,7 @@ public:
     */
     static bool isDivisibleByTwo(T value) {
         if (value % 2 == 0) {
-            if(debug){
-                Serial.println("[PREDICATES]: Value is Divisible by Two: " + value);
-            }
             return true;
-        }
-        if(debug){
-            Serial.println("[PREDICATES]: Value is Not Divisible by Two: " + value);
         }
         return false;
     }

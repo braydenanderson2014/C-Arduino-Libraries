@@ -1,6 +1,6 @@
 {
     "name": "DoubleLinkedList",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "This Library is an easy to use Library for Double Linked Lists. This Library contains basic implementations of a double linked list structure. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["LinkedList", "List", "ArrayList", "Array", "BasicLinkedList", "DoubleLinkedList"],
     "repositories": [
@@ -62,9 +62,12 @@
         },
         {
             "version": "1.0.2",
-            "date": "2023-12-01",
+            "date": "2024-01-31",
             "changes": [
-                "Added new getAsString() function that returns the list element as a String. This is useful for when you want to print the list to the Serial Monitor or to a LCD Screen."
+                "Added new getAsString() function that returns the list element as a String. This is useful for when you want to print the list to the Serial Monitor or to a LCD Screen.",
+                "Deprecated valueExists() function, as it is no longer needed. This function will be removed in the next release. Use the contains function instead",
+                "Removed Debug Messages from the Library, This is to save Memory space.",
+                "Added Function Comments to all of the functions in the Library"
             ]
         }
     ]

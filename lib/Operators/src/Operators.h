@@ -6,266 +6,334 @@ template <typename T>
 class Operators {
 
 private:
-    static bool debug;
     
 public:
 
     static T globalMultiplier = 0;
     static T array = new T[100];
-    // Example operation: Increment each element (assuming T supports the ++ operator)
-    /***/
+    /**
+     * @brief Increment element by 1 (assuming T supports being incremented)
+     * @param element The element to increment
+     * 
+     * @return T The incremented element
+     *
+    */
     static T incrementByOne(T element) {
-        if(debug){
-            Serial.println("[OPERATORS]: Incrementing each element by one: " + (element + 1));
-        }
         return element + 1;
     }
 
-    // Example operation: static T each element (assuming T supports the * operator)
+    /**
+     * @brief Multiply by 2 (assuming T supports being multiplied)
+     * @param element The element to multiply
+     * 
+     * @return T The multiplied element
+    */
     static T doubleValue(T element) {
-        if(debug){
-            Serial.println("[OPERATORS]: Doubling each element: " + (element * 2));
-        }
         return element * 2;
     }
 
     // Function to set the global multiplier
+    /**
+     * @brief Set the global multiplier
+     * @param multiplier The value to set the global multiplier to
+     * @details Global multiplier is used in the multiply and divide functions that only take in a single parameter but would normally take in 2)
+     * 
+     * @return void
+    */
     void setGlobalMultiplier(T multiplier) {
-        if(debug){
-            Serial.println("[OPERATORS]: Setting global multiplier to: " + multiplier);
-        }
         globalMultiplier = multiplier;
     }
 
     // Function to multiply a value by the global multiplier
+    /**
+     * @brief Multiply a value by the global multiplier
+     * @param value The value to multiply
+     * @details Global multiplier is used in the multiply and divide functions that only take in a single parameter but would normally take in 2)
+     * 
+     * @return T The multiplied value
+    */
     static T multiply(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Multiplying value by global multiplier: " + (value * globalMultiplier));
-        }
         return value * globalMultiplier;
     }
 
     // Function to Divide a value by the global multiplier
+    /**
+     * @brief Divide a value by the global multiplier
+     * @param value The value to divide
+     * @details Global multiplier is used in the multiply and divide functions that only take in a single parameter but would normally take in 2)
+     * 
+     * @return T The divided value
+    */
     static T divide(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Dividing value by global multiplier: " + (value / globalMultiplier));
-        }
         return value / globalMultiplier;
     }
 
+    // Function to add a value to the global multiplier
+    /**
+     * @brief Add a value to the global multiplier
+     * @param value The value to add
+     * @details Global multiplier is used in the multiply and divide functions that only take in a single parameter but would normally take in 2)
+     * 
+     * @return T The added value
+    */
     static T add(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Adding value to global multiplier: " + (value + globalMultiplier));
-        }
         return value + globalMultiplier;
     }
     
+    /**
+     * @brief Add @param value to @param value2
+     * @param value The value to add
+     * @param value2 The value to add to value
+     * 
+     * @return T The added value
+    */
     static T add(T value, T value2){
-        if(debug){
-            Serial.println("[OPERATORS]: Adding value to value2: " + (value + value2));
-        }
         return value + value2;
     }
 
+    // Function to subtract a value from the global multiplier
+    /**
+     * @brief Subtract a value from the global multiplier
+     * @param value The value to subtract
+     * @details Global multiplier is used in the multiply and divide functions that only take in a single parameter but would normally take in 2)
+     * 
+     * @return T The subtracted value
+    */
     static T subtract(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Subtracting value from global multiplier: " + (value - globalMultiplier));
-        }
         return value - globalMultiplier;
     }
 
+    /**
+     * @brief Subtract @param value2 from @param value
+     * @param value The value to subtract from
+     * @param value2 The value to subtract from value
+     * 
+     * @return T The subtracted value
+    */
     static T subtract(T value, T value2){
-        if(debug){
-            Serial.println("[OPERATORS]: Subtracting value from value2: " + (value - value2));
-        }
         return value - value2;
     }
 
+    /**
+     * @brief Modulo @param value by Global Multiplier
+     * @param value The value to modulo
+     * @details Global multiplier is used in the multiply and divide functions that only take in a single parameter but would normally take in 2)
+     * 
+     * @return T The moduloed value
+    */
     static T modulo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the modulous of value and global multiplier: " + (value % globalMultiplier));
-        }
         return value % globalMultiplier;
     }
 
+    /**
+     * @brief Multiply @param value by two
+     * @param value The value to multiply
+     * 
+     * @return T The moduloed value
+    */
     static T multiplyByTwo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Multiplying value by two: " + (value * 2));
-        }
         return value * 2;
     }
 
+    /**
+     * @brief Divide @param value by two
+     * @param value The value to divide
+     * 
+     * @return T The divided value
+    */
     static T divideByTwo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Dividing value by two: " + (value / 2));
-        }
         return value / 2;
     }
 
+    /**
+     * @brief Add two to @param value
+     * @param value The value to add two to
+     * 
+     * @return T The added value
+    */
     static T addTwo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Adding two to value: " + (value + 2));
-        }
         return value + 2;
     }
 
+    /**
+     * @brief Subtract two from @param value
+     * @param value The value to subtract two from
+     * 
+     * @return T The subtracted value
+    */
     static T subtractTwo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Subtracting two from value: " + (value - 2));
-        }
         return value - 2;
     }
 
+    /**
+     * @brief Modulo @param value by two
+     * @param value The value to modulo by two
+     * 
+     * @return T The moduloed value
+    */
     static T moduloTwo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the modulous of value and two: " + (value % 2));
-        }
         return value % 2;
     }
 
+    /**
+     * @brief Returns the Square of @param value (value * value)
+     * @param value The value to square
+     * 
+     * @return T The squared value
+    */
     static T square(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Squaring value: " + (value * value));
-        }
         return value * value;
     }
 
+    /**
+     * @brief Returns the Cube of @param value (value * value * value)
+     * @param value The value to cube
+     * 
+     * @return T The cubed value
+    */
     static T cube(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Cubing value: " + (value * value * value));
-        }
         return value * value * value;
     }
 
+    /**
+     * @brief Returns the Square Root of @param value
+     * @param value The value to square root
+     * 
+     * @return T The square rooted value
+    */
     static T squareRoot(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the square root of value: " + sqrt(value));
-        }
         return sqrt(value);
     }
 
+    /**
+     * @brief Returns the Cube Root of @param value
+     * @param value The value to cube root
+     * 
+     * @return T The cube rooted value
+    */
     static T cubeRoot(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the cube root of value: " + cbrt(value));
-        }
         return cbrt(value);
     }
 
+    /**
+     * @brief Returns the Square of @param value (value * value)
+     * @param value The value to square
+     * 
+     * @details This function is the same as the square function, but it uses the power function instead of the multiply function
+     * @return T The squared value
+    */
     static T powerOfTwo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the power of two of value: " + pow(value, 2));
-        }
         return pow(value, 2);
     }
 
+    /**
+     * @brief Returns the Cube of @param value (value * value * value)
+     * @param value The value to cube
+     * 
+     * @details This function is the same as the cube function, but it uses the power function instead of the multiply function
+     * @return T The cubed value
+    */
     static T powerOfThree(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the power of three of value: " + pow(value, 3));
-        }
         return pow(value, 3);
     }
 
+    /**
+     * @brief Returns the Power of @param value (value^globalMultiplier)
+     * @param value The value to power
+     * 
+     * @return T The powered value
+    */
     static T powerOf(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the power of value: " + pow(value, globalMultiplier));
-        }
         return pow(value, globalMultiplier);
     }
+
+    /**
+     * @brief Returns the Power of @param value (value^@param power)
+     * @param value The value to power
+     * @param power The power to raise value to
+     * 
+     * @return T The powered value
+    */
     static T powerOf(T value, T power) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the power of value: " + pow(value, power));
-        }
         return pow(value, power);
     }
 
+    /**
+     * @brief Returns the absolute value of @param value
+     * @param value The value to absolute
+     * 
+     * @return T The absolute value
+    */
     static T absoluteValue(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the absolute value of value: " + abs(value));
-        }
         return abs(value);
     }
-    // More operations can be added as needed...
+
+    /**
+     * @brief Returns the Factorial of @param value
+     * @param value The value to factorial
+     * 
+     * @return T The factorial value
+    */
     static T factorial(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the factorial of value: " + value);
-        }
         static T factorial = 1;
         for (static T i = 1; i <= value; i++) {
             factorial *= i;
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the factorial of value; Factorial: " + factorial);
-        }
         return factorial;
     }
 
+    /**
+     * @brief Returns the fibonacci of @param value
+     * @param value The value to fibonacci
+     * 
+     * @return T The fibonacci value
+    */
     static T fibonacci(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the fibonacci of value: " + value);
-        }
         if (value <= 1) {
-            if(debug){
-                Serial.println("[OPERATORS]: value is less than or equal to one: " + value);
-            }
             return value;
-        }
-        if(debug){
-            Serial.println("[OPERATORS]: Due to the complexity of this function, it may take a while to complete. Please wait...");
-            Serial.println("[OPERATORS]: Will not be printing the fibonacci sequence as it will take up too much space and time");
         }
         return fibonacci(value - 1) + fibonacci(value - 2);
     }
 
-    static void fibonacciPrint(T value){
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the fibonacci of value: " + value);
-            Serial.println("[OPERATORS]: Due to the complexity of this function, it may take a while to complete. Please wait...");
-        }
-        if (value <= 1) {
-            if(debug){
-                Serial.println("[OPERATORS]: value is less than or equal to one: " + value);
-            }
-            return;
-        }
-        Serial.println("[OPERATORS]: Obtaining the fibonacci sequence of value: " + fibonacciPrint(value - 1) + fibonacciPrint(value - 2));
-    }
-
+    /**
+     * @brief Calculates the greatest common divisor of @param value
+     * @param value The value to calculate the greatest common divisor of
+     * 
+     * @return T The greatest common divisor value
+    */
     static T greatestCommonDivisor(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the greatest common divisor of value: " + value);
-        }
         static T gcd = 1;
         for (static T i = 1; i <= value; i++) {
             if (value % i == 0 && globalMultiplier % i == 0) {
                 gcd = i;
             }
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the greatest common divisor of value; GCD: " + gcd);
-        }
         return gcd;
     }
 
+    /**
+     * @brief Calculates the least common multiple of @param value
+     * @param value The value to calculate the least common multiple of
+     * 
+     * @return T The least common multiple value
+    */
     static T leastCommonMultiple(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the least common multiple of value: " + value);
-        }
         static T lcm = 1;
         for (static T i = 1; i <= value; i++) {
             if (value % i == 0 && globalMultiplier % i == 0) {
                 lcm = i;
             }
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the least common multiple of value; LCM: " + lcm);
-        }
         return (value * globalMultiplier) / lcm;
     }
 
+    /**
+     * @brief Converts @param value to binary
+     * @param value The value to convert to binary
+     * 
+     * @return T The binary value
+    */
     static T decimalToBinary(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the binary of value: " + value);
-        }
         static T binary = 0;
         static T remainder, i = 1;
         while (value != 0) {
@@ -274,16 +342,16 @@ public:
             binary += remainder * i;
             i *= 10;
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the binary of value: Binary:" + binary);
-        }
         return binary;
     }
 
+    /**
+     * @brief Converts @param value to decimal from binary
+     * @param value The value to convert to decimal
+     * 
+     * @return T The decimal value
+    */
     static T binaryToDecimal(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the decimal of Binary value: " + value);
-        }
         static T decimal = 0;
         static T remainder, i = 0;
         while (value != 0) {
@@ -292,16 +360,16 @@ public:
             decimal += remainder * pow(2, i);
             ++i;
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the decimal of Binary value: Decimal:" + decimal);
-        }
         return decimal;
     }
 
+    /**
+     * @brief Converts @param value to octal from decimal
+     * @param value The value to convert to octal
+     * 
+     * @return T The octal value
+    */
     static T decimalToOctal(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the octal of value: " + value);
-        }
         static T octal = 0;
         static T remainder, i = 1;
         while (value != 0) {
@@ -310,16 +378,16 @@ public:
             octal += remainder * i;
             i *= 10;
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the octal of value: Octal:" + octal);
-        }
         return octal;
     }
 
+    /**
+     * @brief Converts @param value to decimal from octal
+     * @param value The value to convert to decimal
+     * 
+     * @return T The decimal value
+    */
     static T octalToDecimal(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the decimal of Octal value: " + value);
-        }
         static T decimal = 0;
         static T remainder, i = 0;
         while (value != 0) {
@@ -328,16 +396,16 @@ public:
             decimal += remainder * pow(8, i);
             ++i;
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the decimal of Octal value: Decimal:" + decimal);
-        }
         return decimal;
     }
 
+    /**
+     * @brief Converts @param value to hexadecimal from decimal
+     * @param value The value to convert to hexadecimal
+     * 
+     * @return T The hexadecimal value
+    */
     static T decimalToHexadecimal(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the hexadecimal of value: " + value);
-        }
         static T hexadecimal = 0;
         static T remainder, i = 1;
         while (value != 0) {
@@ -346,16 +414,17 @@ public:
             hexadecimal += remainder * i;
             i *= 10;
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the hexadecimal of value: Hexadecimal:" + hexadecimal);
-        }
         return hexadecimal;
     }
 
+    /**
+     * @brief Converts @param value to decimal from hexadecimal
+     * @param value The value to convert to decimal
+     * 
+     * @return T The decimal value
+    */
     static T hexadecimalToDecimal(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the decimal of Hexadecimal value: " + value);
-        }
+
         static T decimal = 0;
         static T remainder, i = 0;
         while (value != 0) {
@@ -364,393 +433,606 @@ public:
             decimal += remainder * pow(16, i);
             ++i;
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the decimal of Hexadecimal value: Decimal:" + decimal);
-        }
+
         return decimal;
     }
 
+    /**
+     * @brief Calculates the Percentage of @param value (value * globalMultiplier) / 100
+     * @param value The value to calculate the percentage of
+     * 
+     * @return T The percentage value
+    */
     static T calculatePercentage(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of value: " + (value * globalMultiplier) / 100);
-        }
         return (value * globalMultiplier) / 100;
     }
 
+    /**
+     * @brief Calculates the Percentage of @param value (value * @param percentage) / 100
+     * @param value The value to calculate the percentage of
+     * @param percentage The percentage to calculate
+     * 
+     * @return T The percentage value
+    */
     static T calculatePercentage(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of value: " + (value * percentage) / 100);
-        }
         return (value * percentage) / 100;
     }
 
+    /**
+     * @brief Calculates the Percentage of @param value (value * globalMultiplier) / 100
+     * @param value The value to calculate the percentage of
+     * 
+     * @return T The percentage value
+    */
     static T calculatePercentageOf(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of global multiplier: " + (globalMultiplier * 100) / value);
-        }
         return (globalMultiplier * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of @param value (value * @param percentage) / 100
+     * @param value The value to calculate the percentage of
+     * @param percentage The percentage to calculate
+     * 
+     * @return T The percentage value
+    */
     static T calculatePercentageOf(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of value: " + (percentage * 100) / value);
-        }
         return (percentage * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage Change of @param value (globalMultiplier - value) / value
+     * @param value The value to calculate the percentage change of
+     * 
+     * @return T The percentage change value
+    */
     static T calculatePercentageChange(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage change of value: " + (globalMultiplier - value) / value);
-        }
         return (globalMultiplier - value) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage Change of @param value (percentage - value) / value
+     * @param value The value to calculate the percentage change of
+     * @param percentage The percentage to calculate
+     * 
+     * @return T The percentage change value
+    */
     static T calculatePercentageChange(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage change of value: " + (percentage - value) / value);
-        }
         return (percentage - value) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage Difference of @param value (globalMultiplier - value) / globalMultiplier
+     * @param value The value to calculate the percentage difference of
+     * 
+     * @return T The percentage difference value
+    */
     static T calculatePercentageDifference(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage difference of value: " + (globalMultiplier - value) / globalMultiplier);
-        }
         return (globalMultiplier - value) / globalMultiplier;
     }
 
+    /**
+     * @brief Calculates the Percentage Difference of @param value (percentage - value) / percentage
+     * @param value The value to calculate the percentage difference of
+     * @param percentage The percentage to calculate
+     * 
+     * @return T The percentage difference value
+    */
     static T calculatePercentageDifference(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage difference of value: " + (percentage - value) / percentage);
-        }
         return (percentage - value) / percentage;
     }
 
+    /**
+     * @brief Calculates the Percentage Error of @param value (globalMultiplier - value) / globalMultiplier
+     * @param value The value to calculate the percentage error of
+     * 
+     * @return T The percentage error value
+    */
     static T calculatePercentageError(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage error of value: " + (globalMultiplier - value) / globalMultiplier);
-        }
         return (globalMultiplier - value) / globalMultiplier;
     }
 
+    /**
+     * @brief Calculates the Percentage Error of @param value (percentage - value) / percentage
+     * @param value The value to calculate the percentage error of
+     * @param percentage The percentage to calculate
+     * 
+     * @return T The percentage error value
+    */
     static T calculatePercentageError(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage error of value: " + (percentage - value) / percentage);
-        }
         return (percentage - value) / percentage;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total of @param value (globalMultiplier * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfError(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of error of value: " + (globalMultiplier - value) / value);
-        }
         return (globalMultiplier - value) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total of @param value (percentage * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfError(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of error of value: " + (percentage - value) / value);
-        }
         return (percentage - value) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total of @param value (globalMultiplier * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfChange(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of change of value: " + (globalMultiplier - value) / globalMultiplier);
-        }
         return (globalMultiplier - value) / globalMultiplier;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total of @param value (percentage * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfChange(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of change of value: " + (percentage - value) / percentage);
-        }
         return (percentage - value) / percentage;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total of @param value (globalMultiplier * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifference(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference of value: " + (globalMultiplier - value) / globalMultiplier);
-        }
         return (globalMultiplier - value) / globalMultiplier;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total of @param value (percentage * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifference(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference of value: " + (percentage - value) / percentage);
-        }
         return (percentage - value) / percentage;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total of @param value (globalMultiplier * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotal(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total of value: " + (globalMultiplier * 100) / value);
-        }
         return (globalMultiplier * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total of @param value (percentage * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotal(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total of value: " + (percentage * 100) / value);
-        }
         return (percentage * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of difference from @param value (globalMultiplier - value) / globalMultiplier
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceFrom(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference from value: " + (globalMultiplier - value) / globalMultiplier);
-        }
         return (globalMultiplier - value) / globalMultiplier;
     }
 
+    /**
+     * @brief Calculates the Percentage of difference from @param value (percentage - value) / percentage
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceFrom(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference from value: " + (percentage - value) / percentage);
-        }
         return (percentage - value) / percentage;
     }
 
+    /**
+     * @brief Calculates the Percentage Difference between @param value (globalMultiplier - value) / globalMultiplier
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceTo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference to value: " + (globalMultiplier - value) / globalMultiplier);
-        }
         return (globalMultiplier - value) / globalMultiplier;
     }
 
+    /**
+     * @brief Calculates the Percentage Difference between @param value (percentage - value) / percentage
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceTo(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference to value: " + (percentage - value) / percentage);
-        }
         return (percentage - value) / percentage;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total from @param value (globalMultiplier * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalFrom(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total from value: " + (globalMultiplier * 100) / value);
-        }
         return (globalMultiplier * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total from @param value (percentage * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalFrom(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total from value: " + (percentage * 100) / value);
-        }
         return (percentage * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total to @param value (globalMultiplier * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalTo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total to value: " + (globalMultiplier * 100) / value);
-        }
         return (globalMultiplier * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total to @param value (percentage * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalTo(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total to value: " + (percentage * 100) / value);
-        }
         return (percentage * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Difference between @param value (globalMultiplier - value) / globalMultiplier
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceBetween(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference between value: " + (globalMultiplier - value) / globalMultiplier);
-        }
         return (globalMultiplier - value) / globalMultiplier;
     }   
 
+    /**
+     * @brief Calculates the Percentage of Difference between @param value (percentage - value) / percentage
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceBetween(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference between value: " + (percentage - value) / percentage);
-        }
         return (percentage - value) / percentage;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total between @param value (globalMultiplier * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalBetween(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total between value: " + (globalMultiplier * 100) / value);
-        }
         return (globalMultiplier * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total between @param value (percentage * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalBetween(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total between value: " + (percentage * 100) / value);
-        }
         return (percentage * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Difference between @param value (globalMultiplier - value) / globalMultiplier
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceFromTo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference from to value: " + (globalMultiplier - value) / globalMultiplier);
-        }
         return (globalMultiplier - value) / globalMultiplier;
     }
 
+    /**
+     * @brief Calculates the Percentage of Difference between @param value (percentage - value) / percentage
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceFromTo(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference from to value: " + (percentage - value) / percentage);
-        }
         return (percentage - value) / percentage;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total between @param value (globalMultiplier * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalFromTo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total from to value: " + (globalMultiplier * 100) / value);
-        }
         return (globalMultiplier * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total between @param value (percentage * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalFromTo(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total from to value: " + (percentage * 100) / value);
-        }
         return (percentage * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Difference between @param value (globalMultiplier - value) / globalMultiplier
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceBetweenTo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference between to value: " + (globalMultiplier - value) / globalMultiplier);
-        }
         return (globalMultiplier - value) / globalMultiplier;
     }
 
+    /**
+     * @brief Calculates the Percentage of Difference between @param value (percentage - value) / percentage
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceBetweenTo(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference between to value: " + (percentage - value) / percentage);
-        }
         return (percentage - value) / percentage;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total between @param value (globalMultiplier * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalBetweenTo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total between to value: " + (globalMultiplier * 100) / value);
-        }
         return (globalMultiplier * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total between @param value (percentage * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalBetweenTo(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total between to value: " + (percentage * 100) / value);
-        }
         return (percentage * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Difference between @param value (globalMultiplier - value) / globalMultiplier
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceBetweenFrom(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference between from value: " + (globalMultiplier - value) / globalMultiplier);
-        }
         return (globalMultiplier - value) / globalMultiplier;
     }
 
+    /**
+     * @brief Calculates the Percentage of Difference between @param value (percentage - value) / percentage
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceBetweenFrom(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference between from value: " + (percentage - value) / percentage);
-        }
         return (percentage - value) / percentage;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total between @param value (globalMultiplier * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalBetweenFrom(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total between from value: " + (globalMultiplier * 100) / value);
-        }
         return (globalMultiplier * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total between @param value (percentage * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalBetweenFrom(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total between from value: " + (percentage * 100) / value);
-        }
         return (percentage * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Difference between @param value (globalMultiplier - value) / globalMultiplier
+     * @param value The value to calculate the percentage of total of
+     * 
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceBetweenFromTo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference between from to value: " + (globalMultiplier - value) / globalMultiplier);
-        }
         return (globalMultiplier - value) / globalMultiplier;
     }
 
+    /**
+     * @brief Calculates the Percentage of Difference between @param value (percentage - value) / percentage
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfDifferenceBetweenFromTo(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of difference between from to value: " + (percentage - value) / percentage);
-        }
         return (percentage - value) / percentage;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total between @param value (globalMultiplier * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalBetweenFromTo(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total between from to value: " + (globalMultiplier * 100) / value);
-        }
         return (globalMultiplier * 100) / value;
     }
 
+    /**
+     * @brief Calculates the Percentage of Total between @param value (percentage * 100) / value
+     * @param value The value to calculate the percentage of total of
+     * @param percentage The percentage to calculate
+     * @overload 
+     * @return T The percentage of total value
+    */
     static T calculatePercentageOfTotalBetweenFromTo(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of total between from to value: " + (percentage * 100) / value);
-        }
         return (percentage * 100) / value;
     }
 
+    /**
+     * @brief Calculate the Decimal Percentage of @param value (value * globalMultiplier) / 100.0
+     * @param value The value to calculate the decimal percentage of
+     * 
+     * @return T The decimal percentage value
+     * 
+    **/
     static T calculateDecimalPercentage(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the decimal percentage of value: " + (value * globalMultiplier) / 100.0);
-        }
         return (value * globalMultiplier) / 100.0;
     }
 
+    /**
+     * @brief Calculate the Decimal Percentage of @param value (value * @param percentage) / 100.0
+     * @param value The value to calculate the decimal percentage of
+     * @param percentage The percentage to calculate
+     * 
+     * @return T The decimal percentage value
+     **/
     static T calculateDecimalPercentage(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the decimal percentage of value: " + (value * percentage) / 100.0);
-        }
         return (value * percentage) / 100.0;
     }
 
+    /**
+     * @brief Calculate the Decimal of @param value value / 100.0
+    */
     static T calculateDecimal(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the decimal of value: " + value / 100.0);
-        }
         return value / 100.0;
     }
 
+    /**
+     * @brief Calculate the Decimal of @param value value / @param percentage
+     * @param value The value to calculate the decimal of
+     * @param percentage The percentage to calculate
+     * 
+     * @return T The decimal value
+    */
     static T calculateDecimal(T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the decimal of value: " + value / percentage);
-        }
         return value / percentage;
     }
 
+    /**
+     * @brief Divide @param value by 100
+     * @param value The value to divide by 100
+     * 
+     * @return T The divided value
+    */
     static T divideByHundred (T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Dividing value by 100: " + value / 100.0);
-        }
         return value / 100.0;
     }
 
+    /**
+     * @brief Calculate the Percentage of Value of @param value value / percentage
+     * @param value The value to calculate the percentage of value of
+     * @param percentage The percentage to calculate
+     * 
+     * @return T The percentage of value value
+    */
     static T calculatePercentageOfValue (T value, T percentage) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the percentage of value: " + value / percentage);
-        }
         return value / percentage;
     }
 
+    /**
+     * @brief divide @param value by @param divisor
+     * @param value The value to divide
+     * @param divisor The divisor to divide by
+     * 
+     * @return T The divided value
+    */
     static T divide(T value, T divisor) {
-        if(debug){
-            Serial.println("[OPERATORS]: Dividing value by divisor: " + value / divisor);
-        }
         return value / divisor;
     }
 
+    /**
+     * @brief adds @param value to an internal array to be used for statistical calculations
+     * @param value The value to add to the array
+     * 
+    */
     static void addItemsToArray(T value){
-        if(debug){
-            Serial.println("[OPERATORS]: Adding value to array: " + value);
-        }
         for(static T i = 0; i < 100; i++){
             if(array[i] != 0){
                 array[i] = value;
-                if(debug){
-                    Serial.println("[OPERATORS]: Adding value to array: " + value);
-                }
                 return;
             }else {
                 continue;
@@ -758,16 +1040,15 @@ public:
         }
     }
 
+    /**
+     * @brief removes @param value from an internal array to be used for statistical calculations
+     * @param value The value to remove from the array
+     * 
+    */
     static void removeItemsFromArray(T value){
-        if(debug){
-            Serial.println("[OPERATORS]: Removing value from array: " + value);
-        }
         for(static T i = 0; i < 100; i++){
             if(array[i] == value){
                 array[i] = 0;
-                if(debug){
-                    Serial.println("[OPERATORS]: Removing value from array: " + value);
-                }
                 return;
             }else {
                 continue;
@@ -775,12 +1056,15 @@ public:
         }
     }
 
+    /**
+     * @brief gets @param value from an internal array to be used for statistical calculations
+     * @param value The value to get from the array
+     * 
+     * @return T The value from the array
+    */
     static T getItemsFromArray(T value){
         for(static T i = 0; i < 100; i++){
             if(array[i] == value){
-                if(debug){
-                    Serial.println("[OPERATORS]: Getting value from array: " + value);
-                }
                 return array[i];
             }else {
                 continue;
@@ -788,6 +1072,11 @@ public:
         }
     }
 
+    /**
+     * @brief Calculates the average of the array
+     * @param value The value to calculate the average of
+     * @return T The average value
+    */
     static T average(T value) {
         static T sum = 0;
         static T average = 0;
@@ -795,32 +1084,32 @@ public:
             sum += array[i];
         }
         average = sum / value;
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the average of value: Average" + sum(value) / value);
-        }
         return average;
     }
 
+    /**
+     * @brief Calculates the Median (middle value) of the array
+     * @param value The value to calculate the median of
+     * 
+     * @return T The median value
+    */
     static T median(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the median of value: " + median);
-        }
         static T median = 0;
         if (value % 2 == 0) {
             median = (array[(value - 1) / 2] + array[value / 2]) / 2;
         } else {
             median = array[value / 2];
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the median of value: Median: " + median);
-        }
         return median;
     }
 
+    /**
+     * @brief Calculates the Mode (most common value) of the array
+     * @param value The value to calculate the mode of
+     * 
+     * @return T The mode value
+    */
     static T mode(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the mode of value: " + mode);
-        }
         static T mode = 0;
         static T maxCount = 0;
         for (static T i = 0; i < value; ++i) {
@@ -835,28 +1124,28 @@ public:
                 mode = array[i];
             }
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the mode of value: Mode: " + mode);
-        }
         return mode;
     }
 
+    /**
+     * @brief Calculates the Range (difference between the smallest and largest values) of the array
+     * @param value The value to calculate the range of
+     * 
+     * @return T The range value
+    */
     static T range(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the range of value: " + value);
-        }
         static T range = 0;
         range = array[value - 1] - array[0];
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the range of value: Range: " + range);
-        }
         return range;
     }
 
+    /**
+     * @brief Calculates Standard Deviation of the array.
+     * @param value The value to calculate the standard deviation of
+     * 
+     * @return T The standard deviation value
+    */
     static T standardDeviation(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the standard deviation of value: " + value);
-        }
         static T sum = 0;
         static T mean = 0;
         static T standardDeviation = 0;
@@ -867,16 +1156,17 @@ public:
         for (static T i = 0; i < value; i++) {
             standardDeviation += pow(array[i] - mean, 2);
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the standard deviation of value: Standard Deviation: " + sqrt(standardDeviation / value));
-        }
         return sqrt(standardDeviation / value);
     }
 
+    /**
+     * @brief Calculates Variance of the array.
+     * @param value The value to calculate the variance of
+     * 
+     * @return T The variance value
+    */
     static T variance(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the variance of value: " + value);
-        }
+        i
         static T sum = 0;
         static T mean = 0;
         static T variance = 0;
@@ -887,89 +1177,88 @@ public:
         for (static T i = 0; i < value; i++) {
             variance += pow(array[i] - mean, 2);
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the variance of value: Variance: " + variance / value);
-        }
         return variance / value;
     }
 
+    /**
+     * @brief Calculates the Sum of the array
+     * @param value The value to calculate the sum of
+     * 
+     * @return T The sum value
+    */
     static T sum(){
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the sum of the array");
-        }
         static T sum = 0;
         for (static T i = 0; i < 100; i++) {
             sum += array[i];
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the sum of the array: Sum: " + sum);
-        }
         return sum;
     }
 
+    /**
+     * @brief Calculates the Sum of @param value and the array
+     * @param value The value to calculate the sum of
+     * 
+     * @return T The sum value
+    */
     static T sum(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the sum of value: " + value + " and the array");
-        }
         static T sum = 0;
         for (static T i = 0; i < value; i++) {
             sum += array[i];
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the sum of value: Sum: " + sum);
-        }
         return sum;
     }
 
+    /**
+     * @brief Calculates the Product of the array
+     * @param value The value to calculate the product of
+     * 
+     * @return T The product value
+    */
     static T product(){
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the product of the array");
-        }
         static T product = 1;
         for (static T i = 0; i < 100; i++) {
             product *= array[i];
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the product of the array: Product: " + product);
-        }
         return product;
     }
 
+    /**
+     * @brief Calculates the Product of @param value and the array
+     * @param value The value to calculate the product of
+     * 
+     * @return T The product value
+    */
     static T product(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the product of value: " + value + " and the array");
-        }
         static T product = 1;
         for (static T i = 0; i < value; i++) {
             product *= array[i];
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the product of value: Product: " + product);
-        }
         return product;
     }
 
+    /**
+     * @brief Finds the Minimum value of the array
+     * 
+     * 
+    */
     static T findMin() {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the minimum of the array");
-        }
         static T minValue = array[0];
         for (static T i = 1; i < 100; i++) {
             if (array[i] < minValue) {
                 minValue = array[i];
             }
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the minimum of the array: Minimum: " + minValue);
-        }
         return minValue;
     }
 
+    /**
+     * @brief Finds the Minimum value of @param value and the array
+     * @param value The value to find the minimum of
+     * 
+     * @return T The minimum value
+    */
     static T minimum(T* array, size_t size) {
         if (size == 0) {
-            if(debug){
-                Serial.println("[OPERATORS]: Obtaining the minimum of the array: Minimum:  0 (Array is empty)");
-            }
             return 0;
         }
 
@@ -979,32 +1268,32 @@ public:
                 minValue = array[i];
             }
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the minimum of the array: Minimum: " + minValue);
-        }
         return minValue;
     }
 
+    /**
+     * @brief Finds the Maximum value of the array
+     * 
+ 
+    */
     static T findMax() {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the maximum of the array");
-        }
         static T maxValue = array[0];
         for (static T i = 1; i < 100; i++) {
             if (array[i] > maxValue) {
                 maxValue = array[i];
             }
         }
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the maximum of the array: Maximum: " + maxValue);
-        }
         return maxValue;
     }
 
+    /**
+     * @brief Returns count of @param value
+     * @param value The value to count
+     *  
+     * @return T The count value
+     * 
+    */
     static T count(T value) {
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the count of value: " + value);
-        }
         static T count = 0;
         for (static T i = 0; i < value; i++) {
             count++;
@@ -1013,15 +1302,14 @@ public:
     }
 
     
-
+    /**
+     * @brief Multiply @param value by @param value2
+     * @param value The value to multiply
+     * @param value2 The value to multiply by
+     * 
+    */
     static T multiply(T value, T value2){
-        if(debug){
-            Serial.println("[OPERATORS]: Obtaining the product of value: " + value + " and value: " + value2);
-        }
         return value * value2;
     }
 };
-
-
-
 #endif // OPERATORS_H

@@ -27,6 +27,8 @@ The ArrayListPredicates library provides a comprehensive set of Predicates that 
 ### Version 1.0.1
 * Added Function Comments to the Library
 * Fixed a bug where the library would not build due to an issue with an overloaded function. It was overloaded exactly the same way.
+### Version 1.0.2
+* Removed the debug messages from library to save memory space
             
 
 

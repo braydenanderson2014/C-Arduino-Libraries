@@ -6,7 +6,6 @@
 template <typename T>
 class ArrayList {
 public:
-    bool debug; // Debug mode
     enum SizeType { FIXED, DYNAMIC }; // Size type
     enum SortAlgorithm { BUBBLE_SORT, QUICK_SORT }; // Sorting algorithms
     //Constructor and Destructor
@@ -22,11 +21,8 @@ public:
      * @param initialSize The initial capacity of the ArrayList.
      * @param debug A flag indicating whether debug messages should be printed.
     */
-    ArrayList(SizeType type = DYNAMIC, size_t initialSize = 8, bool debug = false)
-        : debug(debug), sizeType(type), arrayCapacity(initialSize), count(0) {
-        if (debug) {
-            Serial.println("[ArrayList]: Creating new instance of ArrayList");
-        }
+    ArrayList(SizeType type = DYNAMIC, size_t initialSize = 8)
+        : sizeType(type), arrayCapacity(initialSize), count(0) {
         array = new T[arrayCapacity];
     }
 
@@ -37,9 +33,6 @@ public:
      * If the debug flag is set, it prints a message indicating that the ArrayList is being deleted.
     */
     ~ArrayList() {
-        if (debug) {
-            Serial.println("[ArrayList]: Deleting instance of ArrayList");
-        }
         delete[] array;
     }
    
@@ -53,13 +46,7 @@ public:
      * @param item The item to add to the ArrayList.
     */
     void add(T item) {
-        if(debug){
-            Serial.println("[ArrayList]: Adding item to ArrayList");
-        }
         if(sizeType == FIXED && count >= arrayCapacity){
-            if(debug){
-                Serial.println("[ArrayList]: Error - Array is full and is fixed size");
-            }
             return;
         }
         
@@ -68,17 +55,10 @@ public:
 
         // Resize the array if the load factor is greater than or equal to 0.8
         if (sizeType == DYNAMIC && loadFactor >= 0.8) {
-            if(debug){
-                Serial.println("[ArrayList]: Resizing ArrayList");
-            }
             resize();
         }
         if (count < arrayCapacity) {
             array[count++] = item;
-        }else{
-            if(debug){
-                Serial.println("[ArrayList]: Error - Array is full");
-            }
         }
     }
 
@@ -94,22 +74,13 @@ public:
      * @return true if the items were added successfully, false otherwise.
     */
     bool addAll(const ArrayList<T>& other) {
-        if(debug){
-            Serial.println("[ArrayList]: Adding all items from other ArrayList");
-        }
         if (sizeType == DYNAMIC && count + other.count > arrayCapacity) {
-            if(debug){
-                Serial.println("[ArrayList]: Resizing ArrayList");
-            }
             resize();
         }
         if (count + other.count <= arrayCapacity) {
             memcpy(array + count, other.array, other.count * sizeof(T));
             count += other.count;
             return true;
-        }
-        if(debug){
-            Serial.println("[ArrayList]: Error - Array is full");
         }
         return false;
     }
@@ -127,22 +98,13 @@ public:
      * @return true if the items were added successfully, false otherwise.
     */
     bool addAll(const T* other, size_t length) {
-        if(debug){
-            Serial.println("[ArrayList]: Adding all items from other array");
-        }
         if (sizeType == DYNAMIC && count + length > arrayCapacity) {
-            if(debug){
-                Serial.println("[ArrayList]: Resizing ArrayList");
-            }
             resize();
         }
         if (count + length <= arrayCapacity) {
             memcpy(array + count, other, length * sizeof(T));
             count += length;
             return true;
-        }
-        if(debug){
-            Serial.println("[ArrayList]: Error - Array is full");
         }
         return false;
     }
@@ -159,22 +121,13 @@ public:
      * @return true if the item was inserted successfully, false otherwise.
     */
     bool insert(size_t index, T item) {
-        if(debug){
-            Serial.println("[ArrayList]: Inserting item at index: " + String(index) + " into ArrayList");
-        }
         if (index > count) {
-            if(debug){
-                Serial.println("[ArrayList]: Error - Index out of bounds");
-            }
             return false;
         }
         if (count == arrayCapacity) {
             if (sizeType == DYNAMIC) {
                 resize();
             } else {
-                if(debug){
-                    Serial.println("[ArrayList]: Error - Array is full");
-                }
                 return false;
             }
         }
@@ -198,22 +151,13 @@ public:
      * @return true if the items were inserted successfully, false otherwise.
     */
     bool insertAll(size_t index, const ArrayList<T>& other) {
-        if(debug){
-            Serial.println("[ArrayList]: Inserting all items from other ArrayList at index: " + String(index) + " into ArrayList");
-        }
         if (index > count) {
-            if(debug){
-                Serial.println("[ArrayList]: Error - Index out of bounds");
-            }
             return false;
         }
         if (count + other.count > arrayCapacity) {
             if (sizeType == DYNAMIC) {
                 resize();
             } else {
-                if(debug){
-                    Serial.println("[ArrayList]: Error - Array is full");
-                }
                 return false;
             }
         }
@@ -238,22 +182,13 @@ public:
      * @return true if the items were inserted successfully, false otherwise.
     */
     bool insertAll(size_t index, const T* other, size_t length) {
-        if(debug){
-            Serial.println("[ArrayList]: Inserting all items from other array at index: " + String(index) + " into ArrayList");
-        }
         if (index > count) {
-            if(debug){
-                Serial.println("[ArrayList]: Error - Index out of bounds");
-            }
             return false;
         }
         if (count + length > arrayCapacity) {
             if (sizeType == DYNAMIC) {
                 resize();
             } else {
-                if(debug){
-                    Serial.println("[ArrayList]: Error - Array is full");
-                }
                 return false;
             }
         }
@@ -275,19 +210,12 @@ public:
      * @return true if the item was removed successfully, false otherwise.
     */
     bool removeItem(T item) {
-        if(debug){
-            Serial.println("[ArrayList]: Removing item from ArrayList");
-        }
         int index = indexOf(item);
         if (index >= 0) {
             remove(index);
             return true;
         }else{
-            if(debug){
-                Serial.println("[ArrayList]: Error - Item not found");
-            }
             return false;
-        
         }
     }
     
@@ -300,9 +228,6 @@ public:
      * @param index The index of the item to remove.
     */
     void remove(size_t index) {
-        if(debug){
-            Serial.println("[ArrayList]: Removing item from ArrayList at index: " + String(index));
-        }
         if (index < count) {
             for (size_t i = index; i < count - 1; ++i) {
                 array[i] = array[i + 1];
@@ -322,9 +247,6 @@ public:
      * @return true if any items were removed, false otherwise.
     */
     bool removeIf(bool (*predicate)(T)) {
-        if(debug){
-            Serial.println("[ArrayList]: Removing items from ArrayList");
-        }
         size_t removed = 0;
         for (size_t i = 0; i < count; ++i) {
             if (predicate(array[i])) {
@@ -351,19 +273,10 @@ public:
      * @param toIndex The end index of the range to remove (exclusive).
     */
     void removeRange(size_t fromIndex, size_t toIndex) {
-        if(debug){
-            Serial.println("[ArrayList]: Removing items from ArrayList");
-        }
         if (fromIndex > toIndex) {
-            if(debug){
-                Serial.println("[ArrayList]: Error - fromIndex is greater than toIndex");
-            }
             return;
         }
         if (fromIndex < 0 || toIndex > count) {
-            if(debug){
-                Serial.println("[ArrayList]: Error - Index out of bounds");
-            }
             return;
         }
         size_t removed = toIndex - fromIndex;
@@ -383,9 +296,6 @@ public:
      * @return true if this ArrayList changed as a result of the call, false otherwise.
     */
     bool retainAll(const ArrayList<T>& other) {
-        if(debug) {
-            Serial.println("[ArrayList]: Retaining items from other ArrayList");
-        }
         size_t removed = 0;
         for (size_t i = 0; i < count; ++i) {
             if (!other.contains(array[i])) {
@@ -396,13 +306,7 @@ public:
         }
         if (removed > 0) {
             count -= removed;
-            if(debug){
-                Serial.println("[ArrayList]: " + String(removed) + " items removed");
-            }
             return true;
-        }
-        if(debug){
-            Serial.println("[ArrayList]: Error - No items retained");
         }
         return false;
     }
@@ -413,9 +317,6 @@ public:
      * This function clears all items from the ArrayList and sets the count of items to 0.
     */
     void clear() {
-        if(debug){
-            Serial.println("[ArrayList]: Clearing ArrayList");
-        }
         delete[] array;
         array = new T[arrayCapacity];
         count = 0;
@@ -436,9 +337,6 @@ public:
         if (index < count) {
             return array[index];
         }
-        if(debug){
-            Serial.println("[ArrayList]: Error - Index out of bounds, returning default value");
-        }
         return T();// Return default value if index is out of bounds
     }
 
@@ -454,9 +352,6 @@ public:
     String getAsString(size_t index) const {
         if (index < count) {
             return toString(array[index]);
-        }
-        if(debug){
-            Serial.println("[ArrayList]: Error - Index out of bounds, returning default value");
         }
         return toString(T());// Return default value if index is out of bounds
     }
@@ -508,9 +403,6 @@ public:
                 return i;
             }
         }
-        if(debug){
-            Serial.println("[ArrayList]: Error - Item not found");
-        }
         return static_cast<size_t>(-1); // Indicate not found
     } 
 
@@ -551,21 +443,22 @@ public:
      * @brief Sets the debug mode of the ArrayList.
      *
      * This function enables or disables the debug mode of the ArrayList. When debug mode is enabled, the ArrayList prints debug information to the Serial.
-     *
+     * @deprecated This Function is Deprecated. Debug Messages Will not be a part of this Library; This function will not function anymore.
      * @param debug If true, debug mode is enabled. If false, debug mode is disabled.
     */
     void setDebug(bool debug){
-        this->debug = debug;
+        
     }
 
     /**
      * @brief Gets the debug mode of the ArrayList.
      *
      * This function returns the debug mode of the ArrayList. When debug mode is enabled, the ArrayList prints debug information to the Serial.
-     *
+     * @deprecated This Function is Deprecated. Debug Messages Will not be a part of this Library. The function will no longer function anymore
      * @return true if debug mode is enabled, false otherwise.
     */
     bool getDebug() const{
+        bool debug = false;
         return debug;
     }
 
@@ -588,9 +481,6 @@ public:
             }
         }
         if(index >= count){
-            if(debug){
-                Serial.println("[ArrayList]: Error - Index out of bounds");
-            }
             return false;
         }
     }
@@ -606,9 +496,6 @@ public:
      * @param operatorFunction The operator function to apply to each item.
     */
     void replaceAll(T (*operatorFunction)(T)) {
-        if(debug){
-            Serial.println("[ArrayList]: Replacing items in ArrayList");
-        }
         for (size_t i = 0; i < count; ++i) {
             array[i] = operatorFunction(array[i]);
         }
@@ -627,9 +514,6 @@ public:
      * @param consumer The consumer function to apply to each item.
     */
     void forEach(void (*consumer)(T)) const {
-        if(debug){
-            Serial.println("[ArrayList]: Performing action on all items in ArrayList");
-        }
         for (size_t i = 0; i < count; ++i) {
             consumer(array[i]);
         }
@@ -646,9 +530,6 @@ public:
      * @return The output array.
     */
     T* toArray(T* outputArray) const {
-        if(debug){
-            Serial.println("[ArrayList]: Converting ArrayList to array");
-        }
         memcpy(outputArray, array, count * sizeof(T));
         return outputArray;
     }
@@ -664,19 +545,10 @@ public:
      * @return A new ArrayList that contains the items in the sublist, or nullptr if the indices are invalid.
     */
     ArrayList<T>* sublist(size_t fromIndex, size_t toIndex) const {
-        if(debug){
-            Serial.println("[ArrayList]: Creating sublist from ArrayList");
-        }
         if (fromIndex > toIndex) {
-            if(debug){
-                Serial.println("[ArrayList]: Error - fromIndex is greater than toIndex");
-            }
             return nullptr;
         }
         if (fromIndex < 0 || toIndex > count) {
-            if(debug){
-                Serial.println("[ArrayList]: Error - Index out of bounds");
-            }
             return nullptr;
         }
         ArrayList<T>* newList = new ArrayList<T>(sizeType, toIndex - fromIndex);
@@ -695,9 +567,6 @@ public:
      * @return A new ArrayList that is a clone of the original ArrayList.
     */
     ArrayList<T>* clone() const {
-        if(debug){
-            Serial.println("[ArrayList]: Cloning ArrayList");
-        }
         ArrayList<T>* clone = new ArrayList<T>(sizeType, arrayCapacity);
         clone->addAll(*this);
         return clone;
@@ -713,13 +582,7 @@ public:
      * @param minCapacity The minimum capacity that the ArrayList should be able to hold without resizing.
     */
     void ensureCapacity(size_t minCapacity) {
-        if(debug){
-            Serial.println("[ArrayList]: Ensuring ArrayList capacity");
-        }
         if (minCapacity > arrayCapacity) {
-            if(debug){
-                Serial.println("[ArrayList]: Resizing ArrayList to " + String(minCapacity) + " elements");
-            }
             T* newArray = new T[minCapacity];
             memcpy(newArray, array, count * sizeof(T));
             delete[] array;
@@ -736,19 +599,12 @@ public:
      * If the ArrayList is already trimmed or is fixed size, it prints an error message (if debug is true).
     */
     void trimToSize() {
-        if(debug){
-            Serial.println("[ArrayList]: Trimming ArrayList to size");
-        }
         if (sizeType == DYNAMIC && count < arrayCapacity) {
             T* newArray = new T[count];
             memcpy(newArray, array, count * sizeof(T));
             delete[] array;
             array = newArray;
             arrayCapacity = count;
-        } else {
-            if(debug){
-                Serial.println("[ArrayList]: Error - ArrayList is already trimmed or is fixed size");
-            }
         }
     }
 
@@ -782,9 +638,6 @@ public:
      * @param comparator The comparator function that determines the order of the items.
     */
     void bubbleSort(bool (*comparator)(T, T)) {
-        if(debug){
-            Serial.println("[ArrayList]: Sorting ArrayList");
-        }
         for (size_t i = 0; i < count - 1; ++i) {
             for (size_t j = 0; j < count - i - 1; ++j) {
                 if (comparator(array[j], array[j + 1])) {
@@ -806,9 +659,6 @@ public:
      * @param comparator The comparator function that determines the order of the items.
     */
     void quickSort(bool (*comparator)(T, T)) {
-        if(debug){
-            Serial.println("[ArrayList]: Sorting ArrayList");
-        }
         quickSortHelper(comparator, 0, count - 1);
     }
 
@@ -851,9 +701,6 @@ private:
      * If the new capacity is greater than the maximum size_t value, it prints an error message (if debug is true) and does not resize the ArrayList.
     */
     void resize() {
-        if(debug){
-            Serial.println("[ArrayList]: Resizing ArrayList to " + String(arrayCapacity * 1.5) + " elements");
-        }
         size_t newCapacity = arrayCapacity * 1.5;
         T* newArray = new T[newCapacity];
         memcpy(newArray, array, count * sizeof(T));
@@ -863,9 +710,6 @@ private:
         int oldCapacity = arrayCapacity;
         arrayCapacity = newCapacity;
         if(tempCapacity != arrayCapacity){
-            if(debug){
-                Serial.println("[ArrayList]: Error - Memory is too full to resize ArrayList");
-            }
             arrayCapacity = oldCapacity;
         }
     }

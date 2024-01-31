@@ -46,6 +46,10 @@ If you want to Utilize this Library. Please include the
 * Modified Constructor to take in a boolean value to determine if the Library should print Debug Messages
 * Added a new function called setDebug() to set the debug value
 * Added a new function called getDebug() to get the debug value"
+### Version 1.0.5:
+* Removed the Serial.print() Statements from the library to save memory. A version of this library that contains these debug statements will be available soon.
+* Added Function Comments
+
 
 
 

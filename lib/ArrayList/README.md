@@ -98,13 +98,12 @@ If you want to Utilize this Library. Please include the
 * Removed the ArrayListOperations SubLibrary. It has been moved to its own library called Operators
 * Added new toString() function to the ArrayList Class
 * Added new getAsString() function to return a String instead of a type T
-### Version 1.0.4:
-* Fixed the getDebug function to actually return the debug
+* Deprecated the setDebug() and getDebug() functions. Library Messages will no longer be supported to save on memory
 * Added Function Comments to all functions. This will help with the documentation of the library
-* Adjusted the add function to check if the ArrayList is over capacity before resizing the array. This will help to ensure the array can be resized.
 * Adjusted the add funciton to utilize a load factor instead of it waiting to fill to capacity. This will help to ensure the array can be resized.
-* Added new Sort Algorithm. (Quick Sort)
+* Added new Sort Algorithm. (Quick Sort) 
 * Modified the sort function so the user can select between bubble sort and quick sort.
+* Fixed Library Changelog to reflect current State of Library Changes
 
 
 

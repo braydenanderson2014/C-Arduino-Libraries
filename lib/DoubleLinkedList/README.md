@@ -29,6 +29,11 @@ To use `DoubleLinkedList` in your Arduino sketch:
 * Added a new function called setDebugMode() that allows you to change the Debug Mode after the Library has been initialized. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.
 * Added a new function called getDebugMode() that allows you to get the current Debug Mode of the Library. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.
 * By default, the Debug Mode is set to false. This means that the Debug Messages will not be printed to the Serial Monitor if you do not pass the boolean in. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.
+### Version 1.0.2
+* Added new getAsString() function that returns the list element as a String. This is useful for when you want to print the list to the Serial Monitor or to a LCD Screen.
+* Deprecated valueExists() function, as it is no longer needed. This function will be removed in the next release. Use the contains function instead
+* Removed Debug Messages from the Library, This is to save Memory space.
+* Added Function Comments to all of the functions in the Library
             
 
 
