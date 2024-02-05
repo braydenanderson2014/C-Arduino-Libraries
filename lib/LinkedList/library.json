@@ -2,7 +2,7 @@
     "name": "BasicLinkedList",
     "version": "1.0.4",
     "description": "This Library is an easy to use Library for Linked Lists. This Library contains basic implementations of the LinkedList functions. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
-    "keywords": ["LinkedList", "List", "ArrayList", "Array", "BasicLinkedList"],
+    "keywords": ["LinkedList", "List", "BasicLinkedList", "Dynamic Data Structures", "Data Structures", "Utilities", "Data Structures", "Key-Value Pairs"],
     "repositories": [
         {
             "type": "git",
@@ -36,6 +36,11 @@
     "Notes": "This library is designed to be simple and easy to use. This Library contains basic implementations of a LinkedList Structure. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "license": "Apache-2.0",
     "readme": "README.md",
+    "Categories": [
+        "Data Structures",
+        "Dynamic Data Structures",
+        "Utilities"
+    ],
     "ChangeLog": [
         {
             "version": "1.0.0",

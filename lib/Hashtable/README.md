@@ -109,11 +109,15 @@ If you want to Utilize this Library. Please include the
 * Modified the Constructor to accept a boolean value to allow you to disable the Serial.print() statements
 * Added support for 3 new types: float, double, boolean
 * Please note you can add your own specializations for other types if you wish, please see the README.md for more information          
-### Version 1.1.0: [Latest-Release]
+### Version 1.1.0: 
 * Added new exists() Function that only takes in 1 parameter, the key, this function returns a boolean value
 * Added new values() Function that returns a SimpleVector of all the values in the Hashtable
 * Added function comments.
-### Version 1.1.1: [CURRENTLY-UNPLANNED]
+### Version 1.1.1: [Latest-Release]
+* Emergency Patch: Fixed an issue where the Constructor wasnt properly overloaded.
+* Adjusted Library Keywords
+
+
 
 ## Example
 

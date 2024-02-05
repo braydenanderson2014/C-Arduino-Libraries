@@ -57,6 +57,7 @@ public:
         if (sizeType == DYNAMIC && loadFactor >= 0.8) {
             resize();
         }
+        // Add the item to the array
         if (count < arrayCapacity) {
             array[count++] = item;
         }
@@ -706,7 +707,7 @@ private:
         memcpy(newArray, array, count * sizeof(T));
         delete[] array;
         array = newArray;
-        int tempCapacity = newCapacity;
+        size_t tempCapacity = newCapacity;
         int oldCapacity = arrayCapacity;
         arrayCapacity = newCapacity;
         if(tempCapacity != arrayCapacity){

@@ -72,7 +72,7 @@ if (myMap.isEmpty()) {
     // Map is empty
 }
 ```
-## Methods
+## Common Methods
 * insert: Add a key-value pair to the map. If the key already exists, its value is updated.
 * get: Retrieve a value associated with a given key.
 * remove: Remove a key-value pair from the map.
@@ -93,7 +93,7 @@ void setup() {
 
 void loop() {
     int humidity;
-    if (myMap.get("humidity", humidity)) {
+    if (myMap.contains("Humidity")) {
         Serial.print("Humidity: ");
         Serial.println(humidity);
     }
@@ -103,7 +103,7 @@ void loop() {
 ## Notes
 This implementation is designed to be memory-efficient, which is critical for the constrained environment of Arduino devices.
 The resize method will automatically be called when the map's capacity is exceeded, doubling the map's size.
-Error handling for memory allocation failures is critical on Arduino, and the resize method includes a simple error message output to the serial monitor.
+Error handling for memory allocation failures is critical on Arduino, and the resize method includes a simple error message output to the serial monitor. This Library uses Hashtable as its its background magic. (This is a wrapper class)
 
 ## Contributing
 Contributions to UnorderedMap are welcome. Please adhere to the provided coding standards and include unit tests with your pull requests.

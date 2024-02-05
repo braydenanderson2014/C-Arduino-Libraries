@@ -2,7 +2,7 @@
     "name": "Operators",
     "version": "1.0.1",
     "description": "This Library is an easy to use Library to perform Mathmatical Operations on List structures such as Vectors, Lists, and ArrayLists. This Library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
-    "keywords": ["Operators", "Math", "Mathmatical", "MathOperators", "MathmaticalOperators", "ArrayListOperators", "vector", "simplevector", "list", "arraylist", "arraylistoperators", "vectoroperators", "listoperators"],
+    "keywords": ["Operators", "Math", "Mathmatical", "MathOperators", "MathmaticalOperators", "ArrayListOperators", "vector", "simplevector", "list", "arraylist", "arraylistoperators", "vectoroperators", "listoperators", "LinkedList", "DoubleLinkedList", "LinkedListOperators", "DoubleLinkedListOperators"],
     "repositories": [
         {
             "type": "git",

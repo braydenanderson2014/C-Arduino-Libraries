@@ -14,7 +14,7 @@
 */
 class MyDictionary : public Dictionary<String, String> {
 private:
-    UnorderedMap<String, String> data = UnorderedMap<String, String>();
+    UnorderedMap<String, String> data = UnorderedMap<String, String>(); //Uses UnorderedMap as the underlying data structure
 
 public:
     /**

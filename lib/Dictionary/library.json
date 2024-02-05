@@ -2,7 +2,7 @@
     "name": "Dictionary",
     "version": "1.0.2",
     "description": "This Library is an easy to use Library for Dictionary type entries, This Library Mimicks the Java Dictionary Class",
-    "keywords": ["Dictionary", "Abstract"],
+    "keywords": ["Dictionary", "Abstract", "Virtual", "BluePrint"],
     "repositories": [
         {
             "type": "git",
@@ -42,7 +42,7 @@
             "version": "1.0.0",
             "date": "2023-10-25",
             "changes": [
-                "Initial  UNTESTED release"
+                "Initial release"
             ]
         },
         {

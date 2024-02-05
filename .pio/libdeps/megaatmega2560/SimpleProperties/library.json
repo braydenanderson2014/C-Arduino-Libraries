@@ -1,6 +1,6 @@
 {
     "name": "SimpleProperties",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "description": "A library for managing properties with an SD card. It is designed to be simple and easy to use. This library mimicks the Java Properties class.",
     "keywords": ["properties", "SD card"],
     "repositories": [
@@ -112,6 +112,13 @@
                 "[WARNING]: Underlying Libraries have been updated. This may cause issues. This library has been partially tested since the last update. Please report any issues to the Author.",
                 "Modified the Serial.print() statements so that they dont print by default. You have to pass a bool to the constructor to activate them.",
                 "Debug Variable gets passed to the Hashtable Constructor, so that library also conforms to your wishes."
+            ]
+        },
+        {
+            "version": "1.0.8",
+            "date": "2024-01-30",
+            "changes": [
+                "Removed Debug Messages From Library to keep library imprint small... Plan is to create a secondary library that will be used for debugging."
             ]
         }
         

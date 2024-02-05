@@ -2,7 +2,7 @@
     "name": "Iterator",
     "version": "1.0.0",
     "description": "This Library is an easy to use Library for lcd print functions, and serial print",
-    "keywords": ["Iterator", "Abstract"],
+    "keywords": ["Iterator", "Abstract", "Virtual", "Template"],
     "repositories": [
         {
             "type": "git",
