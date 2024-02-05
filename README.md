@@ -1,49 +1,34 @@
 # C-Arduino-Libraries
 
-## Please Ensure you start the Serial interface before using these libraries!!!
-```cpp
-    Serial.begin(9600);
-```
-```cpp
-    Serial.begin(115400);
-```
-=======
 ## List of All Available Libraries ## [WARNING]: UNTESTED/Partially Tested BY AUTHOR
-* [Dictionary](#dictionary-class) [PASSIVE-DEVELOPMENT] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING-NOT-NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
+* [Dictionary](#dictionary-class) [DEVELOPMENT-COMPLETE] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING-NOT-NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
 * [Hashtable](#hashtable-class) [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED], [STABLE]
 * [iostream](#iostream-class) [PASSIVE-DEVELOPMENT] (Published as : BasicIOStream), [PARTIALLY-TESTED], [STABLE]
-* [iterator](#iterator-class) [PASSIVE-DEVELOPMENT], (PURE VIRTUAL : No Concrete Implementation in this Library)  [TESTING-NOT-NECESSARY] 
+* [iterator](#iterator-class) [DEVELOPMENT-COMPLETE], (PURE VIRTUAL : No Concrete Implementation in this Library)  [TESTING-NOT-NECESSARY] 
 * [Properties](#properties-class) [PASSIVE-DEVELOPMENT] (Published as : SimpleProperties), [MOSTLY-TESTED], [STABLE]
 * [SimpleVector](#simplevector-class) [PASSIVE-DEVELOPMENT] , [MOSTLY-TESTED], [STABLE]
 * [Timer](#timer-class) [PASSIVE_DEVELOPMENT] (Published as : SimpleArduinoTimer), [UNTESTED]
 * [UnorderedMap](#unorderedmap-class) [PASSIVE-DEVELOPMENT], [PARTIALLY-TESTED], [STABLE]
 * [LinkedList](#linkedlist-class) [PASSIVE-DEVELOPMENT] (Published as : BasicLinkedList), [PARTIALLY-TESTED], [STABLE]
-* [DoubleLinkedList](#doublelinkedlist-class) [ACTIVE-DEVELOPMENT], [PARTIALLY-TESTED], [STABLE]
+* [DoubleLinkedList](#doublelinkedlist-class) [PASSIVE-DEVELOPMENT], [PARTIALLY-TESTED], [STABLE]
 * [MyDictionary](#mydictionary-class) [ACTIVE-DEVELOPMENT],(implemented Version of the Dictionary Class), [UNTESTED]
-* [SDList](#sdlist-class) [ACTIVE-DEVELOPMENT], [FAILED-TESTING]
-* [ArrayList](#arraylist-class) [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED]
-* [SimpleMutex]() [ACTIVE-DEVELOPMENT]
-* [SimpleThreadManager]() [ACTIVE-DEVELOPMENT]
-* [Operators]() [ACTIVE-DEVELOPMENT]
-* [Predicates]()[ACTIVE-DEVELOPMENT]
+* [SDList](#sdlist-class) [ACTIVE-DEVELOPMENT], [REIMPLEMENTED], [PARTIALLY-TESTED]
+* [ArrayList](#arraylist-class) [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED]
+* [SimpleMutex](#simplemutex-class) [ACTIVE-DEVELOPMENT]
+* [SimpleThreadManager](#simplethreadmanager-class) [ACTIVE-DEVELOPMENT]
+* [Operators](#operators-class) [PASSIVE-DEVELOPMENT], [STABLE]
+* [Predicates](#predicates-class)[PASSIVE-DEVELOPMENT], [STABLE]
 
 Total Available Libraries: (15)
 Total Libraries: (17)
 
 ## ACTIVELY WORKING ON LISTED LIBRARIES (Bug Fixing or Feature Adding):
-1. UnorderedMap [TESTING]
-2. LinkedList [TESTING]
-3. MyDictionary [TESTING]
-4. SDList [ACTIVE-DEVELOPMENT], [BUG-FIXING], [TESTING]
-5. ArrayList [ACTIVE-DEVELOPMENT], [PARTIALLY-TESTED], [FAILING-TESTING]
-6. DoubleLinkedList [TESTING], [DOCUMENTATION-PENDING] (DOCUMENTATION AVAILABLE IN LIBRARY, JUST NOT THIS README FILE)
-7.  [SimpleMutex]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
-8.  [SimpleThreadManager]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
-9. Predicates
-10. Operators
+1. MyDictionary [TESTING]
+2. SDList [ACTIVE-DEVELOPMENT], [REIMPLEMENTED]
+3.  [SimpleMutex]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
+4.  [SimpleThreadManager]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
 
 =======
-1. SDList [BUG-FIXING, ACTIVE-DEVELOPMENT, KNOWN-ISSUES], [FAILED-TESTING]
 
 
 ## UNPUBLISHED (In Development) (Not yet Documented)
@@ -935,8 +920,315 @@ int main() {
 
 ```
 
+# SimpleMutex Class
+[DOCUMENTATION PENDING]
 
 
+# SimpleThreadManager Class
+[DOCUMENTATION PENDING]
+
+# Operators Class
+
+## Overview
+The ArrayListOperations library provides a comprehensive set of operations that can be performed on elements of an ArrayList. This library is designed for Arduino projects and offers a wide range of mathematical and utility functions.
+
+## Features
+* Operations on individual elements (e.g., increment, double, multiply by a factor)
+* Mathematical operations (e.g., square, cube, square root, cube root)
+* Conversion functions (e.g., decimal to binary, binary to decimal)
+* Statistical calculations (e.g., mean, median, mode, standard deviation, variance)
+* Utility operations (e.g., find minimum, find maximum, count elements)
+* Customizable global multiplier for scalable operations
+
+## Installation
+* Download the Operators.h file.
+
+* Place it in your Arduino project's directory.
+
+* Include the library in your Arduino sketch:
+
+```cpp
+#include "Operations.h"
+```
+## Usage
+### Basic Operations
+You can perform basic operations on array list elements:
+
+```cpp
+Operators<int>::setGlobalMultiplier(5);
+int result = Operators<int>::multiply(10);  // result is 50
+```
+
+## Mathematical Operations
+Perform mathematical operations like square, cube, or roots:
+
+```cpp
+int squared = Operators<int>::square(4);  // squared is 16
+```
+
+
+## Conversion Functions
+Convert between different number systems:
+
+```cpp
+int binary = Operators<int>::decimalToBinary(5);  // binary is 101
+```
+
+## Statistical Calculations
+### Calculate statistical measures:
+
+```cpp
+int array[] = {1, 2, 3, 4, 5};
+int mean = Operators<int>::average(array, 5);  // mean is 3
+```
+## Customization
+You can modify the Operations class to include more operations as needed for your specific use case.
+
+## Contribution
+Feel free to fork this repository and contribute to expanding the library's functionalities.
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+
+*** Please make sure you use the setGlobalMultiplier before utilizing the functions that need it. Otherwise its default value is 0 *** 
+
+*** Please Make sure you add items to the Internal Array before using Mathmatical functions that have no arguments, otherwise you will end up with a 0 ***
+
+
+
+## List of Available Functions 
+* incrementByOne(T element)
+* doubleValue(T element)
+* setGlobalMultiplier(T multiplier)
+* multiply(T value)
+* multiply(T value, T value2)
+* divide(T value)
+* add(T value)
+* add(T value, T value2)
+* subtract(T value)
+* subtract(T value, T value2)
+* modulo(T value)
+* multiplyByTwo(T value)
+* divideByTwo(T value)
+* addTwo(T value)
+* subtractTwo(T value)
+* moduloTwo(T value)
+* square(T value)
+* cube(T value)
+* squareRoot(T value)
+* cubeRoot(T value)
+* powerOfTwo(T value)
+* powerOfThree(T value)
+* powerOf(T value)
+* powerOf(T value, T power)
+* absoluteValue(T value)
+* factorial(T value)
+* fibonacci(T value)
+* fibonacciPrint(T value)
+* greatestCommonDivisor(T value)
+* leastCommonMultiple(T value)
+* decimalToBinary(T value)
+* binaryToDecimal(T value)
+* decimalToOctal(T value)
+* octalToDecimal(T value)
+* decimalToHexadecimal(T value)
+* hexadecimalToDecimal(T value)
+* calculatePercentage(T value)
+* calculatePercentage(T value, T percentage)
+* calculatePercentageOf(T value)
+* calculatePercentageOf(T value, T percentage)
+* calculatePercentageChange(T value)
+* calculatePercentageChange(T value, T percentage)
+* calculatePercentageDifference(T value)
+* calculatePercentageDifference(T value, T percentage)
+* calculatePercentageError(T value)
+* calculatePercentageError(T value, T percentage)
+* calculatePercentageOfError(T value)
+* calculatePercentageOfError(T value, T percentage)
+* calculatePercentageOfChange(T value)
+* calculatePercentageOfChange(T value, T percentage)
+* calculatePercentageOfDifference(T value)
+* calculatePercentageOfDifference(T value, T percentage)
+* calculatePercentageOfTotal(T value)
+* calculatePercentageOfTotal(T value, T percentage)
+* calculatePercentageOfDifferenceFrom(T value)
+* calculatePercentageOfDifferenceFrom(T value, T percentage)
+* calculatePercentageOfDifferenceTo(T value)
+* calculatePercentageOfDifferenceTo(T value, T percentage)
+* calculatePercentageOfTotalFrom(T value)
+* calculatePercentageOfTotalFrom(T value, T percentage)
+* calculatePercentageOfTotalTo(T value)
+* calculatePercentageOfTotalTo(T value, T percentage)
+* calculatePercentageOfDifferenceBetween(T value)
+* calculatePercentageOfDifferenceBetween(T value, T percentage)
+* calculatePercentageOfTotalBetween(T value)
+* calculatePercentageOfTotalBetween(T value, T percentage)
+* calculatePercentageOfDifferenceFromTo(T value)
+* calculatePercentageOfDifferenceFromTo(T value, T percentage)
+* calculatePercentageOfTotalFromTo(T value)
+* calculatePercentageOfTotalFromTo(T value, T percentage)
+* calculatePercentageOfDifferenceBetweenTo(T value)
+* calculatePercentageOfDifferenceBetweenTo(T value, T percentage)
+* calculatePercentageOfTotalBetweenTo(T value)
+* calculatePercentageOfTotalBetweenTo(T value, T percentage)
+* calculatePercentageOfDifferenceBetweenFrom(T value)
+* calculatePercentageOfDifferenceBetweenFrom(T value, T percentage)
+* calculatePercentageOfTotalBetweenFrom(T value)
+* calculatePercentageOfTotalBetweenFrom(T value, T percentage)
+* calculatePercentageOfDifferenceBetweenFromTo(T value)
+* calculatePercentageOfDifferenceBetweenFromTo(T value, T percentage)
+* calculatePercentageOfTotalBetweenFromTo(T value)
+* calculatePercentageOfTotalBetweenFromTo(T value, T percentage)
+* calculateDecimalPercentage(T value)
+* calculateDecimalPercentage(T value, T percentage)
+* calculateDecimal(T value)
+* calculateDecimal(T value, T percentage)
+* divideByHundred(T value)
+* calculatePercentageOfValue(T value, T percentage)
+* divide(T value, T divisor)
+* addItemsToArray(T value)
+* removeItemsFromArray(T value)
+* getItemsFromArray(T value)
+* average(T value)
+* median(T value)
+* mode(T value)
+* range(T value)
+* standardDeviation(T value)
+* variance(T value)
+* sum()
+* sum(T value)
+* product()
+* product(T value)
+* findMin()
+* minimum(T* array, size_t size)
+* findMax()
+* count(T value)
+  
+# Predicates Class
+
+# ArrayListPredicates Library for Arduino
+
+## Overview
+The ArrayListPredicates library provides a comprehensive set of Predicates that can be performed on elements of an ArrayList or other list structure. This library is designed for Arduino projects and offers a wide range of mathematical and utility functions.
+
+## Features
+* Predicates on individual elements (e.g., isPrime, isNegative, isDivisibleBy)
+* Customizable global multiplier for scalable operations
+
+## Installation
+* Download the Predicates.h && the Operators.h file.
+
+* Place it in your Arduino project's directory.
+
+* Include the library in your Arduino sketch:
+
+```cpp
+#include "Predicates.h"
+#include "Operators.h"
+```
+
+## ChangeLog
+### Version 1.0.0
+* Initial Release
+* Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK
+* Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them.
+### Version 1.0.1
+* Added Function Comments to the Library
+* Fixed a bug where the library would not build due to an issue with an overloaded function. It was overloaded exactly the same way.
+### Version 1.0.2
+* Removed the debug messages from library to save memory space
+            
+
+
+## Usage
+### Basic Operations
+You can perform basic Predicate Checks on array list elements:
+
+```cpp
+Predicates<int>::setGlobalMultiplier(5);
+
+if(Predicates<int>::isDivisibleBy(5)){
+    Serial.println("yay, The Number Is Divisible by the Multiplier.");
+}
+
+if(Predicates<int>::isDivisibleBy(5, list.getByString(i).toInt())){
+    Serial.println("Yay, The Number is Divisible by the specified number");
+}
+```
+
+## Customization
+You can modify the Predicates class to include more operations as needed for your specific use case.
+
+## Contribution
+Feel free to fork this repository and contribute to expanding the library's functionalities.
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+
+*** Please make sure you use the setGlobalMultiplier or sync() before utilizing the functions that need it. Otherwise you may get the wrong boolean value returned *** 
+
+*** Please Make sure you add items to the Internal Array before using Mathmatical functions that have no arguments, otherwise you will likely end up getting the wrong boolean value ***
+
+
+
+## List of Available Functions 
+* setDebug(bool debug)
+* isDebug()
+* setGlobalMultiplier(int globalMultiplier)
+* getGlobalMultiplier() 
+* sync() //Syncs to the Operators class
+* isEven(const T& value) 
+* isOdd(const T& value)
+* isPositive(const T& value) 
+* isNegative(const T& value)
+* isZero(const T& value)
+* isNonZero(const T& value)
+* isGreaterThan(T value) 
+* isGreaterThan(T value, T value2)
+* isLessThan(T value)
+* isLessThan(T value, T value2)
+* isEqual(T value)
+* isEqual(T value, T value2)
+* isGreaterThanOrEqualTo(const T& value, const T& threshold) 
+* isLessThanOrEqualTo(const T& value, const T& threshold)
+* isEqualTo(const T& value, const T& threshold)
+* isNotEqualTo(const T& value, const T& threshold) 
+* isBetween(const T& value, const T& lower, const T& upper) 
+* isNotBetween(const T& value, const T& lower, const T& upper)
+* isWithin(const T& value, const T& center, const T& radius) 
+* isNotWithin(const T& value, const T& center, const T& radius) 
+* isWithinExclusive(const T& value, const T& center, const T& radius)
+* isNotWithinExclusive(const T& value, const T& center, const T& radius) 
+* isWithinInclusive(const T& value, const T& center, const T& radius)
+* isNotWithinInclusive(const T& value, const T& center, const T& radius) 
+* isWithinLeftExclusive(const T& value, const T& center, const T& radius) 
+* isNotWithinLeftExclusive(const T& value, const T& center, const T& radius) 
+* isWithinRightExclusive(const T& value, const T& center, const T& radius) 
+* isNotWithinRightExclusive(const T& value, const T& center, const T& radius) 
+* isWithinLeftInclusive(const T& value, const T& center, const T& radius) 
+* isNotWithinLeftInclusive(const T& value, const T& center, const T& radius) 
+* isWithinRightInclusive(const T& value, const T& center, const T& radius) 
+* isNotWithinRightInclusive(const T& value, const T& center, const T& radius) 
+* isWithinLeft(const T& value, const T& center, const T& radius) 
+* isNotWithinLeft(const T& value, const T& center, const T& radius) 
+* isWithinRight(const T& value, const T& center, const T& radius) 
+* isNotWithinRight(const T& value, const T& center, const T& radius)
+* isWithinInclusiveLeft(const T& value, const T& center, const T& radius) 
+* isNotWithinInclusiveLeft(const T& value, const T& center, const T& radius) 
+* isWithinInclusiveRight(const T& value, const T& center, const T& radius) 
+* isNotWithinInclusiveRight(const T& value, const T& center, const T& radius) 
+* isWithinExclusiveLeft(const T& value, const T& center, const T& radius) 
+* isNotWithinExclusiveLeft(const T& value, const T& center, const T& radius) 
+* isWithinExclusiveRight(const T& value, const T& center, const T& radius) 
+* isPrime(T value)
+* isDivisibleBy(T value) 
+* isDivisibleBy(T value, T divisor) 
+* isDivisibleByTwo(T value) 
+
+
+   
 
 # STATUS MEANINGS:
 * UNTESTED: Simply means the Author has not Tested the code on an Arduino. (Author may have tested to make sure project builds)
