@@ -1,12 +1,12 @@
 {
     "name": "MyDictionary",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "This Library is an easy to use Library for Dictionary.h, It takes Dictionary.h and expands it into an implementation for use. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
-    "keywords": ["Dictionary", "MyDictionary", "UnorderedMap"],
+    "keywords": ["Dictionary", "MyDictionary", "UnorderedMap", "Interface", "Data Structures", "Dynamic Data Structures", "Utilities", "Key-Value Pairs"],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/DictionaryImplementation.git"
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/MyDictionary.git"
         }
     ],
     "authors": [
@@ -38,6 +38,11 @@
     "Notes": "This library is designed to be simple and easy to use. This Library contains basic implementations of the Dictionary Class. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "license": "Apache-2.0",
     "readme": "README.md",
+    "Categories": [
+        "Data Structures",
+        "Dynamic Data Structures",
+        "Utilities"
+    ],
     "ChangeLog": [
         {
             "version": "1.0.0",
@@ -80,6 +85,14 @@
             "changes": [
                 "Added Function Comments",
                 "Removed Debug Messages from Library to save space"
+            ]
+        },
+        {
+            "version": "1.0.5",
+            "date": "2024-02-02",
+            "changes": [
+                "Modified Keywords for Library to be more descriptive of the Library's purpose",
+                "Fixed the github \".git\" link to reflect the correct link to the repository"
             ]
         }
     ]

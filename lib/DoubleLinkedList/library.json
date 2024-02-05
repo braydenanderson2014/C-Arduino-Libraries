@@ -2,7 +2,7 @@
     "name": "DoubleLinkedList",
     "version": "1.0.2",
     "description": "This Library is an easy to use Library for Double Linked Lists. This Library contains basic implementations of a double linked list structure. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
-    "keywords": ["LinkedList", "List", "ArrayList", "Array", "BasicLinkedList", "DoubleLinkedList"],
+    "keywords": ["LinkedList", "List", "BasicLinkedList", "DoubleLinkedList", "Dynamic Data Structures", "Chain", "Data Structures"],
     "repositories": [
         {
             "type": "git",
@@ -27,6 +27,11 @@
                 "Example.cpp"
             ]
         }
+    ],
+    "Categories": [
+        "Data Structures",
+        "Dynamic Data Structures",
+        "Utilities"
     ],
     "headers": [
         "Arduino.h",

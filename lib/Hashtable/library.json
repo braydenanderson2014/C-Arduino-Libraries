@@ -1,8 +1,8 @@
 {
     "name": "Hashtable",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "A hashtable implementation for Arduino",
-    "keywords": ["Hashtable", "Hashtable Iterator"],
+    "keywords": ["Hashtable", "Hashtable Iterator", "Hash", "Table", "Dynamic Hashtable", "Arduino Hashtable", "Arduino Hash", "Arduino Table", "Arduino Dynamic Hashtable", "Hashset", "Arduino Hashset", "Arduino Dynamic Hashset", "Key-Value Pairs"],
     "repository": {
         "type": "git",
         "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Hashtable.git"
@@ -27,6 +27,11 @@
                 "Example2.cpp"
             ]
         }
+    ],
+    "Categories": [
+        "Data Structures",
+        "Dynamic Data Structures",
+        "Utilities"
     ],
     "ChangeLog": [
         {
@@ -133,6 +138,14 @@
                 "Added new exists() Function that only takes in 1 parameter, the key, this function returns a boolean value",
                 "Added function comments.",
                 "Added new values() Function that returns a SimpleVector of all the values in the Hashtable"
+            ]
+        },
+        {
+            "version": "1.1.1",
+            "date": "2024-02-02",
+            "changes": [
+                "Emergency Patch: Fixed an issue where the Constructor wasnt properly overloaded.",
+                "Adjusted Library Keywords"
             ]
         }
     ],

@@ -2,7 +2,7 @@
     "name": "ArrayList",
     "version": "1.0.3",
     "description": "A Basic ArrayList Structure which supports Dynamic and Fixed Arrays",
-    "keywords": ["ArrayList", "Dynamic List", "Fixed List", "List", "Array", "Dynamic Array", "Fixed Array", "Array List", "Dynamic Array List", "Fixed Array List", "Dynamic List Array", "Fixed List Array"],
+    "keywords": ["ArrayList", "Dynamic List", "Fixed List", "List", "Array", "Dynamic Array", "Fixed Array", "Array List", "Dynamic Array List", "Fixed Array List", "Dynamic List Array", "Fixed List Array", "Data Structure", "Utilities", "Dynamic Data Structure"],
     "repository": {
         "type": "git",
         "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/ArrayList.git"
@@ -17,6 +17,10 @@
     "dependencies": {
         "Arduino": "*"
     },
+    "categories": [
+        "Data Structures",
+        "Utilities"
+    ],
     "examples": [
         {
             "name": "Auto Dynamic Example",

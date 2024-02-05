@@ -291,15 +291,6 @@ public:
         return Iterator(this, TABLE_SIZE, nullptr);
     }
 
-    /**
-     * @brief Constructor
-     * @details This constructor creates a hash table with the specified initial capacity.
-     * 
-     * @param INITIAL_TABLE_SIZE The initial capacity of the hash table
-    */
-    Hashtable() : TABLE_SIZE(INITIAL_TABLE_SIZE), count(0) {
-        table = new Entry*[TABLE_SIZE]();
-    }
 
     /**
      * @brief Constructor

@@ -1,38 +1,24 @@
 #include <Arduino.h>
-#include "Properties.h"
-#include "MyDictionary.h"
-#include "LinkedList.h"
-#include "UnorderedMap.h"
-#include "SDList.h"
-#include "DoubleLinkedList.h"
-#include "ArrayList.h"
-#include "Operators.h"
-#include "Predicates.h"
 
-ArrayList <String> theStrings;
+#include "SDList.h"
+#include "ArrayList.h"
+
+
+SDList <String> list(SDCARD, 8);
 
 //SDList <String> strings(10, "pagefile.dat");
+//ArrayList <String> list = ArrayList<String>(ArrayList<String>::DYNAMIC, 10);
 void setup(){
   Serial.begin(9600);
-  Serial.println("Hello World");
-  
-  theStrings.add("Hello");
-  theStrings.add("World");
-  theStrings.add("!");
+  while(!Serial){}
+  list.begin(4);
+  list.append("Gracen is crazy");
 
-  for(int i = 0; i < theStrings.size(); i++){
-    Serial.println(theStrings.get(i));
-  }
-
-  theStrings.remove(1);
-  theStrings.remove(0);
-
-  
-  for(int i = 0; i < theStrings.size(); i++){
-    Serial.println(theStrings.get(i));
-  }
+  Serial.println(list.size());
+  Serial.println(list.get(0));
+  //list.clear();
 }
 
 void loop(){
-
+  
 }

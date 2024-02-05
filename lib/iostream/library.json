@@ -2,7 +2,7 @@
     "name": "BasicIOStream",
     "version": "1.0.1",
     "description": "This Library is an easy to use Library for lcd print functions, and serial print",
-    "keywords": ["IOStream", "Serial", "LCD", "I2CLCD"],
+    "keywords": ["IOStream", "Serial", "LCD", "I2CLCD", "IO"],
     "repositories": [
         {
             "type": "git",
@@ -26,6 +26,12 @@
     },
     "include": [
         "Wire.h"
+    ],
+    "Categories": [
+        "Utilities",
+        "Communication",
+        "Display",
+        "IO"
     ],
     "examples": [
         {

@@ -1,14 +1,16 @@
 {
     "name": "UnorderedMap",
     "version": "1.0.4",
-    "description": "This Library is an easy to use Library for Unordered Maps. This Library contains basic implementations of the LinkedList functions. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
-    "keywords": ["UnorderedMap", "Map"],
+    "description": "This Library is an easy to use Library for Unordered Maps. This Library contains basic implementations of an Unordered Map. Please note that this library has been mostly tested but may not be completely stable. If you find any bugs, please report them to the Author",
+    "keywords": ["UnorderedMap", "Map", "Key-Value Pairs", "List", "Hashtable", "Hash", "Table"],
     "repositories": [
         {
             "type": "git",
             "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/UnorderedMap.git"
         }
     ],
+    "Description": "This Library makes it easy to map a key to a value. It Utilizes the Hashtable Library (Designed by the same author) to create an UnorderedMap. Please note that this means it can use a bit more memory then just using the Hashtable Directly. This Library is designed to be simple and easy to use. This Library contains basic implementations of a UnorderedMap Structure. Please note that this library is still in development. Although it has been mostly tested and considered stable, bugs can till appear. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    
     "authors": [
         {
             "name": "Brayden Anderson",
@@ -34,14 +36,14 @@
         "UnorderedMap.h"
     ],
     "header": "UnorderedMap.h",
-    "Notes": "This library is designed to be simple and easy to use. This Library contains basic implementations of a UnorderedMap Structure. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "Notes": "This Library is a Wrapper Library. It is built on the Hashtable Library but does not extend all features. You Can still use the Hashtable Library directly if you need more features. This Library is designed to be simple and easy to use. This Library contains basic implementations of a UnorderedMap Structure. Please note that this library is still in development. Although it has been mostly tested and considered stable, bugs can till appear. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "license": "Apache-2.0",
     "ChangeLog": [
         {
             "version": "1.0.0",
             "date": "2023-10-25",
             "changes": [
-                "Initial  UNTESTED release"
+                "Initial UNTESTED release"
             ]
         },
         {
@@ -77,6 +79,15 @@
             "changes": [
                 "Removed Debug Messages to save memory space, Will implement a version with debug messages later.",
                 "Added Function Comments to all functions"
+            ]
+        },
+        {
+            "version": "1.0.5",
+            "date": "2024-02-01",
+            "changes": [
+                "Updates to keyword Search in Library.json file",
+                "Added Description in Library.json file"
+
             ]
         }
 

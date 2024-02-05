@@ -13,7 +13,7 @@
 
 To use `SDList` in your Arduino project:
 
-1. Copy `SDList.h` and `SDList.cpp` to your project's directory.
+1. Copy `SDList.h` to your project's directory.
 2. Include the `SDList.h` file in your sketch.
 
 ## ChangeLog
@@ -21,11 +21,15 @@ To use `SDList` in your Arduino project:
 * Initial Release
 ### Version 1.0.1
 * Dependency Update (Issues with certain Dependencies)
-### Version 1.0.2  (Coming Soon)
+### Version 1.0.2  
 * Dependency Update (Issue was not resolved in 1.0.1 but is now properly resolved)
 * Added [SD LIST]: in front of all Serial.prints to make it easier to debug
-### Version 1.0.3 (DEVELOPMENT UNDERWAY)
+### Version 1.0.3 [BETA-TESTING]
 * Update to README
+* Completely Reimplemented this library, It now functions properly and is much more stable. (Only Lightly Tested)
+* This Library now uses the ArrayList Library to store the list in memory, and then writes the list to the SD card when the list is modified (In SDLIST). This makes the library much more stable and reliable.
+* This Library has not been Thoughly tested, and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author
+* Removed the c++ file and moved implementation to the header file
     
 ## Usage
 
@@ -34,7 +38,7 @@ To create an `SDList`, specify the data type you want to store and provide the C
 ```cpp
 #include "SDList.h"
 
-SDList<int> myList(10, "mydata.dat"); // CS pin is 10, page file name is "mydata.dat"
+SDList <int> myList(SDCARD, 8); // Mode is (SDCARD || MEMORY), Initial Capacity: 8
 ```
 ### Appending Elements
 ```cpp
@@ -44,34 +48,37 @@ myList.append(42);
 ```cpp
 int value = myList.get(0);
 ```
-### Setting Elements
+### Inserting Elements
 ```cpp
-myList.set(0, 100);
+myList.insert(0, 100);
 ```
 ### Checking List Size
 ```cpp
 uint16_t listSize = myList.size();
 ```
-### SD Card Availability
-```cpp
-if (myList.sdAvailable()) {
-    // SD card is ready for use
-}
-```
+
 ## Methods
 * append: Add an element to the end of the list.
 * get: Retrieve the element at a specified index.
-* set: Set the value of the element at a specified index.
+* insert: inserts the value of the element at a specified index.
 * size: Get the number of elements in the list.
-* sdAvailable: Check if the SD card is available and ready for use.
-* expandCapacity: (private) Expand the list's capacity when needed.
+* capacity: Get the arraylist capacity
+* clear: clear list and file
+* begin: REQUIRED FOR SD OPERATIONS (Please call begin function before any SD Begin Functions... also beware that setMode can override SD.begin() at any point)
+* setMode: set the Mode(SDCARD || MEMORY)
+* remove: Remove an element (Checks what mode you are in.)
+
+
 ## Notes
 The list starts with an initial capacity, which will be doubled each time it runs out of space.
-If the SD card is not available, the list will function as a normal in-memory list without persistence.
 Ensure the SD card is formatted correctly and that the Arduino has the necessary permissions to read from and write to the SD card.
 
 ## Dependencies
-SDList depends on the SD library. Ensure you have included the SD library in your project.
+* Arduino
+* SD
+* ArrayList (braydenanderson2014)
+* SPI
+
 
 ## Contributing
 Contributions to SDList are welcome. Please adhere to the provided coding standards and include unit tests with your pull requests.
