@@ -173,6 +173,20 @@ class SDList {
                 this -> mode = MEMORY;
             }
         }
+
+        /**
+         * @brief Begin the SDList object
+         * 
+         * @param csPin The chip select pin for the SD card
+         * @param filename The name of the file to read and write to
+         * 
+         * @note This function is required to run in SD mode if multiple instances of the library are used but not required for Memory mode
+         * if you are only using one instance of the library, you can use this begin function to set the filename or use the begin(csPin) function to use the default
+        */
+        void begin(int csPin, String filename) {
+            this -> filename = filename;
+            begin(csPin);
+        }
     
         /**
          * @brief Set the Mode of the SDList object

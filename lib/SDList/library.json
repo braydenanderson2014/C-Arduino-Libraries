@@ -1,7 +1,7 @@
 {
     "name": "SDList",
-    "version": "1.0.4",
-    "description": "This Library is an easy to use Library that allows you to save memory by saving things to a file. This Library contains basic implementations of the List functions in a convient SD card safe manor. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "version": "1.0.5",
+    "description": "This Library is an easy to use Library that allows you to save memory by saving things to a file. This Library contains basic implementations of the List functions in a convenient SD card safe manor. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["SDList", "List", "SD", "ArrayList", "Dynamic Storage", "Dynamic Data Storage", "Data Storage", "Data", "Storage", "SD Card", "SD Card Storage", "SD Card Data Storage", "SD Card Data", "SD Card Storage", "SD Card List", "SD Card List Storage", "SD Card List Data", "Utilities"] ,
     "repositories": [
         {
@@ -17,6 +17,7 @@
             "url": "https://github.com/braydenanderson2014"
         }
     ],
+    "srcDir": "src",
     "dependencies": {
         "Arduino": "*",
         "SD": "@1.2.4",
@@ -66,16 +67,17 @@
             "date": "2024-02-14",
             "changes": [
                 "Library src Directory was not included in the previous release. This has been fixed.",
-                "Re-Added Examples"
+                "Re-Added Examples",
+                "Added Overloaded begin() function to allow for custom file names, see README.md for more information"
             ]
         }
     ],
     "examples": [
         {
-            "ngitame": "Example",
+            "name": "Example",
             "base": "Examples",
             "files": [
-                "example.cpp"
+                "Example.cpp"
             ]
         }
     ]
