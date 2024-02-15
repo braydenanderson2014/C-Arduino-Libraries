@@ -1,6 +1,6 @@
 {
     "name": "SDList",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "This Library is an easy to use Library that allows you to save memory by saving things to a file. This Library contains basic implementations of the List functions in a convient SD card safe manor. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["SDList", "List", "SD", "ArrayList", "Dynamic Storage", "Dynamic Data Storage", "Data Storage", "Data", "Storage", "SD Card", "SD Card Storage", "SD Card Data Storage", "SD Card Data", "SD Card Storage", "SD Card List", "SD Card List Storage", "SD Card List Data", "Utilities"] ,
     "repositories": [
@@ -25,20 +25,7 @@
         "braydenanderson2014/ArrayList": "*"
 
     },
-    "include": [
-        "SD.h",
-        "SPI.h",
-        "Arduino.h",
-        "ArrayList.h"
-    ],
-    "headers": [
-        "Arduino.h",
-        "SDList.h",
-        "arduino_libraries/SD.h",
-        "ArrayList.h"
-    ],
-    "header": "SDList.h",
-    "Notes": "This library is designed to be simple and easy to use. This Library contains basic implementations of a List Structure. Since Memory on microcontrollers/microprocessors are limited, added a convient way of storing the list on an SD card as a \"Page\" file Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "build.header": "SDList.h",
     "license": "Apache-2.0",
     "readme": "README.md",
     "ChangeLog": [
@@ -72,6 +59,23 @@
                 "This Library now uses the ArrayList Library to store the list in memory, and then writes the list to the SD card when the list is modified (In SDLIST). This makes the library much more stable and reliable.",
                 "This Library has not been Thoughly tested, and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
                 "Removed the c++ file and moved implementation to the header file"
+            ]
+        },
+        {
+            "version": "1.0.4",
+            "date": "2024-02-14",
+            "changes": [
+                "Library src Directory was not included in the previous release. This has been fixed.",
+                "Re-Added Examples"
+            ]
+        }
+    ],
+    "examples": [
+        {
+            "ngitame": "Example",
+            "base": "Examples",
+            "files": [
+                "example.cpp"
             ]
         }
     ]
