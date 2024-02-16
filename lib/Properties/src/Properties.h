@@ -6,8 +6,7 @@
 
 class Properties {
 private:
-        bool debug;
-        Hashtable<String, String> table;
+        Hashtable<String, String> table; // Declaration of the Hashtable (Uses the Hashtable class from the Hashtable.h file in the background)
 
     public:
         Properties(); // Declaration of the constructor
@@ -22,14 +21,20 @@ private:
         int size();
         int elements();
         bool isEmpty();
-        void saveToSD(const String& filename);
-        void loadFromSD(const String& filename);
+        bool saveToSD(const String& filename);
+        bool loadFromSD(const String& filename);
+        bool save(const String& filename);
+        bool load(const String& filename);
+        bool store(const String& filename, const String& comments);
         bool containsKey(const String& key);
         bool deleteFile(const String& filename);
     
+    /**
+     * @brief Properties Iterator
+    */
     class PropertiesIterator {
 private:
-    Hashtable<String, String>::Iterator it;
+    Hashtable<String, String>::Iterator it; // Declaration of the Hashtable iterator
 public:
     // Constructor
     PropertiesIterator(Hashtable<String, String>::Iterator begin)

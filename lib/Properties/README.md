@@ -71,6 +71,13 @@ You may also need:
 * Debug Variable gets passed to the Hashtable Constructor, so that library also conforms to your wishes.
 ### Version 1.0.8:
 * Removed Debug Messages From Library to keep library imprint small... Plan is to create a secondary library that will be used for debugging.
+### Version 1.0.9:
+* Update to SaveToSD() Function... Function now returns a boolean (1 = true, 0 = false)
+* Update to LoadFromSD() Function... Function now returns a boolean (1 = true, 0 = false)
+* Added new save() Function ... This function just calls SaveToSD() but it is for those who like simpler functions
+* Added new load() function ... This function just calls the LoadfromSD() but it is for those who like simpler functions
+* Added new store() function ... This function is similar to SavetoSD() but allows for comments.
+* Added Function comments to all Functions.
 
             
             
