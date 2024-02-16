@@ -2,6 +2,7 @@
 #define TIMER_H
 
 #include <Arduino.h>
+#include <RTClib.h>
 
 class Timer {
 private:

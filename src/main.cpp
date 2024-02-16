@@ -2,9 +2,11 @@
 
 #include "SDList.h"
 #include "ArrayList.h"
+#include "Timer.h"
 
 
 SDList <String> list(SDCARD, 8);
+Timer timer;
 
 //SDList <String> strings(10, "pagefile.dat");
 //ArrayList <String> list = ArrayList<String>(ArrayList<String>::DYNAMIC, 10);
@@ -16,6 +18,8 @@ void setup(){
 
   Serial.println(list.size());
   Serial.println(list.get(0));
+
+  timer.setTargetMinutes(15);
   //list.clear();
 }
 
