@@ -10,6 +10,7 @@
             "includePath": [
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/include",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/src",
+                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Timer/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SDList/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/.pio/libdeps/megaatmega2560/SDList",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/ArrayList/src",
@@ -40,7 +41,6 @@
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SD-master",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SimpleMutex",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SimpleThreadManager",
-                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Timer/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/UnorderedMap/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Zips",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/iostream/src",
@@ -60,6 +60,7 @@
                 "path": [
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/include",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/src",
+                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Timer/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SDList/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/.pio/libdeps/megaatmega2560/SDList",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/ArrayList/src",
@@ -90,7 +91,6 @@
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SD-master",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SimpleMutex",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SimpleThreadManager",
-                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Timer/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/UnorderedMap/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Zips",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/iostream/src",

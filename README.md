@@ -22,7 +22,7 @@
 * [SimpleMutex](#simplemutex-class) [ACTIVE-DEVELOPMENT]
 * [SimpleThreadManager](#simplethreadmanager-class) [ACTIVE-DEVELOPMENT]
 * [Operators](#operators-class) [PASSIVE-DEVELOPMENT], [STABLE]
-* [Predicates](#predicates-class)[PASSIVE-DEVELOPMENT], [STABLE]
+* [Predicates](#predicates-class) [PASSIVE-DEVELOPMENT], [STABLE]
 
 Total Available Libraries: (15)
 Total Libraries: (17)
