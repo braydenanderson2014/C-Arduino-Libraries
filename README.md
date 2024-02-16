@@ -47,23 +47,23 @@ Total Libraries: (17)
 
 ## ALL LIBRARIES INCLUDE A README.md ##
 
-# PlatformIO Leaderboard for these Libraries (Out of /13,746 Libraries on the Platform) UPDATED 02/13/2024
-## Library Name: Position (Increase or Decrease) Downloads Month-To-Date
-* ArrayList: 2179 (Popularity Increase by 12 Positions) 6 Downloads MTD
-* Dictionary: 5224 (Popularity Increase by 16 Positions) 1 Download MTD
-* SimpleArduinoTimer: 5221 (Popularity Increase by 15 Positions) 1 Download MTD
-* UnorderedMap: 2177 (Popularity Increase by 11 Positions) 6 Downloads MTD
-* SimpleProperties: 5222 (Popularity Increase by 15 Positions) 1 Download MTD
-* Iterator: 5223 (Popularity Increase by 16 Positions) 1 Download MTD
-* BasicIO: 728 (Popularity Increase by 27 Positions) 46 Downloads MTD
-* SDList: 3807 (Popularity Increase by 26 Positions) 2 Downloads MTD
-* Hashtable: 1771 (Popularity Increase by 20 Positions) 9 Downloads MTD
-* SimpleVector: 2016 (Popularity Increase by 6 Positions) 7 Downloads MTD
-* MyDictionary: 13,523 (Popularity Increase by 1 Position) 0 Downloads MTD
-* Operators: 13,608 (Popularity Decrease by 1 Position) 0 Downloads MTD
-* Predicates: 13,609 (Popularity Decrease by 1 Position) 0 Downloads MTD
-* BasicLinkedList: 3808 (Popularity Increase by 26 Positions) 2 Downloads MTD
-* DoubleLinkedList: 13,554 (Popularity Decreae by 1 Position) 0 Downloads MTD
+# PlatformIO Leaderboard for these Libraries (Out of /13,754 Libraries on the Platform) UPDATED 02/16/2024 12am Mountain
+## Library Name: Position (Increase or Decrease) Downloads Month-To-Date, Total Downloads
+* ArrayList: 2398 (Popularity Decreased by 7 Positions) 6 Downloads MTD; *15 Downloads*
+* Dictionary: 5229 (Popularity Decreased by 5 Positions) 1 Download MTD; *7 Downloads*
+* SimpleArduinoTimer: 3774 (Popularity Increase by 1447 Positions) 2 Downloads MTD; *4 Downloads*
+* UnorderedMap: 1870 (Popularity Decrease by 10 Positions) 8 Downloads MTD; *10 Downloads*
+* SimpleProperties: 3775 (Popularity Increase by 1447 Positions) 2 Downloads MTD; *12 Downloads*
+* Iterator: 5228 (Popularity Decreased by 5 Positions) 1 Download MTD; *8 Downloads*
+* BasicIO: 746 (Popularity Decreased by 14 Positions) 46 Downloads MTD; *112 Downloads*
+* SDList: 3069 (Popularity Increase by 709 Positions) 3 Downloads MTD; *3 Downloads*
+* Hashtable: 1599 (Popularity Increase by 80 Positions) 11 Downloads MTD; *21 Downloads*
+* SimpleVector: 1761 (Popularity Increase by 98 Positions) 9 Downloads MTD; *22 Downloads*
+* MyDictionary: 13,523 (Popularity Remained the same) 0 Downloads MTD; *0 Downloads* :(
+* Operators: 5249 (Popularity Increased by 8358 Positions) 1 Download MTD; *1 Download*
+* Predicates: 5250 (Popularity Increased by 8358 Positions) 1 Downloads MTD; *1 Download*
+* BasicLinkedList: 3778 (Popularity Increase by 1 Position) 2 Downloads MTD; *5 Downloads*
+* DoubleLinkedList: 13,555 (Popularity Decrease by 1 Position) 0 Downloads MTD; *0 Downloads* :(
 
 
 
