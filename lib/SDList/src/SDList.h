@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <SD.h>
 #include <SPI.h>
-#include "ArrayList.h"
+#include <ArrayList.h>
 
 enum Mode {SDCARD, MEMORY};
 

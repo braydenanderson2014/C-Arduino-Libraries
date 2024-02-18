@@ -1,0 +1,35 @@
+#######################################
+# Syntax Coloring Map For Properties
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+Properties	KEYWORD1
+Hashtable   KEYWORD1
+PropertiesIterator KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+setProperty	KEYWORD2
+getProperty	KEYWORD2
+removeProperty	KEYWORD2
+clear	KEYWORD2
+size	KEYWORD2
+elements	KEYWORD2
+isEmpty	KEYWORD2
+saveToSD	KEYWORD2
+loadFromSD	KEYWORD2
+save	KEYWORD2
+load	KEYWORD2
+store	KEYWORD2
+containsKey	KEYWORD2
+deleteFile	KEYWORD2
+operator++ KEYWORD2
+operator!= KEYWORD2
+operator*= KEYWORD2
+key=KEYWORD2
+value=KEYWORD2
+begin=KEYWORD2
+end=KEYWORD2

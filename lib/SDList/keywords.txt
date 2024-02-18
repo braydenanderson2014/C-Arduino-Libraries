@@ -1,0 +1,35 @@
+#######################################
+# Syntax Coloring Map For ArrayList
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+ArrayList	KEYWORD1
+SDList KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+checkFile	KEYWORD2
+checkElement	KEYWORD2
+isFileEmpty	KEYWORD2
+addElement	KEYWORD2
+readFileIntoMemory	KEYWORD2
+dumpMemoryToFile	KEYWORD2
+begin	KEYWORD2
+setMode	KEYWORD2
+getMode	KEYWORD2
+append	KEYWORD2
+clear	KEYWORD2
+get	KEYWORD2
+insert	KEYWORD2
+remove	KEYWORD2
+size	KEYWORD2
+capacity	KEYWORD2
+isEmpty	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+arrayList

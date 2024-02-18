@@ -1,0 +1,51 @@
+#######################################
+# Syntax Coloring Map For ArrayList
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+ArrayList	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+add	KEYWORD2
+addAll	KEYWORD2
+insert	KEYWORD2
+insertAll	KEYWORD2
+removeItem	KEYWORD2
+remove	KEYWORD2
+removeIf	KEYWORD2
+removeRange	KEYWORD2
+retainAll	KEYWORD2
+clear	KEYWORD2
+get	KEYWORD2
+getAsString	KEYWORD2
+toString	KEYWORD2
+contains	KEYWORD2
+indexOf	KEYWORD2
+capacity	KEYWORD2
+size	KEYWORD2
+isEmpty	KEYWORD2
+set	KEYWORD2
+replaceAll	KEYWORD2
+forEach	KEYWORD2
+toArray	KEYWORD2
+sublist	KEYWORD2
+clone	KEYWORD2
+ensureCapacity	KEYWORD2
+trimToSize	KEYWORD2
+sort	KEYWORD2
+bubbleSort	KEYWORD2
+quickSort	KEYWORD2
+begin	KEYWORD2
+end	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+FIXED	LITERAL1
+DYNAMIC	LITERAL1
+BUBBLE_SORT	LITERAL1
+QUICK_SORT	LITERAL1

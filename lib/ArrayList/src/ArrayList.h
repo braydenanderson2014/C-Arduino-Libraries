@@ -441,29 +441,6 @@ public:
     }
 
     /**
-     * @brief Sets the debug mode of the ArrayList.
-     *
-     * This function enables or disables the debug mode of the ArrayList. When debug mode is enabled, the ArrayList prints debug information to the Serial.
-     * @deprecated This Function is Deprecated. Debug Messages Will not be a part of this Library; This function will not function anymore.
-     * @param debug If true, debug mode is enabled. If false, debug mode is disabled.
-    */
-    void setDebug(bool debug){
-        
-    }
-
-    /**
-     * @brief Gets the debug mode of the ArrayList.
-     *
-     * This function returns the debug mode of the ArrayList. When debug mode is enabled, the ArrayList prints debug information to the Serial.
-     * @deprecated This Function is Deprecated. Debug Messages Will not be a part of this Library. The function will no longer function anymore
-     * @return true if debug mode is enabled, false otherwise.
-    */
-    bool getDebug() const{
-        bool debug = false;
-        return debug;
-    }
-
-    /**
      * @brief Sets the item at a specific index in the ArrayList.
      *
      * This function sets the item at the specified index in the ArrayList to the specified item.
