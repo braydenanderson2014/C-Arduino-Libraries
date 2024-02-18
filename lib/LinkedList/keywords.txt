@@ -1,0 +1,28 @@
+#######################################
+# Syntax Coloring Map For LinkedList
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+LinkedList	KEYWORD1
+ListNode	KEYWORD1
+ForwardIterator KEYWORD1
+
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+operator*	KEYWORD2
+operator!=	KEYWORD2
+operator++	KEYWORD2
+append	KEYWORD2
+prepend	KEYWORD2
+insert	KEYWORD2
+remove	KEYWORD2
+get	KEYWORD2
+getAsString	KEYWORD2
+contains	KEYWORD2
+size	KEYWORD2
+isEmpty	KEYWORD2
+clear	KEYWORD2

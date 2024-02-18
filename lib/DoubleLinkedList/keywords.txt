@@ -1,0 +1,46 @@
+#######################################
+# Syntax Coloring Map For DoubleLinkedList
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+DoubleLinkedList	KEYWORD1
+DoubleListNode	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+append	KEYWORD2
+prepend	KEYWORD2
+insert	KEYWORD2
+remove	KEYWORD2
+get	KEYWORD2
+getAsString	KEYWORD2
+contains	KEYWORD2
+size	KEYWORD2
+isEmpty	KEYWORD2
+clear	KEYWORD2
+valueExists	KEYWORD2
+begin	KEYWORD2
+end	KEYWORD2
+rbegin	KEYWORD2
+rend	KEYWORD2
+randomBegin	KEYWORD2
+
+#######################################
+# Iterators (KEYWORD2)
+#######################################
+ForwardIterator	KEYWORD2
+BackwardIterator	KEYWORD2
+RandomIterator	KEYWORD2
+
+#######################################
+# Iterator Operations (KEYWORD2)
+#######################################
+operator*	KEYWORD2
+operator!=	KEYWORD2
+operator++	KEYWORD2
+operator--	KEYWORD2
+hasNext	KEYWORD2
+reset	KEYWORD2

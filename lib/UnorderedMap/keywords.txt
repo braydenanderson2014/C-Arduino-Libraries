@@ -1,0 +1,27 @@
+#######################################
+# Syntax Coloring Map For ArrayList
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+UnorderedMap	KEYWORD1
+Hashtable KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+put	KEYWORD2
+get	KEYWORD2
+contains	KEYWORD2
+remove	KEYWORD2
+clear	KEYWORD2
+getSize	KEYWORD2
+getCapacity	KEYWORD2
+isEmpty	KEYWORD2
+begin	KEYWORD2
+end	KEYWORD2
+hashFunction	KEYWORD2
+operator[]	KEYWORD2
+find	KEYWORD2
+count	KEYWORD2

@@ -1,0 +1,29 @@
+#######################################
+# Syntax Coloring Map For ArrayList
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+Timer	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+start	KEYWORD2
+stop	KEYWORD2
+reset	KEYWORD2
+clear	KEYWORD2
+pause	KEYWORD2
+resume	KEYWORD2
+elapsed	KEYWORD2
+isTimerRunning	KEYWORD2
+checkTimer	KEYWORD2
+syncWithRTC	KEYWORD2
+getRTCTime	KEYWORD2
+isTimerPaused	KEYWORD2
+setRTCTime	KEYWORD2
+setTargetDuration	KEYWORD2
+setTargetMinutes	KEYWORD2
+hasReachedTarget	KEYWORD2
+remainingTime	KEYWORD2

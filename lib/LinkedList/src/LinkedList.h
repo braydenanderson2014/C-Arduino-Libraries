@@ -44,7 +44,7 @@ class ForwardIterator {
         T& operator*() {
             return current->data;
         }
-
+ 
         /**
          * @brief Not equal operator.
          * @param other - the iterator to compare with
@@ -298,43 +298,7 @@ class ForwardIterator {
         Size = 0;
     }
 
-    /**
-     * @brief Checks if a key exists in the list
-     * @param key - the key to check for
-     * @return true if the key exists, false otherwise
-     * 
-     * @deprecated Use contains() instead
-     * @warning This Function is Deprecated
-    */
-    bool keyExists(const T& key) const {
-        ListNode<T>* current = head;
-        while (current) {
-            if (current->data == key) {
-                return true;
-            }
-            current = current->next;
-        }
-        return false;
-    }
-
-    /**
-     * @brief Checks if a value exists in the list
-     * @param value - the value to check for
-     * @return true if the value exists, false otherwise
-     * 
-     * @deprecated Use contains() instead
-     * @warning This Function is Deprecated
-    */
-    bool valueExists(const T& value) const {
-        ListNode<T>* current = head;
-        while (current) {
-            if (current->data == value) {
-                return true;
-            }
-            current = current->next;
-        }
-        return false;
-    }
+    
 };
 
 #endif // LINKEDLIST_H
