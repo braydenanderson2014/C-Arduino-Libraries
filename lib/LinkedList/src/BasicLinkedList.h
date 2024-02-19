@@ -1,6 +1,6 @@
 // LinkedList.h
-#ifndef LINKEDLIST_H
-#define LINKEDLIST_H
+#ifndef BASICLINKEDLIST_H
+#define BASICLINKEDLIST_H
 
 #include <Arduino.h>
 
@@ -166,14 +166,39 @@ class ForwardIterator {
         }
     }
 
-    
-    // Remove the first occurrence of an element from the list
     /**
-     * @brief Remove the first occurrence of an element from the list
+     * @brief Remove an element at a specific position
+     * @param index - the position of the element to remove
+     * 
+     * @details Removes the element at the given position in the list.
+     * If the position is 0, the first element is removed.
+     * If the position is greater than or equal to the size of the list, nothing happens.
+     * Otherwise, the element at the given position is removed.
+    */
+    void remove(const int index){
+        if(index == 0){
+            ListNode<T>* temp = head;
+            head = head->next;
+            delete temp;
+            Size--;
+            return;
+        }
+        ListNode<T>* current = head;
+        for(int i = 0; i < index - 1; i++){
+            current = current->next;
+        }
+        ListNode<T>* temp = current->next;
+        current->next = temp->next;
+        delete temp;
+        Size--;
+    }
+    
+    /**
+     * @brief Remove an element 
      * @param value - the value to be removed
      * 
     */
-    void remove(const T& value) {
+    void removeElement(const T& value) {
         if (!head) {
             return; // List is empty
         }
@@ -223,6 +248,20 @@ class ForwardIterator {
         }
     }
 
+    T getElement(size_t position) const {
+        ListNode<T>* current = head;
+        for (size_t i = 0; i < position; i++) {
+            if (!current) {
+                return; // Out of bounds
+            }
+            current = current->next;
+        }
+        if (current) {
+            return current->data;
+        } else {
+            return;
+        }
+    }
     /**
      * @brief Get the element at a specific position as a String
      * @param position - the position of the element to get
@@ -301,4 +340,4 @@ class ForwardIterator {
     
 };
 
-#endif // LINKEDLIST_H
+#endif // BASICLINKEDLIST_H

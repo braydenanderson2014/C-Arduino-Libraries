@@ -1,4 +1,4 @@
-#include <Timer.h>
+#include <SimpleArduinoTimer.h>
 
 Timer myTimer;  // Create an instance of the Timer class
 

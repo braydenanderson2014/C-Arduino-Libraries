@@ -24,9 +24,9 @@
     "examples": [
         {
             "name": "Example",
-            "base": "Examples",
+            "base": "examples",
             "files": [
-                "Example.cpp"
+                "Example/Example.cpp"
             ]
         }
     ],

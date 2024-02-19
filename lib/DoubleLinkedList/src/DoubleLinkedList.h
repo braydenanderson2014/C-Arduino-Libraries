@@ -354,12 +354,35 @@ public:
         }
     }
 
-    // Remove the first occurrence of an element from the list
     /**
-     * @brief Remove the first occurrence of an element from the list
+     * @brief Remove the element at a specific position
+     * @details This method removes the element at a specific position
+    */
+    void remove(const int &position) {
+        DoubleListNode<T> *current = head;
+        for (size_t i = 0; i < position; i++) {
+            current = current->next;
+        }
+        if (current->prev) {
+            current->prev->next = current->next;
+        } else {
+            head = current->next;
+        }
+        if (current->next) {
+            current->next->prev = current->prev;
+        } else {
+            tail = current->prev;
+        }
+        delete current;
+        Size--;
+    }
+
+
+    /**
+     * @brief Remove the element from the list
      * @details This method removes the first occurrence of an element from the list
     */
-    void remove(const T &value) {
+    void removeElement(const T &value) {
         DoubleListNode<T> *current = head;
         while (current) {
             if (current->data == value) {
@@ -406,6 +429,21 @@ public:
             return &(current->data);
         } else {
             return nullptr;
+        }
+    }
+
+    T getElement(size_t position) const {
+        DoubleListNode<T> *current = head;
+        for (size_t i = 0; i < position; i++) {
+            if (!current) {
+                return; // Out of bounds
+            }
+            current = current->next;
+        }
+        if (current) {
+            return current->data;
+        } else {
+            return;
         }
     }
 

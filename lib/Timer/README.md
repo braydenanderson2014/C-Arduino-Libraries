@@ -38,7 +38,11 @@ If you want to Utilize this Library. Please include the
 ### Version 1.0.2:
 * Added Debug Statements [TIMER]: 
 ### Version 1.0.3:
-* Modified constructor to take in a ```bool``` to allow you to set whether or not the library displays debug messages.
+* Modified constructor to take in a ```bool```cpp to allow you to set whether or not the library displays debug messages.
+### Version 1.0.4:
+* Renamed Header File.
+* Added new Functions setTargetHours(), setUseRTC, getUseRTC, begin(). Please note, unless you call the begin() function, the rtc will not function.the begin() function will try and start the rtc. if it fails it will remain using the millis() function instead.
+* Modified some Functions to swap between millis() and the rtc Functions based off of the useRTC boolean.
 
 
     

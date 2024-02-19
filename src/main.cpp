@@ -1,25 +1,22 @@
 #include <Arduino.h>
 
-#include "SDList.h"
-#include "ArrayList.h"
-#include "Timer.h"
+#include "DoubleLinkedList.h"
 
 
-SDList <String> list(SDCARD, 8);
-Timer timer;
+DoubleLinkedList <String> list;
 
 //SDList <String> strings(10, "pagefile.dat");
 //ArrayList <String> list = ArrayList<String>(ArrayList<String>::DYNAMIC, 10);
 void setup(){
   Serial.begin(9600);
   while(!Serial){}
-  list.begin(4);
-  list.append("Gracen is crazy");
+  for(int i = 0; i < 5; i++){
+    list.append(String(i * 10));
+  }
 
-  Serial.println(list.size());
-  Serial.println(list.get(0));
-
-  timer.setTargetMinutes(15);
+  for(int i = 0; i < list.size(); i++){
+    Serial.println(list.getElement(i));
+  }
   //list.clear();
 }
 

@@ -34,6 +34,11 @@ To use `DoubleLinkedList` in your Arduino sketch:
 * Deprecated valueExists() function, as it is no longer needed. This function will be removed in the next release. Use the contains function instead
 * Removed Debug Messages from the Library, This is to save Memory space.
 * Added Function Comments to all of the functions in the Library
+### Version 1.0.3
+* Added getElement Function that returns the element instead of the pointer to the element.
+### Version 1.0.4
+* Renamed the remove function to more closely correlate to what it does.
+* Added new remove function that takes in an index to remove to match other List Libraries.
             
 
 

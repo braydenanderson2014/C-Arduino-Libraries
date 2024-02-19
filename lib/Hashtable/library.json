@@ -1,6 +1,6 @@
 {
     "name": "Hashtable",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "description": "A hashtable implementation for Arduino",
     "keywords": ["Hashtable", "Hashtable Iterator", "Hash", "Table", "Dynamic Hashtable", "Arduino Hashtable", "Arduino Hash", "Arduino Table", "Arduino Dynamic Hashtable", "Hashset", "Arduino Hashset", "Arduino Dynamic Hashset", "Key-Value Pairs"],
     "repository": {
@@ -21,10 +21,16 @@
     "examples": [
         {
             "name": "Example",
-            "base": "Example",
+            "base": "examples",
             "files": [
-                "Example.cpp",
-                "Example2.cpp"
+                "Example/Example.cpp"
+            ]
+        },
+        {
+            "name": "Example 2",
+            "base": "examples",
+            "files": [
+                "Example2/Example2.cpp"
             ]
         }
     ],
@@ -146,6 +152,13 @@
             "changes": [
                 "Emergency Patch: Fixed an issue where the Constructor wasnt properly overloaded.",
                 "Adjusted Library Keywords"
+            ]
+        },
+        {
+            "version": "1.1.2",
+            "date": "2024-02-18",
+            "changes": [
+                "Added new getElement() Function that returns an element at a specific index in the Hashtable"
             ]
         }
     ],

@@ -40,8 +40,14 @@ To use `LinkedList` in your Arduino sketch:
 * Deprecated the keyExists() and valueExists() functions. They will be removed in the next release.. (Use contains() instead)
 * Removed debug statements from the library, this is to save memory. A duplicate Library will be created with debug statements in it.
 * Added Function Comments to the Library
-### Version 1.0.5 [FUTURE-RELEASE]
+### Version 1.0.5 
 * REMOVING Two Deprecated Functions -> Use contains()
+* Renamed the remove function to more closely correlate to what it does.
+* Added new remove function that takes in an index to remove to match other List Libraries.
+* Added getElement Function that returns the element instead of the pointer to the element.
+### Version 1.0.6 [Current-Release]
+* Renaming Linked List Files (including src File) to BasicLinkedList. This is due to Arduino Library Manager Requiring Library Headers to Match Library Names. And since you cannot Duplicate Library Names, The library will be Listed the same as PlatformIO. (BasicLinkedList)
+
 
 ## Currently Tested Functions
 `cpp

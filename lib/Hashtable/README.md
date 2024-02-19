@@ -15,7 +15,8 @@ The `Hashtable` class is designed to offer a dynamic and scalable hash table wit
 ### Key Features
 
 - `put(K key, V value)`: Associates the given key with the specified value in the hash table.
-- `get(K key)`: Retrieves the value associated with the given key.
+- `get(K key)`: Retrieves the pointer to the value associated with the given key.
+- `getElement(K key)` : Retrieves the value associated with the given key
 - `remove(K key)`: Removes the key-value pair associated with the given key.
 - `clear()`: Clears all key-value pairs from the hash table.
 - `size()`: Returns the size of the table.
@@ -41,6 +42,9 @@ The `Hashtable` class is designed to offer a dynamic and scalable hash table wit
 - `bool operator!=(const Iterator& other)` : Return currentEntry != other.currentEntry || currentBucket != other.currentBucket
 - `Iterator& operator++()` : Moves iteration to the next element, the returns that element
 - `Entry* operator*()` : returns currentEntry
+- `find()` : Returns a value associated with the key
+- `getKey()` Returns a Vector of Keys
+- `getValues()` Returns a Vector of Values
 
 
 
@@ -66,6 +70,20 @@ If you want to Utilize this Library. Please include the
 #include <Hashtable.h> 
 ```
 
+
+# Arduino:
+## ChangeLog
+### Version 1.0.0:
+* Initial Release. Based off of PlatformIO version v1.1.2 
+### Version 1.0.1:
+* Added New getKey() Function for Iterator
+* Added New getValue() Function for Iterator
+* Added New find() Function for Iterator.
+* NOTE: All 3 functions are not tested and should be used with Caution. 
+
+=============================================================================
+
+# PlatformIO:
 ## ChangeLog
 ### Version 1.0.0:
 * Initial Release 
@@ -113,9 +131,16 @@ If you want to Utilize this Library. Please include the
 * Added new exists() Function that only takes in 1 parameter, the key, this function returns a boolean value
 * Added new values() Function that returns a SimpleVector of all the values in the Hashtable
 * Added function comments.
-### Version 1.1.1: [Latest-Release]
+### Version 1.1.1: 
 * Emergency Patch: Fixed an issue where the Constructor wasnt properly overloaded.
 * Adjusted Library Keywords
+### Version 1.1.2: 
+* Added new getElement() Function that returns an element at a specific index in the Hashtable
+### Version 1.1.3: [Latest-Release]
+* Added New getKey() Function for Iterator
+* Added New getValue() Function for Iterator
+* Added New find() Function for Iterator.
+
 
 
 
@@ -135,7 +160,7 @@ int main() {
     dictionary.put(3, "Three");
 
     // Retrieve values using keys
-    String value = dictionary.get(2);
+    String value = dictionary.getElement(2);
     Serial.println("Value for key 2: ");
 
     // Remove a key-value pair

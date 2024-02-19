@@ -1,6 +1,6 @@
 {
     "name": "SimpleArduinoTimer",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "A Simple Timer Library for Arduino",
     "keywords": ["Timer"],
     "repository": {
@@ -19,12 +19,12 @@
         "Arduino": "*"
     },
     "Notes": "This library is a work in progress. It is not yet ready for use. It has not been tested, USE AT YOUR OWN RISK. If you do use it, please report any bugs you find.",   
-    "header": "Timer.h",
+    "header": "SimpleArduinoTimer.h",
     "cpp": "Timer.cpp",
     "examples": [
         {
             "name": "Example",
-            "base": "Example",
+            "base": "examples",
             "files": [
                 "Example.cpp"
             ]
