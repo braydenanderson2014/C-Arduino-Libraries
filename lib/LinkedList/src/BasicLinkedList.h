@@ -252,16 +252,17 @@ class ForwardIterator {
         ListNode<T>* current = head;
         for (size_t i = 0; i < position; i++) {
             if (!current) {
-                return; // Out of bounds
+                return T(); // Out of bounds
             }
             current = current->next;
         }
         if (current) {
             return current->data;
         } else {
-            return;
+            return T();
         }
     }
+
     /**
      * @brief Get the element at a specific position as a String
      * @param position - the position of the element to get

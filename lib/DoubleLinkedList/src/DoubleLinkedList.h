@@ -436,14 +436,14 @@ public:
         DoubleListNode<T> *current = head;
         for (size_t i = 0; i < position; i++) {
             if (!current) {
-                return; // Out of bounds
+                return T(); // Out of bounds
             }
             current = current->next;
         }
         if (current) {
             return current->data;
         } else {
-            return;
+            return T();
         }
     }
 

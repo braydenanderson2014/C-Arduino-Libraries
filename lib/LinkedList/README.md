@@ -17,6 +17,16 @@ To use `LinkedList` in your Arduino sketch:
 1. Copy the `LinkedList` class code to your project's directory.
 2. Include `LinkedList.h` at the top of your sketch.
 
+# Arduino:
+## Change Log
+### Version 1.0.0
+* Initial Release
+### Version 1.0.1
+* Fixed an issue with the getElement() Function. The function will return the item if its found, or it will return a default constructed T() in the event an item is not found.
+
+
+==================================================================
+# PlatformIO
 ## Change Log
 ### Version 1.0.0
 * Initial Release
@@ -45,8 +55,10 @@ To use `LinkedList` in your Arduino sketch:
 * Renamed the remove function to more closely correlate to what it does.
 * Added new remove function that takes in an index to remove to match other List Libraries.
 * Added getElement Function that returns the element instead of the pointer to the element.
-### Version 1.0.6 [Current-Release]
+### Version 1.0.6 
 * Renaming Linked List Files (including src File) to BasicLinkedList. This is due to Arduino Library Manager Requiring Library Headers to Match Library Names. And since you cannot Duplicate Library Names, The library will be Listed the same as PlatformIO. (BasicLinkedList)
+### Version 1.0.7 [Current-Release]
+* Fixed an issue with the getElement() Function. The function will return the item if its found, or it will return a default constructed T() in the event an item is not found.
 
 
 ## Currently Tested Functions
