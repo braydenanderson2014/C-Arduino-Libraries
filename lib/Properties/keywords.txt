@@ -8,12 +8,14 @@
 Properties	KEYWORD1
 Hashtable   KEYWORD1
 PropertiesIterator KEYWORD1
+IDENTIFIERTYPE KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 setProperty	KEYWORD2
 getProperty	KEYWORD2
+identify KEYWORD2
 removeProperty	KEYWORD2
 clear	KEYWORD2
 size	KEYWORD2
@@ -24,12 +26,24 @@ loadFromSD	KEYWORD2
 save	KEYWORD2
 load	KEYWORD2
 store	KEYWORD2
+storeToXML KEYWORD2
+loadFromXML KEYWORD2
+storeToJSON KEYWORD2
+loadFromJSON KEYWORD2
+storeToYAML KEYWORD2
+loadFromYAML KEYWORD2
+storeToINI KEYWORD2
+loadFromINI KEYWORD2
+storeToCSV KEYWORD2
+loadFromCSV KEYWORD2
+storeToTOML KEYWORD2
+loadFromTOML KEYWORD2
 containsKey	KEYWORD2
 deleteFile	KEYWORD2
 operator++ KEYWORD2
 operator!= KEYWORD2
-operator*= KEYWORD2
-key=KEYWORD2
-value=KEYWORD2
-begin=KEYWORD2
-end=KEYWORD2
+operator* KEYWORD2
+key KEYWORD2
+value KEYWORD2
+begin KEYWORD2
+end KEYWORD2

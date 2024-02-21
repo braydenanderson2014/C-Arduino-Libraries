@@ -13,9 +13,15 @@ To use the `Properties` class, follow these steps:
 ## Installation
 
 ```powershell
-git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Properties.git"
-git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Hashtable.git"
-git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/SimpleVector.git"
+git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Properties.git" OR
+git clone "https://github.com/braydenanderson2014/SimpleProperties.git"
+
+git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Hashtable.git" OR
+git clone "https://github.com/braydenanderson2014/ArduinoHashtable.git"
+
+git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/SimpleVector.git" OR
+git clone "https://github.com/braydenanderson2014/SimpleVector.git"
+
 
 ```
 ## Header
@@ -37,6 +43,15 @@ You may also need:
 * LiquidCrystal
 * LiquidCrystal_I2C
 
+# ARDUINO
+## ChangeLog
+### Version 1.0.0:
+* Initial Release
+### Version 1.0.1 - BETA: [CURRENT-RELEASE] -> [BETA]
+* Added Support for Several New File types Including (.csv, .json, .xml, .toml, .ini, .yaml)
+* Added Support for creating your own custom Key-Value Pair file. The saveToSD, store, and loadFromSD functions will read a new enum variable called IDENTIFIERTYPE. The Available options are: EQUALS (=), COLEN (:), SEMICOLEN (;), HYPHEN (-), COMMA (,), FORWARD_SLASH (\), BACKWARD_SLASH (/)
+
+# PlatformIO
 ## ChangeLog
 ### Version 1.0.0:
 * Initial Release 
@@ -78,6 +93,9 @@ You may also need:
 * Added new load() function ... This function just calls the LoadfromSD() but it is for those who like simpler functions
 * Added new store() function ... This function is similar to SavetoSD() but allows for comments.
 * Added Function comments to all Functions.
+### Version 1.1.0: [CURRENT-RELEASE] -> [BETA]
+* Added Support for Several New File types Including (.csv, .json, .xml, .toml, .ini, .yaml)
+* Added Support for creating your own custom Key-Value Pair file. The saveToSD, store, and loadFromSD functions will read a new enum variable called IDENTIFIERTYPE. The Available options are: EQUALS (=), COLEN (:), SEMICOLEN (;), HYPHEN (-), COMMA (,), FORWARD_SLASH (\), BACKWARD_SLASH (/)
 
             
             
