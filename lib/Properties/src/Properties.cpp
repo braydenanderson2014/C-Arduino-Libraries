@@ -15,6 +15,19 @@ Properties::~Properties() {
     table.clear();
 }
 
+
+/**
+ * @brief Begin
+ * 
+ * @param identifierType (Identifier Type)
+ * 
+ * @details This method sets the identifier type for the properties. The identifier type is used to determine the type of the property separator.
+ * @return void
+*/
+void Properties::identify(const IDENTIFIERTYPE identifierType = EQUALS) {
+    this->identifierType = identifierType;
+}
+
 /**
  * @brief Set the Property object
  * 
@@ -160,8 +173,28 @@ bool Properties::saveToSD(const String& filename) {
         // Iterate through the properties using the custom iterator and write them to the file
         for (PropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
-                String line = it.key() + "=" + it.value() + "\n";
-                file.print(line);
+                if(identifierType == IDENTIFIERTYPE::EQUALS){
+                    String line = it.key() + "=" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::COLEN){
+                    String line = it.key() + ":" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::SEMICOLEN){
+                    String line = it.key() + ";" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::HYPHEN){
+                    String line = it.key() + "-" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::COMMA){
+                    String line = it.key() + "," + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::FORWARD_SLASH){
+                    String line = it.key() + "/" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::BACKWARD_SLASH){
+                    String line = it.key() + "\\" + it.value() + "\n";
+                    file.print(line);
+                }
             }else {
                 break;
             }
@@ -188,6 +221,22 @@ bool Properties::loadFromSD(const String& filename) {
     if (file) {
         while (file.available()) {
             String line = file.readStringUntil('\n');
+            int separatorIndex;
+            if(identifierType == IDENTIFIERTYPE::EQUALS){
+                separatorIndex = line.indexOf('=');
+            } else if(identifierType == IDENTIFIERTYPE::COLEN){
+                separatorIndex = line.indexOf(':');
+            } else if(identifierType == IDENTIFIERTYPE::SEMICOLEN){
+                separatorIndex = line.indexOf(';');
+            } else if(identifierType == IDENTIFIERTYPE::HYPHEN){
+                separatorIndex = line.indexOf('-');
+            } else if(identifierType == IDENTIFIERTYPE::COMMA){
+                separatorIndex = line.indexOf(',');
+            } else if(identifierType == IDENTIFIERTYPE::FORWARD_SLASH){
+                separatorIndex = line.indexOf('/');
+            } else if(identifierType == IDENTIFIERTYPE::BACKWARD_SLASH){
+                separatorIndex = line.indexOf('\\');
+            }
             int separatorIndex = line.indexOf('=');
             if (separatorIndex != -1) {
                 String key = line.substring(0, separatorIndex);
@@ -244,8 +293,28 @@ bool Properties::store(const String& filename, const String& comments) {
         file.print("# " + comments + "\n");
         for (PropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
-                String line = it.key() + "=" + it.value() + "\n";
-                file.print(line);
+                if(identifierType == IDENTIFIERTYPE::EQUALS){
+                    String line = it.key() + "=" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::COLEN){
+                    String line = it.key() + ":" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::SEMICOLEN){
+                    String line = it.key() + ";" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::HYPHEN){
+                    String line = it.key() + "-" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::COMMA){
+                    String line = it.key() + "," + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::FORWARD_SLASH){
+                    String line = it.key() + "/" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::BACKWARD_SLASH){
+                    String line = it.key() + "\\" + it.value() + "\n";
+                    file.print(line);
+                }
             }else {
                 break;
             }
@@ -286,4 +355,375 @@ bool Properties::deleteFile(const String& filename) {
         }
     }
     return true;
+}
+
+/**
+ * @brief storeToXML (Store the properties to an XML file)
+ * 
+ * @param filename (File Name)
+ * @param comments (Comments)
+ * 
+ * @details This method stores the properties to the given file name on the SD card in XML format with the given comments.
+ * @return bool
+*/
+bool Properties::storeToXML(const String& filename, const String& comments) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        file.print("<!-- " + comments + " -->\n");
+        file.print("<properties>\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print("  <property>\n");
+                file.print("    <key>" + it.key() + "</key>\n");
+                file.print("    <value>" + it.value() + "</value>\n");
+                file.print("  </property>\n");
+            }else {
+                break;
+            }
+        }
+        file.print("</properties>\n");
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief loadFromXML (Load the properties from an XML file)
+ * 
+ * @param filename (File Name)
+ * 
+ * @details This method loads the properties from the given file name on the SD card in XML format.
+ * @return bool
+*/
+bool Properties::loadFromXML(const String& filename) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int keyStartIndex = line.indexOf("<key>");
+            int keyEndIndex = line.indexOf("</key>");
+            int valueStartIndex = line.indexOf("<value>");
+            int valueEndIndex = line.indexOf("</value>");
+            if (keyStartIndex != -1 && keyEndIndex != -1 && valueStartIndex != -1 && valueEndIndex != -1) {
+                String key = line.substring(keyStartIndex + 5, keyEndIndex);
+                String value = line.substring(valueStartIndex + 7, valueEndIndex);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief storeToTOML (Store the properties to a TOML file)
+ * 
+ * @param filename (File Name)
+ * @param comments (Comments)
+ * 
+ * @details This method stores the properties to the given file name on the SD card in TOML format with the given comments.
+ * @return bool
+*/
+bool Properties::storeToTOML(const String& filename, const String& comments) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("# " + comments + "\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + " = \"" + it.value() + "\"\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief loadFromTOML (Load the properties from a TOML file)
+ * 
+ * @param filename (File Name)
+ * 
+ * @details This method loads the properties from the given file name on the SD card in TOML format.
+ * @return bool
+*/
+bool Properties::loadFromTOML(const String& filename) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf('=');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 3, line.length() - 2);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief storeToCSV (Store the properties to a CSV file)
+ * 
+ * @param filename (File Name)
+ * @param comments (Comments)
+ * 
+ * @details This method stores the properties to the given file name on the SD card in CSV format with the given comments.
+ * @return bool
+*/
+bool Properties::storeToCSV(const String& filename, const String& comments) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("# " + comments + "\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + "," + it.value() + "\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief loadFromCSV (Load the properties from a CSV file)
+ * 
+ * @param filename (File Name)
+ * 
+ * @details This method loads the properties from the given file name on the SD card in CSV format.
+ * @return bool
+*/
+bool Properties::loadFromCSV(const String& filename) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf(',');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 1);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief storeToJSON (Store the properties to a JSON file)
+ * 
+ * @param filename (File Name)
+ * @param comments (Comments)
+ * 
+ * @details This method stores the properties to the given file name on the SD card in JSON format with the given comments.
+ * @return bool
+*/
+bool Properties::storeToJSON(const String& filename, const String& comments) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("{\n");
+        file.print("  \"comments\": \"" + comments + "\",\n");
+        file.print("  \"properties\": [\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print("    {\n");
+                file.print("      \"key\": \"" + it.key() + "\",\n");
+                file.print("      \"value\": \"" + it.value() + "\"\n");
+                file.print("    }");
+                if (it != end()) {
+                    file.print(",");
+                }
+                file.print("\n");
+            }else {
+                break;
+            }
+        }
+        file.print("  ]\n");
+        file.print("}\n");
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief loadFromJSON (Load the properties from a JSON file)
+ * 
+ * @param filename (File Name)
+ * 
+ * @details This method loads the properties from the given file name on the SD card in JSON format.
+ * @return bool
+*/
+bool Properties::loadFromJSON(const String& filename) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int keyStartIndex = line.indexOf("\"key\": \"");
+            int keyEndIndex = line.indexOf("\",");
+            int valueStartIndex = line.indexOf("\"value\": \"");
+            int valueEndIndex = line.indexOf("\"", valueStartIndex + 9);
+            if (keyStartIndex != -1 && keyEndIndex != -1 && valueStartIndex != -1 && valueEndIndex != -1) {
+                String key = line.substring(keyStartIndex + 8, keyEndIndex);
+                String value = line.substring(valueStartIndex + 9, valueEndIndex);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief storeToYAML (Store the properties to a YAML file)
+ * 
+ * @param filename (File Name)
+ * @param comments (Comments)
+ * 
+ * @details This method stores the properties to the given file name on the SD card in YAML format with the given comments.
+ * @return bool
+*/
+bool Properties::storeToYAML(const String& filename, const String& comments) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("# " + comments + "\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + ": " + it.value() + "\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief loadFromYAML (Load the properties from a YAML file)
+ * 
+ * @param filename (File Name)
+ * 
+ * @details This method loads the properties from the given file name on the SD card in YAML format.
+ * @return bool
+*/
+bool Properties::loadFromYAML(const String& filename) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf(':');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 2);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief storeToINI (Store the properties to an INI file)
+ * 
+ * @param filename (File Name)
+ * @param comments (Comments)
+ * 
+ * @details This method stores the properties to the given file name on the SD card in INI format with the given comments.
+ * @return bool
+*/
+bool Properties::storeToINI(const String& filename, const String& comments) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("; " + comments + "\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + " = " + it.value() + "\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief loadFromINI (Load the properties from an INI file)
+ * 
+ * @param filename (File Name)
+ * 
+ * @details This method loads the properties from the given file name on the SD card in INI format.
+ * @return bool
+*/
+bool Properties::loadFromINI(const String& filename) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf('=');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 2);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
 }

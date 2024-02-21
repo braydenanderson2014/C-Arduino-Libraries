@@ -7,11 +7,21 @@
 class Properties {
 private:
         Hashtable<String, String> table; // Declaration of the Hashtable (Uses the Hashtable class from the Hashtable.h file in the background)
-
+        enum IDENTIFIERTYPE{ // Enumeration of the identifier types (=, :, ;, -, , , /, \)
+            EQUALS,
+            COLEN,
+            SEMICOLEN,
+            HYPHEN,
+            COMMA,
+            FORWARD_SLASH,
+            BACKWARD_SLASH
+        };
+        IDENTIFIERTYPE identifierType = EQUALS;
     public:
         Properties(); // Declaration of the constructor
         ~Properties();
 
+        void identify(const IDENTIFIERTYPE identifierType); // Declaration of the begin method, which sets the identifier type... If not called, Default is EQUALS (=)
         void setProperty(const String& key, const String& value);
         void setProperty(const String& key, const String& value, const String& filePath);
         String getProperty(const String& key);
@@ -26,6 +36,25 @@ private:
         bool save(const String& filename);
         bool load(const String& filename);
         bool store(const String& filename, const String& comments);
+        
+        bool storeToXML(const String& filename, const String& comments);
+        bool loadFromXML(const String& filename);
+
+        bool storeToJSON(const String& filename, const String& comments);
+        bool loadFromJSON(const String& filename);
+
+        bool storeToYAML(const String& filename, const String& comments);
+        bool loadFromYAML(const String& filename);
+
+        bool storeToINI(const String& filename, const String& comments);
+        bool loadFromINI(const String& filename);
+
+        bool storeToCSV(const String& filename, const String& comments);
+        bool loadFromCSV(const String& filename);
+
+        bool storeToTOML(const String& filename, const String& comments);
+        bool loadFromTOML(const String& filename);
+
         bool containsKey(const String& key);
         bool deleteFile(const String& filename);
     

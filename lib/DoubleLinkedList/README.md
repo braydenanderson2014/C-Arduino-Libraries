@@ -18,6 +18,16 @@ To use `DoubleLinkedList` in your Arduino sketch:
 1. Copy the `DoubleLinkedList` class code to your project's directory.
 2. Include `DoubleLinkedList.h` at the top of your sketch.
 
+
+# Arduino
+## Change Log
+### Version 1.0.0
+* Initial Release
+### Version 1.0.1
+* Fixed an issue with the getElement() Function. The function will return the item if its found, or it will return a default constructed T() in the event an item is not found. 
+
+=============================================================================
+# PlatformIO 
 ## Change Log
 ### Version 1.0.0
 * Initial Release
@@ -34,6 +44,13 @@ To use `DoubleLinkedList` in your Arduino sketch:
 * Deprecated valueExists() function, as it is no longer needed. This function will be removed in the next release. Use the contains function instead
 * Removed Debug Messages from the Library, This is to save Memory space.
 * Added Function Comments to all of the functions in the Library
+### Version 1.0.3
+* Added getElement Function that returns the element instead of the pointer to the element.
+### Version 1.0.4
+* Renamed the remove function to more closely correlate to what it does.
+* Added new remove function that takes in an index to remove to match other List Libraries.
+### Version 1.0.5
+* Fixed an issue with the getElement() Function. The function will return the item if its found, or it will return a default constructed T() in the event an item is not found.
             
 
 

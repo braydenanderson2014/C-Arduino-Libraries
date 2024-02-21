@@ -104,6 +104,10 @@ If you want to Utilize this Library. Please include the
 * Added new Sort Algorithm. (Quick Sort) 
 * Modified the sort function so the user can select between bubble sort and quick sort.
 * Fixed Library Changelog to reflect current State of Library Changes
+### Version 1.0.4:
+* Added 2 new dependencies to help people find the two Libraries that this ArrayList Library can use. (Predicates, Operators) you are not required to utilize them but you can if you want. just add the necessary Headers 
+```#include <Predicates>```cpp 
+```#include <Operators>```cpp
 
 
 

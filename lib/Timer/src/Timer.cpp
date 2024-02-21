@@ -1,25 +1,47 @@
-#include "Timer.h"
+#include "SimpleArduinoTimer.h"
 #include <RTClib.h>
 
 RTC_DS3231 timerRTC; // Add an instance of the RTC library
 DateTime timerNow = timerRTC.now();
 
+
+
 Timer::Timer() : startTime(0), elapsedTime(0), pauseTime(0), targetDuration(0), isRunning(false), isPaused(false), debug(debug) {
-    if (!rtc.begin()) {
-        if(debug){
-            Serial.println("[TIMER]: Couldn't find RTC");
-        }
-        while (1);
-    }
+  useRTC = false;
 }
 
+void Timer::begin() {
+    if(!rtc.begin()){
+        useRTC = false;
+    }
+    useRTC = true;
+}
+
+void Timer::setUseRTC(bool useRTC) {
+    if(debug){
+        Serial.println("[TIMER]: Setting useRTC : " + String(useRTC));
+    }
+    this->useRTC = useRTC;
+}
+
+bool Timer::getUseRTC() const {
+    if(debug){
+        Serial.println("[TIMER]: Getting useRTC : " + String(useRTC));
+    }
+    return useRTC;
+}
 
 void Timer::start() {
     if(debug){
         Serial.println("[TIMER]: Starting timer");
     }
     if (!isRunning && !isPaused) {
-        startTime = millis();
+        if(useRTC){
+            syncWithRTC();
+            startTime = timerNow.unixtime() * 1000; // Convert seconds to milliseconds
+        }else{
+            startTime = millis();
+        }
         isRunning = true;
     }
 }
@@ -29,7 +51,12 @@ void Timer::stop() {
         Serial.println("[TIMER]: Stopping timer");
     }
     if (isRunning) {
-        elapsedTime += millis() - startTime;
+        if(useRTC){
+            syncWithRTC();
+            elapsedTime = timerNow.unixtime() * 1000; // Convert seconds to milliseconds
+        }else{
+            elapsedTime += millis() - startTime;
+        }
         isRunning = false;
     }
 }
@@ -59,7 +86,12 @@ void Timer::pause() {
         Serial.println("[TIMER]: Pausing timer");
     }
     if (isRunning && !isPaused) {
-        pauseTime = millis();
+        if(useRTC){
+            syncWithRTC();
+            pauseTime = timerNow.unixtime() * 1000; // Convert seconds to milliseconds
+        }else{
+            pauseTime = millis();
+        }
         isPaused = true;
         isRunning = false;
         if(debug){
@@ -77,7 +109,12 @@ void Timer::resume() {
         Serial.println("[TIMER]: Resuming timer");
     }
     if (isPaused) {
-        startTime += (millis() - pauseTime); // Adjusting the start time so that paused duration isn't counted.
+        if(useRTC){
+            syncWithRTC();
+            startTime += (timerNow.unixtime() * 1000 - pauseTime); // Adjusting the start time so that paused duration isn't counted.
+        }else{
+            startTime += (millis() - pauseTime); // Adjusting the start time so that paused duration isn't counted.
+        }
         isRunning = true;
         isPaused = false;
         if(debug){
@@ -90,7 +127,7 @@ void Timer::resume() {
     }
 }
 
-unsigned long Timer::elapsed() const {
+unsigned long Timer::elapsed() {
     if(debug){
         Serial.println("[TIMER]: Getting elapsed time");
     }
@@ -98,7 +135,12 @@ unsigned long Timer::elapsed() const {
         if(debug){
             Serial.println("[TIMER]: (Timer Running) Elapsed Time: " + String(elapsedTime + (millis() - startTime)) + " milliseconds");
         }
-        return elapsedTime + (millis() - startTime);
+        if(useRTC){
+            syncWithRTC();
+            return elapsedTime + (timerNow.unixtime() * 1000 - startTime);
+        }else{
+            return elapsedTime + (millis() - startTime);
+        }
     } else if (isPaused) {
         if(debug){
             Serial.println("[TIMER]: (Timer Paused) Elapsed Time: " + String(elapsedTime + (pauseTime - startTime)) + " milliseconds");
@@ -118,7 +160,7 @@ bool Timer::isTimerRunning() const {
     return isRunning;
 }
 
-bool Timer::checkTimer(unsigned long duration) const {
+bool Timer::checkTimer(unsigned long duration)  {
     if(debug){
         Serial.println("[TIMER]: Checking if timer has reached duration : " + String(elapsed() >= duration) + " milliseconds");
     }
@@ -169,14 +211,21 @@ void Timer::setTargetMinutes(unsigned long minutes) {
     targetDuration = minutes * 60000;  // 1 minute = 60,000 milliseconds
 }
 
-bool Timer::hasReachedTarget() const {
+void Timer::setTargetHours(unsigned long hours) {
+    if(debug){
+        Serial.println("[TIMER]: Setting target hours");
+    }
+    targetDuration = hours * 3600000;  // 1 hour = 3,600,000 milliseconds
+}
+
+bool Timer::hasReachedTarget() {
     if(debug){
         Serial.println("[TIMER]: Checking if timer has reached target : " + String(elapsed() >= targetDuration));
     }
     return elapsed() >= targetDuration;
 }
 
-unsigned long Timer::remainingTime() const {
+unsigned long Timer::remainingTime() {
     if(debug){
         Serial.println("[TIMER]: Getting remaining time : " + String(targetDuration - elapsed()) + " milliseconds");
     }

@@ -20,7 +20,9 @@ append	KEYWORD2
 prepend	KEYWORD2
 insert	KEYWORD2
 remove	KEYWORD2
+removeElement KEYWORD2
 get	KEYWORD2
+getElement KEYWORD2
 getAsString	KEYWORD2
 contains	KEYWORD2
 size	KEYWORD2

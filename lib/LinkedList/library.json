@@ -1,6 +1,6 @@
 {
     "name": "BasicLinkedList",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "This Library is an easy to use Library for Linked Lists. This Library contains basic implementations of the LinkedList functions. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["LinkedList", "List", "BasicLinkedList", "Dynamic Data Structures", "Data Structures", "Utilities", "Data Structures", "Key-Value Pairs"],
     "repositories": [
@@ -22,17 +22,17 @@
     "examples": [
         {
             "name": "Example",
-            "base": "Example",
+            "base": "examples",
             "files": [
-                "Example.cpp"
+                "Example/Example.ino"
             ]
         }
     ],
     "headers": [
         "Arduino.h",
-        "LinkedList.h"
+        "BasicLinkedList.h"
     ],
-    "header": "LinkedList.h",
+    "header": "BasicLinkedList.h",
     "Notes": "This library is designed to be simple and easy to use. This Library contains basic implementations of a LinkedList Structure. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "license": "Apache-2.0",
     "readme": "README.md",
@@ -40,53 +40,5 @@
         "Data Structures",
         "Dynamic Data Structures",
         "Utilities"
-    ],
-    "ChangeLog": [
-        {
-            "version": "1.0.0",
-            "date": "2023-10-25",
-            "changes": [
-                "Initial  UNTESTED release"
-            ]
-        },
-        {
-            "version": "1.0.1",
-            "date": "2023-11-01",
-            "changes": [
-                "Library was not Building correctly, Updated so now it should build correctly"
-            ]
-        },
-        {
-            "version": "1.0.2",
-            "date": "2023-11-12",
-            "changes": [
-                "Added [LINKED LIST]: to the Serial Print Statements to make it easier to debug",
-                "Added Overloaded Insert Function() to insert a value at a specific index",
-                "Added Insert Function to insert a value randomly into the list",
-                "Adjusted size Variable to be capitalized as Size. That way the compiler will not get confused with the size() function",
-                "This Library Has been partially tested. Please report any bugs to the Author, Check readme for more info",
-                "Added an Iterator to the LinkedList. This will allow you to iterate through the list"
-
-            ]
-        },
-        {
-            "version": "1.0.3",
-            "date": "2023-11-27",
-            "changes": [
-                "Added a boolean variable to the LinkedList Constructor to determine if the LinkedList should print to the Serial Monitor or not",
-                "Added a setDebug() function to set the debug variable to true or false",
-                "Added a getDebug() function to get the debug variable"
-            ]
-        },
-        {
-            "version": "1.0.4",
-            "date": "2024-01-31",
-            "changes": [
-                "Added a new function called getAsString() to return the LinkedList element as a String",
-                "Deprecated the keyExists() and valueExists() functions. They will be removed in the next release.. (Use contains() instead)",
-                "Removed debug statements from the library, this is to save memory. A duplicate Library will be created with debug statements in it.",
-                "Added Function Comments to the Library"
-            ]
-        }
     ]
 }
