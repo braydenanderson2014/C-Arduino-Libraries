@@ -1,10 +1,16 @@
+#ifndef IOSTREAM_h
+#define IOSTREAM_h
+
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
 #include <LiquidCrystal.h>
 #include <Wire.h>
 #include <SD.h>
-
 class iostream {
+private:
+    bool scrollDisplay = true; // scroll display.
+    bool scrollLeftToRight = false; // if false, scroll right to left.
+    bool clearOnUpdate = true;
 public:
     void print(const char* str) {
         Serial.print(str);
@@ -13,7 +19,12 @@ public:
     void println(const char* str) {
         Serial.println(str);
     }
-    
+
+    void printf(const char* str){
+
+    }
+
+//TODO: Add scroll ability
     void printLCD(const char* str, LiquidCrystal& lcd, int line, bool clear = false) {
         if (clear) {
             lcd.setCursor(0, line);
@@ -59,7 +70,9 @@ public:
         file.close();
         return true;
     }
-    //... Add other I/O methods as needed
+    //... Add other I/O methods as needed 
 };
 
 extern iostream cout; // Typically, cout is used for console output.
+
+#endif //IOSTREAM_h
