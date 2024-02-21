@@ -6,11 +6,18 @@
 #include <LiquidCrystal.h>
 #include <Wire.h>
 #include <SD.h>
+enum displayType{
+    LCD,
+    I2CLCD,
+    OLED
+};
 class iostream {
 private:
+    
     bool scrollDisplay = true; // scroll display.
     bool scrollLeftToRight = false; // if false, scroll right to left.
     bool clearOnUpdate = true;
+    String size;
 public:
     void print(const char* str) {
         Serial.print(str);
@@ -21,11 +28,14 @@ public:
     }
 
     void printf(const char* str){
-
+        Serial.printf(str);
     }
 
 //TODO: Add scroll ability
-    void printLCD(const char* str, LiquidCrystal& lcd, int line, bool clear = false) {
+    void printLCD(const char* str, LiquidCrystal& lcd, int line = 0, bool clear = false) {
+        if(clearOnUpdate){
+            
+        }
         if (clear) {
             lcd.setCursor(0, line);
             lcd.print("                ");
