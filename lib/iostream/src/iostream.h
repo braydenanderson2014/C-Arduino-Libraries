@@ -119,6 +119,7 @@ typedef char* va_list;
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <ColorMapper.h>
 
 
 enum displayType{
@@ -133,6 +134,16 @@ enum LCDType{
 enum OLEDType{
     OLED128x64,
     OLED128x32
+};
+enum Color565{
+    BLACK_MONO = 0x0000,
+    BLUE = 0x001F,
+    RED = 0xF800,
+    GREEN = 0x07E0,
+    CYAN = 0x07FF,
+    MAGENTA = 0xF81F,
+    YELLOW = 0xFFE0,
+    WHITE_MONO = 0xFFFF
 };
 class iostream {
 private:
@@ -278,6 +289,9 @@ public:
 
 
     void printI2CLCD(const char* str, int line, bool clear = false) {
+        if(clearOnUpdate){
+            clearScreen(lcdType);
+        }
         if (clear) {
             i2cLCD.setCursor(0, line);
             i2cLCD.print("                ");

@@ -1,11 +1,14 @@
-braydenanderson2014/SDList@^1.0.3
-braydenanderson2014/BasicIOStream@^1.0.1
-adafruit/Adafruit GFX Library@^1.11.9
-adafruit/RTClib@^2.1.3
-fmalpartida/LiquidCrystal@^1.5.0
-braydenanderson2014/SimpleProperties@^1.0.2
-arduino-libraries/SD@^1.2.4
 marcoschwartz/LiquidCrystal_I2C@^1.1.4
+adafruit/Adafruit SSD1351 library@^1.3.2
+braydenanderson2014/BasicIOStream@^1.0.1
+adafruit/Adafruit SSD1331 OLED Driver Library for Arduino@^1.2.0
+adafruit/RTClib@^2.1.3
 adafruit/Adafruit SSD1306@^2.5.9
-braydenanderson2014/Dictionary@^1.0.0
+fmalpartida/LiquidCrystal@^1.5.0
+adafruit/Adafruit SH110X@^2.1.10
+arduino-libraries/SD@^1.2.4
+braydenanderson2014/SimpleProperties@^1.0.2
 adafruit/Adafruit BusIO@^1.14.5
+braydenanderson2014/SDList@^1.0.3
+braydenanderson2014/Dictionary@^1.0.0
+adafruit/Adafruit GFX Library@^1.11.9
