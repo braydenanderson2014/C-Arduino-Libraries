@@ -119,6 +119,16 @@ typedef char* va_list;
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1331.h>
+#include <Adafruit_ILI9341.h>
+#include <Adafruit_SSD1351.h>
+#include <Adafruit_STMPE610.h>
+#include <Adafruit_SSD1306.h>
+#include <Adafruit_TSC2007.h>
+#include <Adafruit_STMPE610.h>
+#include <Adafruit_GrayOLED.h>
+#include <Adafruit_SH110X.h>
 #include <ColorMapper.h>
 
 
@@ -162,6 +172,7 @@ private:
     byte screenWidth = 128; // Oled Screen Width
     byte screenHeight = 64; // Oled Screen Height
     byte textSize = 1; // Text Size
+    ColorMapper colorMapper = ColorMapper(); // Color Mapper
     //Color565 textColor = (255,0,0);
 
 public:
@@ -192,6 +203,16 @@ public:
             for(;;); // Don't proceed, loop forever
         }
 
+    }
+
+    void setColor(Color565 color){
+        oled.setTextColor(color);
+    }
+
+    void setColor(byte r, byte g, byte b){
+        ColorMapper colorMapper = ColorMapper(int(r), int(g), int(b));
+        this -> colorMapper = colorMapper;
+        oled.setTextColor(this -> colorMapper.colorToHex(colorMapper.getColor(0)));
     }
 
     void print(const char* str) {

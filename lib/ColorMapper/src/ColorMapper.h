@@ -20,12 +20,28 @@ class ColorMapper {
             colors[2] = Color(0, 0, 255);
         }
 
+        ColorMapper(int color1, int color2, int color3) {
+            colors[0] = hexToColor(color1);
+            colors[1] = hexToColor(color2);
+            colors[2] = hexToColor(color3);
+        }
+
         Color getColor(int index) {
             return colors[index];
         }
 
+        ColorMapper getColorMapper() {
+            return *this;
+        }
+
+       
+
         unsigned long colorToHex(Color color) {
             return ((unsigned long)color.r << 16) | ((unsigned long)color.g << 8) | color.b;
+        }
+
+        Color hexToColor(unsigned long hex) {
+            return Color((hex >> 16) & 0xFF, (hex >> 8) & 0xFF, hex & 0xFF);
         }
 };
 
