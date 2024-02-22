@@ -116,6 +116,11 @@ typedef char* va_list;
 #include <LiquidCrystal.h>
 #include <Wire.h>
 #include <SD.h>
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+
 enum displayType{
     LCD,
     I2CLCD,
@@ -137,12 +142,47 @@ private:
     bool clearOnUpdate = true; // clear display on update.
     bool blinkCursor = false; // blink cursor.
     bool cursor = false; // Show Cursor
+    displayType display = LCD; // Display Type (default LCD)
     LCDType lcdType = LCD16x2; // LCD Type (default 16x2)
     OLEDType oledType = OLED128x64; // OLED Type (default 128x64)
     LiquidCrystal lcd = LiquidCrystal(12, 11, 5, 4, 3, 2); // LCD
     LiquidCrystal_I2C i2cLCD = LiquidCrystal_I2C(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
+    Adafruit_SSD1306 oled = Adafruit_SSD1306(screenWidth, screenHeight, &Wire, -1); // OLED
+    byte screenWidth = 128; // Oled Screen Width
+    byte screenHeight = 64; // Oled Screen Height
+    byte textSize = 1; // Text Size
+    //Color565 textColor = (255,0,0);
 
 public:
+    void begin(int baudRate = 9600, displayType display = LCD, LCDType lcdType = LCD16x2, OLEDType oledType = OLED128x64) {
+        Serial.begin(baudRate);
+        if (display == LCD) {
+            this -> display = LCD;
+            this -> lcdType = lcdType;
+            if (lcdType == LCD16x2) {
+                lcd.begin(16, 2);
+            } else if (lcdType == LCD20x4) {
+                lcd.begin(20, 4);
+            }
+        } else if (display == I2CLCD) {
+            this -> display = I2CLCD;
+            this -> lcdType = lcdType;
+            if(lcdType == LCD16x2){
+                i2cLCD.begin(16, 2);
+            } else if(lcdType == LCD20x4){
+                i2cLCD.begin(20, 4);
+            }
+        } else if (display == OLED) {
+            this -> display = OLED;
+            this -> oledType = oledType;
+        }
+        if(!oled.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x64
+            Serial.println(F("SSD1306 allocation failed"));
+            for(;;); // Don't proceed, loop forever
+        }
+
+    }
+
     void print(const char* str) {
         Serial.print(str);
     }
@@ -199,44 +239,10 @@ public:
     }
 
 //TODO: Add scroll ability
-    void printLCD(const char* str, LiquidCrystal& lcd, int line = 0, bool clear = false) {
+    void printLCD(const char* str, int line = 0, bool clear = false) {
         if(clearOnUpdate){
-            for(int i = 0; i < 3; i++){
-                for(int j = 0; j < 16; j++){
-                    lcd.setCursor(j, i);
-                    lcd.print(" ");
-                }
-            }
-           lcd.setCursor(0, 0);
-            lcd.print("                "); 
+            clearScreen(lcdType);
         }
-        if (clear) {
-            lcd.setCursor(0, line);
-            lcd.print("                ");
-        }
-        lcd.setCursor(0, line);
-        lcd.print(str);
-    }
-
-    void clearScreen(LCDType = LCD16x2){
-        if(lcdType == LCD16x2){
-            for(int i = 0; i < 2; i++){
-                for(int j = 0; j < 16; j++){
-                    lcd.setCursor(j, i);
-                    lcd.print(" ");
-                }
-            }
-        }
-        else if(lcdType == LCD20x4){
-            for(int i = 0; i < 3; i++){
-                for(int j = 0; j < 20; j++){
-                    lcd.setCursor(j, i);
-                    lcd.print(" ");
-                }
-            }
-        }
-    }
-    void printI2CLCD(const char* str, LiquidCrystal_I2C& lcd, int line, bool clear = false) {
         if (clear) {
             lcd.setCursor(0, line);
             lcd.print("                ");
@@ -246,6 +252,41 @@ public:
         if (strlen(str) > 16) {
             for (int i = 0; i < strlen(str) - 16; i++) {
                 lcd.scrollDisplayLeft();
+                delay(200);
+            }
+        }
+    }
+
+    void clearScreen(LCDType lcdType){
+        if(this -> lcdType == LCD16x2){
+            for(int i = 0; i < 2; i++){
+                for(int j = 0; j < 16; j++){
+                    lcd.setCursor(j, i);
+                    lcd.print(" ");
+                }
+            }
+        } else if(this -> lcdType == LCD20x4){
+            for(int i = 0; i < 3; i++){
+                for(int j = 0; j < 20; j++){
+                    lcd.setCursor(j, i);
+                    lcd.print(" ");
+                }
+            }
+        }
+        oled.clearDisplay(); 
+    }
+
+
+    void printI2CLCD(const char* str, int line, bool clear = false) {
+        if (clear) {
+            i2cLCD.setCursor(0, line);
+            i2cLCD.print("                ");
+        }
+        i2cLCD.setCursor(0, line);
+        i2cLCD.print(str);
+        if (strlen(str) > 16) {
+            for (int i = 0; i < strlen(str) - 16; i++) {
+                i2cLCD.scrollDisplayLeft();
                 delay(200);
             }
         }
