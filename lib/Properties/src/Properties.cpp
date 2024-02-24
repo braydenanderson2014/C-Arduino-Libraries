@@ -15,6 +15,36 @@ Properties::~Properties() {
     table.clear();
 }
 
+/**
+ * @brief exists (Check if the key exists in the properties)
+ * 
+ * @param key (Variable Name)
+ * 
+ * @details This method returns true if the table contains the given key, false otherwise.
+ * @return bool
+*/
+bool Properties::exists(const String& key) {
+    return table.get(key) != nullptr;
+}
+
+/**
+ * @brief exists (Check if the key exists in the properties)
+ * 
+ * @overload
+ * 
+ * @param key (Variable Name)
+ * @param value (Variable Value)
+ * 
+ * @details This method returns true if the table contains the given key with the given value, false otherwise.
+ * @return bool
+*/
+bool Properties::exists(const String& key, const String& value) {
+    String* valuePtr = table.get(key);
+    if (!valuePtr) {
+        return false;
+    }
+    return *valuePtr == value;
+}
 
 /**
  * @brief Begin
@@ -415,6 +445,64 @@ bool Properties::loadFromXML(const String& filename) {
             if (keyStartIndex != -1 && keyEndIndex != -1 && valueStartIndex != -1 && valueEndIndex != -1) {
                 String key = line.substring(keyStartIndex + 5, keyEndIndex);
                 String value = line.substring(valueStartIndex + 7, valueEndIndex);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief storeToMsgPack (Store the properties to a MsgPack file)
+ * 
+ * @param filename (File Name)
+ * @param comments (Comments)
+ * 
+ * @details This method stores the properties to the given file name on the SD card in MsgPack format with the given comments.
+ * @return bool
+*/
+bool Properties::storeToMsgPack(const String& filename, const String& comments) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("# " + comments + "\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + ":" + it.value() + "\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief loadFromMsgPack (Load the properties from a MsgPack file)
+ * 
+ * @param filename (File Name)
+ * 
+ * @details This method loads the properties from the given file name on the SD card in MsgPack format.
+ * @return bool
+*/
+bool Properties::loadFromMsgPack(const String& filename) {
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf(':');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 1);
                 table.put(key, value);
             }
         }

@@ -1,6 +1,6 @@
 {
     "name": "SimpleProperties",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "A library for managing Key-value Pairs \"Properties\" with an SD card to Persist the Data, or in Memory Applications that allow for editing the values. It is designed to be simple and easy to use. This library is built as a Arduino C++ version of the Java Properties Library and is should be compatible with the data provided by the Java Properties Library. This library is built on top of the Hashtable Library, and the SimpleVector Library. This library is still in development and may not be completely stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author. To install this library, please use the the Properties.h header file. You do not need to include Hashtable and SimpleVector if you are using PlatformIO. This Library has been Mostly Tested and found to be stable on all tests so far",
     "keywords": ["Properties", "SD card", "Java Properties", "SD", "Key-Value Pairs", "Persistance", "Dynamic Data Structures", "Dynamic Data", "Data Structures", "List", "Pair", "Pairs", "INI", "json", "xml", "TOML", "YAML", "CSV"], 
     "repositories": [

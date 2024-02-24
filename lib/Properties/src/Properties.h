@@ -36,6 +36,8 @@ private:
         bool save(const String& filename);
         bool load(const String& filename);
         bool store(const String& filename, const String& comments);
+        bool exists(const String& key);
+        bool exists(const String& key, const String& value);
         
         bool storeToXML(const String& filename, const String& comments);
         bool loadFromXML(const String& filename);
@@ -54,6 +56,9 @@ private:
 
         bool storeToTOML(const String& filename, const String& comments);
         bool loadFromTOML(const String& filename);
+
+        bool storeToMsgPack(const String& filename, const String& comments);
+        bool loadFromMsgPack(const String& filename);
 
         bool containsKey(const String& key);
         bool deleteFile(const String& filename);

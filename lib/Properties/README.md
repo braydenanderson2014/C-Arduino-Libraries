@@ -50,6 +50,7 @@ You may also need:
 ### Version 1.0.1 - BETA: [CURRENT-RELEASE] -> [BETA]
 * Added Support for Several New File types Including (.csv, .json, .xml, .toml, .ini, .yaml)
 * Added Support for creating your own custom Key-Value Pair file. The saveToSD, store, and loadFromSD functions will read a new enum variable called IDENTIFIERTYPE. The Available options are: EQUALS (=), COLEN (:), SEMICOLEN (;), HYPHEN (-), COMMA (,), FORWARD_SLASH (\), BACKWARD_SLASH (/)
+### Version 1.0.1 - BETA_1
 
 # PlatformIO
 ## ChangeLog
@@ -93,9 +94,13 @@ You may also need:
 * Added new load() function ... This function just calls the LoadfromSD() but it is for those who like simpler functions
 * Added new store() function ... This function is similar to SavetoSD() but allows for comments.
 * Added Function comments to all Functions.
-### Version 1.1.0: [CURRENT-RELEASE] -> [BETA]
+### Version 1.1.0:
 * Added Support for Several New File types Including (.csv, .json, .xml, .toml, .ini, .yaml)
 * Added Support for creating your own custom Key-Value Pair file. The saveToSD, store, and loadFromSD functions will read a new enum variable called IDENTIFIERTYPE. The Available options are: EQUALS (=), COLEN (:), SEMICOLEN (;), HYPHEN (-), COMMA (,), FORWARD_SLASH (\), BACKWARD_SLASH (/)
+### Version 1.1.1:  [CURRENT-RELEASE] -> [BETA]
+* Added Support for msgPack() (Store, Load);
+* Added exists(key) function
+* Added Overload to exists, exists(key, value);
 
             
             

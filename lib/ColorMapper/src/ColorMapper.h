@@ -1,18 +1,23 @@
 #ifndef COLORMAPPER_h
 #define COLORMAPPER_h
 
+#include <SimpleVector.h>
+class Color {
+    public:
+        Color() : r(0), g(0), b(0) {}
+        Color(byte r, byte g, byte b) : r(r), g(g), b(b) {}
+        byte r, g, b;
+
+        byte getR() { return r; }
+        byte getG() { return g; }
+        byte getB() { return b; }
+};
 
 class ColorMapper {
     private:
-
-    class Color {
-        public:
-            Color() : r(0), g(0), b(0) {}
-            Color(int r, int g, int b) : r(r), g(g), b(b) {}
-            int r, g, b;
-    };
-    
-    Color colors[3];
+        Color colors[3];
+        byte colorCount = 0;
+        SimpleVector <Color> colorList = SimpleVector <Color>(3);
     public:
         ColorMapper() {
             colors[0] = Color(255, 0, 0);
@@ -20,21 +25,37 @@ class ColorMapper {
             colors[2] = Color(0, 0, 255);
         }
 
-        ColorMapper(int color1, int color2, int color3) {
+        ColorMapper(byte color1, byte color2, byte color3) {
             colors[0] = hexToColor(color1);
             colors[1] = hexToColor(color2);
             colors[2] = hexToColor(color3);
         }
 
-        Color getColor(int index) {
+        Color getColor(byte index) {
             return colors[index];
         }
 
-        ColorMapper getColorMapper() {
-            return *this;
+        void addColor(Color color) {
+            // Add code here to add the color to the colors array
+            if (colorCount < 15) {
+                colorList.put(color);
+                colorCount++;
+            } else {
+                // Handle error: array is full
+                Serial.println("Error: array is full");
+            }
         }
 
-       
+        void removeColor(byte index) {
+            // Add code here to remove the color at the specified index from the colors array
+            if (colorCount > 0) {
+                colorList.remove(colorList[index]);
+                colorCount--;
+            } else {
+                // Handle error: array is empty
+                Serial.println("Error: array is empty");
+            }
+        }
 
         unsigned long colorToHex(Color color) {
             return ((unsigned long)color.r << 16) | ((unsigned long)color.g << 8) | color.b;
@@ -44,6 +65,5 @@ class ColorMapper {
             return Color((hex >> 16) & 0xFF, (hex >> 8) & 0xFF, hex & 0xFF);
         }
 };
-
 
 #endif // COLORMAPPER_h

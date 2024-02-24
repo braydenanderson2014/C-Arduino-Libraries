@@ -33,6 +33,8 @@ public:
     class SimpleVectorIterator;
 
     SimpleVector() : array(new T[4]), count(0), capacity(4) {}
+
+    SimpleVector(unsigned int initialCapacity) : array(new T[initialCapacity]), count(0), capacity(initialCapacity) {}
     
     ~SimpleVector() {
         delete[] array;
@@ -50,6 +52,21 @@ public:
         array = nullptr;
         capacity = 0;
         count = 0;
+    }
+
+    /**
+     * @brief Shrink the capacity of the vector to match the count of elements
+     * @param newCapacity The new capacity of the vector
+     * @return True if the memory was successfully reserved, false otherwise
+     * 
+     * @public This method is public because it is meant to be called by the user.
+    */
+    bool shrinkToFit() {
+        if (count < capacity) {
+            resize(count);
+            return true;
+        }
+        return false;
     }
 
     /**

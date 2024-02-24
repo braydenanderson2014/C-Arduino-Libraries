@@ -129,7 +129,12 @@ typedef char* va_list;
 #include <Adafruit_STMPE610.h>
 #include <Adafruit_GrayOLED.h>
 #include <Adafruit_SH110X.h>
+#include <HyperDisplay_SSD1309.h>
+#include <HyperDisplay_ssd1309.h>
+#include <hyperdisplay.h>
+
 #include <ColorMapper.h>
+#include <Properties.h>
 
 
 enum displayType{
@@ -141,9 +146,25 @@ enum LCDType{
     LCD16x2,
     LCD20x4
 };
-enum OLEDType{
+enum OLEDSIZE {
     OLED128x64,
     OLED128x32
+};
+enum OLEDTYPE {
+    OLED1306,
+    OLED1309,
+    OLED1322,
+    OLED1325,
+    OLED1331,
+    OLED1351,
+    OLED136,
+    OLED144,
+    OLED150,
+    OLED2864,
+    OLED400,
+    OLED480,
+    OLED800,
+    OLED960
 };
 enum Color565{
     BLACK_MONO = 0x0000,
@@ -157,7 +178,13 @@ enum Color565{
 };
 class iostream {
 private:
-    
+    /*
+    TODO: Text Size
+    TODO: Color
+    TODO: Screen Width
+    TODO: Screen Height
+
+    */
     bool scrollDisplay = true; // scroll display.
     bool scrollLeftToRight = false; // if false, scroll right to left.
     bool clearOnUpdate = true; // clear display on update.
@@ -165,54 +192,236 @@ private:
     bool cursor = false; // Show Cursor
     displayType display = LCD; // Display Type (default LCD)
     LCDType lcdType = LCD16x2; // LCD Type (default 16x2)
-    OLEDType oledType = OLED128x64; // OLED Type (default 128x64)
-    LiquidCrystal lcd = LiquidCrystal(12, 11, 5, 4, 3, 2); // LCD
-    LiquidCrystal_I2C i2cLCD = LiquidCrystal_I2C(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
-    Adafruit_SSD1306 oled = Adafruit_SSD1306(screenWidth, screenHeight, &Wire, -1); // OLED
+    OLEDSIZE oledSize = OLED128x64; // OLED Type (default 128x64
+    OLEDTYPE oledType = OLED1306; // OLED Type (default 1306)
     byte screenWidth = 128; // Oled Screen Width
     byte screenHeight = 64; // Oled Screen Height
     byte textSize = 1; // Text Size
-    ColorMapper colorMapper = ColorMapper(); // Color Mapper
-    //Color565 textColor = (255,0,0);
+    int baudRate = 9600; // Baud Rate
 
+    //Objects
+    ColorMapper colorMapper = ColorMapper(); // Color Mapper
+    Properties prop = Properties(); // Properties
+    LiquidCrystal lcd = LiquidCrystal(12, 11, 5, 4, 3, 2); // LCD
+    LiquidCrystal_I2C i2cLCD = LiquidCrystal_I2C(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
+    Adafruit_SSD1306 oled1306 = Adafruit_SSD1306(screenWidth, screenHeight, &Wire, -1); // OLED
+    //ssd1309_I2C myOLED;
+
+    
+
+    #define SERIAL_PORT Serial
+    #define WIRE_PORT Wire
+    #define RES_PIN 3
+    #define MY_BUFFER_LENGTH BUFFER_LENGTH
 public:
-    void begin(int baudRate = 9600, displayType display = LCD, LCDType lcdType = LCD16x2, OLEDType oledType = OLED128x64) {
+    void gatherAndSetSettings(){
+        if(prop.exists("displayType")){ 
+            String displayTypes = prop.getProperty("displayType");
+            if(displayTypes == "LCD"){
+                display = LCD;
+            } else if(displayTypes == "I2CLCD"){
+                display = I2CLCD;
+            } else if(displayTypes == "OLED"){
+                display = OLED;
+            }
+        } else {
+            prop.setProperty("displayType", (String)display);
+        }
+
+        if(prop.exists("lcdType")){
+            String lcdTypes = prop.getProperty("lcdType");
+            if(lcdTypes == "LCD16x2"){
+                lcdType = LCD16x2;
+            } else if(lcdTypes == "LCD20x4"){
+                lcdType = LCD20x4;
+            }
+        } else {
+            prop.setProperty("lcdType", (String)lcdType);
+        }
+
+        if(prop.exists("oledSize")){
+            String oledSizes = prop.getProperty("oledSize");
+            if(oledSizes == "OLED128x64"){
+                oledSize = OLED128x64;
+            } else if(oledSizes == "OLED128x32"){
+                oledSize = OLED128x32;
+            }
+        } else {
+            prop.setProperty("oledSize", (String)oledSize);
+        }
+        if(prop.exists("oledType")) {
+            String oledTypes = prop.getProperty("oledType");
+            if(oledTypes == "OLED1306"){
+                oledType = OLED1306;
+            } else if(oledTypes == "OLED1309"){
+                oledType = OLED1309;
+            } else if(oledTypes == "OLED1322"){
+                oledType = OLED1322;
+            } else if(oledTypes == "OLED1325"){
+                oledType = OLED1325;
+            } else if(oledTypes == "OLED1331"){
+                oledType = OLED1331;
+            } else if(oledTypes == "OLED1351"){
+                oledType = OLED1351;
+            } else if(oledTypes == "OLED136"){
+                oledType = OLED136;
+            } else if(oledTypes == "OLED144"){
+                oledType = OLED144;
+            } else if(oledTypes == "OLED150"){
+                oledType = OLED150;
+            } else if(oledTypes == "OLED2864"){
+                oledType = OLED2864;
+            } else if(oledTypes == "OLED400"){
+                oledType = OLED400;
+            } else if(oledTypes == "OLED480"){
+                oledType = OLED480;
+            } else if(oledTypes == "OLED800"){
+                oledType = OLED800;
+            } else if(oledTypes == "OLED960"){
+                oledType = OLED960;
+            }
+        } else {
+            prop.setProperty("oledType", (String)oledType);
+        } 
+        if(prop.exists("scrollDisplay")){
+            scrollDisplay = prop.getProperty("scrollDisplay") == "true" ? true : false;
+        } else {
+            prop.setProperty("scrollDisplay", (String)scrollDisplay);
+        }
+        if(prop.exists("scrollLeftToRight")){
+            scrollLeftToRight = prop.getProperty("scrollLeftToRight") == "true" ? true : false;
+        } else {
+            prop.setProperty("scrollLeftToRight", (String)scrollLeftToRight);
+        }
+        if(prop.exists("clearOnUpdate")){
+            clearOnUpdate = prop.getProperty("clearOnUpdate") == "true" ? true : false;
+        } else {
+            prop.setProperty("clearOnUpdate", (String)clearOnUpdate);
+        }
+        if(prop.exists("blinkCursor")){
+            blinkCursor = prop.getProperty("blinkCursor") == "true" ? true : false;
+        } else {
+            prop.setProperty("blinkCursor", (String)blinkCursor);
+        }
+        if(prop.exists("cursor")){
+            cursor = prop.getProperty("cursor") == "true" ? true : false;
+        } else {
+            prop.setProperty("cursor", (String)cursor);
+        }
+        if(prop.exists("baudRate")){
+            baudRate = prop.getProperty("baudRate").toInt();
+        } else {
+            prop.setProperty("baudRate", (String)baudRate);
+        }
+        if(prop.exists("screenWidth")){
+            screenWidth = prop.getProperty("screenWidth").toInt();
+        } else {
+            prop.setProperty("screenWidth", (String)screenWidth);
+        }
+        if(prop.exists("screenHeight")){
+            screenHeight = prop.getProperty("screenHeight").toInt();
+        } else {
+            prop.setProperty("screenHeight", (String)screenHeight);
+        }
+        if(prop.exists("textSize")){
+            textSize = prop.getProperty("textSize").toInt();
+        } else {
+            prop.setProperty("textSize", (String)textSize);
+        }
+        if(prop.exists("textColor")){
+            String COLOR = prop.getProperty("color");
+            colorMapper.addColor(colorMapper.hexToColor(COLOR.toInt()));
+        } else {
+            colorMapper.addColor(colorMapper.hexToColor(0xFFFFFF));//White
+            prop.setProperty("textColor", (String)colorMapper.colorToHex(colorMapper.getColor(0)));
+        }
+    }
+
+    void toggleSetting(String& setting){
+        if(setting == "scrollDisplay"){
+            scrollDisplay = !scrollDisplay;
+        } else if(setting == "scrollLeftToRight"){
+            scrollLeftToRight = !scrollLeftToRight;
+        } else if(setting == "clearOnUpdate"){
+            clearOnUpdate = !clearOnUpdate;
+        } else if(setting == "blinkCursor"){
+            blinkCursor = !blinkCursor;
+        } else if(setting == "cursor"){
+            cursor = !cursor;
+        }
+    }
+    void begin(displayType display = LCD, LCDType lcdType = LCD16x2, OLEDSIZE  oledSize = OLED128x64) {
         Serial.begin(baudRate);
+        while(!Serial);
         if (display == LCD) {
-            this -> display = LCD;
-            this -> lcdType = lcdType;
-            if (lcdType == LCD16x2) {
+            if(lcdType == LCD16x2){
                 lcd.begin(16, 2);
-            } else if (lcdType == LCD20x4) {
+                Serial.println("[IOSTREAM]: LCD 16x2 Display Initialized [OK]");
+            } else if(lcdType == LCD20x4){
                 lcd.begin(20, 4);
+                Serial.println("[IOSTREAM]: LCD 20x4 Display Initialized [OK]");
             }
         } else if (display == I2CLCD) {
-            this -> display = I2CLCD;
-            this -> lcdType = lcdType;
             if(lcdType == LCD16x2){
                 i2cLCD.begin(16, 2);
+                Serial.println("[IOSTREAM]: I2C LCD 16x2 Display Initialized [OK]");
             } else if(lcdType == LCD20x4){
                 i2cLCD.begin(20, 4);
+                Serial.println("[IOSTREAM]: I2C LCD 20x4 Display Initialized [OK]");
             }
         } else if (display == OLED) {
-            this -> display = OLED;
-            this -> oledType = oledType;
+            if(oledType == OLED1306){
+                oled1306 = Adafruit_SSD1306(screenWidth, screenHeight, &Wire, -1);
+                Serial.println("[IOSTREAM]: OLED 1306 Display Initialized [OK]");
+            } else if(oledType == OLED1309){
+                //oled = HyperDisplay_SSD1309(screenWidth, screenHeight, &Wire, -1);
+                Serial.println("[IOSTREAM]: OLED 1309 Display Initialized [OK]");
+            } else if(oledType == OLED1322){
+                //oled = Adafruit_SSD1322(screenWidth, screenHeight, &Wire, -1);
+                Serial.println("[IOSTREAM]: OLED 1322 Display Initialized [OK]");
+            } else if(oledType == OLED1325){
+                //oled = Adafruit_SSD1325(screenWidth, screenHeight, &Wire, -1);
+                Serial.println("[IOSTREAM]: OLED 1325 Display Initialized [OK]");
+            } else if(oledType == OLED1331){
+                //oled = Adafruit_SSD1331(screenWidth, screenHeight, &Wire, -1);
+                Serial.println("[IOSTREAM]: OLED 1331 Display Initialized [OK]");
+            } else if(oledType == OLED1351){
+                //oled = Adafruit_SSD1351(screenWidth, screenHeight, &Wire, -1);
+                Serial.println("[IOSTREAM]: OLED 1351 Display Initialized [OK]");
+            } else if(oledType == OLED136){
+                //oled = Adafruit_SSD136(screenWidth, screenHeight, &Wire, -1);
+                Serial.println("[IOSTREAM]: OLED 136 Display Initialized [OK]");
+            } else if(oledType == OLED144){
+                //oled = Adafruit_SSD144(screenWidth, screenHeight, &Wire, -1);
+                Serial.println("[IOSTREAM]: OLED 144 Display Initialized [OK]");
+            } else if(oledType == OLED150){
+                //oled = Adafruit_SSD150(screenWidth, screenHeight, &Wire, -1);
+                Serial.println("[IOSTREAM]: OLED 150 Display Initialized [OK]");
+            } else if(oledType == OLED2864){
+                //oled = Adafruit_SSD2864(screenWidth, screenHeight, &Wire, -1);
+                Serial.println("[IOSTREAM]: OLED 2864 Display Initialized [OK]");
+            } else if(oledType == OLED400){
+                //oled = Adafruit_SSD400(screenWidth, screenHeight, &Wire
+            }
         }
-        if(!oled.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x64
+        /*
+          if(!oled.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x64
             Serial.println(F("SSD1306 allocation failed"));
             for(;;); // Don't proceed, loop forever
         }
+        */
 
     }
 
     void setColor(Color565 color){
-        oled.setTextColor(color);
+        colorMapper.addColor(colorMapper.hexToColor(color));
+        //oled.setTextColor(color);
     }
 
     void setColor(byte r, byte g, byte b){
         ColorMapper colorMapper = ColorMapper(int(r), int(g), int(b));
         this -> colorMapper = colorMapper;
-        oled.setTextColor(this -> colorMapper.colorToHex(colorMapper.getColor(0)));
+        //oled.setTextColor(this -> colorMapper.colorToHex(colorMapper.getColor(0)));
     }
 
     void print(const char* str) {
@@ -283,7 +492,18 @@ public:
         lcd.print(str);
         if (strlen(str) > 16) {
             for (int i = 0; i < strlen(str) - 16; i++) {
-                lcd.scrollDisplayLeft();
+                if(prop.getProperty("scrollDisplay") == "true"){
+                    if(prop.getProperty("scrollLeftToRight") == "true"){
+                        lcd.scrollDisplayLeft();
+                    } else {
+                        lcd.scrollDisplayRight();
+                    }
+                }
+                if(prop.getProperty("blinkCursor") == "true"){
+                    lcd.blink();
+                } else {
+                    lcd.noBlink();
+                }
                 delay(200);
             }
         }
@@ -304,8 +524,9 @@ public:
                     lcd.print(" ");
                 }
             }
+        } else {
+            //oled.clearDisplay(); 
         }
-        oled.clearDisplay(); 
     }
 
 
@@ -321,7 +542,18 @@ public:
         i2cLCD.print(str);
         if (strlen(str) > 16) {
             for (int i = 0; i < strlen(str) - 16; i++) {
-                i2cLCD.scrollDisplayLeft();
+                if(prop.getProperty("scrollDisplay") == "true"){
+                    if(prop.getProperty("scrollLeftToRight") == "true"){
+                        lcd.scrollDisplayLeft();
+                    } else {
+                        lcd.scrollDisplayRight();
+                    }
+                }
+                if(prop.getProperty("blinkCursor") == "true"){
+                    lcd.blink();
+                } else {
+                    lcd.noBlink();
+                }
                 delay(200);
             }
         }
