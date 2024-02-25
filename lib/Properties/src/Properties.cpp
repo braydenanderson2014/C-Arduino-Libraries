@@ -267,7 +267,6 @@ bool Properties::loadFromSD(const String& filename) {
             } else if(identifierType == IDENTIFIERTYPE::BACKWARD_SLASH){
                 separatorIndex = line.indexOf('\\');
             }
-            int separatorIndex = line.indexOf('=');
             if (separatorIndex != -1) {
                 String key = line.substring(0, separatorIndex);
                 String value = line.substring(separatorIndex + 1);

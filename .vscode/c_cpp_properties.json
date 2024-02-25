@@ -1,8 +1,3 @@
-//
-// !!! WARNING !!! AUTO-GENERATED FILE!
-// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
-// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
-//
 {
     "configurations": [
         {
@@ -45,11 +40,14 @@
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MyDictionary/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/NewArrayList (TEMP)",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Properties/src",
+                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Queue",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SD-master",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SDList/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SimpleMutex",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SimpleThreadManager",
+                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Stack",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Timer/src",
+                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Tree",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/UnorderedMap/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Zips",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/iostream/src",
@@ -68,7 +66,8 @@
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
-                ""
+                "",
+                "${workspaceFolder}/lib/MatrixMath/src"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
@@ -110,11 +109,14 @@
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MyDictionary/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/NewArrayList (TEMP)",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Properties/src",
+                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Queue",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SD-master",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SDList/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SimpleMutex",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SimpleThreadManager",
+                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Stack",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Timer/src",
+                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Tree",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/UnorderedMap/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Zips",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/iostream/src",
