@@ -95,6 +95,16 @@ public:
         array[count++] = item;
     }
 
+    /**
+     * @brief Add an element to the vector
+     * @param item The item to be added to the vector
+     * 
+     * @note This method is an alias for the put method.
+    */
+    void push_back(const T& item) {
+        put(item);
+    }
+
     // Remove an element from the vector by shifting elements (Added in Version 1.0.1)
     /**
      * @brief Remove an element from the vector

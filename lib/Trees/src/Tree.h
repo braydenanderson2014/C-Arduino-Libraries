@@ -1,5 +1,7 @@
 #ifndef TREE_h
 #define TREE_h
+
+#include <BinaryTree.h>
 // ENUMS:
 
 /**

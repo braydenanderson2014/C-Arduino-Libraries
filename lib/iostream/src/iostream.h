@@ -117,21 +117,7 @@ typedef char* va_list;
 #include <Wire.h>
 #include <SD.h>
 #include <SPI.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1331.h>
-#include <Adafruit_ILI9341.h>
-#include <Adafruit_SSD1351.h>
-#include <Adafruit_STMPE610.h>
-#include <Adafruit_SSD1306.h>
-#include <Adafruit_TSC2007.h>
-#include <Adafruit_STMPE610.h>
-#include <Adafruit_GrayOLED.h>
-#include <Adafruit_SH110X.h>
-#include <HyperDisplay_SSD1309.h>
-#include <HyperDisplay_ssd1309.h>
-#include <hyperdisplay.h>
+//#include <hyperdisplay.h>
 
 #include <ColorMapper.h>
 #include <Properties.h>
@@ -140,31 +126,10 @@ typedef char* va_list;
 enum displayType{
     LCD,
     I2CLCD,
-    OLED
 };
 enum LCDType{
     LCD16x2,
     LCD20x4
-};
-enum OLEDSIZE {
-    OLED128x64,
-    OLED128x32
-};
-enum OLEDTYPE {
-    OLED1306,
-    OLED1309,
-    OLED1322,
-    OLED1325,
-    OLED1331,
-    OLED1351,
-    OLED136,
-    OLED144,
-    OLED150,
-    OLED2864,
-    OLED400,
-    OLED480,
-    OLED800,
-    OLED960
 };
 enum Color565{
     BLACK_MONO = 0x0000,
@@ -192,8 +157,8 @@ private:
     bool cursor = false; // Show Cursor
     displayType display = LCD; // Display Type (default LCD)
     LCDType lcdType = LCD16x2; // LCD Type (default 16x2)
-    OLEDSIZE oledSize = OLED128x64; // OLED Type (default 128x64
-    OLEDTYPE oledType = OLED1306; // OLED Type (default 1306)
+    //OLEDSIZE oledSize = OLED128x64; // OLED Type (default 128x64
+    //OLEDTYPE oledType = OLED1306; // OLED Type (default 1306)
     byte screenWidth = 128; // Oled Screen Width
     byte screenHeight = 64; // Oled Screen Height
     byte textSize = 1; // Text Size
@@ -204,7 +169,7 @@ private:
     Properties prop = Properties(); // Properties
     LiquidCrystal lcd = LiquidCrystal(12, 11, 5, 4, 3, 2); // LCD
     LiquidCrystal_I2C i2cLCD = LiquidCrystal_I2C(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
-    Adafruit_SSD1306 oled1306 = Adafruit_SSD1306(screenWidth, screenHeight, &Wire, -1); // OLED
+    //Adafruit_SSD1306 oled1306 = Adafruit_SSD1306(screenWidth, screenHeight, &Wire, -1); // OLED
     //ssd1309_I2C myOLED;
 
     
@@ -215,15 +180,14 @@ private:
     #define MY_BUFFER_LENGTH BUFFER_LENGTH
 public:
     void gatherAndSetSettings(){
+        prop.loadFromSD("iostream.properties");
         if(prop.exists("displayType")){ 
             String displayTypes = prop.getProperty("displayType");
             if(displayTypes == "LCD"){
                 display = LCD;
             } else if(displayTypes == "I2CLCD"){
                 display = I2CLCD;
-            } else if(displayTypes == "OLED"){
-                display = OLED;
-            }
+            } 
         } else {
             prop.setProperty("displayType", (String)display);
         }
@@ -238,51 +202,6 @@ public:
         } else {
             prop.setProperty("lcdType", (String)lcdType);
         }
-
-        if(prop.exists("oledSize")){
-            String oledSizes = prop.getProperty("oledSize");
-            if(oledSizes == "OLED128x64"){
-                oledSize = OLED128x64;
-            } else if(oledSizes == "OLED128x32"){
-                oledSize = OLED128x32;
-            }
-        } else {
-            prop.setProperty("oledSize", (String)oledSize);
-        }
-        if(prop.exists("oledType")) {
-            String oledTypes = prop.getProperty("oledType");
-            if(oledTypes == "OLED1306"){
-                oledType = OLED1306;
-            } else if(oledTypes == "OLED1309"){
-                oledType = OLED1309;
-            } else if(oledTypes == "OLED1322"){
-                oledType = OLED1322;
-            } else if(oledTypes == "OLED1325"){
-                oledType = OLED1325;
-            } else if(oledTypes == "OLED1331"){
-                oledType = OLED1331;
-            } else if(oledTypes == "OLED1351"){
-                oledType = OLED1351;
-            } else if(oledTypes == "OLED136"){
-                oledType = OLED136;
-            } else if(oledTypes == "OLED144"){
-                oledType = OLED144;
-            } else if(oledTypes == "OLED150"){
-                oledType = OLED150;
-            } else if(oledTypes == "OLED2864"){
-                oledType = OLED2864;
-            } else if(oledTypes == "OLED400"){
-                oledType = OLED400;
-            } else if(oledTypes == "OLED480"){
-                oledType = OLED480;
-            } else if(oledTypes == "OLED800"){
-                oledType = OLED800;
-            } else if(oledTypes == "OLED960"){
-                oledType = OLED960;
-            }
-        } else {
-            prop.setProperty("oledType", (String)oledType);
-        } 
         if(prop.exists("scrollDisplay")){
             scrollDisplay = prop.getProperty("scrollDisplay") == "true" ? true : false;
         } else {
@@ -335,6 +254,8 @@ public:
             colorMapper.addColor(colorMapper.hexToColor(0xFFFFFF));//White
             prop.setProperty("textColor", (String)colorMapper.colorToHex(colorMapper.getColor(0)));
         }
+
+        prop.saveToSD("iostream.properties");
     }
 
     void toggleSetting(String& setting){
@@ -350,7 +271,7 @@ public:
             cursor = !cursor;
         }
     }
-    void begin(displayType display = LCD, LCDType lcdType = LCD16x2, OLEDSIZE  oledSize = OLED128x64) {
+    void begin(displayType display = LCD, LCDType lcdType = LCD16x2) {
         Serial.begin(baudRate);
         while(!Serial);
         if (display == LCD) {
@@ -369,41 +290,8 @@ public:
                 i2cLCD.begin(20, 4);
                 Serial.println("[IOSTREAM]: I2C LCD 20x4 Display Initialized [OK]");
             }
-        } else if (display == OLED) {
-            if(oledType == OLED1306){
-                oled1306 = Adafruit_SSD1306(screenWidth, screenHeight, &Wire, -1);
-                Serial.println("[IOSTREAM]: OLED 1306 Display Initialized [OK]");
-            } else if(oledType == OLED1309){
-                //oled = HyperDisplay_SSD1309(screenWidth, screenHeight, &Wire, -1);
-                Serial.println("[IOSTREAM]: OLED 1309 Display Initialized [OK]");
-            } else if(oledType == OLED1322){
-                //oled = Adafruit_SSD1322(screenWidth, screenHeight, &Wire, -1);
-                Serial.println("[IOSTREAM]: OLED 1322 Display Initialized [OK]");
-            } else if(oledType == OLED1325){
-                //oled = Adafruit_SSD1325(screenWidth, screenHeight, &Wire, -1);
-                Serial.println("[IOSTREAM]: OLED 1325 Display Initialized [OK]");
-            } else if(oledType == OLED1331){
-                //oled = Adafruit_SSD1331(screenWidth, screenHeight, &Wire, -1);
-                Serial.println("[IOSTREAM]: OLED 1331 Display Initialized [OK]");
-            } else if(oledType == OLED1351){
-                //oled = Adafruit_SSD1351(screenWidth, screenHeight, &Wire, -1);
-                Serial.println("[IOSTREAM]: OLED 1351 Display Initialized [OK]");
-            } else if(oledType == OLED136){
-                //oled = Adafruit_SSD136(screenWidth, screenHeight, &Wire, -1);
-                Serial.println("[IOSTREAM]: OLED 136 Display Initialized [OK]");
-            } else if(oledType == OLED144){
-                //oled = Adafruit_SSD144(screenWidth, screenHeight, &Wire, -1);
-                Serial.println("[IOSTREAM]: OLED 144 Display Initialized [OK]");
-            } else if(oledType == OLED150){
-                //oled = Adafruit_SSD150(screenWidth, screenHeight, &Wire, -1);
-                Serial.println("[IOSTREAM]: OLED 150 Display Initialized [OK]");
-            } else if(oledType == OLED2864){
-                //oled = Adafruit_SSD2864(screenWidth, screenHeight, &Wire, -1);
-                Serial.println("[IOSTREAM]: OLED 2864 Display Initialized [OK]");
-            } else if(oledType == OLED400){
-                //oled = Adafruit_SSD400(screenWidth, screenHeight, &Wire
-            }
-        }
+        } 
+    
         /*
           if(!oled.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x64
             Serial.println(F("SSD1306 allocation failed"));

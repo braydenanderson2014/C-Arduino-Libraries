@@ -4,22 +4,22 @@
 #include <Arduino.h>
 class MatrixMath {
     private:
-        int *matrix;
+        float *matrix;
         int rows;
         int cols;
     public:
         MatrixMath(int rows, int cols){
-            matrix = new int[rows * cols];
+            matrix = new float[rows * cols];
             this->rows = rows;
             this->cols = cols;
         }
         ~MatrixMath(){
             delete[] matrix;
         }
-        void set(int row, int col, int value){
+        void set(int row, int col, float value){
             matrix[row * cols + col] = value;
         }
-        int get(int row, int col){
+        float get(int row, int col){
             return matrix[row * cols + col];
         }
         void add(MatrixMath m){
@@ -36,12 +36,13 @@ class MatrixMath {
                 }
             }
         }
+
         void multiply(MatrixMath m){
-            int *result = new int[rows * m.cols];
+            float *result = new float[rows * m.cols];
             for(int i = 0; i < rows; i++){
                 for(int j = 0; j < m.cols; j++){
-                    int sum = 0;
-                    for(int k = 0; k < cols; k++){
+                    float sum = 0;
+                    for(float k = 0; k < cols; k++){
                         sum += get(i, k) * m.get(k, j);
                     }
                     result[i * m.cols + j] = sum;
@@ -61,7 +62,7 @@ class MatrixMath {
             }
         }
 
-        void scale(int scalar){
+        void scale(float scalar){
             for(int i = 0; i < rows; i++){
                 for(int j = 0; j < cols; j++){
                     set(i, j, get(i, j) * scalar);
@@ -70,7 +71,7 @@ class MatrixMath {
         }
 
         void transpose(){
-            int *result = new int[cols * rows];
+            float *result = new float[cols * rows];
             for(int i = 0; i < rows; i++){
                 for(int j = 0; j < cols; j++){
                     result[j * rows + i] = get(i, j);
@@ -78,14 +79,14 @@ class MatrixMath {
             }
             delete[] matrix;
             matrix = result;
-            int temp = rows;
+            float temp = rows;
             rows = cols;
             cols = temp;
         }
 
         void copy(MatrixMath m){
             delete[] matrix;
-            matrix = new int[m.rows * m.cols];
+            matrix = new float[m.rows * m.cols];
             rows = m.rows;
             cols = m.cols;
             for(int i = 0; i < rows; i++){
@@ -97,7 +98,7 @@ class MatrixMath {
 
         void identity(int size){
             delete[] matrix;
-            matrix = new int[size * size];
+            matrix = new float[size * size];
             rows = size;
             cols = size;
             for(int i = 0; i < size; i++){
@@ -113,7 +114,7 @@ class MatrixMath {
 
         void zero(int rows, int cols){
             delete[] matrix;
-            matrix = new int[rows * cols];
+            matrix = new float[rows * cols];
             this->rows = rows;
             this->cols = cols;
             for(int i = 0; i < rows; i++){
@@ -123,9 +124,9 @@ class MatrixMath {
             }
         }
 
-        void copy(int *m, int rows, int cols){
+        void copy(float *m, int rows, int cols){
             delete[] matrix;
-            matrix = new int[rows * cols];
+            matrix = new float[rows * cols];
             this->rows = rows;
             this->cols = cols;
             for(int i = 0; i < rows; i++){
@@ -135,7 +136,7 @@ class MatrixMath {
             }
         }
 
-        void add(int scalar){
+        void add(float scalar){
             for(int i = 0; i < rows; i++){
                 for(int j = 0; j < cols; j++){
                     set(i, j, get(i, j) + scalar);
@@ -143,7 +144,7 @@ class MatrixMath {
             }
         }
 
-        void subtract(int scalar){
+        void subtract(float scalar){
             for(int i = 0; i < rows; i++){
                 for(int j = 0; j < cols; j++){
                     set(i, j, get(i, j) - scalar);
@@ -151,7 +152,7 @@ class MatrixMath {
             }
         }
 
-        void multiply(int scalar){
+        void multiply(float scalar){
             for(int i = 0; i < rows; i++){
                 for(int j = 0; j < cols; j++){
                     set(i, j, get(i, j) * scalar);
@@ -159,7 +160,7 @@ class MatrixMath {
             }
         }
 
-        void divide(int scalar){
+        void divide(float scalar){
             for(int i = 0; i < rows; i++){
                 for(int j = 0; j < cols; j++){
                     set(i, j, get(i, j) / scalar);
@@ -167,10 +168,10 @@ class MatrixMath {
             }
         }
 
-        void dotProduct(int *vector, int size){
-            int *result = new int[rows];
+        void dotProduct(float *vector, float size){
+            float *result = new float[rows];
             for(int i = 0; i < rows; i++){
-                int sum = 0;
+                float sum = 0;
                 for(int j = 0; j < size; j++){
                     sum += get(i, j) * vector[j];
                 }
@@ -181,8 +182,8 @@ class MatrixMath {
             cols = 1;
         }
 
-        void crossProduct(int *vector){
-            int *result = new int[3];
+        void crossProduct(float *vector){
+            float *result = new float[3];
             result[0] = get(1, 0) * vector[2] - get(2, 0) * vector[1];
             result[1] = get(2, 0) * vector[0] - get(0, 0) * vector[2];
             result[2] = get(0, 0) * vector[1] - get(1, 0) * vector[0];
@@ -193,7 +194,7 @@ class MatrixMath {
         }
 
         void crossProduct(MatrixMath m){
-            int *result = new int[3];
+            float *result = new float[3];
             result[0] = get(1, 0) * m.get(2, 0) - get(2, 0) * m.get(1, 0);
             result[1] = get(2, 0) * m.get(0, 0) - get(0, 0) * m.get(2, 0);
             result[2] = get(0, 0) * m.get(1, 0) - get(1, 0) * m.get(0, 0);
@@ -204,7 +205,7 @@ class MatrixMath {
         }
 
         void normalize(){
-            int magnitude = 0;
+            float magnitude = 0;
             for(int i = 0; i < rows; i++){
                 magnitude += get(i, 0) * get(i, 0);
             }
@@ -214,8 +215,8 @@ class MatrixMath {
             }
         }
 
-        int magnitude(){
-            int result = 0;
+        float magnitude(){
+            float result = 0;
             for(int i = 0; i < rows; i++){
                 result += get(i, 0) * get(i, 0);
             }
@@ -223,7 +224,7 @@ class MatrixMath {
         }
 
         void rotateX(float angle){
-            int *result = new int[9];
+            float *result = new float[9];
             float c = cos(angle);
             float s = sin(angle);
             result[0] = 1;
@@ -242,7 +243,7 @@ class MatrixMath {
         }
 
         void rotateY(float angle){
-            int *result = new int[9];
+            float *result = new float[9];
             float c = cos(angle);
             float s = sin(angle);
             result[0] = c;
@@ -261,7 +262,7 @@ class MatrixMath {
         }
 
         void rotateZ(float angle){
-            int *result = new int[9];
+            float *result = new float[9];
             float c = cos(angle);
             float s = sin(angle);
             result[0] = c;
@@ -280,7 +281,7 @@ class MatrixMath {
         }
 
         void rotate(float x, float y, float z, float angle){
-            int *result = new int[9];
+            float *result = new float[9];
             float c = cos(angle);
             float s = sin(angle);
             float t = 1 - c;
@@ -300,7 +301,7 @@ class MatrixMath {
         }
 
         void rotate(MatrixMath m, float angle){
-            int *result = new int[9];
+            float *result = new float[9];
             float c = cos(angle);
             float s = sin(angle);
             float t = 1 - c;
@@ -319,28 +320,8 @@ class MatrixMath {
             cols = 3;
         }
 
-        void rotate(int x, int y, int z, float angle){
-            int *result = new int[9];
-            float c = cos(angle);
-            float s = sin(angle);
-            float t = 1 - c;
-            result[0] = t * x * x + c;
-            result[1] = t * x * y - z * s;
-            result[2] = t * x * z + y * s;
-            result[3] = t * x * y + z * s;
-            result[4] = t * y * y + c;
-            result[5] = t * y * z - x * s;
-            result[6] = t * x * z - y * s;
-            result[7] = t * y * z + x * s;
-            result[8] = t * z * z + c;
-            delete[] matrix;
-            matrix = result;
-            rows = 3;
-            cols = 3;
-        }
-
-        void rotate(int *m, float angle){
-            int *result = new int[9];
+        void rotate(float *m, float angle){
+            float *result = new float[9];
             float c = cos(angle);
             float s = sin(angle);
             float t = 1 - c;

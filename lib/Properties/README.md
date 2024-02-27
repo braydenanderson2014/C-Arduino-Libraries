@@ -101,6 +101,8 @@ You may also need:
 * Added Support for msgPack() (Store, Load);
 * Added exists(key) function
 * Added Overload to exists, exists(key, value);
+### Version 1.1.2_beta: [CURRENT-RELEASE] -> [BETA]
+* EMERGENCY PATCH: Made an error and forgot to test compile, There was a redefinition error. Error has been patched
 
             
             
