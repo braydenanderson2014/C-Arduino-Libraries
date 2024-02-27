@@ -3,6 +3,17 @@
 
 #include <BinaryTree.h>
 #include <suffixTree.h>
+#include <avlTree.h>
+#include <binarySearchTree.h>
+#include <redblackTree.h>
+#include <heapTree.h>
+#include <bTree.h>
+#include <bPlusTree.h>
+#include <trieTree.h>
+#include <segmentTree.h>
+#include <kDimensionalTree.h>
+//#include <quadTree.h>
+//#include <fenwickTree.h>    
 // ENUMS:
 
 /**

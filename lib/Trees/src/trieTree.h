@@ -2,84 +2,98 @@
 #define TRIE_TREE_h
 
 #include <Arduino.h>
+#include <Map.h>
+#include <SimpleVector.h>
 
-template <typename T>
 class TrieTree {
     private:
         struct TrieNode {
-            T data;
-            TrieNode *left;
-            TrieNode *right;
+            Map<char, TrieNode*> children;
+            bool isEndOfWord;
+            
+            TrieNode() : isEndOfWord(false){}
         };
+        TrieNode* root;
 
-        TrieNode *root;
-
-        TrieNode *insert(TrieNode *node, T data){
-            if(node == NULL){
-                TrieNode *newNode = new TrieNode;
-                newNode->data = data;
-                newNode->left = NULL;
-                newNode->right = NULL;
-                return newNode;
+        void printAllWordsHelper(TrieNode* node, String word){
+            if(node->isEndOfWord){
+                Serial.println(word.c_str());
             }
-            if(data < node->data){
-                node->left = insert(node->left, data);
-            } else if(data > node->data){
-                node->right = insert(node->right, data);
+            for (auto pair : node->children){
+                printAllWordsHelper(pair.second, word + pair.first);
             }
-            return node;
         }
 
-        TrieNode *remove(TrieNode *node, T data){
-            if(node == NULL){
-                return node;
+        void findAllWords(TrieNode* node, String prefix, SimpleVector<String>& words){
+            if(node->isEndOfWord){
+                words.push_back(prefix);
             }
-            if(data < node->data){
-                node->left = remove(node->left, data);
-            } else if(data > node->data){
-                node->right = remove(node->right, data);
-            } else {
-                if(node->left == NULL || node->right == NULL){
-                    TrieNode *temp = node->left ? node->left : node->right;
-                    if(temp == NULL){
-                        temp = node;
-                        node = NULL;
-                    } else {
-                        *node = *temp;
-                    }
-                    delete temp;
-                } else {
-                    TrieNode *temp = findMin(node->right);
-                    node->data = temp->data;
-                    node->right = remove(node->right, temp->data);
-                }
+            for (auto pair : node->children){
+                findAllWords(pair.second, prefix + pair.first, words);
             }
-            return node;
         }
-
-        TrieNode *findMin(TrieNode *node){
-            while(node->left != NULL){
-                node = node->left;
-            }
-            return node;
-        }
-
     public:
-        TrieTree(){
-            root = NULL;
+        TrieTree() : root(new TrieNode()) {}
+
+        ~TrieTree(){
+            delete root;
         }
 
-        void insert(T data){
-            root = insert(root, data);
+        void insert(String word){
+            TrieNode* node = root;
+            for (char ch : word){
+                if(node->children.count(ch) == 0){
+                    node->children[ch] = new TrieNode();
+
+                }
+                node = node->children[ch];
+            }
+            node->isEndOfWord = true;
         }
 
-        void remove(T data){
-            root = remove(root, data);
+        bool search(String word){
+            TrieNode* node = root;
+            for (char ch : word){
+                if(node->children.count(ch) == 0){
+                    return false;
+                }
+                node = node->children[ch];
+            }
+            return node->isEndOfWord;
         }
 
-        T findMin(){
-            return findMin(root)->data;
+        bool startsWith(String prefix){
+            TrieNode* node = root;
+            for (char ch : prefix){
+                if(node->children.count(ch) == 0){
+                    return false;
+                }
+                node = node->children[ch];
+            }
+            return true;
         }
+
+        bool isEmpty(){
+            return root->children.empty();
+        }
+
+        void printAllWords() {
+            printAllWordsHelper(root, "");
+        }
+
+    SimpleVector<String> autoComplete(String prefix){
+        SimpleVector<String> words;
+        TrieNode* node = root;
+        for (char ch : prefix){
+            if(node->children.count(ch) == 0){
+                return words;
+            }
+            node = node->children[ch];
+        }
+        findAllWords(node, prefix, words);
+        return words;
+    }
+        
 };
 
 #endif

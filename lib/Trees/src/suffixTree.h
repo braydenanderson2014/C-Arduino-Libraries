@@ -87,12 +87,14 @@ public:
             }
         }
     }
+
     int edgeLength(SuffixTreeNode* n){
         if(n == root){
             return 0;
         }
         return *(n->end) - n->start + 1;
     }
+    
     int walkDown(SuffixTreeNode* currNode){
         if(activeLength >= edgeLength(currNode)){
             activeEdge += edgeLength(currNode);
@@ -102,12 +104,13 @@ public:
         }
         return 0;
     }
+
     void setSuffixIndexByDFS(SuffixTreeNode* n, int labelHeight){
         if(n == nullptr){
             return;
         }
         int leaf = 1;
-        for(auto i:n->children.begin(); i != n->children.end(); ++i){
+        for(auto i = n->children.begin(); i != n->children.end(); ++i){
             if(i->second != nullptr){
                 leaf = 0; 
                 setSuffixIndexByDFS(i->second, labelHeight + edgeLength(i->second));
@@ -133,14 +136,15 @@ public:
         delete n;
     
     }
+
     void buildSuffixTree(){
         for(int i = 0; i < size; i++){
             extendSuffixTree(i);
         }
         int labelHeight = 0;
         setSuffixIndexByDFS(root, labelHeight);
-    
     }
+
     void printTree(SuffixTreeNode* n, int labelHeight){
         if(n == nullptr){
             return;
@@ -150,8 +154,8 @@ public:
                 printTree(i.second, labelHeight + edgeLength(i.second));
             }
         }
-    
     }
+
     void doDFS(SuffixTreeNode* n, int labelHeight){
         if(n == nullptr){
             return;
@@ -167,6 +171,7 @@ public:
             n->suffixIndex = size - labelHeight;
         }
     }
+
     void getLongestRepeatedSubstring(){
         int labelHeight = 0;
         printTree(root, labelHeight);

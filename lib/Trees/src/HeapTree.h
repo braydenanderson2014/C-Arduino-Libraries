@@ -3,103 +3,74 @@
 
 #include <Arduino.h>
 template <typename T>
-class HeapTree{
-    private:
-        struct HeapNode{
-            T data;
-            HeapNode *left;
-            HeapNode *right;
-        };
+class Heap {
+public:
+    Heap() : size(0), capacity(2) {
+        arr = new T[capacity];
+    }
 
-        HeapNode *root;
+    ~Heap() {
+        delete[] arr;
+    }
 
-        HeapNode *insert(HeapNode *node, T data){
-            if(node == NULL){
-                HeapNode *newNode = new HeapNode;
-                newNode->data = data;
-                newNode->left = NULL;
-                newNode->right = NULL;
-                return newNode;
-            }
-            if(data < node->data){
-                node->left = insert(node->left, data);
-            } else if(data > node->data){
-                node->right = insert(node->right, data);
-            }
-            return node;
+    void insert(T value) {
+        if (size == capacity) {
+            resize();
         }
+        arr[size] = value;
+        siftUp(size);
+        size++;
+    }
 
-        HeapNode *remove(HeapNode *node, T data){
-            if(node == NULL){
-                return node;
-            }
-            if(data < node->data){
-                node->left = remove(node->left, data);
-            } else if(data > node->data){
-                node->right = remove(node->right, data);
-            } else {
-                if(node->left == NULL || node->right == NULL){
-                    HeapNode *temp = node->left ? node->left : node->right;
-                    if(temp == NULL){
-                        temp = node;
-                        node = NULL;
-                    } else {
-                        *node = *temp;
-                    }
-                    delete temp;
-                } else {
-                    HeapNode *temp = findMin(node->right);
-                    node->data = temp->data;
-                    node->right = remove(node->right, temp->data);
-                }
-            }
-            return node;
+    T extractMax() {
+        T result = arr[0];
+        arr[0] = arr[size - 1];
+        size--;
+        siftDown(0);
+        return result;
+    }
+
+private:
+    T* arr;
+    int size;
+    int capacity;
+
+    void siftUp(int i) {
+        while (i > 0 && arr[parent(i)] < arr[i]) {
+            swap(arr[parent(i)], arr[i]);
+            i = parent(i);
         }
+    }
 
-        HeapNode *findMin(HeapNode *node){
-            while(node->left != NULL){
-                node = node->left;
-            }
-            return node;
+    void siftDown(int i) {
+        int maxIndex = i;
+        int l = leftChild(i);
+        if (l < size && arr[l] > arr[maxIndex]) {
+            maxIndex = l;
         }
-
-        void print(HeapNode *node){
-            if(node != NULL){
-                print(node->left);
-                Serial.println(node->data);
-                print(node->right);
-            }
+        int r = rightChild(i);
+        if (r < size && arr[r] > arr[maxIndex]) {
+            maxIndex = r;
         }
-
-    public:
-        HeapTree(){
-            root = NULL;
+        if (i != maxIndex) {
+            swap(arr[i], arr[maxIndex]);
+            siftDown(maxIndex);
         }
+    }
 
-        ~HeapTree(){
-            delete root;
+    void resize() {
+        capacity *= 2;
+        T* temp = new T[capacity];
+        for (int i = 0; i < size; i++) {
+            temp[i] = arr[i];
         }
+        delete[] arr;
+        arr = temp;
+    }
 
-        void insert(T data){
-            root = insert(root, data);
-        }
-
-        void remove(T data){
-            root = remove(root, data);
-        }
-
-        void print(){
-            print(root);
-        }
-        
-        int findMin(){
-            HeapNode *temp = findMin(root);
-            return temp->data;
-        }
-
-
-
+    int parent(int i) { return (i - 1) / 2; }
+    int leftChild(int i) { return 2 * i + 1; }
+    int rightChild(int i) { return 2 * i + 2; }
 };
-
 
 #endif // HEAP_TREE_h
