@@ -2,6 +2,7 @@
 #define TREE_h
 
 #include <BinaryTree.h>
+#include <suffixTree.h>
 // ENUMS:
 
 /**

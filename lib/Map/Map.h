@@ -3,10 +3,10 @@
 
 #include <Arduino.h>
 
-
 template <typename K, typename V>
 class Map {
     private:
+    int count = 0;
     struct MapNode {
         K key;
         V value;
@@ -27,20 +27,20 @@ class Map {
         }
 
        void put(K key, V value) {
-        Node** pp = &head;
+        MapNode** pp = &head;
         while (*pp != nullptr && (*pp)->key != key) {
             pp = &(*pp)->next;
         }
         if (*pp != nullptr) {
             (*pp)->value = value;
         } else {
-            Node* newNode = new Node{key, value, nullptr};
+            MapNode* newNode = new MapNode{key, value, nullptr};
             *pp = newNode;
         }
     }
 
         V get(K key) {
-            Node* p = head;
+            MapNode* p = head;
             while (p != nullptr && p->key != key) {
                 p = p->next;
             }
@@ -52,18 +52,18 @@ class Map {
         }
 
         void remove(K key){
-            Node** pp = &head;
+            MapNode** pp = &head;
             while (*pp != nullptr && (*pp)->key != key) {
                 pp = &(*pp)->next;
             }
             if (*pp != nullptr) {
-                Node* temp = *pp;
+                MapNode* temp = *pp;
                 *pp = (*pp)->next;
                 delete temp;
             }
         }
         bool containsKey(K key) {
-            Node* p = head;
+            MapNode* p = head;
             while (p != nullptr && p->key != key) {
                 p = p->next;
             }
@@ -77,7 +77,7 @@ class Map {
             return count;    
         }
         bool isEmpty(){
-            
+           return count == 0; 
         }
         void clear(){
             
@@ -92,9 +92,6 @@ class Map {
             
         }
 
-        ~Map(){
-            
-        }
 
         V& operator[](const K& key) {
             MapNode** pp = &head;
@@ -109,7 +106,6 @@ class Map {
                 return newNode->value;
             }
         }
-
         class Iterator {
             private:
                 MapNode* current;
@@ -121,8 +117,20 @@ class Map {
                 void operator++() {
                     current = current->next;
                 }
-                std::pair<K, V> operator*() {
-                    return std::make_pair(current->key, current->value);
+
+                template<class First, class Second>
+                struct pair{
+                    First first;
+                    Second second;
+                };
+                
+                template <class First, class Second>
+                pair<First, Second> make_pair(First first, Second second) {
+                    pair<First, Second> p = {first, second};
+                    return p;
+                }
+                pair<K, V> operator*() {
+                    return make_pair(current->key, current->value);
                 }
         };
 

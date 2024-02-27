@@ -107,7 +107,7 @@ public:
             return;
         }
         int leaf = 1;
-        for(auto i : n->children){
+        for(auto i:n->children.begin(); i != n->children.end(); ++i){
             if(i->second != nullptr){
                 leaf = 0; 
                 setSuffixIndexByDFS(i->second, labelHeight + edgeLength(i->second));
@@ -117,6 +117,7 @@ public:
             n->suffixIndex = size - labelHeight;
         }
     }
+
     void freeSuffixTreeByPostOrder(SuffixTreeNode* n){
         if(n == nullptr){
             return;

@@ -4,6 +4,7 @@
 #include "BasicLinkedList.h"
 
 #include "MatrixMath.h"
+#include "Tree.h"
 
 
 MatrixMath matrix(3, 3);
