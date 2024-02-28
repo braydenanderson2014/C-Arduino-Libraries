@@ -1,3 +1,8 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
 {
     "configurations": [
         {
@@ -5,6 +10,8 @@
             "includePath": [
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/include",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/src",
+                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Trees/src",
+                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Map",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MatrixMath/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/DoubleLinkedList/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/LinkedList/src",
@@ -35,7 +42,6 @@
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/variants/mega",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/ColorMapper/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Dictionary/src",
-                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Map",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MyDictionary/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/NewArrayList (TEMP)",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Properties/src",
@@ -46,7 +52,6 @@
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SimpleThreadManager",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Stack/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Timer/src",
-                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Trees/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/TypeTraits",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/UnorderedMap/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Zips",
@@ -66,14 +71,15 @@
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
-                "",
-                "${workspaceFolder}/lib/Trees/src"
+                ""
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/include",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/src",
+                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Trees/src",
+                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Map",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MatrixMath/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/DoubleLinkedList/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/LinkedList/src",
@@ -104,7 +110,6 @@
                     "C:/Users/Admin/.platformio/packages/framework-arduino-avr/variants/mega",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/ColorMapper/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Dictionary/src",
-                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Map",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MyDictionary/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/NewArrayList (TEMP)",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Properties/src",
@@ -115,7 +120,6 @@
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SimpleThreadManager",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Stack/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Timer/src",
-                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Trees/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/TypeTraits",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/UnorderedMap/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Zips",

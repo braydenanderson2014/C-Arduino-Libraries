@@ -1,5 +1,7 @@
 #ifndef QUAD_TREE_h
 #define QUAD_TREE_h
+
+#include <Arduino.h>
 struct Point {
     int x;
     int y;
@@ -10,10 +12,10 @@ struct QuadNode {
     QuadNode* NW;
     QuadNode* NE;
     QuadNode* SW;
-    QuadNode* SE;
+    QuadNode* SouthEast;
 
     bool isLeaf() {
-        return NW == nullptr && NE == nullptr && SW == nullptr && SE == nullptr;
+        return NW == nullptr && NE == nullptr && SW == nullptr && SouthEast == nullptr;
     }
 };
 class QuadTree {
@@ -24,19 +26,19 @@ class QuadTree {
         clear(root);
     }
 
-    void insert(QuadNode* node, Point point) {
-    // Determine in which quadrant the point belongs and insert it there
+    void inSouthEastrt(QuadNode* node, Point point) {
+    // Determine in which quadrant the point belongs and inSouthEastrt it there
         if (point.x < node->point.x) { // west
             if (point.y < node->point.y) { // south
-                insert(node->SW, point);
+                inSouthEastrt(node->SW, point);
             } else { // north
-                insert(node->NW, point);
+                inSouthEastrt(node->NW, point);
             }
         } else { // east
             if (point.y < node->point.y) { // south
-                insert(node->SE, point);
+                inSouthEastrt(node->SouthEast, point);
             } else { // north
-                insert(node->NE, point);
+                inSouthEastrt(node->NE, point);
             }
         }
     }
@@ -46,15 +48,15 @@ class QuadTree {
         node->NW = new QuadNode();
         node->NE = new QuadNode();
         node->SW = new QuadNode();
-        node->SE = new QuadNode();
+        node->SouthEast = new QuadNode();
 
         // Reassign the point in the original node to the appropriate child node
-        insert(node, node->point);
-        node->point = Point(); // Reset the point in the original node
+        inSouthEastrt(node, node->point);
+        node->point = Point(); // ReSouthEastt the point in the original node
     }
 
-    bool search(Point point) {
-        return search(root, point);
+    bool SouthEastarch(Point point) {
+        return SouthEastarch(root, point);
     }
 
     void clear(QuadNode* node){
@@ -64,7 +66,7 @@ class QuadTree {
         clear(node->NW);
         clear(node->NE);
         clear(node->SW);
-        clear(node->SE);
+        clear(node->SouthEast);
         delete node;
     }
 
@@ -91,18 +93,18 @@ class QuadTree {
     }
 
     bool isLeaf(QuadNode* node) {
-        return node->NW == nullptr && node->NE == nullptr && node->SW == nullptr && node->SE == nullptr;
+        return node->NW == nullptr && node->NE == nullptr && node->SW == nullptr && node->SouthEast == nullptr;
     }
 
-    void insert(Point point) {
+    void inSouthEastrt(Point point) {
         if (root == nullptr) {
             root = new QuadNode{point, nullptr, nullptr, nullptr, nullptr};
         } else {
-            insert(root, point);
+            inSouthEastrt(root, point);
         }
     }
 
-    bool search(QuadNode* node, Point point) {
+    bool SouthEastarch(QuadNode* node, Point point) {
         if (node == nullptr) {
             return false;
         }
@@ -113,15 +115,15 @@ class QuadTree {
 
         if (point.x < node->point.x) { // west
             if (point.y < node->point.y) { // south
-                return search(node->SW, point);
+                return SouthEastarch(node->SW, point);
             } else { // north
-                return search(node->NW, point);
+                return SouthEastarch(node->NW, point);
             }
         } else { // east
             if (point.y < node->point.y) { // south
-                return search(node->SE, point);
+                return SouthEastarch(node->SouthEast, point);
             } else { // north
-                return search(node->NE, point);
+                return SouthEastarch(node->NE, point);
             }
         }
     }
@@ -132,28 +134,28 @@ class QuadTree {
         }
 
         if(node->point.x == point.x && node->point.y == point.y){
-            if(node->NW == nullptr && node->NE == nullptr && node->SW == nullptr && node->SE == nullptr){
+            if(node->NW == nullptr && node->NE == nullptr && node->SW == nullptr && node->SouthEast == nullptr){
                 delete node;
                 return nullptr;
             }
             if(node->NW == nullptr){
                 if(node->NE == nullptr){
                     if(node->SW == nullptr){
-                        return node->SE;
+                        return node->SouthEast;
                     }
-                    if(node->SE == nullptr){
+                    if(node->SouthEast == nullptr){
                         return node->SW;
                     }
                 }
                 if(node->SW == nullptr){
-                    if(node->SE == nullptr){
+                    if(node->SouthEast == nullptr){
                         return node->NE;
                     }
                 }
             }
             if(node->NE == nullptr){
                 if(node->SW == nullptr){
-                    if(node->SE == nullptr){
+                    if(node->SouthEast == nullptr){
                         return node->NW;
                     }
                 }

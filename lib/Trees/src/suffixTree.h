@@ -125,16 +125,12 @@ public:
         if(n == nullptr){
             return;
         }
-        for(auto i : n->children){
-            if(i.second != nullptr){
-                freeSuffixTreeByPostOrder(i.second);
+        for(Map<char, SuffixTreeNode*>::Iterator i = n->children.begin(); i != n->children.end(); ++i){
+            if(i->second != nullptr){
+                freeSuffixTreeByPostOrder(i->second);
             }
         }
-        if(n->suffixLink == nullptr){
-            delete n->suffixLink;
-        }
-        delete n;
-    
+        delete n;   
     }
 
     void buildSuffixTree(){

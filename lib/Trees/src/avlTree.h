@@ -170,6 +170,7 @@ class AVLTree {
             Serial.println(node->data);
             inOrder(node->right);
         }
+        
         void preOrder(AVLNode *node){
             if(node == NULL){
                 return;
@@ -187,6 +188,66 @@ class AVLTree {
             postOrder(node->right);
             Serial.println(node->data);
         }
+
+        void printTree(AVLNode *node, int space){
+            if(node == NULL){
+                return;
+            }
+            space += 10;
+            printTree(node->right, space);
+            Serial.println();
+            for(int i = 10; i < space; i++){
+                Serial.print(" ");
+            }
+            Serial.println(node->data);
+            printTree(node->left, space);
+        }
+
+        AVLNode *deleteNode(AVLNode *node, T data){
+            if(node == NULL){
+                return node;
+            }
+            if(data < node->data){
+                node->left = deleteNode(node->left, data);
+            } else if(data > node->data){
+                node->right = deleteNode(node->right, data);
+            } else {
+                if(node->left == NULL){
+                    AVLNode *temp = node->right;
+                    delete node;
+                    return temp;
+                } else if(node->right == NULL){
+                    AVLNode *temp = node->left;
+                    delete node;
+                    return temp;
+                }
+                AVLNode *temp = findMin(node->right);
+                node->data = temp->data;
+                node->right = deleteNode(node->right, temp->data);
+            }
+            if(node == NULL){
+                return node;
+            }
+            node->height = 1 + max(height(node->left), height(node->right));
+            int balance = getBalance(node);
+            if(balance > 1 && getBalance(node->left) >= 0){
+                return rotateRight(node);
+            }
+            if(balance > 1 && getBalance(node->left) < 0){
+                node->left = rotateLeft(node->left);
+                return rotateRight(node);
+            }
+            if(balance < -1 && getBalance(node->right) <= 0){
+                return rotateLeft(node);
+            }
+            if(balance < -1 && getBalance(node->right) > 0){
+                node->right = rotateRight(node->right);
+                return rotateLeft(node);
+            }
+            return node;
+        }
+
+
     public:
         AVLTree(){
             root = NULL;
@@ -238,5 +299,23 @@ class AVLTree {
         void print(){
             inOrder();
         }
+
+        void clear(){
+            delete root;
+            root = NULL;
+        }
+
+        bool isEmpty(){
+            return root == NULL;
+        }
+
+        void printTree(){
+            printTree(root, 0);
+        }
+
+        void deleteNode(T data){
+            root = deleteNode(root, data);
+        }
+
 };
 #endif // AVL_TREE_h

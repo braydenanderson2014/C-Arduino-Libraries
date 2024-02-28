@@ -134,12 +134,20 @@ public:
      * @return Reference to the element at the given index, or nullptr if the index is out of bounds.
      */
     T& operator[](unsigned int index) {
-        if (index >= count) {
+        if (index >= count || index < 0) {
             return nullptr; // You can handle this error differently if needed
         }
         return array[index];
     }
 
+
+    // Overload [] operator for const objects.
+    const T& operator[](unsigned int index) const{
+        if (index >= count || index < 0){
+            return nullptr; // You can handle this error differently if needed
+        }
+        return array[index];
+    }
     /**
      * @brief Get the size of the vector
      * @return The size of the vector

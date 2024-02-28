@@ -154,7 +154,7 @@ class KDimensionalTree {
     }
 
     public:
-    KDimentionalTree(int k) : dimension(k), root(nullptr) {}
+    KDimensionalTree(int k) : dimension(k), root(nullptr) {}
 
     void insert(SimpleVector<T>& point){
         root = insert(root, point, 0);

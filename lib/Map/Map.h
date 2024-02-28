@@ -146,11 +146,19 @@ class Map {
                 return newNode->value;
             }
         }
+        
+
         class Iterator {
             private:
                 MapNode* current;
+                template<class First, class Second>
+                struct pair{
+                    First first;
+                    Second second;
+                };
+                pair<const K, V> pr;
             public:
-                Iterator(MapNode* start) : current(start) {}
+                Iterator(MapNode* start) : current(start), pr{start != nullptr ? start->key : K(), start != nullptr ? start->value : V()}  {}
                 bool operator!=(const Iterator& other) const {
                     return current != other.current;
                 }
@@ -158,11 +166,7 @@ class Map {
                     current = current->next;
                 }
 
-                template<class First, class Second>
-                struct pair{
-                    First first;
-                    Second second;
-                };
+                
                 
                 template <class First, class Second>
                 pair<First, Second> make_pair(First first, Second second) {
@@ -174,6 +178,10 @@ class Map {
                     pair<K, V>* temp = new pair<K, V>{current->key, current->value};
                     return temp;
                 }
+
+                pair<const K, V>& operator*() {
+                    return pr;
+                }
         };
 
         Iterator begin() {
@@ -183,13 +191,6 @@ class Map {
         Iterator end() {
             return Iterator(nullptr);
         }
-
-
 };
-
-
-
-
-
 
 #endif // MAP_h

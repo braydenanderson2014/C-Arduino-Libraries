@@ -163,24 +163,4 @@ struct is_same<T, T> {
     static const bool value = true;
 };
 
-template <typename T>
-struct is_base_of {
-    static const bool value = false;
-};
-
-template <typename T, typename U>
-struct is_base_of {
-    static const bool value = __is_base_of(T, U);
-};
-
-template <typename T>
-struct is_convertible {
-    static const bool value = false;
-};
-
-template <typename T, typename U>
-struct is_convertible {
-    static const bool value = __is_convertible(T, U);
-};
-
 #endif // TYPETRAITS_H
