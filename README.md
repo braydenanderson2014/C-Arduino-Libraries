@@ -35,7 +35,6 @@ Total Libraries: (17)
 
 ## ACTIVELY TESTING ON LISTED LIBRARIES (Perforing Basic Tests On the Library):
 1. MyDictionary [TESTING]
-2. SDList [ACTIVE-DEVELOPMENT], [REIMPLEMENTED], [TESTING], [PARTIALY-TESTED], [CONSIDERED-STABLE]
 
 =======
 
@@ -44,6 +43,13 @@ Total Libraries: (17)
 [WARNING]: NO DOCUMENTATION AVAILABLE YET &&|| UNTESTED BY AUTHOR
 1.  [SimpleMutex]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
 2.  [SimpleThreadManager]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
+3.  [ColorMapper]() [Active-Development], [UNPUBLISHED]
+4.  
+
+
+
+
+
 
 ## ALL LIBRARIES INCLUDE A README.md ##
 
@@ -1277,7 +1283,74 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 * isDivisibleByTwo(T value) 
 
 
-   
+# ColorMapper Library
+
+The ColorMapper library is designed for easy color management in Arduino and PlatformIO projects. It allows the creation, manipulation, and conversion of colors between different formats.
+
+## Features
+
+- Define colors using RGB values.
+- Convert colors to and from hexadecimal format.
+- Manage a dynamic list of colors.
+- Supports up to 15 colors in the dynamic list.
+
+## Installation
+
+### For Arduino
+
+1. Download the `ColorMapper` library.
+2. In the Arduino IDE, go to Sketch > Include Library > Add .ZIP Library and select the downloaded file.
+
+### For PlatformIO
+
+1. Add `ColorMapper` to your `platformio.ini` dependencies.
+
+lib_deps =
+  git_user/ColorMapper
+
+
+```c++
+
+  #include "ColorMapper.h"
+
+ColorMapper colorMapper;
+
+void setup() {
+  Serial.begin(9600);
+  
+  // Adding a color
+  Color myColor(128, 128, 128); // Grey color
+  colorMapper.addColor(myColor);
+  
+  // Getting a color
+  Color firstColor = colorMapper.getColor(0);
+  Serial.print("First color RGB: ");
+  Serial.print(firstColor.getR());
+  Serial.print(", ");
+  Serial.print(firstColor.getG());
+  Serial.print(", ");
+  Serial.println(firstColor.getB());
+  
+  // Converting color to Hex
+  unsigned long hex = colorMapper.colorToHex(firstColor);
+  Serial.print("Hex: #");
+  Serial.println(hex, HEX);
+}
+
+void loop() {
+  // Your code here
+}
+```
+
+Contributing
+Contributions to the ColorMapper library are welcome. Please submit pull requests or open issues to discuss proposed changes.
+
+
+# Trees Library (Will Be Separated into separate Libraries.)
+
+
+
+
 
 # STATUS MEANINGS:
 * UNTESTED: Simply means the Author has not Tested the code on an Arduino. (Author may have tested to make sure project builds)
