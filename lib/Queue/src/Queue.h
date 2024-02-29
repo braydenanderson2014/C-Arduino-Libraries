@@ -4,7 +4,7 @@
 template <class T>
 class Queue {
 private:
-    int *queue; // array
+    T *queue; // array
     int front; // front of the queue
     int rear; // rear of the queue
     int size; // size of the queue
@@ -17,7 +17,7 @@ private:
      * @return void
     */
     void resize(){
-        int *newQueue = new int[size * 2]; // create a new array with double the size
+        T *newQueue = new int[size * 2]; // create a new array with double the size
         copy(newQueue);
         delete[] queue;
         queue = newQueue;
@@ -31,7 +31,7 @@ private:
      * @param newQueue - the new queue
      * @return void
     */
-    void copy(int *newQueue){
+    void copy(T *newQueue){
         for(int i = front; i <= rear; i++){
             newQueue[i] = queue[i];
         }

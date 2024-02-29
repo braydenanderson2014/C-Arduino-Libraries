@@ -14,6 +14,9 @@
 #include <kDimensionalTree.h>
 #include <quadTree.h>
 #include <fenwickTree.h>
+//#include <intervalTree.h>
+#include <octree.h>
+#include <rTree.h>
 //#include <quadTree.h>
 //#include <fenwickTree.h>    
 // ENUMS:
@@ -22,12 +25,6 @@
  * @brief Enum for traversal order
  * 
 */
-enum TraversalOrder {
-    PRE_ORDER,
-    IN_ORDER,
-    POST_ORDER,
-    LEVEL_ORDER
-};
 
 /**
  * @brief Enum for tree type
