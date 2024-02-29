@@ -2,6 +2,7 @@
 #define MATRIXMATH_h
 
 #include <Arduino.h>
+#include <Math.h>
 class MatrixMath {
     private:
         float *matrix;
@@ -209,7 +210,7 @@ class MatrixMath {
             for(int i = 0; i < rows; i++){
                 magnitude += get(i, 0) * get(i, 0);
             }
-            magnitude = sqrt(magnitude);
+            magnitude = Sqrt(magnitude);
             for(int i = 0; i < rows; i++){
                 set(i, 0, get(i, 0) / magnitude);
             }
@@ -220,13 +221,13 @@ class MatrixMath {
             for(int i = 0; i < rows; i++){
                 result += get(i, 0) * get(i, 0);
             }
-            return sqrt(result);
+            return Sqrt(result);
         }
 
         void rotateX(float angle){
             float *result = new float[9];
-            float c = cos(angle);
-            float s = sin(angle);
+            float c = Cos(angle);
+            float s = Sin(angle);
             result[0] = 1;
             result[1] = 0;
             result[2] = 0;
@@ -244,8 +245,8 @@ class MatrixMath {
 
         void rotateY(float angle){
             float *result = new float[9];
-            float c = cos(angle);
-            float s = sin(angle);
+            float c = Cos(angle);
+            float s = Sin(angle);
             result[0] = c;
             result[1] = 0;
             result[2] = s;
@@ -263,8 +264,8 @@ class MatrixMath {
 
         void rotateZ(float angle){
             float *result = new float[9];
-            float c = cos(angle);
-            float s = sin(angle);
+            float c = Cos(angle);
+            float s = Sin(angle);
             result[0] = c;
             result[1] = -s;
             result[2] = 0;
@@ -282,8 +283,8 @@ class MatrixMath {
 
         void rotate(float x, float y, float z, float angle){
             float *result = new float[9];
-            float c = cos(angle);
-            float s = sin(angle);
+            float c = Cos(angle);
+            float s = Sin(angle);
             float t = 1 - c;
             result[0] = t * x * x + c;
             result[1] = t * x * y - z * s;
@@ -302,8 +303,8 @@ class MatrixMath {
 
         void rotate(MatrixMath m, float angle){
             float *result = new float[9];
-            float c = cos(angle);
-            float s = sin(angle);
+            float c = Cos(angle);
+            float s = Sin(angle);
             float t = 1 - c;
             result[0] = t * m.get(0, 0) * m.get(0, 0) + c;
             result[1] = t * m.get(0, 0) * m.get(1, 0) - m.get(2, 0) * s;
@@ -322,8 +323,8 @@ class MatrixMath {
 
         void rotate(float *m, float angle){
             float *result = new float[9];
-            float c = cos(angle);
-            float s = sin(angle);
+            float c = Cos(angle);
+            float s = Sin(angle);
             float t = 1 - c;
             result[0] = t * m[0] * m[0] + c;
             result[1] = t * m[0] * m[1] - m[2] * s;

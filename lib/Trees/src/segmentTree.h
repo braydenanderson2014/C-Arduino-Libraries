@@ -1,46 +1,18 @@
-#ifndef SEGMANT_TREE_h
-#define SEGMANT_TREE_h
+#ifndef SEGMENT_TREE_h
+#define SEGMENT_TREE_h
 
 #include <Arduino.h>
-
-template <typename T>
-struct is_numeric {
-    static const bool value = false;
-};
-
-template <>
-struct is_numeric<int> {
-    static const bool value = true;
-};
-
-template <>
-struct is_numeric<float> {
-    static const bool value = true;
-};
-
-template <>
-struct is_numeric<double> {
-    static const bool value = true;
-};
-
-template <>
-struct is_numeric<long> {
-    static const bool value = true;
-};
-
-template <>
-struct is_numeric<byte> {
-    static const bool value = true;
-};
+#include <TypeTraits.h>
+#include <Math.h>
 
 template <typename T>
 class SegmentTree {
-    static_assert(is_numeric<T>::value, "T must be numeric type");
+    static_assert(is_arithmetic<T>::value, "T must be numeric type");
 public:
   SegmentTree(int arr[], int n) {
     // Allocate memory for segment tree
-    int x = (int)(ceil(log2(n))); //Height of segment tree
-    int max_size = 2*(int)pow(2, x) - 1; //Maximum size of segment tree
+    int x = (int)(Ceil(Log2(n))); //Height of segment tree
+    int max_size = 2*(int)Pow(2, x) - 1; //Maximum size of segment tree
     tree = new int[max_size];
     build(arr, 0, n - 1, 0);
   }
@@ -59,6 +31,7 @@ public:
 
 private:
   int *tree;
+
 
   void build(int arr[], int ss, int se, int si) {
     if (ss == se) {
@@ -93,4 +66,4 @@ private:
   }
 };
 
-#endif // SEGMANT_TREE_h
+#endif // SEGMENT_TREE_h
