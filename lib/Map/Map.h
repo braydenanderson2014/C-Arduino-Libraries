@@ -17,7 +17,7 @@ class Map {
     MapNode* head;
 
     public:
-        friend class Iterator;
+        friend class MapIterator;
 
         Map() : head(nullptr){}
 
@@ -148,7 +148,7 @@ class Map {
         }
         
 
-        class Iterator {
+        class MapIterator {
             private:
                 MapNode* current;
                 template<class First, class Second>
@@ -158,8 +158,8 @@ class Map {
                 };
                 pair<const K, V> pr;
             public:
-                Iterator(MapNode* start) : current(start), pr{start != nullptr ? start->key : K(), start != nullptr ? start->value : V()}  {}
-                bool operator!=(const Iterator& other) const {
+                MapIterator(MapNode* start) : current(start), pr{start != nullptr ? start->key : K(), start != nullptr ? start->value : V()}  {}
+                bool operator!=(const MapIterator& other) const {
                     return current != other.current;
                 }
                 void operator++() {
@@ -184,12 +184,12 @@ class Map {
                 }
         };
 
-        Iterator begin() {
-            return Iterator(head);
+        MapIterator begin() {
+            return MapIterator(head);
         }
 
-        Iterator end() {
-            return Iterator(nullptr);
+        MapIterator end() {
+            return MapIterator(nullptr);
         }
 };
 

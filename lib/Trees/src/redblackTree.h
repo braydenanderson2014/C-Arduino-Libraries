@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 
-enum Color {RED, BLACK};
+enum DualColor {RED, BLACK};
 
 template <typename T>
 struct RedBlackNode {

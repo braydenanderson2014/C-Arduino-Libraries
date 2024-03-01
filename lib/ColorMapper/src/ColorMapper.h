@@ -11,25 +11,29 @@ class Color {
         byte getR() { return r; }
         byte getG() { return g; }
         byte getB() { return b; }
+
+        bool operator==(const Color& other) const {
+            return r == other.r && g == other.g && b == other.b;
+        }
 };
 
 class ColorMapper {
     private:
-        Color colors[3];
-        byte colorCount = 0;
-        SimpleVector <Color> colorList = SimpleVector <Color>(3);
-    public:
-        ColorMapper() {
-            colors[0] = Color(255, 0, 0);
-            colors[1] = Color(0, 255, 0);
-            colors[2] = Color(0, 0, 255);
-        }
+            Color colors[3];
+            byte colorCount = 0;
+            SimpleVector <Color> colorList = SimpleVector <Color>();
+        public:
+            ColorMapper() {
+                colors[0] = Color(255, 0, 0);
+                colors[1] = Color(0, 255, 0);
+                colors[2] = Color(0, 0, 255);
+            }
 
-        ColorMapper(byte color1, byte color2, byte color3) {
-            colors[0] = hexToColor(color1);
-            colors[1] = hexToColor(color2);
-            colors[2] = hexToColor(color3);
-        }
+            ColorMapper(byte color1, byte color2, byte color3) {
+                colors[0] = hexToColor(color1);
+                colors[1] = hexToColor(color2);
+                colors[2] = hexToColor(color3);
+            }
 
         Color getColor(byte index) {
             return colors[index];

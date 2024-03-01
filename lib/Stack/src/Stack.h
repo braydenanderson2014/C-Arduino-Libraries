@@ -58,7 +58,7 @@ public:
     }
     void print(){
         for(int i = 0; i <= top; i++){
-            Serial.println(stack[i])
+            Serial.println(stack[i]);
         }
         Serial.println();
     }

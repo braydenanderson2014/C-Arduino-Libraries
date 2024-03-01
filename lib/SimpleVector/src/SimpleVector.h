@@ -134,8 +134,9 @@ public:
      * @return Reference to the element at the given index, or nullptr if the index is out of bounds.
      */
     T& operator[](unsigned int index) {
+        static T dummy;
         if (index >= count || index < 0) {
-            return nullptr; // You can handle this error differently if needed
+            return dummy; // You can handle this error differently if needed
         }
         return array[index];
     }

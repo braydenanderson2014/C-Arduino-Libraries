@@ -3,7 +3,9 @@
 
 #include <Arduino.h>
 #include <Map.h>
+#include <TypeTraits.h>
 struct SuffixTreeNode {
+    static_assert(is_Char<char>::value || is_String<String>::value, "SuffixTreeNode only supports char or String types");
     Map <char, SuffixTreeNode*> children; // map (Uses Hashtable class from braydenanderson2014)
     SuffixTreeNode* suffixLink; // pointer to the suffix link
     int start; // start index of the suffix for the path
@@ -125,7 +127,7 @@ public:
         if(n == nullptr){
             return;
         }
-        for(Map<char, SuffixTreeNode*>::Iterator i = n->children.begin(); i != n->children.end(); ++i){
+        for(Map<char, SuffixTreeNode*>::MapIterator i = n->children.begin(); i != n->children.end(); ++i){
             if(i->second != nullptr){
                 freeSuffixTreeByPostOrder(i->second);
             }

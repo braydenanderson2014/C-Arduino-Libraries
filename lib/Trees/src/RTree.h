@@ -192,7 +192,7 @@ public:
         RTreeNode<T>* leaf = findLeaf(root, rect);
         if (leaf == nullptr) {
         // The rectangle is not in the tree.
-            return false;
+            return;
         }
 
         // Find the rectangle in the leaf node.
@@ -205,7 +205,7 @@ public:
         }
         if (index == -1) {
             // The rectangle is not in the tree.
-            return false;
+            return;
         }
 
         // Remove the rectangle from the leaf node.
@@ -218,7 +218,7 @@ public:
         // Reorganize the tree if necessary.
         condenseTree(leaf);
 
-        return true;
+        return;
     }
 
     bool search(const Rectangle<T>& rect){

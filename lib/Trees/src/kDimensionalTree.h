@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 #include <SimpleVector.h>
+#include <Math.h>
+
 template <typename T>
 
 class KDimensionalTree {
@@ -150,7 +152,7 @@ class KDimensionalTree {
         for(int i = 0; i < dimension; i++){
             sum += (point1[i] - point2[i]) * (point1[i] - point2[i]);
         }
-        return sqrt(sum);
+        return Sqrt(sum);
     }
 
     public:

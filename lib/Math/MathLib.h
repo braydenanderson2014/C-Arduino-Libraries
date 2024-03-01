@@ -1,5 +1,5 @@
-#ifndef MATH_h
-#define MATH_h
+#ifndef MATHLIB_h
+#define MATHLIB_h
 
 #define MYPI 3.14159265358979323846
 #define MYMAX_ITERATIONS 10
@@ -56,7 +56,7 @@ double CSC(double x) {
     return 1 / Sin(x);
 }
 
-double arcsin(double x) {
+double Arcsin(double x) {
     double sum = 0.0;
     for(int i = 0; i < MYMAX_ITERATIONS; i++) {
         double term = Factorial(2 * i) * Power(x, 2 * i + 1) / (Power(4, i) * Power(Factorial(i), 2) * (2 * i + 1));
@@ -65,11 +65,11 @@ double arcsin(double x) {
     return sum;
 }
 
-double arccos(double x) {
-    return MYPI / 2 - arcsin(x);
+double Arccos(double x) {
+    return MYPI / 2 - Arcsin(x);
 }
 
-double arctan(double x) {
+double Arctan(double x) {
     double sum = 0.0;
     for(int i = 0; i < MYMAX_ITERATIONS; i++) {
         double term = Power(-1, i) * Power(x, 2 * i + 1) / (2 * i + 1);
@@ -78,19 +78,19 @@ double arctan(double x) {
     return sum;
 }
 
-double arccot(double x) {
-    return MYPI / 2 - arctan(x);
+double Arccot(double x) {
+    return MYPI / 2 - Arctan(x);
 }
 
-double arcsec(double x) {
-    return arccos(1 / x);
+double Arcsec(double x) {
+    return Arccos(1 / x);
 }
 
-double arccsc(double x) {
-    return arcsin(1 / x);
+double Arccsc(double x) {
+    return Arcsin(1 / x);
 }
 
-double sinh(double x) {
+double Ainh(double x) {
     double sum = 0.0;
     for(int i = 0; i < MYMAX_ITERATIONS; i++) {
         double term = Power(x, 2 * i + 1) / Factorial(2 * i + 1);
@@ -99,7 +99,7 @@ double sinh(double x) {
     return sum;
 }
 
-double cosh(double x) {
+double Cosh(double x) {
     double sum = 0.0;
     for(int i = 0; i < MYMAX_ITERATIONS; i++) {
         double term = Power(x, 2 * i) / Factorial(2 * i);
@@ -108,23 +108,32 @@ double cosh(double x) {
     return sum;
 }
 
-double tanh(double x) {
-    return sinh(x) / cosh(x);
+double Sinh(double x) {
+    double sum = 0.0;
+    for(int i = 0; i < MYMAX_ITERATIONS; i++) {
+        double term = Power(x, 2 * i + 1) / Factorial(2 * i + 1);
+        sum += term;
+    }
+    return sum;
 }
 
-double coth(double x) {
-    return 1 / tanh(x);
+double Tanh(double x) {
+    return Sinh(x) / Cosh(x);
 }
 
-double sech(double x) {
-    return 1 / cosh(x);
+double Coth(double x) {
+    return 1 / Tanh(x);
 }
 
-double csch(double x) {
-    return 1 / sinh(x);
+double Sech(double x) {
+    return 1 / Cosh(x);
 }
 
-double arcsinh(double x) {
+double Csch(double x) {
+    return 1 / Sinh(x);
+}
+
+double Arcsinh(double x) {
     double sum = 0.0;
     for(int i = 0; i < MYMAX_ITERATIONS; i++) {
         double term = Factorial(2 * i) * Power(x, 2 * i + 1) / (Power(4, i) * Power(Factorial(i), 2) * (2 * i + 1));
@@ -200,4 +209,4 @@ double Floor(double x) {
 
 
 
-#endif // MATH_h
+#endif // MATHLIB_h

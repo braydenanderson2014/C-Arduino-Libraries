@@ -42,7 +42,7 @@ public:
     */
     String get(const String& key) const override {
         String value;
-        if (data.get(key)) {
+        if (data.getValue(key)) {
             return value;
         } else {
             return "null"; // or some other error indicator
