@@ -1,0 +1,40 @@
+{
+    "name": "ColorManager",
+    "version": "1.0.0-ALPHA",
+    "description": "This Library allows you to create a ColorManager object that can be used to store your Colors. This Library also contains a Color object that can be used to store RGB values. You can also convert to hex from RGB and vice versa.",
+    "keywords": ["Color", "ColorManager", "RGB", "Hex", "ColorObject"],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/ColorManager.git"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "dependencies": {
+        "braydenanderson2014/SimpleVector ": "*"
+    },
+    "examples": [
+        {
+            "name": "Example",
+            "base": "examples",
+            "files": [
+                "Example.ino"
+            ]
+        }
+    ],
+    "headers": [
+        "ColorManager.h",
+        "SimpleVector.h"
+    ],
+    "header": "ColorManager.h",
+    "Notes": "This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
+    "license": "Apache-2.0"
+    
+
+}

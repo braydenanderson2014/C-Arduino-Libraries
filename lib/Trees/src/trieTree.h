@@ -81,18 +81,18 @@ class TrieTree {
             printAllWordsHelper(root, "");
         }
 
-    SimpleVector<String> autoComplete(String prefix){
-        SimpleVector<String> words;
-        TrieNode* node = root;
-        for (char ch : prefix){
-            if(node->children.count(ch) == 0){
-                return words;
+        SimpleVector<String> autoComplete(String prefix){
+            SimpleVector<String> words;
+            TrieNode* node = root;
+            for (char ch : prefix){
+                if(node->children.count(ch) == 0){
+                    return words;
+                }
+                node = node->children[ch];
             }
-            node = node->children[ch];
+            findAllWords(node, prefix, words);
+            return words;
         }
-        findAllWords(node, prefix, words);
-        return words;
-    }
         
 };
 

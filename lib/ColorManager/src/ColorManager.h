@@ -1,5 +1,5 @@
-#ifndef COLORMAPPER_h
-#define COLORMAPPER_h
+#ifndef COLORMANAGER_h
+#define COLORMANAGER_h
 
 #include <SimpleVector.h>
 class Color {
@@ -15,21 +15,25 @@ class Color {
         bool operator==(const Color& other) const {
             return r == other.r && g == other.g && b == other.b;
         }
+
+        Color getColor() {
+            return Color(this->r, this->g, this->b);
+        }
 };
 
-class ColorMapper {
+class ColorManager {
     private:
             Color colors[3];
             byte colorCount = 0;
             SimpleVector <Color> colorList = SimpleVector <Color>();
         public:
-            ColorMapper() {
+            ColorManager() {
                 colors[0] = Color(255, 0, 0);
                 colors[1] = Color(0, 255, 0);
                 colors[2] = Color(0, 0, 255);
             }
 
-            ColorMapper(byte color1, byte color2, byte color3) {
+            ColorManager(byte color1, byte color2, byte color3) {
                 colors[0] = hexToColor(color1);
                 colors[1] = hexToColor(color2);
                 colors[2] = hexToColor(color3);
@@ -68,6 +72,11 @@ class ColorMapper {
         Color hexToColor(unsigned long hex) {
             return Color((hex >> 16) & 0xFF, (hex >> 8) & 0xFF, hex & 0xFF);
         }
+
+        void clear() {
+            colorList.clear();
+            colorCount = 0;
+        }
 };
 
-#endif // COLORMAPPER_h
+#endif // COLORMANAGER_h   

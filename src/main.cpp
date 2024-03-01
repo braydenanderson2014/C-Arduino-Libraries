@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <ColorMapper.h>
+#include <ColorManager.h>
 #include <Dictionary.h>
 #include <SimpleVector.h>
 #include <Map.h>

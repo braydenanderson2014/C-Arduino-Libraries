@@ -2,172 +2,208 @@
 #define QUAD_TREE_h
 
 #include <Arduino.h>
+#include <TypeTraits.h>
+#include <SimpleVector.h>
+
+template <typename T>
 struct Point {
-    int x;
-    int y;
+    static_assert(is_arithmetic<T>::value, "Point only supports number types");
+    T x; // The x coordinate of the point
+    T y; // The y coordinate of the point
 };
 
+template <typename T>
+struct Rectangle {
+    static_assert(is_arithmetic<T>::value, "Rectangle only supports number types");
+    Point<T> bottomLeft; // The bottom-left point of the rectangle
+    Point<T> topRight; // The top-right point of the rectangle
+    Point<T> topLeft; // The top-left point of the rectangle
+    Point<T> bottomRight; // The bottom-right point of the rectangle
+
+    bool contains(const Point<T>& point) {
+        return point.x >= bottomLeft.x && point.x <= topRight.x && point.y >= bottomLeft.y && point.y <= topRight.y;
+    }
+
+    bool intersects(const Rectangle<T>& other) {
+        return !(topLeft.x > other.bottomRight.x || bottomRight.x < other.topLeft.x || topLeft.y > other.bottomRight.y || bottomRight.y < other.topLeft.y);
+    }
+
+};
+
+template <typename T>
 struct QuadNode {
-    Point point;
-    QuadNode* NW;
-    QuadNode* NE;
-    QuadNode* SW;
-    QuadNode* SouthEast;
+    static_assert(is_arithmetic<T>::value, "QuadNode only supports number types");
+    Point<T> point; // The point stored in the node
+    Rectangle<T> boundary; // The boundary of the node
+    SimpleVector<Point<T>> points; // The points stored in the node
+    int capacity; // The maximum number of points that can be stored in the node
+    bool divided; // Whether the node has been divided
+    QuadNode* NW; // The north-west quadrant
+    QuadNode* NE; // The north-east quadrant
+    QuadNode* SW; // The south-west quadrant
+    QuadNode* SouthEast; // The south-east quadrant
+
+    QuadNode(const Rectangle<T>& boundary, const int& capacity) : boundary(boundary), capacity(capacity), divided(false) {
+        NW = NE = SW = SouthEast = nullptr;
+    }
 
     bool isLeaf() {
         return NW == nullptr && NE == nullptr && SW == nullptr && SouthEast == nullptr;
     }
+
+    void subdivide() {
+        T x = boundary.bottomLeft.x + (boundary.topRight.x - boundary.bottomLeft.x) / 2;
+        T y = boundary.bottomLeft.y + (boundary.topRight.y - boundary.bottomLeft.y) / 2;
+        Rectangle<T> ne = Rectangle<T>{Point<T>{x, y}, boundary.topRight};
+        NE = new QuadNode(ne, capacity);
+        Rectangle<T> nw = Rectangle<T>{Point<T>{boundary.bottomLeft.x, y}, Point<T>{x, boundary.topRight.y}};
+        NW = new QuadNode(nw, capacity);
+        Rectangle<T> se = Rectangle<T>{Point<T>{x, boundary.bottomLeft.y}, Point<T>{boundary.topRight.x, y}};
+        SouthEast = new QuadNode(se, capacity);
+        Rectangle<T> sw = Rectangle<T>{boundary.bottomLeft, Point<T>{x, y}};
+        SW = new QuadNode(sw, capacity);
+        divided = true;
+    }
+
+    bool insert(const Point<T>& point) {
+        if (!boundary.contains(point)) {
+            return false;
+        }
+        if (points.size() < capacity) {
+            points.push_back(point);
+            return true;
+        }
+        if (!divided) {
+            subdivide();
+        }
+        return (NW->insert(point) || NE->insert(point) || SW->insert(point) || SouthEast->insert(point));
+    }
+
+    SimpleVector<Point<T>> query(const Rectangle<T>& range) {
+        SimpleVector<Point<T>> found;
+        if (!boundary.intersects(range)) {
+            return found;
+        }
+        for (int i = 0; i < points.size(); i++) {
+            if (range.contains(points[i])) {
+                found.push_back(points[i]);
+            }
+        }
+        if (divided) {
+            SimpleVector<Point<T>> nwPoints = NW->query(range);
+            SimpleVector<Point<T>> nePoints = NE->query(range);
+            SimpleVector<Point<T>> swPoints = SW->query(range);
+            SimpleVector<Point<T>> sePoints = SouthEast->query(range);
+
+            found.insert(found.end(), nwPoints.begin(), nwPoints.end());
+            found.insert(found.end(), nePoints.begin(), nePoints.end());
+            found.insert(found.end(), swPoints.begin(), swPoints.end());
+            found.insert(found.end(), sePoints.begin(), sePoints.end());
+        }
+        return found;
+    }
+
+    bool deletePoint(const Point<T>& point) {
+        if (!boundary.contains(point)) {
+            return false;
+        }
+        if (points.size() > 0) {
+            for (int i = 0; i < points.size(); i++) {
+                if (points[i].x == point.x && points[i].y == point.y) {
+                    points.erase(i);
+                    return true;
+                }
+            }
+        }
+        if (divided) {
+            return (NW->deletePoint(point) || NE->deletePoint(point) || SW->deletePoint(point) || SouthEast->deletePoint(point));
+        }
+        return false;
+    }
 };
+
+template <typename T>
 class QuadTree {
-    public:
-    QuadTree() : root(nullptr) {}
-    
-    ~QuadTree(){
-        clear(root);
-    }
-
-    void inSouthEastrt(QuadNode* node, Point point) {
-    // Determine in which quadrant the point belongs and inSouthEastrt it there
-        if (point.x < node->point.x) { // west
-            if (point.y < node->point.y) { // south
-                inSouthEastrt(node->SW, point);
-            } else { // north
-                inSouthEastrt(node->NW, point);
-            }
-        } else { // east
-            if (point.y < node->point.y) { // south
-                inSouthEastrt(node->SouthEast, point);
-            } else { // north
-                inSouthEastrt(node->NE, point);
-            }
-        }
-    }
-
-    void split(QuadNode* node) {
-        // Create four child nodes
-        node->NW = new QuadNode();
-        node->NE = new QuadNode();
-        node->SW = new QuadNode();
-        node->SouthEast = new QuadNode();
-
-        // Reassign the point in the original node to the appropriate child node
-        inSouthEastrt(node, node->point);
-        node->point = Point(); // ReSouthEastt the point in the original node
-    }
-
-    bool SouthEastarch(Point point) {
-        return SouthEastarch(root, point);
-    }
-
-    void clear(QuadNode* node){
-        if(node == nullptr){
-            return;
-        }
-        clear(node->NW);
-        clear(node->NE);
-        clear(node->SW);
-        clear(node->SouthEast);
-        delete node;
-    }
-
-    void remove(Point point) {
-        root = remove(root, point);
-    
-    }
-
-    Point findMin(QuadNode* node){
-        if(node == nullptr){
-            return Point();
-        }
-        if(node->NW == nullptr){
-            return node->point;
-        }
-        return findMin(node->NW);
-    }
-
     private:
-    QuadNode* root;
+    QuadNode<T>* root;
+    Rectangle<T> boundary;
+    int capacity;
 
-    bool isLeaf() {
-        return isLeaf(root);
-    }
-
-    bool isLeaf(QuadNode* node) {
-        return node->NW == nullptr && node->NE == nullptr && node->SW == nullptr && node->SouthEast == nullptr;
-    }
-
-    void inSouthEastrt(Point point) {
-        if (root == nullptr) {
-            root = new QuadNode{point, nullptr, nullptr, nullptr, nullptr};
+    void print(const QuadNode<T>* node) {
+        if (node->isLeaf()) {
+            Serial.println("Leaf");
+            for (int i = 0; i < node->points.size(); i++) {
+                Serial.print("Point: ");
+                Serial.print(node->points[i].x);
+                Serial.print(", ");
+                Serial.println(node->points[i].y);
+            }
         } else {
-            inSouthEastrt(root, point);
+            Serial.println("Divided");
+            print(node->NW);
+            print(node->NE);
+            print(node->SW);
+            print(node->SouthEast);
         }
     }
 
-    bool SouthEastarch(QuadNode* node, Point point) {
-        if (node == nullptr) {
+    public:
+    QuadTree(const Rectangle<T>& boundary, const int& capacity) : boundary(boundary), capacity(capacity) {
+        root = new QuadNode<T>(boundary, capacity);
+    }
+
+    ~QuadTree() {
+        delete root;
+    }
+
+    bool insert(const Point<T>& point) {
+        return root->insert(point);
+    }
+
+    SimpleVector<Point<T>> query(const Rectangle<T>& range) {
+        return root->query(range);
+    }
+
+    void clear() {
+        delete root;
+        root = new QuadNode<T>(boundary, capacity);
+    }
+
+    bool deletePoint(const Point<T>& point) {
+        if (!boundary.contains(point)) {
+            return false;
+        }
+        return deletePoint(root, point);
+    }
+
+    void print() {
+        print(root);
+    }
+
+    uint16_t size() {
+        return root->points.size();
+    }
+
+    uint16_t depth() {
+        return depth(root);
+    }
+
+    bool contains(const Point<T>& point) {
+        return boundary.contains(point);
+    }
+
+    bool movePoint(const Point<T>& oldPoint, const Point<T>& newPoint) {
+        // Check if the old point exists in the quadtree and if the new point is within the boundary
+        if (!root->contains(oldPoint) || !boundary.contains(newPoint)) {
             return false;
         }
 
-        if (node->point.x == point.x && node->point.y == point.y) {
-            return true;
-        }
+        // Remove the old point and insert the new point
+        root->deletePoint(oldPoint);
+        root->insert(newPoint);
 
-        if (point.x < node->point.x) { // west
-            if (point.y < node->point.y) { // south
-                return SouthEastarch(node->SW, point);
-            } else { // north
-                return SouthEastarch(node->NW, point);
-            }
-        } else { // east
-            if (point.y < node->point.y) { // south
-                return SouthEastarch(node->SouthEast, point);
-            } else { // north
-                return SouthEastarch(node->NE, point);
-            }
-        }
+        return true;
     }
-
-    QuadNode* remove(QuadNode* node, Point point){
-        if(node == nullptr){
-            return nullptr;
-        }
-
-        if(node->point.x == point.x && node->point.y == point.y){
-            if(node->NW == nullptr && node->NE == nullptr && node->SW == nullptr && node->SouthEast == nullptr){
-                delete node;
-                return nullptr;
-            }
-            if(node->NW == nullptr){
-                if(node->NE == nullptr){
-                    if(node->SW == nullptr){
-                        return node->SouthEast;
-                    }
-                    if(node->SouthEast == nullptr){
-                        return node->SW;
-                    }
-                }
-                if(node->SW == nullptr){
-                    if(node->SouthEast == nullptr){
-                        return node->NE;
-                    }
-                }
-            }
-            if(node->NE == nullptr){
-                if(node->SW == nullptr){
-                    if(node->SouthEast == nullptr){
-                        return node->NW;
-                    }
-                }
-            }
-            Point temp = findMin(node->NE);
-            node->point = temp;
-            node->NE = remove(node->NE, temp);
-            return node;
-        }
-    }
-
-    
 };
 
 
