@@ -23,9 +23,10 @@
 * [SimpleThreadManager](#simplethreadmanager-class) [ACTIVE-DEVELOPMENT]
 * [Operators](#operators-class) [PASSIVE-DEVELOPMENT], [STABLE]
 * [Predicates](#predicates-class) [PASSIVE-DEVELOPMENT], [STABLE]
+* [TypeTratis](#typetraits-library) [PASSIVE-DEVELOPMENT], [STABLE]
 
-Total Available Libraries: (15)
-Total Libraries: (17)
+Total Available Libraries: (16)
+Total Libraries: (18)
 
 ## ACTIVELY WORKING ON LISTED LIBRARIES (Bug Fixing or Feature Adding):
 1.  [SimpleMutex]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
@@ -55,22 +56,22 @@ Total Libraries: (17)
 
 # PlatformIO Leaderboard for these Libraries (Out of /13,767 Libraries on the Platform) UPDATED 02/18/2024 3:38pm Mountain
 ## Library Name: Position (Increase or Decrease) Downloads Month-To-Date, Total Downloads
-* ArrayList: 3063 (Popularity Decreased by 23 Positions) 3 Downloads MTD; *15 Downloads*
-* Dictionary: 5197 (Popularity Increase by 4 Positions) 1 Download MTD; *7 Downloads*
-* SimpleArduinoTimer: 3753 (Popularity Increase by 4 Positions) 2 Downloads MTD; *4 Downloads*
-* UnorderedMap: 1845 (Popularity Increase by 7 Positions) 8 Downloads MTD; *10 Downloads*
-* SimpleProperties: 3754 (Popularity Increase by 4 Positions) 2 Downloads MTD; *12 Downloads*
-* Iterator: 5196 (Popularity Increae by 4 Positions) 1 Download MTD; *8 Downloads*
-* BasicIO: 725 (Popularity Increase by 11 Position) 46 Downloads MTD; *116 Downloads*
-* SDList: 3058 (Popularity Decrease by 28 Positions) 3 Downloads MTD; *3 Downloads*
-* Hashtable: 1550 (Popularity Increase by 8 Positions) 12 Downloads MTD; *21 Downloads*
-* SimpleVector: 1735 (Popularity Increase by 5 Positions) 10 Downloads MTD; *22 Downloads*
+* ArrayList: 1891 (Popularity Decrease by 14 Positions) 8 Downloads MTD; *20 Downloads*
+* Dictionary: 5177 (Popularity Increase by 8,377 Positions) 1 Download MTD; *8 Downloads*
+* SimpleArduinoTimer: 3763 (Popularity Decrease by 3 Positions) 2 Downloads MTD; *5 Downloads*
+* UnorderedMap: 1407 (Popularity Increase by 68 Positions) 14 Downloads MTD; *18 Downloads*
+* SimpleProperties: 2182 (Popularity Increase by 197 Positions) 6 Downloads MTD; *13 Downloads*
+* Iterator: 5176 (Popularity Increase by 8,377 Positions) 1 Download MTD; *9 Downloads*
+* BasicIO: 844 (Popularity Increase by 34 Position) 30 Downloads MTD; *128 Downloads*
+* SDList: 2386 (Popularity Increase by 290 Positions) 5 Downloads MTD; *3 Downloads*
+* Hashtable: 1033 (Popularity Increase by 80 Positions) 24 Downloads MTD; *34 Downloads*
+* SimpleVector: 1111 (Popularity Increase by 68 Positions) 21 Downloads MTD; *36 Downloads*
 * MyDictionary: 13,534 (Popularity Decrease by 3 Positions) 0 Downloads MTD; *0 Downloads* :(
-* Operators: 5223 (Popularity Increase by 4 Positions) 1 Download MTD; *1 Download*
-* Predicates: 5224 (Popularity Decrease by 4 Positions) 1 Downloads MTD; *1 Download*
-* BasicLinkedList: 13,533 (Popularity Decrease by 8328 Position) 1 Downloads MTD; *5 Downloads*
-* DoubleLinkedList: 13,563 (Popularity Decrease by 2 Position) 0 Downloads MTD; *0 Downloads* :(
-
+* Operators: 3774 (Popularity Decrase by 9 Positions) 2 Download MTD; *2 Download*
+* Predicates: 3775 (Popularity Decrease by 9 Positions) 2 Downloads MTD; *2 Download*
+* BasicLinkedList: 13,565 (Popularity Decrease by 4 Position) 0 Downloads MTD; *5 Downloads*
+* DoubleLinkedList: 13,598 (Popularity Decrease by 2 Position) 0 Downloads MTD; *0 Downloads* :(
+* TypeTraits: 13,825 (Popularity Remains the same) 1 Download MTD; *1 Downloads*
 
 
 # Dictionary Class
@@ -1347,6 +1348,71 @@ Contributions to the ColorMapper library are welcome. Please submit pull request
 
 
 # Trees Library (Will Be Separated into separate Libraries.)
+
+
+
+
+
+# TypeTraits Library 
+
+## Overview
+
+The TypeTraits library provides a collection of template structures to facilitate type checking and type traits identification in Arduino programming. It offers a simple, compile-time mechanism to query the characteristics of types, such as whether a type is arithmetic, a character, a string, an integral type, a floating-point type, an array, a pointer, a reference, const-qualified, volatile-qualified, or whether two types are the same.
+
+You can use it in boolean operations, Serial statements, static_asserts(), etc...
+## Features
+
+- **Arithmetic Type Check**: Determine if a type is one of the basic arithmetic types (`int`, `float`, `double`, `long`, `byte`).
+- **Character Type Check**: Check if a type is a `char`.
+- **String Type Check**: Identify if a type is an Arduino `String`.
+- **Integral Type Check**: Check if a type is an integral (`int`, `long`, `char`, `bool`).
+- **Floating-Point Type Check**: Determine if a type is a floating-point type (`float`, `double`).
+- **Array Type Check**: Identify if a type is an array.
+- **Pointer Type Check**: Check if a type is a pointer, including const pointers.
+- **Reference Type Check**: Determine if a type is a reference.
+- **Const Qualification Check**: Identify if a type is const-qualified.
+- **Volatile Qualification Check**: Check if a type is volatile-qualified.
+- **Type Comparison**: Determine if two types are the same.
+
+## Installation
+
+1. Download the TypeTraits library.
+2. Place the `TypeTraits.h` file into your Arduino project's library folder or a location accessible by your project.
+3. Include the library in your sketch with `#include <TypeTraits.h>`.
+
+## Usage Example
+
+```cpp
+#include <Arduino.h>
+#include <TypeTraits.h>
+
+void setup() {
+    Serial.begin(9600);
+
+    // Example usage of is_arithmetic
+    Serial.println(is_arithmetic<int>::value); // Outputs: 1 (true)
+    Serial.println(is_arithmetic<String>::value); // Outputs: 0 (false)
+    static_assert(is_arithmetic<float>::value); // Throws compile error if condition is false; in this case the float is an 
+    // arithmetic type .
+
+    // Example usage of is_same
+    Serial.println(is_same<int, int>::value); // Outputs: 1 (true)
+    Serial.println(is_same<int, float>::value); // Outputs: 0 (false)
+}
+
+void loop() {
+    // Your code here
+}
+```
+
+## Contributing
+We welcome contributions to improve the TypeTraits library. Please feel free to submit issues and pull requests.
+
+## License
+This library is open-source and available under the Apache license. See the LICENSE file for more information.
+
+
+This README provides a basic introduction, installation instructions, usage examples, and contribution guidelines. Adjust the content as necessary to match the specifics of your library and its usage.
 
 
 

@@ -85,6 +85,17 @@ class MatrixMath {
             cols = temp;
         }
 
+        void invert(){
+            float *result = new float[rows * cols];
+            for(int i = 0; i < rows; i++){
+                for(int j = 0; j < cols; j++){
+                    result[i * cols + j] = get(j, i);
+                }
+            }
+            delete[] matrix;
+            matrix = result;
+        }
+
         void copy(MatrixMath m){
             delete[] matrix;
             matrix = new float[m.rows * m.cols];
@@ -97,6 +108,14 @@ class MatrixMath {
             }
         }
 
+        void clear(){
+            for(int i = 0; i < rows; i++){
+                for(int j = 0; j < cols; j++){
+                    set(i, j, 0);
+                }
+            }
+        }
+        
         void identity(int size){
             delete[] matrix;
             matrix = new float[size * size];

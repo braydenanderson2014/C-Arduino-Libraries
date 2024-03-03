@@ -1,0 +1,37 @@
+{
+    "name": "Map",
+    "version": "1.0.0-ALPHA",
+    "description": "A lightweight and efficient implementation of a dynamic array, suitable for use in memory-constrained environments.",
+    "keywords": ["Arduino", "Map", "Data", "Data Structure", "Maps", "Dynamic Array", "Array", "List", "Key Value Pair"],
+    "Repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/SimpleVector.git"
+
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "headers": [
+        "SimpleVector.h",
+        "Map.h"
+    ],
+    
+    "examples": [
+        {
+            "name": "Example",
+            "base": "examples",
+            "files": [
+                "Example/Example.ino"
+            ]
+        }
+    ],
+    "license": "Apache-2.0",
+    "Notes:": "This is a test package. It is not intended for use in production environments. This library has not yet been tested. If you would like to test it, please do so at your own risk. If you find any bugs, please report them to the author."
+    
+}

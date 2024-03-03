@@ -2,6 +2,8 @@
 #define SIMPLEVECTOR_H
 
 #include <Arduino.h>
+#include <initializer_list.h>
+
 template<typename T>
 class SimpleVector {
 private:
@@ -35,7 +37,21 @@ public:
     SimpleVector() : array(new T[4]), count(0), capacity(4) {}
 
     SimpleVector(unsigned int initialCapacity) : array(new T[initialCapacity]), count(0), capacity(initialCapacity) {}
-    
+
+    SimpleVector(const SimpleVector& other) : array(new T[other.capacity]), count(other.count), capacity(other.capacity) {
+        for (unsigned int i = 0; i < count; i++) {
+            array[i] = other.array[i];
+        }
+    }
+
+
+    SimpleVector(initializer_list<T> initList) : array(new T[initList.size()]), count(initList.size()), capacity(initList.size()) {
+        int i = 0;
+        for (const auto& value : initList) {
+            array[i++] = value;
+        }
+    }
+
     ~SimpleVector() {
         delete[] array;
     }
@@ -93,6 +109,14 @@ public:
             resize(2 * capacity);
         }
         array[count++] = item;
+    }
+
+    template<typename... Args>
+    void bulkAdd(Args... args) {
+        const T temp[] = {args...};
+        for (auto& val : temp) {
+            put(val);
+        }
     }
 
     /**

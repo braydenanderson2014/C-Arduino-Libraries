@@ -1,0 +1,35 @@
+{
+    "name": "OcTree",
+    "version": "1.0.0",
+    "description": "This Library makes it easy to create and Manage OCTree's. This Library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "keywords": ["OcTree", "3Dimesional", "Tree", "Octets", "SimpleVector", "TypeTraits", "Vector"],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/OcTree.git"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "include": [
+        "OcTree.h"
+    ],
+    "headers": [
+        "Arduino.h",
+        "OcTree.h",
+        "SimpleVector.h",
+        "TypeTraits.h"
+    ],
+    "header": "OcTree.h",
+    "Notes": "This library is designed to be simple and easy to use. You can use this library with any function that requires an operator as an argument. This library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "braydenanderson2014/TypeTraits": "*",
+        "braydenanderson2014/SimpleVector": ">=1.0.5"
+    }   
+}

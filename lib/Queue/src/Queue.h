@@ -125,5 +125,20 @@ public:
             Serial.println(queue[i]);
         }
     }
+
+    /**
+     * @brief Clear the queue
+     * 
+     * @return void
+    */
+    void clear(){
+        front = 0;
+        rear = -1;
+        elements = 0;
+    }
+
+    size_t count(){
+        return elements;
+    }
 };
 #endif // QUEUE_h
