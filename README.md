@@ -56,8 +56,11 @@ Total Libraries: (43)
 17. [QuadTree](#quadtree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
 18. [Queue](#queue-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
 19. [RedBlackTree](#red-black-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
-
-
+20. [RTree](#r-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+21. [SegmentTree](#segment-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+22. [Stack](#stack-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING] 
+23. [Suffixtree](#suffix-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING] 
+24. [TrieTree](#trie-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
 
 =======
 
@@ -109,12 +112,15 @@ Total Libraries: (43)
 * Map: 13,844 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
 * MatrixMath: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
 * Numeric_Limits: 13,846 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
-* OCTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads* //DIDNT PUBLISH |
-* QuadTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*               \/
+* OCTree: 13,847 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads* 
+* QuadTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*            
 * Queue: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
 * RedBlackTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
-
-
+* RTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* SegmentTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* Stack: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* SuffixTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* TrieTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
 
 # Dictionary Class
 
@@ -2724,6 +2730,427 @@ While the library is designed to be generic and broadly applicable, specific use
 
 ## License
 This library is released for public use. Depending on the project's specifics, ensure compliance with the licensing terms if included in both open-source and proprietary projects.
+
+
+# R-Tree Library for Arduino
+
+## Overview
+The R-Tree library for Arduino provides a spatial index structure for efficiently organizing and querying geometric data, such as rectangles or spatial objects. It's particularly useful for applications requiring spatial searches, like collision detection, viewport queries, or geographic information systems.
+
+## Features
+* Geometric Data Management: Efficiently stores and manages rectangles, supporting operations like insertion, deletion, and spatial queries.
+* Spatial Queries: Supports querying data within a specified geometric range.
+* Traversal Orders: Offers multiple tree traversal orders including pre-order, in-order, post-order, and level-order.
+* Dynamic Tree Structure: Automatically adjusts its structure for optimal performance as data is added or removed.
+
+## Usage
+To use the R-Tree library in your Arduino project, include it at the beginning of your sketch:
+
+```cpp
+
+#include "RTree.h"
+```
+## Creating an R-Tree
+Instantiate an R-Tree object specifying the data type:
+
+```cpp
+
+RTree<int> tree;
+```
+## Inserting Data
+Insert rectangles into the tree:
+
+```cpp
+
+Rectangle<int> rect1 = {0, 0, 10, 10};
+Rectangle<int> rect2 = {5, 5, 15, 15};
+tree.insert(rect1);
+tree.insert(rect2);
+```
+
+## Removing Data
+Remove a rectangle from the tree:
+
+```cpp
+
+tree.remove(rect1);
+```
+## Searching
+Search for a rectangle in the tree (example function, actual search implementation might vary based on specific needs):
+
+```cpp
+
+Rectangle<int> searchRect = {1, 1, 9, 9};
+bool found = tree.search(searchRect);
+if (found) {
+    Serial.println("Rectangle found.");
+} else {
+    Serial.println("Rectangle not found.");
+}
+```
+## Clearing the Tree
+Remove all elements from the tree:
+
+```cpp
+
+tree.clear();
+```
+## Traversal and Printing
+Print the tree contents in different traversal orders:
+
+```cpp
+
+tree.print(PRE_ORDER);
+tree.print(IN_ORDER);
+tree.print(POST_ORDER);
+tree.print(LEVEL_ORDER);
+```
+## Applications
+R-Trees are ideal for a wide range of applications that require spatial data indexing and queries, including:
+
+* Geographic Information Systems (GIS).
+* Collision detection in gaming and simulations.
+* Spatial data analysis and visualization.
+* Database index structures for spatial querying.
+``RECOMMENDED FOR MICROCONTROLLERS/MICROPROCESSORS WITH MORE MEMORY CAPABILITY. (UNO, and NANO ARE NOT GOING TO WORK :) )``
+``RECOMMEND USING DEVICES LIKE THE RASPBERRY PI, ARDUINO GIGA, ARDUINO MEGA, etc...``
+
+## Customization
+While the R-Tree library is designed to be generic, specific applications might require customization, such as supporting different geometric shapes, optimizing for specific query patterns, or enhancing memory management strategies.
+
+## License
+This library is provided for public use. Depending on the project's requirements, ensure to comply with the licensing terms if used within both open-source and proprietary projects.
+
+
+# Segment Tree Library for Arduino
+
+## Overview
+The Segment Tree library for Arduino provides a versatile data structure for efficient querying and updating of array segments. It's particularly useful for scenarios requiring frequent updates and queries over a range, such as finding the sum, minimum, or maximum in a segment of an array.
+
+## Features
+* Efficient Range Queries: Quickly compute sums, minimums, or maximums within a range of an array.
+* Lazy Propagation: Optimizes range updates to avoid unnecessary calculations, enhancing performance for multiple updates.
+* Dynamic Updates: Supports updating values or ranges within the array, reflecting changes in subsequent queries.
+* Arithmetic Type Support: Designed for numeric data types, ensuring broad applicability for different numeric operations.
+
+## Usage
+To use the Segment Tree library in your Arduino project, include it at the beginning of your sketch:
+
+```cpp
+
+#include "SegmentTree.h"
+```
+
+## Creating a Segment Tree
+Instantiate a Segment Tree object using an array (or SimpleVector) of numeric values:
+
+```cpp
+
+SimpleVector<int> arr = {1, 3, 5, 7, 9, 11};
+SegmentTree<int> segTree(arr);
+```
+
+## Performing Range Queries
+Compute the sum, minimum, or maximum within a specified range of the array:
+
+```cpp
+
+int sum = segTree.getSum(1, 3); // Gets the sum of elements from index 1 to 3
+int min = segTree.getMin(1, 4); // Gets the minimum value from index 1 to 4
+int max = segTree.getMax(2, 5); // Gets the maximum value from index 2 to 5
+```
+
+## Updating Values
+Update a single value or a range of values in the array:
+
+```cpp
+
+segTree.updateValue(arr, 2, 10); // Updates the value at index 2 to 10
+segTree.updateRange(1, 4, 5); // Adds 5 to each element from index 1 to 4
+```
+## Clearing and Rebuilding
+To clear or rebuild the tree after significant changes:
+
+```cpp
+
+segTree.clear(); // Clears the segment tree
+segTree.build(arr, 0, arr.size() - 1, 0); // Rebuilds the tree with the current array
+```
+
+## Applications
+Segment Trees are versatile and can be used in various applications including:
+
+* Computational geometry for spatial queries.
+* Dynamic data analysis where ranges of data are frequently queried and updated.
+* Game development for efficient collision detection and world state management.
+
+## Customization
+The library is template-based, allowing for customization with different numeric types (int, float, long, etc.). Users can extend its functionality by implementing additional query and update methods based on specific needs.
+
+## License
+Ensure compliance with the library's licensing terms if used within both open-source and proprietary projects.
+
+
+# Stack Library for Arduino
+
+## Overview
+The Stack library for Arduino provides a classic stack data structure implementation, enabling efficient Last-In-First-Out (LIFO) operations. It's suitable for a wide range of applications, from managing function calls to parsing expressions and beyond.
+
+## Features
+* Dynamic Resizing: Automatically adjusts its capacity based on the number of elements, ensuring efficient use of memory.
+* Generic Implementation: Templated class allows for storing any data type.
+* Core Operations: Supports standard stack operations such as push, pop, and peek.
+* Utility Functions: Includes methods to check if the stack is empty or full, count the elements, and print the stack contents.
+
+## Usage
+To utilize the Stack library in your Arduino sketches, include it at the top of your source file:
+
+```cpp
+
+#include "Stack.h"
+```
+
+## Instantiating a Stack
+Create a stack object capable of holding elements of any specified type:
+
+```cpp
+
+Stack<int> myStack;
+```
+## Pushing Elements
+Add elements to the stack using the push method:
+
+```cpp
+
+myStack.push(10);
+myStack.push(20);
+```
+
+## Popping Elements
+Remove and retrieve the top element from the stack with pop:
+
+```cpp
+
+int element = myStack.pop();
+```
+## Peeking at the Top Element
+Access the top element without removing it using peek:
+
+```cpp
+
+int topElement = myStack.peek();
+```
+## Checking Stack Status
+Determine if the stack is empty or full:
+
+```cpp
+
+bool empty = myStack.isEmpty();
+bool full = myStack.isFull();
+```
+
+## Counting Elements
+Get the number of elements in the stack:
+
+```cpp
+
+uint16_t count = myStack.count();
+```
+## Clearing the Stack
+Reset all elements in the stack to their default value:
+
+```cpp
+
+myStack.clear();
+```
+## Printing Stack Contents
+For debugging purposes, print the contents of the stack:
+
+```cpp
+
+myStack.print();
+```
+## Applications
+Stacks are fundamental in many areas of computer science and programming, including:
+
+* Algorithmic expression evaluation and syntax parsing.
+* Undo mechanisms in applications.
+* Memory management and function call management in programming languages.
+* Customization and Extensions
+* The template-based implementation allows for easy customization to accommodate various data types. Further extensions could include implementing additional functionalities like iterator support or integrating with other data structures for complex data management.
+
+## License
+Please adhere to the licensing terms of the library when incorporating it into your projects, whether open-source or proprietary.
+
+
+# Suffix Tree Library for Arduino
+
+## Overview
+The Suffix Tree library provides an efficient data structure for quick pattern matching and substring operations within a given text. It's particularly useful in applications involving text analysis, such as finding the longest repeated substring, pattern searching, and more.
+
+## Features
+* Pattern Search: Quickly search for the presence of a pattern within the text.
+* Longest Repeated Substring: Find the longest repeated substring within the text, useful for data compression algorithms and detecting repeated patterns.
+* Longest Common Substring: Determine the longest common substring between two texts, a common problem in text analysis and bioinformatics.
+* Support for char and String Types: The library supports both char and String types for versatile applications.
+* Dynamic Tree Construction: Builds the suffix tree dynamically as the text is processed, allowing efficient insertion and search operations.
+
+## Usage
+To use the Suffix Tree library in your Arduino project, include it at the beginning of your sketch:
+
+```cpp
+
+#include "SuffixTree.h"
+```
+
+## Creating a Suffix Tree
+Instantiate a Suffix Tree with a given text:
+
+```cpp
+
+String myText = "banana";
+SuffixTree mySuffixTree(myText);
+``` 
+
+## Searching for a Pattern
+Check if a pattern exists within the text:
+
+```cpp
+
+bool found = mySuffixTree.patternSearch("ana");
+Serial.println(found ? "Pattern found" : "Pattern not found");
+```
+
+## Finding the Longest Repeated Substring
+Get the longest repeated substring in the text:
+
+```cpp
+
+mySuffixTree.getLongestRepeatedSubstring();
+```
+
+## Longest Common Substring
+To find the longest common substring between the original text and another string:
+
+```cpp
+
+String otherText = "panama";
+String lcs = mySuffixTree.longestCommonSubstring(otherText);
+Serial.println("Longest Common Substring: " + lcs);
+```
+
+## Palindrome Detection
+Detect the longest palindrome within the text:
+
+```cpp
+
+String palindrome = mySuffixTree.longestPalindrome();
+Serial.println("Longest Palindrome: " + palindrome);
+```
+## Applications
+* Bioinformatics: Searching for motifs or repeated sequences in DNA or protein sequences.
+* Text Editing: Implementing features like autocomplete, spell checking, and find/replace operations.
+* Data Compression: Identifying repeated sequences that can be compressed.
+* Forensics: Analyzing textual data for patterns or hidden messages.
+
+## Customization
+* Extend the library to include additional text analysis functionalities, such as different variations of pattern search or substring enumeration.
+* Adapt the library for more complex data types or to optimize for specific applications, such as large-scale text processing or real-time analysis.
+
+## License
+Ensure to comply with the library's licensing terms when integrating it into your projects, respecting open-source contributions and proprietary restrictions where applicable.
+
+
+# Trie Tree Library for Arduino
+
+## Overview
+The Trie Tree library is a specialized data structure for handling a dynamic set or associative array where the keys are strings. It excels in solving problems related to word validations, auto-completion, and prefix searching, making it ideal for applications that deal with large datasets of words or characters, such as dictionaries, word games, or text processing tools.
+
+## Features
+* Word Insertion: Efficiently inserts words into the trie for later retrieval or matching.
+* Word Search: Quickly determines if a word is present in the trie.
+* Prefix Search: Checks whether there is any word in the trie that starts with the given prefix, useful for auto-completion features.
+* Print All Words: Traverses the trie and prints all stored words, aiding in debugging or visualization of the trie's contents.
+* AutoComplete: Given a prefix, the library can suggest all words that complete the prefix, simulating an auto-complete feature.
+* Clear Trie: Allows for resetting the trie, removing all inserted words to start afresh.
+* Erase Word: Removes a specific word from the trie, if present.
+
+## Usage
+To use the Trie Tree library in your Arduino project, include it at the beginning of your sketch:
+
+```cpp
+
+#include "TrieTree.h"
+```
+
+## Creating a Trie Tree
+Instantiate a Trie Tree object:
+
+```cpp
+
+TrieTree myTrie;
+```
+
+## Inserting Words
+Add words to the trie:
+
+```cpp
+
+myTrie.insert("hello");
+myTrie.insert("world");
+```
+## Searching for Words
+Check if a word exists in the trie:
+
+```cpp
+
+if(myTrie.search("hello")) {
+    Serial.println("Found 'hello'");
+}
+```
+## Prefix Search
+Verify if any word in the trie starts with a given prefix:
+
+```cpp
+
+if(myTrie.startsWith("he")) {
+    Serial.println("Prefix 'he' found");
+}
+```
+## Printing All Words
+Display all words stored in the trie:
+
+```cpp
+
+myTrie.printAllWords();
+```
+
+## Auto-Completion
+Suggest words based on a prefix:
+
+```cpp
+
+SimpleVector<String> suggestions = myTrie.autoComplete("wo");
+for(String word : suggestions) {
+    Serial.println(word);
+}
+```
+
+## Applications
+* Text Editors: Implementing features like spell-checking and auto-completion.
+* Games: Creating word games or puzzles that require fast validation of word existence or generation of possible word options.
+* Educational Software: Assisting in teaching languages, vocabulary, and spelling.
+* Search Engines: Quick prefix-based search suggestions.
+* Data Analysis: Processing and analyzing large volumes of textual data for patterns or trends.
+
+## Customization
+The library can be extended or customized to include more complex functionalities such as handling different languages, case sensitivity options, or integrating with external storage for handling extremely large datasets.
+
+## License
+Make sure to comply with the library's license and respect the contributions of the open-source community when incorporating it into your projects.
+
+
+
 
 
 

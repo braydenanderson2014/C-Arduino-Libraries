@@ -20,16 +20,6 @@
     "headers": [
         "SuffixTree.h"
     ],
-    
-    "examples": [
-        {
-            "name": "Example",
-            "base": "examples",
-            "files": [
-                "Example/Example.cpp"
-            ]
-        }
-    ],
     "dependencies": {
         "Arduino": "*",
         "braydenanderson2014/SimpleVector": "*",

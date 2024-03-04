@@ -1,5 +1,5 @@
 {
-    "name": "Stack",
+    "name": "SimpleStack",
     "version": "1.0.0-ALPHA",
     "description": "A Simple Stack Implementation that is easy to use and understand. First in Last out type data structure.",
     "keywords": ["Stack", "Queue", "Data Structure", "data", "First in Last out", "Arduino"],
@@ -19,16 +19,6 @@
     ],
     "headers": [
         "Stack.h"
-    ],
-    
-    "examples": [
-        {
-            "name": "Example",
-            "base": "examples",
-            "files": [
-                "Example/Example.cpp"
-            ]
-        }
     ],
     "dependencies": {
         "Arduino": "*"

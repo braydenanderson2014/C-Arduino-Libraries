@@ -31,14 +31,5 @@
     "dependencies": {
         "braydenanderson2014/TypeTraits": "*",
         "braydenanderson2014/SimpleVector": ">=1.0.6"
-    },
-    "examples": [
-        {
-            "name": "Example",
-            "base": "examples",
-            "files": [
-                "Example/Example.ino"
-            ]
-        }
-    ]
+    }
 }

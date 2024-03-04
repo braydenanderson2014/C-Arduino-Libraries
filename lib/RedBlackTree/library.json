@@ -6,7 +6,7 @@
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/redBlackTree.git"
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/RedBlackTree.git"
         }
     ],
     "authors": [
@@ -17,21 +17,12 @@
         }
     ],
     "include": [
-        "redBlackTree.h"
+        "RedBlackTree.h"
     ],
     "headers": [
-        "redBlackTree.h"
+        "RedBlackTree.h"
     ],
-    "examples": [
-        {
-            "name": "Example",
-            "base": "examples",
-            "files": [
-                "Example/Example.ino"
-            ]
-        }
-    ],
-    "header": "redBlackTree.h",
+    "header": "RedBlackTree.h",
     "Notes": "This library is designed to be simple and easy to use. This library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "license": "Apache-2.0"
 }

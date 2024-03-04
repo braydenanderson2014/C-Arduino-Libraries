@@ -26,7 +26,7 @@
     "Notes": "This library is designed to be simple and easy to use. This library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "license": "Apache-2.0",
     "dependencies": {
-        "braydenanderson2014/SimpleVector" : ">=1.0.5",
+        "braydenanderson2014/SimpleVector" : ">=1.0.6",
         "braydenanderson2014/TypeTraits" : "*",
         "braydenanderson2014/MathLib" : "*",
         "braydenanderson2014/Numeric_Limits" : "*"
