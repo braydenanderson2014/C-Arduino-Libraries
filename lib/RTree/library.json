@@ -1,0 +1,28 @@
+{
+    "name": "RTree",
+    "version": "1.0.0-ALPHA",
+    "description": "This Library makes it easy to create and Manage RTree's. This Library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "keywords": ["Tree", "RTree", "Rectangle", "Rectangle Tree", "DataStructure"],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/RTree.git"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "include": [
+        "RTree.h"
+    ],
+    "headers": [
+        "RTree.h"
+    ],
+    "header": "RTree.h",
+    "Notes": "This library is designed to be simple and easy to use. This library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "license": "Apache-2.0"
+}

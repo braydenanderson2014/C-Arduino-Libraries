@@ -1,0 +1,31 @@
+{
+    "name": "SuffixTree",
+    "version": "1.0.0-ALPHA",
+    "description": "A Simple String based tree that allows you to perform queries on a given String.",
+    "keywords": ["SuffixTree", "Tree", "String", "Queries", "Suffix", "Arduino"],
+    "Repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/SuffixTree.git"
+
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "headers": [
+        "SuffixTree.h"
+    ],
+    "dependencies": {
+        "Arduino": "*",
+        "braydenanderson2014/SimpleVector": "*",
+        "braydenanderson2014/TypeTraits": "*"
+    },
+    "license": "Apache-2.0",
+    "Notes:": "This is a test package. It is not intended for use in production environments. This library has not yet been tested. If you would like to test it, please do so at your own risk. If you find any bugs, please report them to the author."
+    
+}

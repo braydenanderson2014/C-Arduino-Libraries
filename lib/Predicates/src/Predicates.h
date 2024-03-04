@@ -796,9 +796,6 @@ public:
         }
         for (static T i = 2; i < value; i++) {
             if (value % i == 0) {
-                if(debug){
-                    Serial.println("[PREDICATES]: Value is Not Prime: " + value);
-                }
                 return false;
             }
         }
@@ -816,9 +813,6 @@ public:
     */
     static bool isDivisibleBy(T value) {
         if (value % globalMultiplier == 0) {
-            if(debug){
-                Serial.println("[PREDICATES]: Value is Divisible by Global Multiplier: " + value);
-            }
             return true;
         }
         return false;

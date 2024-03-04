@@ -58,9 +58,19 @@ public:
     }
     void print(){
         for(int i = 0; i <= top; i++){
-            Serial.println(stack[i])
+            Serial.println(stack[i]);
         }
         Serial.println();
+    }
+
+    uint16_t count (){
+        return top + 1;
+    }
+
+    void clear(){
+        for(int i = 0; i <= top; i++){
+            stack[i] = 0;
+        }
     }
 };
 

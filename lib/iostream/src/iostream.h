@@ -119,7 +119,7 @@ typedef char* va_list;
 #include <SPI.h>
 //#include <hyperdisplay.h>
 
-#include <ColorMapper.h>
+#include <ColorManager.h>
 #include <Properties.h>
 
 
@@ -165,7 +165,7 @@ private:
     int baudRate = 9600; // Baud Rate
 
     //Objects
-    ColorMapper colorMapper = ColorMapper(); // Color Mapper
+    ColorManager colorMapper = ColorManager(); // Color Mapper
     Properties prop = Properties(); // Properties
     LiquidCrystal lcd = LiquidCrystal(12, 11, 5, 4, 3, 2); // LCD
     LiquidCrystal_I2C i2cLCD = LiquidCrystal_I2C(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
@@ -307,7 +307,7 @@ public:
     }
 
     void setColor(byte r, byte g, byte b){
-        ColorMapper colorMapper = ColorMapper(int(r), int(g), int(b));
+        ColorManager colorMapper = ColorManager(int(r), int(g), int(b));
         this -> colorMapper = colorMapper;
         //oled.setTextColor(this -> colorMapper.colorToHex(colorMapper.getColor(0)));
     }

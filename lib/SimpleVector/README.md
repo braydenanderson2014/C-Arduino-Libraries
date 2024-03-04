@@ -29,6 +29,15 @@ If you want to Utilize this Library. Please include the
 #include <SimpleVector.h> 
 ```
 
+# Arduino Library Manager:
+## Changelog: 
+### Version 1.0.0:
+* Initial Release; On pair with Platformio Version 1.0.5
+### Version 1.0.1:
+* Added Support for Range Based for Loops.
+
+
+# PlatformIO Registry.
 ## ChangeLog
 ### Version 1.0.0:
 * Initial Release 
@@ -47,8 +56,13 @@ If you want to Utilize this Library. Please include the
 * Added a new function called setDebug() to set the debug value
 * Added a new function called getDebug() to get the debug value"
 ### Version 1.0.5:
-* Removed the Serial.print() Statements from the library to save memory. A version of this library that contains these debug statements will be available soon.
+* Removed the Serial.print() Statements from the library to save memory. A version of this library that contains these debug statements may be available at some point.
 * Added Function Comments
+### Version 1.0.6: [CURRENT-RELEASE]
+* Added Support for Range Based For loops
+* Added Support for Adding Elements during Construction.
+* Added BulkAdd Function() to add multiple elements at once.
+
 
 
 

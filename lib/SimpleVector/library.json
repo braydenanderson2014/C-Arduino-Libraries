@@ -1,8 +1,8 @@
 {
     "name": "SimpleVector",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "A lightweight and efficient implementation of a dynamic array, suitable for use in memory-constrained environments.",
-    "keywords": ["SimpleVector", "VectorIterator", "Vector", "List", "Array", "DynamicArray", "DynamicList", "DynamicVector"],
+    "keywords": ["SimpleVector", "VectorIterator", "Vector", "List", "Array", "DynamicArray", "DynamicList", "DynamicVector", "Arduino"],
     "Repositories": [
         {
             "type": "git",
@@ -26,57 +26,22 @@
             "name": "Example",
             "base": "examples",
             "files": [
-                "Example/Example.cpp"
+                "Example/Example.ino"
+            ]
+        },
+        {
+            "name": "Example2",
+            "base": "examples",
+            "files": [
+                "Example2/Example2.ino"
             ]
         }
     ],
+    "dependencies": {
+        "Arduino": "*",
+        "initializer_list": "*"
+    },
     "license": "Apache-2.0",
-    "changeLog": [
-        {
-            "version": "1.0.0",
-            "changes": [
-                "Initial release."
-            ]
-        },
-        {
-            "version": "1.0.1",
-            "changes": [
-                "Added Remove Function.",
-                "Renamed push_back function to add",
-                "Updated Example."
-            ]
-        },
-        {
-            "version": "1.0.2",
-            "changes": [
-                "Added Elements Function.",
-                "Added Iterators to the library",
-                "Modified the size Function to return size of array and not how many elements are on the array"
-            ]
-        },
-        {
-            "version": "1.0.3",
-            "changes": [
-                "Added [SIMPLE VECTOR]: to the start of the Serial.print() statements to make it easier to debug."
-            ]
-        },
-        {
-            "version": "1.0.4",
-            "changes": [
-                "Modified Constructor to take in a boolean value to determine if the Library should print Debug Messages",
-                "Added a new function called setDebug() to set the debug value",
-                "Added a new function called getDebug() to get the debug value"
-            ]
-        },
-        {
-            "version": "1.0.5",
-            "changes":[
-                "Removed the Serial.print() Statements from the library to save memory. A version of this library that contains these debug statements will be available soon.",
-                "Added Function Comments"
-            ]
-        }
-
-    ],
     "Notes:": "This is a test package. It is not intended for use in production environments. This library has not yet been tested. If you would like to test it, please do so at your own risk. If you find any bugs, please report them to the author."
     
 }

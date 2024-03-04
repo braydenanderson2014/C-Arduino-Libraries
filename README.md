@@ -23,9 +23,12 @@
 * [SimpleThreadManager](#simplethreadmanager-class) [ACTIVE-DEVELOPMENT]
 * [Operators](#operators-class) [PASSIVE-DEVELOPMENT], [STABLE]
 * [Predicates](#predicates-class) [PASSIVE-DEVELOPMENT], [STABLE]
+* [TypeTraits](#typetraits-library) [PASSIVE-DEVELOPMENT], [STABLE]
+* [Numeric_Limits](#numeric-limits-library-for-arduino) [ACTIVE-DEVELOPMENT], [STABLE]
 
-Total Available Libraries: (15)
-Total Libraries: (17)
+
+Total Available Libraries: (40)
+Total Libraries: (43)
 
 ## ACTIVELY WORKING ON LISTED LIBRARIES (Bug Fixing or Feature Adding):
 1.  [SimpleMutex]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
@@ -34,7 +37,30 @@ Total Libraries: (17)
 =======
 
 ## ACTIVELY TESTING ON LISTED LIBRARIES (Perforing Basic Tests On the Library):
-1. MyDictionary [TESTING]
+1. [MyDictionary](#mydictionary-class) [TESTING]
+2. [AVLTree](#avl-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+3. [BINARY Search Tree](#binary-search-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+4. [BINARY Tree](#binary-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+5. [B+ Tree](#b-plus-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+6. [B Tree](#btree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+7. [ColorMapper](#colormapper-library) [ACTIVE-DEVELOPMENT], [TESTING]
+8. [FenwickTree](#fenwick-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+9. [HeapTree](#heap-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+10. [InitializerList](#initializer-list-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+11. [IntervalTree](#interval-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+12. [KDimensionalTree](#k-dimensional-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+13. [MathLib](#mathlib-for-arduino)  [ACTIVE-DEVELOPMENT], [TESTING]
+14. [Map](#map-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+15. [MatrixMath](#matrixmath-library-for-arduino)[ACTIVE-DEVELOPMENT], [TESTING]
+16. [OCTree](#octree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+17. [QuadTree](#quadtree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+18. [Queue](#queue-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+19. [RedBlackTree](#red-black-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+20. [RTree](#r-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+21. [SegmentTree](#segment-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+22. [Stack](#stack-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING] 
+23. [Suffixtree](#suffix-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING] 
+24. [TrieTree](#trie-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
 
 =======
 
@@ -43,7 +69,7 @@ Total Libraries: (17)
 [WARNING]: NO DOCUMENTATION AVAILABLE YET &&|| UNTESTED BY AUTHOR
 1.  [SimpleMutex]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
 2.  [SimpleThreadManager]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
-3.  [ColorMapper]() [Active-Development], [UNPUBLISHED]
+3.  
 4.  
 
 
@@ -53,25 +79,48 @@ Total Libraries: (17)
 
 ## ALL LIBRARIES INCLUDE A README.md ##
 
-# PlatformIO Leaderboard for these Libraries (Out of /13,767 Libraries on the Platform) UPDATED 02/18/2024 3:38pm Mountain
+# PlatformIO Leaderboard for these Libraries (Out of /13,847 Libraries on the Platform) UPDATED 03/03/2024 10:59pm Mountain
 ## Library Name: Position (Increase or Decrease) Downloads Month-To-Date, Total Downloads
-* ArrayList: 3063 (Popularity Decreased by 23 Positions) 3 Downloads MTD; *15 Downloads*
-* Dictionary: 5197 (Popularity Increase by 4 Positions) 1 Download MTD; *7 Downloads*
-* SimpleArduinoTimer: 3753 (Popularity Increase by 4 Positions) 2 Downloads MTD; *4 Downloads*
-* UnorderedMap: 1845 (Popularity Increase by 7 Positions) 8 Downloads MTD; *10 Downloads*
-* SimpleProperties: 3754 (Popularity Increase by 4 Positions) 2 Downloads MTD; *12 Downloads*
-* Iterator: 5196 (Popularity Increae by 4 Positions) 1 Download MTD; *8 Downloads*
-* BasicIO: 725 (Popularity Increase by 11 Position) 46 Downloads MTD; *116 Downloads*
-* SDList: 3058 (Popularity Decrease by 28 Positions) 3 Downloads MTD; *3 Downloads*
-* Hashtable: 1550 (Popularity Increase by 8 Positions) 12 Downloads MTD; *21 Downloads*
-* SimpleVector: 1735 (Popularity Increase by 5 Positions) 10 Downloads MTD; *22 Downloads*
-* MyDictionary: 13,534 (Popularity Decrease by 3 Positions) 0 Downloads MTD; *0 Downloads* :(
-* Operators: 5223 (Popularity Increase by 4 Positions) 1 Download MTD; *1 Download*
-* Predicates: 5224 (Popularity Decrease by 4 Positions) 1 Downloads MTD; *1 Download*
-* BasicLinkedList: 13,533 (Popularity Decrease by 8328 Position) 1 Downloads MTD; *5 Downloads*
-* DoubleLinkedList: 13,563 (Popularity Decrease by 2 Position) 0 Downloads MTD; *0 Downloads* :(
-
-
+* ArrayList: 1,732 (Popularity Decrease by 14 Positions) 8 Downloads MTD; *20 Downloads*
+* Dictionary: 5175 (Popularity Increase by 8,377 Positions) 1 Download MTD; *8 Downloads*
+* SimpleArduinoTimer: 3758 (Popularity Decrease by 3 Positions) 2 Downloads MTD; *5 Downloads*
+* UnorderedMap: 1,551 (Popularity Increase by 68 Positions) 14 Downloads MTD; *18 Downloads*
+* SimpleProperties: 2380 (Popularity Increase by 197 Positions) 6 Downloads MTD; *13 Downloads*
+* Iterator: 5,174 (Popularity Increase by 8,377 Positions) 1 Download MTD; *9 Downloads*
+* BasicIO: 876 (Popularity Increase by 34 Position) 30 Downloads MTD; *128 Downloads*
+* SDList: 2381 (Popularity Increase by 290 Positions) 5 Downloads MTD; *3 Downloads*
+* Hashtable: 1083 (Popularity Increase by 80 Positions) 24 Downloads MTD; *34 Downloads*
+* SimpleVector: 1173 (Popularity Increase by 68 Positions) 21 Downloads MTD; *36 Downloads*
+* MyDictionary: 13,563 (Popularity Decrease by 3 Positions) 0 Downloads MTD; *0 Downloads* :(
+* Operators: 3,769 (Popularity Decrase by 9 Positions) 2 Download MTD; *2 Download*
+* Predicates: 3,770 (Popularity Decrease by 9 Positions) 2 Downloads MTD; *2 Download*
+* BasicLinkedList: 13,562 (Popularity Decrease by 4 Position) 0 Downloads MTD; *5 Downloads*
+* DoubleLinkedList: 13,597 (Popularity Decrease by 2 Position) 0 Downloads MTD; *0 Downloads* :(
+* TypeTraits: 5,248 (Popularity Increase by 11 positions) 1 Download MTD; *1 Downloads*
+* AVLTree: 13,833 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* BinarySearchTree: 13,834 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* BinaryTree: 13,835 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* B+ Tree: 13,846 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* B Tree: UNKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* ColorManager: 13,838 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* FenwickTree: 13,839 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* HeapTree: 13,840 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* InitializerList: 13,841 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* IntervalTree: 13,842 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* KDimensionalTree: 13,845 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* MathLib: 13,843 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* Map: 13,844 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* MatrixMath: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* Numeric_Limits: 13,846 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* OCTree: 13,847 (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads* 
+* QuadTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*            
+* Queue: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* RedBlackTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* RTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* SegmentTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* Stack: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* SuffixTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
+* TrieTree: UKNOWN (NO DATA ON POPULARITY) 0 Download MTD; *0 Downloads*
 
 # Dictionary Class
 
@@ -1347,6 +1396,1759 @@ Contributions to the ColorMapper library are welcome. Please submit pull request
 
 
 # Trees Library (Will Be Separated into separate Libraries.)
+
+
+
+
+
+# TypeTraits Library 
+
+## Overview
+
+The TypeTraits library provides a collection of template structures to facilitate type checking and type traits identification in Arduino programming. It offers a simple, compile-time mechanism to query the characteristics of types, such as whether a type is arithmetic, a character, a string, an integral type, a floating-point type, an array, a pointer, a reference, const-qualified, volatile-qualified, or whether two types are the same.
+
+You can use it in boolean operations, Serial statements, static_asserts(), etc...
+## Features
+
+- **Arithmetic Type Check**: Determine if a type is one of the basic arithmetic types (`int`, `float`, `double`, `long`, `byte`).
+- **Character Type Check**: Check if a type is a `char`.
+- **String Type Check**: Identify if a type is an Arduino `String`.
+- **Integral Type Check**: Check if a type is an integral (`int`, `long`, `char`, `bool`).
+- **Floating-Point Type Check**: Determine if a type is a floating-point type (`float`, `double`).
+- **Array Type Check**: Identify if a type is an array.
+- **Pointer Type Check**: Check if a type is a pointer, including const pointers.
+- **Reference Type Check**: Determine if a type is a reference.
+- **Const Qualification Check**: Identify if a type is const-qualified.
+- **Volatile Qualification Check**: Check if a type is volatile-qualified.
+- **Type Comparison**: Determine if two types are the same.
+
+## Installation
+
+1. Download the TypeTraits library.
+2. Place the `TypeTraits.h` file into your Arduino project's library folder or a location accessible by your project.
+3. Include the library in your sketch with `#include <TypeTraits.h>`.
+
+## Usage Example
+
+```cpp
+#include <Arduino.h>
+#include <TypeTraits.h>
+
+void setup() {
+    Serial.begin(9600);
+
+    // Example usage of is_arithmetic
+    Serial.println(is_arithmetic<int>::value); // Outputs: 1 (true)
+    Serial.println(is_arithmetic<String>::value); // Outputs: 0 (false)
+    static_assert(is_arithmetic<float>::value); // Throws compile error if condition is false; in this case the float is an 
+    // arithmetic type .
+
+    // Example usage of is_same
+    Serial.println(is_same<int, int>::value); // Outputs: 1 (true)
+    Serial.println(is_same<int, float>::value); // Outputs: 0 (false)
+}
+
+void loop() {
+    // Your code here
+}
+```
+
+## Contributing
+We welcome contributions to improve the TypeTraits library. Please feel free to submit issues and pull requests.
+
+## License
+This library is open-source and available under the Apache license. See the LICENSE file for more information.
+
+
+# AVL Tree Library for Arduino
+
+## Overview
+This library provides an implementation of an AVL Tree, a self-balancing binary search tree, for use in Arduino projects. The AVL Tree maintains a balance factor for each node to ensure that the tree remains approximately balanced at all times, offering O(log n) complexity for insertion, deletion, and lookup operations.
+
+## Features
+* Insertion: Add elements to the tree while maintaining its balanced nature.
+* Deletion: Remove elements from the tree, automatically rebalancing as necessary.
+* Search: Efficiently find elements within the tree.
+* Traversal: Supports in-order, pre-order, and post-order traversals to iterate over elements in the tree.
+* Min/Max: Quickly retrieve the minimum or maximum value contained in the tree.
+* Height and Balance Information: Access the height of the tree and the balance factor of any node to understand the tree's structure.
+* Printing: Utility functions for printing the tree structure to aid in debugging.
+
+## Usage
+To use this library in your Arduino project, include the AVLTree.h header file and follow the example below:
+
+```cpp
+#include "AVLTree.h"
+
+AVLTree<int> myTree;
+
+void setup() {
+  Serial.begin(9600);
+  
+  // Insert elements into the AVL Tree
+  myTree.insert(10);
+  myTree.insert(20);
+  myTree.insert(30);
+  myTree.insert(5);
+  myTree.insert(3);
+
+  // Perform in-order traversal of the tree
+  Serial.println("In-order Traversal:");
+  myTree.inOrder();
+
+  // Find the minimum and maximum elements
+  Serial.print("Minimum: ");
+  Serial.println(myTree.findMin());
+  Serial.print("Maximum: ");
+  Serial.println(myTree.findMax());
+
+  // Delete an element
+  myTree.deleteNode(10);
+  Serial.println("After deleting 10:");
+  myTree.inOrder();
+}
+
+void loop() {
+  // Tree operations can be invoked here or in setup()
+}
+```
+
+## Implementation Details
+The AVL Tree implementation automatically handles balancing through rotations during insertions and deletions, ensuring that the tree remains as balanced as possible without requiring manual intervention.
+
+## Functions
+* ```cpp void insert(T data)```: Inserts a new element into the tree.
+* ```void remove(T data)```: Removes an element from the tree.
+* ```void inOrder()```, void preOrder(), void postOrder(): Perform tree traversals.
+* ```T findMin(), T findMax()```: Retrieve the minimum and maximum elements of the tree.
+* ```void printTree()```: Prints a visual representation of the tree.
+* ```void clear()```: Clears the tree, removing all elements.
+* ```bool isEmpty()```: Checks if the tree is empty.
+
+## Customization
+The library is templated to allow for the storage of any data type that supports comparison operations (i.e., has operator< and operator> defined). This makes it suitable for a wide range of applications, from storing simple integers to complex objects, as long as they provide the necessary comparison operators.
+
+## Contribution
+Contributions to the library are welcome, whether they are for bug fixes, improvements, or new features. Please follow standard coding conventions and add comments to your code to ensure readability and maintainability.
+
+## License
+This library is released under the Apache License. See the LICENSE file for more details.
+
+
+
+# Binary Search Tree Library for Arduino
+
+## Overview
+This library provides a simple and efficient implementation of a Binary Search Tree (BST) for Arduino projects. BSTs are fundamental data structures that enable fast data storage, retrieval, and manipulation operations, all of which are essential in various computing applications.
+
+## Features
+* Insertion: Adds a new element to the BST while preserving the binary search property.
+* Deletion: Removes an element from the BST and reorganizes the tree to maintain its properties.
+* Search: Finds an element in the BST and returns a pointer to the node containing it.
+* Clear: Removes all elements from the BST, freeing up the allocated memory.
+
+## Usage
+To use this library in your Arduino project, include the BinarySearchTree.h header file and instantiate a BinarySearchTree object with your desired data type. The following example demonstrates basic operations such as insertion, search, and deletion:
+
+```cpp
+#include "BinarySearchTree.h"
+
+BinarySearchTree<int> bst;
+
+void setup() {
+  Serial.begin(9600);
+
+  // Insert elements
+  bst.insert(5);
+  bst.insert(3);
+  bst.insert(7);
+  bst.insert(2);
+  bst.insert(4);
+
+  // Search for an element
+  BinarySearchNode<int>* found = bst.search(4);
+  if (found != NULL) {
+    Serial.print("Found: ");
+    Serial.println(found->data);
+  } else {
+    Serial.println("Element not found.");
+  }
+
+  // Delete an element
+  bst.deleteNode(3);
+
+  // Clear the BST
+  bst.clear();
+}
+
+void loop() {
+  // Placeholder for the main logic
+}
+
+```
+## Implementation Details
+The BST is implemented using templates, allowing it to store any type of data that supports comparison operations (< and >).
+Each node in the BST contains the data of type T, and pointers to the left and right child nodes.
+The insert and deleteNode functions ensure that the BST properties are maintained.
+
+## Customization
+This library can be easily customized and extended to include additional functionalities such as in-order, pre-order, and post-order traversals, or balancing operations to transform it into a self-balancing binary search tree like an AVL tree or a Red-Black tree.
+
+## Contribution
+Contributions to the library are welcome. If you find a bug, have a suggestion for improvement, or want to add new features, please feel free to contribute.
+
+## License
+This library is open-sourced and licensed under the Apache License. See the LICENSE file for more information.
+
+
+# Binary Tree Library for Arduino
+
+## Overview
+The Binary Tree library for Arduino provides a comprehensive implementation for managing binary trees. Binary trees are a fundamental data structure in computer science, used in various applications such as sorting, data storage, and more. This library enables the creation, manipulation, and traversal of binary trees directly on your Arduino projects.
+
+## Key Features
+* Dynamic Tree Creation: Easily create and manage binary trees with any type of data.
+* CRUD Operations: Supports insert, search, and delete operations.
+* Traversal Methods: Includes in-order, pre-order, post-order, and level-order traversal methods for exploring your trees.
+* Utility Functions: Functions to calculate height, count leaves, find minimum and maximum values, and more.
+* Mirroring: Ability to mirror the binary tree, swapping left and right children of all nodes.
+* Memory Management: Efficiently manages memory to ensure the stability of your Arduino projects.
+
+## Usage
+To utilize the BinaryTree library in your project, include the BinaryTree.h header and instantiate a BinaryTree object. Here's a basic example demonstrating some of the library's functionalities:
+
+```cpp
+#include "BinaryTree.h"
+
+BinaryTree<int> myTree;
+
+void setup() {
+  Serial.begin(9600);
+  
+  // Insert data into the binary tree
+  myTree.insert(50);
+  myTree.insert(30);
+  myTree.insert(70);
+  
+  // Perform an in-order traversal
+  Serial.println("In-order Traversal:");
+  myTree.inorder();
+  
+  // Find the maximum value in the binary tree
+  Serial.print("Maximum Value: ");
+  Serial.println(myTree.findMax());
+  
+  // Mirror the binary tree
+  myTree.mirror();
+  
+  // Perform a level-order traversal on the mirrored tree
+  Serial.println("Level-order Traversal of Mirrored Tree:");
+  myTree.levelorder();
+}
+
+void loop() {
+  // Placeholder for loop logic
+}
+```
+
+## Customization and Extension
+The library is templated, allowing it to work with any data type that supports comparison operators.
+You can extend the library to include additional tree operations as needed, such as balancing the tree or implementing specific traversal algorithms.
+
+## Contribution
+Contributions are welcome! If you have improvements or bug fixes, please feel free to contribute to the library. Your input is valuable in making this library more robust and feature-rich.
+
+## License
+This library is released under an Apache license. 
+
+# B Plus Tree Library for Arduino
+
+## Overview
+The B+ Tree library for Arduino offers an efficient implementation of the B+ tree data structure, catering to applications that require a balanced tree for rapid data retrieval, insertion, and deletion. B+ trees are especially useful for database and filesystem implementations due to their ability to maintain sorted data and support efficient range queries.
+
+## Key Features
+* Balanced Tree Structure: Ensures all leaf nodes are at the same level, providing uniform access times.
+* Efficient Storage: Optimizes space by storing keys in internal nodes and values in leaf nodes, making it ideal for large datasets.
+* Dynamic Insertion and Deletion: Supports dynamic updates while maintaining balance, ensuring optimal performance.
+* Range Queries: Facilitates efficient execution of range queries, returning all values within a given range quickly.
+* Traversal and Search: Provides methods for tree traversal and searching specific keys, offering fast access to data.
+
+## Usage
+To use the B+ Tree library, include the B_PLUS_TREE.h header in your Arduino sketch and instantiate a BPlusTree object with the desired minimum degree.
+
+Here is a simple example that demonstrates how to create a B+ Tree, insert keys, and perform a search:
+
+```cpp
+#include "B_PLUS_TREE.h"
+
+// Initialize a B+ tree with a minimum degree of 3
+BPlusTree<int> myTree(3);
+
+void setup() {
+  Serial.begin(9600);
+
+  // Insert keys into the B+ tree
+  myTree.insert(10);
+  myTree.insert(20);
+  myTree.insert(30);
+
+  // Search for a key in the B+ tree
+  BPlusTreeNode<int>* found = myTree.search(myTree.getRoot(), 20);
+  if (found != nullptr) {
+    Serial.println("Key found!");
+  } else {
+    Serial.println("Key not found.");
+  }
+}
+
+void loop() {
+  // Placeholder for loop logic
+}
+```
+## Customization
+The library can be customized for different data types and applications. You can adjust the minimum degree based on your dataset size and access patterns to optimize performance.
+
+## Contribution
+Contributions to the library are welcome, whether it's through adding new features, improving existing ones, or fixing bugs. Your efforts will help enhance the library's functionality and utility for the Arduino community.
+
+## License
+This library is provided under an open-source license. You are free to use, modify, and distribute it in your projects, provided that you comply with the license terms.
+
+
+
+
+# BTree Library for Arduino
+
+## Overview
+This BTree library for Arduino provides an implementation of the B-Tree data structure, offering efficient mechanisms for storing, searching, and navigating through a large set of ordered data. B-Trees are widely used in databases and file systems to allow for quick data retrieval, insertions, and deletions while maintaining a balanced tree structure.
+
+## Key Features
+* Balanced Tree Structure: Ensures that the tree remains balanced, providing efficient data access times.
+* Efficient Storage and Retrieval: Utilizes a node-based structure to efficiently store data and support rapid retrieval operations.
+* Support for Dynamic Updates: Seamlessly handles insertions and deletions, ensuring the tree remains optimally balanced.
+* Traversal and Search: Enables in-order traversal of the tree and supports effective searching for specific keys.
+* Customizable Degree: Allows for customization of the tree's minimum degree, accommodating various use cases and optimizing performance.
+
+# Usage
+To utilize the BTree library, include BTREE_H in your Arduino project and instantiate a BTree object specifying the minimum degree for the tree.
+
+# Example Usage
+Below is a simple example demonstrating how to create a B-Tree, insert elements, and perform a search operation:
+
+```cpp
+#include "BTree"
+
+// Define the minimum degree for the B-Tree
+const int t = 3;
+
+// Initialize a B-Tree with integers and a minimum degree of t
+BTree<int> myBTree(t);
+
+void setup() {
+  Serial.begin(9600);
+
+  // Insert elements into the B-Tree
+  myBTree.insert(1);
+  myBTree.insert(5);
+  myBTree.insert(10);
+
+  // Search for an element in the B-Tree
+  BTreeNode<int>* result = myBTree.search(5);
+  if (result != nullptr) {
+    Serial.println("Element found in the B-Tree.");
+  } else {
+    Serial.println("Element not found in the B-Tree.");
+  }
+}
+
+void loop() {
+  // Placeholder for loop() method
+}
+```
+
+## Customization
+Adjust the minimum degree (t) of the B-Tree according to your dataset's size and your application's specific requirements to optimize performance.
+
+## Contribution
+We welcome contributions to the BTree library. Whether it's adding new features, optimizing existing ones, or fixing bugs, your input helps improve the library for the Arduino community.
+
+## License
+This library is made available under an Apache. 
+
+
+# Fenwick Tree Library for Arduino
+
+## Overview
+The Fenwick Tree, also known as a Binary Indexed Tree (BIT), offers an efficient way to update elements and calculate prefix sums in a table of numbers. This Arduino-compatible Fenwick Tree library enables easy manipulation of sequences of numbers, providing a powerful tool for handling cumulative frequency tables and range sum queries in embedded projects.
+
+## Key Features
+* Efficient Range Updates and Queries: Perform range updates and range sum queries efficiently, ideal for dynamic cumulative frequency tables.
+* Flexible Point Updates and Queries: Supports updating values at specific points and querying sums over ranges or single points.
+* Scalable Operations: Efficiently scales operations on large datasets with logarithmic time complexity for updates and queries.
+* Arduino-Compatible: Designed to integrate seamlessly with Arduino projects, enhancing data handling capabilities in embedded systems.
+
+
+## Usage
+To use the Fenwick Tree library, include FENWICKTREE_H in your Arduino project. The library requires SimpleVector.h for dynamic array management and TypeTraits.h for type checking.
+
+## Example Usage
+Below is a simple example that demonstrates how to initialize a Fenwick Tree, perform updates, and query sums:
+
+```cpp
+#include "FENWICKTREE_H"
+
+// Initialize a Fenwick Tree with a size of 10
+FenwickTree<int> ft(10);
+
+void setup() {
+  Serial.begin(9600);
+
+  // Perform updates on the Fenwick Tree
+  ft.add(0, 5); // Add 5 to index 0
+  ft.add(1, 3); // Add 3 to index 1
+  ft.range_update(2, 4, 2); // Add 2 to the range [2, 4]
+
+  // Query the sum of the first 5 elements
+  int sumFirstFive = ft.sum(0, 4);
+  Serial.print("Sum of first 5 elements: ");
+  Serial.println(sumFirstFive);
+
+  // Query a single point
+  int pointQuery = ft.point_query(3);
+  Serial.print("Value at index 3: ");
+  Serial.println(pointQuery);
+}
+
+void loop() {
+  // Loop code here (if necessary)
+}
+```
+
+## Customization
+The FenwickTree class template can be instantiated with any numeric type (int, long, float, etc.), allowing for flexibility based on the requirements of your application.
+
+## Contribution
+Contributions to the Fenwick Tree library are welcome. Enhancements, bug fixes, or documentation improvements will help make the library more useful for the Arduino community.
+
+## License
+This library is distributed under an open-source license, allowing for modification, distribution, and use in both personal and commercial projects.
+
+
+
+# Heap Tree Library for Arduino
+
+## Overview
+The Heap Tree library for Arduino provides an efficient implementation of a binary heap data structure, offering fast insertions, and extraction of the maximum (or minimum) element. This library is tailored for Arduino projects that require priority queue functionality, sorting, or managing a dynamically changing dataset with quick access to the highest or lowest element.
+
+## Key Features
+* Dynamic Resizing: Automatically resizes the underlying storage as more elements are added to maintain performance and efficiency.
+* Max and Min Heap Operations: Supports extracting the maximum and minimum values, making it versatile for different use cases.
+* Insertion and Removal: Allows for the insertion of new elements and removal of specific elements or based on value, maintaining the heap property.
+* Utility Functions: Provides functions to check if the heap is empty, clear the heap, and get the current size of the heap.
+
+## Usage
+To use the Heap Tree library, include HEAP_TREE_h in your Arduino sketch. Ensure you have adequate memory available on your Arduino device, as dynamic memory allocation is used.
+
+## Example Usage
+Here's a simple example demonstrating how to use the Heap Tree library to manage integers:
+
+```cpp
+#include "HEAP_TREE_h"
+
+HeapTree<int> heap;
+
+void setup() {
+  Serial.begin(9600);
+
+  // Insert elements into the heap
+  heap.insert(10);
+  heap.insert(20);
+  heap.insert(5);
+  
+  // Print the heap
+  heap.print();
+
+  // Extract the maximum element
+  int max = heap.extractMax();
+  Serial.print("Extracted Max: ");
+  Serial.println(max);
+
+  // Print the heap after extraction
+  heap.print();
+}
+
+void loop() {
+  // Your loop code here
+}
+```
+
+## Customization
+The HeapTree class template can be instantiated with any data type that supports comparison operations (<, >). This allows it to be used with custom data types, provided they have the necessary comparison operators defined.
+
+## Contribution
+Contributions to the Heap Tree library are welcome. Whether it's adding new features, fixing bugs, or improving documentation, your help is appreciated to make this library more useful for the Arduino community.
+
+## License
+This library is distributed under an open-source license, allowing for modification, distribution, and use in both personal and commercial projects.
+
+
+
+# Initializer List Library for Arduino
+
+## Overview
+The Initializer List library provides a minimal and efficient implementation of initializer lists for Arduino, similar to the C++11 feature. It allows Arduino developers to initialize objects and arrays in a clean and concise way, improving code readability and maintainability.
+
+## Key Features
+Standard-Compatible Types: Offers types such as value_type, reference, const_reference, size_type, iterator, and const_iterator for compatibility with standard C++ initializer list behavior.
+Size and Iteration: Supports querying the size of the initializer list and provides iterator access to its elements, enabling range-based for loops and standard iteration patterns.
+No Dynamic Memory: Operates without dynamic memory allocation, ensuring predictability and efficiency, crucial for memory-constrained environments like Arduino.
+
+## Usage
+This library is intended to be used where fixed-size, compile-time initializer lists are beneficial, such as static configuration data, pin mappings, or predefined sequences of values.
+
+## Example Usage
+Here's an example demonstrating how to use the initializer_list library to initialize and process a list of integers:
+
+```cpp
+
+#include "INITIALIZER_LIST_H"
+
+void processList(const initializer_list<int>& list) {
+  for (auto item : list) {
+    Serial.println(item);
+  }
+}
+
+void setup() {
+  Serial.begin(9600);
+  // Wait for the serial monitor to open
+  while (!Serial) {}
+
+  // Initialize a list of integers using initializer_list
+  initializer_list<int> myList = {1, 2, 3, 4, 5};
+
+  // Process and print the list
+  processList(myList);
+}
+
+void loop() {
+  // Your loop code here
+}
+```
+## Customization
+The initializer_list template can be instantiated with any type, allowing it to be used with a wide range of data types beyond primitives, including custom classes and structures, provided they are copyable.
+
+## Contribution
+Contributions to enhance the functionality, extend the usage scenarios, or improve the documentation of the Initializer List library are welcome. Your input can help make this library a valuable resource for the Arduino community.
+
+## License
+This library is provided under an open-source license, permitting modification, distribution, and use in both personal and commercial projects, in line with the spirit of Arduino and its community of makers and developers.
+
+
+# Interval Tree Library for Arduino
+
+## Overview
+The Interval Tree library for Arduino offers an efficient way to store intervals and perform fast search operations to find overlapping intervals. This library is particularly useful in applications requiring management of multiple time intervals or ranges, such as scheduling tasks, managing resources, or collision detection in spatial data.
+
+## Features
+* Generic Implementation: Works with any arithmetic type (e.g., int, float) for interval boundaries.
+* Overlap Checking: Provides a method to check if a given interval overlaps with any interval in the tree.
+* Insertion and Deletion: Supports inserting new intervals and deleting existing intervals from the tree.
+* Traversal: Enables inorder traversal of the tree to access stored intervals in a sorted manner.
+* Balance Maintenance: Automatically maintains the balance of the tree for optimal search performance.
+
+## Usage
+### Setup
+Before using the Interval Tree library, include it in your Arduino sketch:
+
+```cpp
+
+#include "INTERVAL_TREE_h"
+```
+### Creating an Interval Tree
+Instantiate an Interval Tree object with the desired type for the interval boundaries:
+
+```cpp
+IntervalTree<int> myTree;
+```
+### Inserting Intervals
+Insert intervals into the tree using the insert() method:
+
+```cpp
+Interval<int> myInterval = {low: 10, high: 20};
+myTree.insert(myInterval);
+```
+### Searching for Overlapping Intervals
+Search for any interval overlapping with a given interval using the search() method:
+
+```cpp
+
+Interval<int> searchInterval = {low: 15, high: 25};
+IntervalTreeNode<int>* result = myTree.search(searchInterval);
+if (result != nullptr) {
+    Serial.println("Overlap found.");
+}
+```
+
+### Deleting Intervals
+Delete an interval from the tree using the deleteNode() method:
+
+```cpp
+
+myTree.deleteNode(myInterval);
+```
+### Traversing the Tree
+Perform an inorder traversal of the tree:
+
+```cpp
+
+myTree.inorder(); // This will print the intervals in sorted order
+```
+## Example
+```cpp
+
+void setup() {
+  Serial.begin(9600);
+  IntervalTree<int> tree;
+  tree.insert({5, 10});
+  tree.insert({15, 20});
+  tree.insert({25, 30});
+  tree.insert({10, 15}); // Overlaps with {5, 10} and {15, 20}
+
+  Serial.println("Inorder traversal of the Interval Tree:");
+  tree.inorder();
+
+  Interval<int> searchInt = {14, 16};
+  auto result = tree.search(searchInt);
+  if (result != nullptr) {
+    Serial.print("An overlapping interval for ");
+    Serial.print("[" + String(searchInt.low) + ", " + String(searchInt.high) + "] ");
+    Serial.println("was found.");
+  } else {
+    Serial.println("No overlapping interval found.");
+  }
+}
+
+void loop() {
+  // Put your main code here, to run repeatedly:
+}
+```
+
+## Contribution
+Contributions to the Interval Tree library are welcome. Whether it's extending functionality, improving efficiency, or enhancing documentation, your input can help make this library more useful for the Arduino community.
+
+## License
+This library is released under an open-source license, allowing for modification, distribution, and use in both personal and commercial projects.
+
+
+# K-Dimensional Tree Library for Arduino
+
+## Overview
+The K-Dimensional Tree (KD-Tree) library for Arduino provides a powerful tool for organizing points in a k-dimensional space. This data structure facilitates efficient search operations, such as nearest neighbor search and range search, making it ideal for applications in robotics, spatial indexing, and more.
+
+## Key Features
+* Generic Implementation: Compatible with any numeric type (e.g., int, float) for the coordinates of points.
+* Dynamic Insertion: Allows for dynamic insertion of points into the k-dimensional space.
+* Search Operations: Supports efficient nearest neighbor search and range search within the k-dimensional space.
+* Deletion: Enables removal of points from the tree.
+* Flexibility: Works with any number of dimensions specified at tree initialization.
+
+## Usage
+### Initialization
+First, include the library and create a KD-Tree instance specifying the dimension.
+
+```cpp
+
+#include "K_DIMENSIONAL_TREE_h"
+KDimensionalTree<float> kdTree(3); // For a 3-dimensional space
+```
+## Inserting Points
+Insert points into the KD-Tree. Points are represented as SimpleVector<T> objects.
+
+``` cpp
+
+SimpleVector<float> point1 = {1.0, 2.0, 3.0};
+kdTree.insert(point1);
+```
+## Searching for a Nearest Neighbor
+Find the nearest neighbor of a given point.
+
+```cpp
+SimpleVector<float> searchPoint = {1.1, 2.1, 3.1};
+SimpleVector<float> nearestNeighbor = kdTree.nearestNeighbor(searchPoint);
+``` 
+## Range Search
+Find all points within a specified range.
+
+```cpp
+
+SimpleVector<float> lowerBound = {0.0, 0.0, 0.0};
+SimpleVector<float> upperBound = {2.0, 2.0, 2.0};
+SimpleVector<SimpleVector<float>> pointsInRange = kdTree.rangeSearch(lowerBound, upperBound);
+```
+## Removing Points
+Remove a point from the KD-Tree.
+
+```cpp
+
+kdTree.remove(point1);
+```
+## Clearing the Tree
+Remove all points from the KD-Tree.
+
+```cpp
+
+kdTree.clear();
+```
+## Example Sketch
+```cpp
+void setup() {
+    Serial.begin(9600);
+
+    KDimensionalTree<float> kdTree(2); // 2D space
+    kdTree.insert({1.0, 2.0});
+    kdTree.insert({3.0, 4.0});
+    kdTree.insert({5.0, 6.0});
+
+    SimpleVector<float> searchPoint = {3.1, 4.1};
+    SimpleVector<float> nearest = kdTree.nearestNeighbor(searchPoint);
+
+    Serial.print("Nearest neighbor to (3.1, 4.1): (");
+    Serial.print(nearest[0]);
+    Serial.print(", ");
+    Serial.print(nearest[1]);
+    Serial.println(")");
+
+    // Range search
+    SimpleVector<float> lower = {2.0, 3.0};
+    SimpleVector<float> upper = {4.0, 5.0};
+    auto pointsInRange = kdTree.rangeSearch(lower, upper);
+    Serial.println("Points in range:");
+    for (auto& p : pointsInRange) {
+        Serial.print("(");
+        Serial.print(p[0]);
+        Serial.print(", ");
+        Serial.print(p[1]);
+        Serial.println(")");
+    }
+}
+
+void loop() {
+    // Put your main code here, to run repeatedly:
+}
+```
+## Contribution
+Contributions to the KD-Tree library are welcome. Whether it's optimizing the implementation, adding new features, or improving the documentation, your input can help make this library more useful for the Arduino community.
+
+## License
+This library is released under an open-source license, allowing for modification, distribution, and use in both personal and commercial projects.
+
+
+# MathLib for Arduino
+
+## Overview
+MathLib is a comprehensive mathematical library designed for the Arduino platform. It offers a wide range of mathematical functions, from basic arithmetic operations to more complex trigonometric and hyperbolic calculations. This library aims to enhance the mathematical capabilities of Arduino projects without the need for external dependencies.
+
+## Features
+* Basic Mathematical Functions: Includes factorial, power, prime checking, and prime number generation.
+* Trigonometric Functions: Provides sine, cosine, tangent, cotangent, secant, and cosecant functions, along with their arc (inverse) versions.
+* Hyperbolic Functions: Offers sinh, cosh, tanh, coth, sech, and csch functions, along with their arc (inverse) versions.
+* Exponential and Logarithmic Functions: Supports exponential, natural logarithm, and logarithm base 10 calculations.
+* Square Root and Cube Root Functions: Implements efficient algorithms for calculating square roots and cube roots.
+* Utility Functions: Includes absolute value, ceiling, floor, power with floating-point exponent, log base 2, and log with arbitrary base functions.
+
+## Usage
+To use the MathLib, include the library in your Arduino sketch and call any of the available functions:
+
+```cpp
+
+#include "MATHLIB.h"
+
+void setup() {
+  Serial.begin(9600);
+
+  // Using trigonometric functions
+  double sineValue = Sin(30); // Calculate sine of 30 degrees
+  double cosineValue = Cos(45); // Calculate cosine of 45 degrees
+
+  // Using logarithmic functions
+  double logValue = Log(10); // Natural log of 10
+  double log10Value = Log10(100); // Log base 10 of 100
+
+  // Using power functions
+  double powerValue = Power(2, 8); // 2 raised to the power of 8
+
+  // Print results
+  Serial.println("Sine(30): " + String(sineValue));
+  Serial.println("Cos(45): " + String(cosineValue));
+  Serial.println("Log(10): " + String(logValue));
+  Serial.println("Log10(100): " + String(log10Value));
+  Serial.println("Power(2, 8): " + String(powerValue));
+}
+
+void loop() {
+  // Your main code here, to run repeatedly:
+}
+```
+## Customization
+* MYPI: Defines the value of pi used in trigonometric calculations.
+* MYMAX_ITERATIONS: Determines the number of iterations for iterative functions to ensure accuracy.
+
+## Contribution
+MathLib is open for contributions. Enhancements, optimizations, or additions to the library are welcome to make it more versatile and efficient.
+
+## License
+MathLib is released under an open-source license, allowing free use, modification, and distribution of the library in both personal and commercial projects.
+
+
+# MatrixMath Library for Arduino
+
+## Overview
+MatrixMath is a versatile library designed for handling matrices on the Arduino platform. It enables users to perform a wide range of matrix operations essential for applications in robotics, signal processing, and linear algebra.
+
+## Features
+* Matrix Creation and Manipulation: Allows for the creation, copying, and manipulation of matrices.
+* Element Access and Modification: Facilitates accessing and modifying individual elements within the matrix.
+* Basic Operations: Supports addition, subtraction, multiplication, and division of matrices and scalars.
+* Advanced Operations: Includes matrix transposition, inversion, scaling, and setting matrices to identity or zero matrices.
+* Transformation Operations: Provides functions for rotating matrices around the X, Y, Z axes, or an arbitrary axis.
+* Utility Functions: Offers additional functionalities like printing matrix contents to the serial monitor, clearing the matrix, and more.
+
+## Usage
+To use the MatrixMath library in your project, include it at the beginning of your Arduino sketch:
+
+```cpp
+
+#include "MatrixMath.h"
+```
+## Example: Matrix Addition
+``` cpp
+MatrixMath matrix1(2, 2);
+MatrixMath matrix2(2, 2);
+
+void setup() {
+  Serial.begin(9600);
+
+  // Initialize matrices
+  matrix1.set(0, 0, 1); matrix1.set(0, 1, 2);
+  matrix1.set(1, 0, 3); matrix1.set(1, 1, 4);
+
+  matrix2.set(0, 0, 5); matrix2.set(0, 1, 6);
+  matrix2.set(1, 0, 7); matrix2.set(1, 1, 8);
+
+  // Perform matrix addition
+  matrix1.add(matrix2);
+
+  // Print the result
+  matrix1.print();
+}
+
+void loop() {
+  // Your loop code here
+}
+```
+## Example: Matrix Scaling
+```cpp
+void scaleMatrix() {
+  MatrixMath matrix(2, 2);
+  matrix.set(0, 0, 1); matrix.set(0, 1, 2);
+  matrix.set(1, 0, 3); matrix.set(1, 1, 4);
+
+  // Scale the matrix by a factor of 2
+  matrix.scale(2.0);
+
+  // Print the scaled matrix
+  matrix.print();
+}
+```
+## Contribution
+Contributions to the MatrixMath library are welcome. Whether it's adding new features, improving existing ones, or fixing bugs, your help can make MatrixMath more powerful and user-friendly.
+
+## License
+MatrixMath is released under an open-source license. Feel free to use it, modify it, and distribute it in your projects as you see fit.
+
+
+# Map Library for Arduino
+
+## Overview
+The Map library provides a simple and efficient way to store and manage key-value pairs in Arduino projects. It's designed to offer easy insertion, removal, and search operations, making it suitable for various applications where associative arrays or dictionaries are needed.
+
+## Features
+* Key-Value Storage: Stores elements as key-value pairs for efficient data retrieval based on keys.
+* Insertion and Deletion: Supports adding new key-value pairs and removing existing ones.
+* Value Retrieval: Allows fetching values associated with specific keys.
+* Key and Value Lists: Enables retrieving lists of all keys or values stored in the map.
+* Size and Capacity Management: Provides functions to check the size of the map and clear its contents.
+* Search and Check Operations: Includes methods to search for keys or values and check if the map contains specific entries.
+
+
+## Usage
+To use the Map library in your Arduino sketch, include it at the beginning of your code:
+
+``` cpp
+
+#include "Map.h"
+```
+## Example: Storing and Retrieving Data
+```cpp
+Map<String, int> ageMap;
+
+void setup() {
+  Serial.begin(9600);
+
+  // Inserting data into the map
+  ageMap.insert("Alice", 30);
+  ageMap.insert("Bob", 25);
+  ageMap.put("Charlie", 35);
+
+  // Retrieving and printing a value
+  Serial.print("Alice's age: ");
+  Serial.println(ageMap.get("Alice"));
+
+  // Checking if a key exists
+  if (ageMap.containsKey("Bob")) {
+    Serial.println("Bob is in the map.");
+  }
+
+  // Removing a key-value pair
+  ageMap.remove("Charlie");
+
+  // Printing all key-value pairs
+  ageMap.print();
+}
+
+void loop() {
+  // Loop code here
+}
+```
+## Iteration Example
+You can iterate over the map using the provided iterator class:
+
+```cpp
+
+for (auto it = ageMap.begin(); it != ageMap.end(); ++it) {
+  Serial.print(it->first); // Access the key
+  Serial.print(": ");
+  Serial.println(it->second); // Access the value
+}
+
+```
+## Contribution
+Contributions to the Map library are welcome. Whether you're fixing bugs, adding new features, or improving the documentation, your help will enhance this library for the Arduino community.
+
+## License
+The Map library is open-source and freely available for personal and commercial use under the terms of the license provided with the library source.
+
+
+# Numeric Limits Library for Arduino
+## Overview
+The Numeric Limits library provides a way to determine the properties and limits of arithmetic types in the Arduino environment. It covers a range of types including integers, floating-point numbers, and bytes, offering functionality similar to std::numeric_limits from the C++ Standard Library but tailored for Arduino's constraints and types.
+
+## Features
+* Type Limits: Obtain minimum and maximum values for various data types.
+* Type Properties: Check whether a type is signed, integer, or floating-point.
+* Compatibility: Designed with Arduino's 32-bit architecture in mind, ensuring compatibility with common Arduino boards.
+
+## Usage
+To use the Numeric Limits library in your Arduino sketch, include it at the beginning of your code:
+
+```cpp
+#include "Numeric_Limits.h"
+```
+
+## Examples
+### Getting Integer Limits
+```cpp
+
+int intMin = numeric_limits<int>::Min();
+int intMax = numeric_limits<int>::Max();
+Serial.print("Int Min: ");
+Serial.println(intMin);
+Serial.print("Int Max: ");
+Serial.println(intMax);
+```
+
+### Floating-Point Limits
+```cpp
+
+float floatMin = numeric_limits<float>::Min();
+float floatMax = numeric_limits<float>::Max();
+Serial.print("Float Min: ");
+Serial.println(floatMin, 10); // '10' specifies the number of digits after the decimal point
+Serial.print("Float Max: ");
+Serial.println(floatMax, 10);
+```
+### Checking Type Properties
+```cpp
+
+bool isIntSigned = numeric_limits<int>::is_signed();
+Serial.print("Is Int Signed: ");
+Serial.println(isIntSigned ? "Yes" : "No");
+```
+## Supported Types
+The library provides implementations for the following types:
+
+* int
+* long
+* float
+* double
+* byte
+* char
+* bool
+
+Note: On Arduino, double is often equivalent to float, reflected in their shared limits.
+
+## Contribution
+Contributions to the Numeric Limits library are welcome. Whether it's through adding support for additional types, enhancing the existing functionality, or improving compatibility across various Arduino platforms, your contributions are valuable to the Arduino community.
+
+## License
+This library is open-source and can be freely used and modified in both personal and commercial projects under the terms specified in the license accompanying the library source.
+
+
+# Octree Library for Arduino
+
+## Overview
+The Octree library offers a spatial partitioning structure for efficient querying of 3D space, optimized for Arduino environments. It allows for storing and manipulating data in a three-dimensional space, using a tree structure where each node has exactly eight children. This library is particularly useful for applications involving 3D graphics, spatial analysis, collision detection, and point cloud management.
+
+## Features
+* Spatial Partitioning: Efficiently divides 3D space into smaller regions for quick querying and data retrieval.
+* Dynamic Allocation: Utilizes a node pool for optimized memory management, limiting the maximum number of nodes to MAX_NODES.
+* Search Operations: Supports various search operations including point search, range search, and nearest neighbor search.
+* Traversal Methods: Offers multiple tree traversal methods, such as in-order, pre-order, post-order, and level-order traversals.
+
+## Usage
+To use the Octree library, include it at the top of your Arduino sketch:
+
+```cpp
+
+#include "Octree.h"
+```
+## Creating an Octree
+Instantiate an Octree object specifying the type of data it will hold:
+
+```cpp
+
+Octree<float> myOctree;
+```
+## Inserting Data
+Insert data into the octree. The data should be of the type specified during the octree's instantiation:
+
+```cpp
+
+myOctree.insert(5.0f);
+```
+## Searching
+Perform a search to find if a specific value exists within the octree:
+
+```cpp
+
+bool found = myOctree.search(5.0f);
+Serial.println(found ? "Found" : "Not Found");
+```
+## Range Search
+Query all points within a specified 3D range:
+
+```cpp
+
+SimpleVector<float> results = myOctree.rangeSearch(x1, x2, y1, y2, z1, z2);
+```
+## Nearest Neighbor
+Find the nearest neighbor to a given point in 3D space:
+
+```cpp
+float nearest = myOctree.nearestNeighbor(data);
+```
+## Traversal
+Traverse the octree in various orders to process or retrieve the stored data:
+
+```cpp
+
+SimpleVector<float> inOrderResults = myOctree.inOrderTraversal();
+```
+## Memory Management
+The library includes mechanisms to manage memory efficiently, reusing nodes from a preallocated pool to avoid dynamic memory allocation during runtime. This is crucial for the limited memory environment of Arduino devices.
+
+## Application Scenarios
+* 3D Graphics: Managing objects in a 3D scene for rendering or collision detection.
+* Spatial Analysis: Performing queries on spatial data, such as point clouds.
+* Game Development: Efficiently managing game world entities and their interactions.
+
+** Recommended for Microprocessors/MicroControllers with more memory capablility **
+
+## Extending the Library
+The Octree library is designed to be extensible. Users can add more features such as balancing the tree, supporting dynamic resizing, and enhancing search capabilities.
+
+## License
+This library is open-source and can be used and modified according to the terms specified in the license accompanying the library source. Contributions and improvements from the community are welcome. 
+
+
+# QuadTree Library for Arduino
+
+## Overview
+The QuadTree library is a specialized data structure for Arduino projects that need efficient querying of two-dimensional space. It's well-suited for applications requiring spatial partitioning and indexing, such as graphics rendering, collision detection, and geographic data management.
+
+## Features
+* Efficient Spatial Partitioning: Divides 2D space into four quadrants to efficiently manage spatial data.
+* Dynamic Insertion and Querying: Supports dynamic insertion of points and querying of rectangular regions.
+* Point and Rectangle Support: Includes structures for points and rectangles, including utility functions like containment checks and intersection tests.
+* Customizable Capacity: Each node's capacity is customizable, allowing for flexibility in balancing depth versus breadth of the tree.
+
+## Usage
+To utilize the QuadTree library, include it at the beginning of your Arduino sketch:
+
+```cpp
+
+#include "QuadTree.h"
+```
+## Initialization
+Create a QuadTree object by specifying the boundary and capacity:
+
+```cpp
+
+Rectangle<float> boundary = {{0, 0}, {100, 100}};
+int capacity = 4;
+QuadTree<float> quadTree(boundary, capacity);
+```
+## Inserting Points
+Add points to the QuadTree with the insert method:
+
+```cpp
+
+Point<float> point = {25.0, 75.0};
+quadTree.insert(point);
+```
+## Querying Regions
+Retrieve points within a specific region by defining a query rectangle:
+
+```cpp
+
+Rectangle<float> queryRect = {{10, 10}, {50, 50}};
+SimpleVector<Point<float>> foundPoints = quadTree.query(queryRect);
+```
+## Deleting Points
+Remove a point from the QuadTree, if necessary:
+
+```cpp
+
+quadTree.deletePoint(point);
+```
+## Clearing the QuadTree
+Reset the QuadTree, removing all points:
+
+```cpp
+
+quadTree.clear();
+```
+## Additional Operations
+The library supports additional operations like checking if a point is within the QuadTree's boundary, moving points within the tree, and printing the tree structure for debugging purposes.
+
+## Applications
+* Game Development: Managing game entities and detecting collisions.
+* Geographic Information Systems (GIS): Indexing geographic locations for rapid querying.
+* Computer Graphics: Spatially partitioning objects for efficient rendering.
+
+##  Extending the Library 
+While the QuadTree library provides a solid foundation for 2D spatial partitioning, it can be extended with features like balancing the tree, supporting more complex shapes, and optimizing memory usage for large datasets.
+
+## License
+This library is provided under an open-source license, allowing for modification and redistribution in both personal and commercial projects. Check the license details for specific terms and conditions.
+
+
+# Queue Library for Arduino
+
+## Overview
+The Queue library provides a generic, dynamic queue implementation in C++ tailored for use in Arduino projects. It's designed to manage a collection of elements in a first-in, first-out (FIFO) manner. Ideal for tasks requiring a sequential processing order, such as event handling or task scheduling.
+
+## Features
+* Generic Type Support: Can store elements of any data type.
+* Dynamic Resizing: Automatically resizes to accommodate more elements than its initial capacity.
+* Basic Queue Operations: Supports enqueue (add), dequeue (remove), and peek (view the front element) operations.
+* Utility Functions: Includes methods to check if the queue is empty or full, clear the queue, and count the elements.
+
+## Usage
+To use the Queue library, include it at the beginning of your Arduino sketch:
+
+```cpp
+
+#include "Queue.h"
+```
+## Initialization
+Create a Queue object specifying the data type of the elements it will hold:
+
+```cpp
+
+Queue<int> myQueue;
+```
+## Adding Elements
+Add elements to the queue using the enqueue method:
+
+```cpp
+
+myQueue.enqueue(10);
+myQueue.enqueue(20);
+```
+## Removing Elements
+Remove the element at the front of the queue with dequeue:
+
+```cpp
+
+int frontElement = myQueue.dequeue();
+```
+## Viewing the Front Element
+Access the element at the front without removing it using peek:
+
+```cpp
+
+int peekElement = myQueue.peek();
+```
+## Checking Queue Status
+Determine if the queue is empty or full:
+
+```cpp
+
+bool isEmpty = myQueue.isEmpty();
+bool isFull = myQueue.isFull();
+```
+## Clearing the Queue
+Remove all elements from the queue:
+
+```cpp
+
+myQueue.clear();
+```
+## Printing Queue Elements
+For debugging purposes, print all elements in the queue:
+
+```cpp
+
+myQueue.print();
+```
+## Counting Elements
+Retrieve the number of elements in the queue:
+
+```cpp
+
+size_t elementCount = myQueue.count();
+```
+## Applications
+The Queue library is versatile for a wide range of applications, including but not limited to:
+
+* Event-driven programming where actions or events are queued for processing.
+* Managing tasks in multitasking environments, such as scheduling tasks in a specific order.
+* Buffering data streams, where data is temporarily stored before processing.
+* Customization
+* The initial size of the queue and the resizing behavior can be customized by modifying the library's source code to better fit specific requirements, such as memory constraints or expected workload.
+
+## License
+The Queue library is open-source and can be freely used and modified. It's recommended to check the specific license details for usage in both personal and commercial projects.
+
+
+# Red-Black Tree Library for Arduino
+
+## Overview
+The Red-Black Tree library provides a balanced binary search tree implementation, ensuring O(log n) time complexity for insertions, deletions, and lookups. It is particularly well-suited for datasets that undergo frequent modifications, as it maintains balance through tree rotations and color flips.
+
+## Key Features
+* Self-Balancing: Automatically maintains its balance during insertions and deletions, ensuring optimal path lengths.
+* Generic Data Storage: Capable of storing any comparable data type, making it versatile for various applications.
+* Efficient Operations: Offers efficient search, insertion, and deletion operations.
+* Traversal Methods: Supports in-order, pre-order, and post-order traversals for flexible data access.
+
+## Usage
+To use the Red-Black Tree library in your Arduino project, include it at the beginning of your sketch:
+
+```cpp
+
+#include "RedBlackTree.h"
+```
+## Creating a Tree
+Instantiate a Red-Black Tree object specifying the data type:
+
+```cpp
+
+RedBlackTree<int> tree;
+```
+## Inserting Elements
+Add elements to the tree using the insert method:
+
+```cpp
+
+tree.insert(5);
+tree.insert(3);
+tree.insert(10);
+```
+## Deleting Elements
+Remove elements from the tree with deleteNode:
+
+```cpp
+
+tree.deleteNode(3);
+```
+## Searching for Elements
+### Search for an element in the tree:
+
+```cpp
+
+RedBlackNode<int>* node = tree.search(5);
+if (node != NULL) {
+    Serial.println("Found");
+} else {
+    Serial.println("Not found");
+}
+```
+## Traversals
+Perform different tree traversals:
+
+```cpp
+
+// In-order traversal
+tree.inOrder();
+
+// Pre-order traversal
+tree.preOrder();
+
+// Post-order traversal
+tree.postOrder();
+```
+## Clearing the Tree
+Remove all elements from the tree:
+
+```cpp
+
+tree.clear();
+```
+## Applications
+Red-Black Trees are useful in many scenarios where a balanced search tree is required, such as:
+
+* Maintaining a sorted stream of data.
+* Implementing associative arrays.
+* Building priority queues with efficient updates.
+* Handling datasets with frequent insertions and deletions.
+
+## Customization
+While the library is designed to be generic and broadly applicable, specific use cases might require adjustments, such as custom comparison functions for complex data types. Modify the library source to accommodate such needs.
+
+## License
+This library is released for public use. Depending on the project's specifics, ensure compliance with the licensing terms if included in both open-source and proprietary projects.
+
+
+# R-Tree Library for Arduino
+
+## Overview
+The R-Tree library for Arduino provides a spatial index structure for efficiently organizing and querying geometric data, such as rectangles or spatial objects. It's particularly useful for applications requiring spatial searches, like collision detection, viewport queries, or geographic information systems.
+
+## Features
+* Geometric Data Management: Efficiently stores and manages rectangles, supporting operations like insertion, deletion, and spatial queries.
+* Spatial Queries: Supports querying data within a specified geometric range.
+* Traversal Orders: Offers multiple tree traversal orders including pre-order, in-order, post-order, and level-order.
+* Dynamic Tree Structure: Automatically adjusts its structure for optimal performance as data is added or removed.
+
+## Usage
+To use the R-Tree library in your Arduino project, include it at the beginning of your sketch:
+
+```cpp
+
+#include "RTree.h"
+```
+## Creating an R-Tree
+Instantiate an R-Tree object specifying the data type:
+
+```cpp
+
+RTree<int> tree;
+```
+## Inserting Data
+Insert rectangles into the tree:
+
+```cpp
+
+Rectangle<int> rect1 = {0, 0, 10, 10};
+Rectangle<int> rect2 = {5, 5, 15, 15};
+tree.insert(rect1);
+tree.insert(rect2);
+```
+
+## Removing Data
+Remove a rectangle from the tree:
+
+```cpp
+
+tree.remove(rect1);
+```
+## Searching
+Search for a rectangle in the tree (example function, actual search implementation might vary based on specific needs):
+
+```cpp
+
+Rectangle<int> searchRect = {1, 1, 9, 9};
+bool found = tree.search(searchRect);
+if (found) {
+    Serial.println("Rectangle found.");
+} else {
+    Serial.println("Rectangle not found.");
+}
+```
+## Clearing the Tree
+Remove all elements from the tree:
+
+```cpp
+
+tree.clear();
+```
+## Traversal and Printing
+Print the tree contents in different traversal orders:
+
+```cpp
+
+tree.print(PRE_ORDER);
+tree.print(IN_ORDER);
+tree.print(POST_ORDER);
+tree.print(LEVEL_ORDER);
+```
+## Applications
+R-Trees are ideal for a wide range of applications that require spatial data indexing and queries, including:
+
+* Geographic Information Systems (GIS).
+* Collision detection in gaming and simulations.
+* Spatial data analysis and visualization.
+* Database index structures for spatial querying.
+``RECOMMENDED FOR MICROCONTROLLERS/MICROPROCESSORS WITH MORE MEMORY CAPABILITY. (UNO, and NANO ARE NOT GOING TO WORK :) )``
+``RECOMMEND USING DEVICES LIKE THE RASPBERRY PI, ARDUINO GIGA, ARDUINO MEGA, etc...``
+
+## Customization
+While the R-Tree library is designed to be generic, specific applications might require customization, such as supporting different geometric shapes, optimizing for specific query patterns, or enhancing memory management strategies.
+
+## License
+This library is provided for public use. Depending on the project's requirements, ensure to comply with the licensing terms if used within both open-source and proprietary projects.
+
+
+# Segment Tree Library for Arduino
+
+## Overview
+The Segment Tree library for Arduino provides a versatile data structure for efficient querying and updating of array segments. It's particularly useful for scenarios requiring frequent updates and queries over a range, such as finding the sum, minimum, or maximum in a segment of an array.
+
+## Features
+* Efficient Range Queries: Quickly compute sums, minimums, or maximums within a range of an array.
+* Lazy Propagation: Optimizes range updates to avoid unnecessary calculations, enhancing performance for multiple updates.
+* Dynamic Updates: Supports updating values or ranges within the array, reflecting changes in subsequent queries.
+* Arithmetic Type Support: Designed for numeric data types, ensuring broad applicability for different numeric operations.
+
+## Usage
+To use the Segment Tree library in your Arduino project, include it at the beginning of your sketch:
+
+```cpp
+
+#include "SegmentTree.h"
+```
+
+## Creating a Segment Tree
+Instantiate a Segment Tree object using an array (or SimpleVector) of numeric values:
+
+```cpp
+
+SimpleVector<int> arr = {1, 3, 5, 7, 9, 11};
+SegmentTree<int> segTree(arr);
+```
+
+## Performing Range Queries
+Compute the sum, minimum, or maximum within a specified range of the array:
+
+```cpp
+
+int sum = segTree.getSum(1, 3); // Gets the sum of elements from index 1 to 3
+int min = segTree.getMin(1, 4); // Gets the minimum value from index 1 to 4
+int max = segTree.getMax(2, 5); // Gets the maximum value from index 2 to 5
+```
+
+## Updating Values
+Update a single value or a range of values in the array:
+
+```cpp
+
+segTree.updateValue(arr, 2, 10); // Updates the value at index 2 to 10
+segTree.updateRange(1, 4, 5); // Adds 5 to each element from index 1 to 4
+```
+## Clearing and Rebuilding
+To clear or rebuild the tree after significant changes:
+
+```cpp
+
+segTree.clear(); // Clears the segment tree
+segTree.build(arr, 0, arr.size() - 1, 0); // Rebuilds the tree with the current array
+```
+
+## Applications
+Segment Trees are versatile and can be used in various applications including:
+
+* Computational geometry for spatial queries.
+* Dynamic data analysis where ranges of data are frequently queried and updated.
+* Game development for efficient collision detection and world state management.
+
+## Customization
+The library is template-based, allowing for customization with different numeric types (int, float, long, etc.). Users can extend its functionality by implementing additional query and update methods based on specific needs.
+
+## License
+Ensure compliance with the library's licensing terms if used within both open-source and proprietary projects.
+
+
+# Stack Library for Arduino
+
+## Overview
+The Stack library for Arduino provides a classic stack data structure implementation, enabling efficient Last-In-First-Out (LIFO) operations. It's suitable for a wide range of applications, from managing function calls to parsing expressions and beyond.
+
+## Features
+* Dynamic Resizing: Automatically adjusts its capacity based on the number of elements, ensuring efficient use of memory.
+* Generic Implementation: Templated class allows for storing any data type.
+* Core Operations: Supports standard stack operations such as push, pop, and peek.
+* Utility Functions: Includes methods to check if the stack is empty or full, count the elements, and print the stack contents.
+
+## Usage
+To utilize the Stack library in your Arduino sketches, include it at the top of your source file:
+
+```cpp
+
+#include "Stack.h"
+```
+
+## Instantiating a Stack
+Create a stack object capable of holding elements of any specified type:
+
+```cpp
+
+Stack<int> myStack;
+```
+## Pushing Elements
+Add elements to the stack using the push method:
+
+```cpp
+
+myStack.push(10);
+myStack.push(20);
+```
+
+## Popping Elements
+Remove and retrieve the top element from the stack with pop:
+
+```cpp
+
+int element = myStack.pop();
+```
+## Peeking at the Top Element
+Access the top element without removing it using peek:
+
+```cpp
+
+int topElement = myStack.peek();
+```
+## Checking Stack Status
+Determine if the stack is empty or full:
+
+```cpp
+
+bool empty = myStack.isEmpty();
+bool full = myStack.isFull();
+```
+
+## Counting Elements
+Get the number of elements in the stack:
+
+```cpp
+
+uint16_t count = myStack.count();
+```
+## Clearing the Stack
+Reset all elements in the stack to their default value:
+
+```cpp
+
+myStack.clear();
+```
+## Printing Stack Contents
+For debugging purposes, print the contents of the stack:
+
+```cpp
+
+myStack.print();
+```
+## Applications
+Stacks are fundamental in many areas of computer science and programming, including:
+
+* Algorithmic expression evaluation and syntax parsing.
+* Undo mechanisms in applications.
+* Memory management and function call management in programming languages.
+* Customization and Extensions
+* The template-based implementation allows for easy customization to accommodate various data types. Further extensions could include implementing additional functionalities like iterator support or integrating with other data structures for complex data management.
+
+## License
+Please adhere to the licensing terms of the library when incorporating it into your projects, whether open-source or proprietary.
+
+
+# Suffix Tree Library for Arduino
+
+## Overview
+The Suffix Tree library provides an efficient data structure for quick pattern matching and substring operations within a given text. It's particularly useful in applications involving text analysis, such as finding the longest repeated substring, pattern searching, and more.
+
+## Features
+* Pattern Search: Quickly search for the presence of a pattern within the text.
+* Longest Repeated Substring: Find the longest repeated substring within the text, useful for data compression algorithms and detecting repeated patterns.
+* Longest Common Substring: Determine the longest common substring between two texts, a common problem in text analysis and bioinformatics.
+* Support for char and String Types: The library supports both char and String types for versatile applications.
+* Dynamic Tree Construction: Builds the suffix tree dynamically as the text is processed, allowing efficient insertion and search operations.
+
+## Usage
+To use the Suffix Tree library in your Arduino project, include it at the beginning of your sketch:
+
+```cpp
+
+#include "SuffixTree.h"
+```
+
+## Creating a Suffix Tree
+Instantiate a Suffix Tree with a given text:
+
+```cpp
+
+String myText = "banana";
+SuffixTree mySuffixTree(myText);
+``` 
+
+## Searching for a Pattern
+Check if a pattern exists within the text:
+
+```cpp
+
+bool found = mySuffixTree.patternSearch("ana");
+Serial.println(found ? "Pattern found" : "Pattern not found");
+```
+
+## Finding the Longest Repeated Substring
+Get the longest repeated substring in the text:
+
+```cpp
+
+mySuffixTree.getLongestRepeatedSubstring();
+```
+
+## Longest Common Substring
+To find the longest common substring between the original text and another string:
+
+```cpp
+
+String otherText = "panama";
+String lcs = mySuffixTree.longestCommonSubstring(otherText);
+Serial.println("Longest Common Substring: " + lcs);
+```
+
+## Palindrome Detection
+Detect the longest palindrome within the text:
+
+```cpp
+
+String palindrome = mySuffixTree.longestPalindrome();
+Serial.println("Longest Palindrome: " + palindrome);
+```
+## Applications
+* Bioinformatics: Searching for motifs or repeated sequences in DNA or protein sequences.
+* Text Editing: Implementing features like autocomplete, spell checking, and find/replace operations.
+* Data Compression: Identifying repeated sequences that can be compressed.
+* Forensics: Analyzing textual data for patterns or hidden messages.
+
+## Customization
+* Extend the library to include additional text analysis functionalities, such as different variations of pattern search or substring enumeration.
+* Adapt the library for more complex data types or to optimize for specific applications, such as large-scale text processing or real-time analysis.
+
+## License
+Ensure to comply with the library's licensing terms when integrating it into your projects, respecting open-source contributions and proprietary restrictions where applicable.
+
+
+# Trie Tree Library for Arduino
+
+## Overview
+The Trie Tree library is a specialized data structure for handling a dynamic set or associative array where the keys are strings. It excels in solving problems related to word validations, auto-completion, and prefix searching, making it ideal for applications that deal with large datasets of words or characters, such as dictionaries, word games, or text processing tools.
+
+## Features
+* Word Insertion: Efficiently inserts words into the trie for later retrieval or matching.
+* Word Search: Quickly determines if a word is present in the trie.
+* Prefix Search: Checks whether there is any word in the trie that starts with the given prefix, useful for auto-completion features.
+* Print All Words: Traverses the trie and prints all stored words, aiding in debugging or visualization of the trie's contents.
+* AutoComplete: Given a prefix, the library can suggest all words that complete the prefix, simulating an auto-complete feature.
+* Clear Trie: Allows for resetting the trie, removing all inserted words to start afresh.
+* Erase Word: Removes a specific word from the trie, if present.
+
+## Usage
+To use the Trie Tree library in your Arduino project, include it at the beginning of your sketch:
+
+```cpp
+
+#include "TrieTree.h"
+```
+
+## Creating a Trie Tree
+Instantiate a Trie Tree object:
+
+```cpp
+
+TrieTree myTrie;
+```
+
+## Inserting Words
+Add words to the trie:
+
+```cpp
+
+myTrie.insert("hello");
+myTrie.insert("world");
+```
+## Searching for Words
+Check if a word exists in the trie:
+
+```cpp
+
+if(myTrie.search("hello")) {
+    Serial.println("Found 'hello'");
+}
+```
+## Prefix Search
+Verify if any word in the trie starts with a given prefix:
+
+```cpp
+
+if(myTrie.startsWith("he")) {
+    Serial.println("Prefix 'he' found");
+}
+```
+## Printing All Words
+Display all words stored in the trie:
+
+```cpp
+
+myTrie.printAllWords();
+```
+
+## Auto-Completion
+Suggest words based on a prefix:
+
+```cpp
+
+SimpleVector<String> suggestions = myTrie.autoComplete("wo");
+for(String word : suggestions) {
+    Serial.println(word);
+}
+```
+
+## Applications
+* Text Editors: Implementing features like spell-checking and auto-completion.
+* Games: Creating word games or puzzles that require fast validation of word existence or generation of possible word options.
+* Educational Software: Assisting in teaching languages, vocabulary, and spelling.
+* Search Engines: Quick prefix-based search suggestions.
+* Data Analysis: Processing and analyzing large volumes of textual data for patterns or trends.
+
+## Customization
+The library can be extended or customized to include more complex functionalities such as handling different languages, case sensitivity options, or integrating with external storage for handling extremely large datasets.
+
+## License
+Make sure to comply with the library's license and respect the contributions of the open-source community when incorporating it into your projects.
+
 
 
 

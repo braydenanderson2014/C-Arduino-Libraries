@@ -1166,7 +1166,6 @@ public:
      * @return T The variance value
     */
     static T variance(T value) {
-        i
         static T sum = 0;
         static T mean = 0;
         static T variance = 0;

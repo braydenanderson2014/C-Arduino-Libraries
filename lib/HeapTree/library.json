@@ -1,0 +1,36 @@
+{
+    "name": "HeapTree",
+    "version": "1.0.0-ALPHA",
+    "description": "A Tree Data Structure Library for Arduino. This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
+    "keywords": ["Heap", "Tree", "Data Structure", "Heap", "Balanced Tree"],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/HeapTree.git"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "examples": [
+        {
+            "name": "Example",
+            "base": "examples",
+            "files": [
+                "Example/Example.ino"
+            ]
+        }
+    ],
+    "headers": [
+        "HeapTree.h"
+    ],
+    "header": "HeapTree.h",
+    "Notes": "This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
+    "license": "Apache-2.0",
+    "readme": "README.md"
+
+}
