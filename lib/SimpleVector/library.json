@@ -26,7 +26,14 @@
             "name": "Example",
             "base": "examples",
             "files": [
-                "Example/Example.cpp"
+                "Example/Example.ino"
+            ]
+        },
+        {
+            "name": "Example2",
+            "base": "examples",
+            "files": [
+                "Example2/Example2.ino"
             ]
         }
     ],

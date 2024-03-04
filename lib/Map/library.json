@@ -6,7 +6,7 @@
     "Repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/SimpleVector.git"
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Map.git"
 
         }
     ],
@@ -32,6 +32,9 @@
         }
     ],
     "license": "Apache-2.0",
-    "Notes:": "This is a test package. It is not intended for use in production environments. This library has not yet been tested. If you would like to test it, please do so at your own risk. If you find any bugs, please report them to the author."
+    "Notes:": "This is a test package. It is not intended for use in production environments. This library has not yet been tested. If you would like to test it, please do so at your own risk. If you find any bugs, please report them to the author.",
+    "dependencies": {
+        "braydenanderson2014/SimpleVector": "*"
+    }
     
 }

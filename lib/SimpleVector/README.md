@@ -61,6 +61,8 @@ If you want to Utilize this Library. Please include the
 ### Version 1.0.6: [CURRENT-RELEASE]
 * Added Support for Range Based For loops
 * Added Support for Adding Elements during Construction.
+* Added BulkAdd Function() to add multiple elements at once.
+
 
 
 

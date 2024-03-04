@@ -24,7 +24,7 @@
             "name": "Example",
             "base": "examples",
             "files": [
-                "Example.ino"
+                "Example/Example.ino"
             ]
         }
     ],

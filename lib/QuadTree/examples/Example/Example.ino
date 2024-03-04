@@ -14,7 +14,7 @@
     https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/Release/README.md
 
 */
-#include <quadTree.h>
+#include <QuadTree.h>
 // Define the boundaries of the QuadTree
 Rectangle<float> boundary = {{0, 0}, {100, 100}}; // The boundary of the QuadTree (0,0) = bottom left, (100,100) = top right
 

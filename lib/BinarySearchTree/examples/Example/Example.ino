@@ -15,7 +15,7 @@
 
 */
 #include <Arduino.h>
-#include <binarySearchTree.h>
+#include <BinarySearchTree.h>
 
 // Create a new instance of the BinarySearchTree class
 BinarySearchTree<int> tree;

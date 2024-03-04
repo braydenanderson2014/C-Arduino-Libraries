@@ -62,6 +62,16 @@ public:
         }
         Serial.println();
     }
+
+    uint16_t count (){
+        return top + 1;
+    }
+
+    void clear(){
+        for(int i = 0; i <= top; i++){
+            stack[i] = 0;
+        }
+    }
 };
 
 #endif // STACK_h

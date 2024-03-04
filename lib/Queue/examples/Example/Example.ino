@@ -1,7 +1,7 @@
 /*
-    Example Name: Example For OCTree Library
+    Example Name: Example For Queue Library
 
-    Basic example for the OCTree library. This example demonstrates the basic functionality of the OCTree library.
+    Basic example for the Queue library. This example demonstrates the basic functionality of the Queue library.
 
     The circuit:
     This Library does not Require any Circuits to run.

@@ -6,7 +6,7 @@
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/bTree.git"
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/IntervalTree.git"
         }
     ],
     "authors": [
@@ -21,16 +21,19 @@
             "name": "Example",
             "base": "examples",
             "files": [
-                "Example.ino"
+                "Example/Example.ino"
             ]
         }
     ],
     "headers": [
-        "bTree.h"
+        "IntervalTree.h"
     ],
-    "header": "bTree.h",
+    "header": "IntervalTree.h",
     "Notes": "This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
-    "license": "Apache-2.0"
+    "license": "Apache-2.0",
+    "dependencies": {
+        "braydenanderson2014/TypeTraits": "*"
+    }
     
 
 }

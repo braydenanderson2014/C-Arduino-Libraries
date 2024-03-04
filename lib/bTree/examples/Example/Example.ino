@@ -1,7 +1,7 @@
 /*
-    Example Name: Example For bTree Library
+    Example Name: Example For BTree Library
 
-    Basic example for the bTree library. This example demonstrates the basic functionality of the btree library.
+    Basic example for the BTree library. This example demonstrates the basic functionality of the B Tree library.
 
     The circuit:
     This Library does not Require any Circuits to run.
@@ -15,7 +15,7 @@
 
 */
 
-#include <bTree.h>
+#include <BTree.h>
 
 // Create a new instance of the bTree class
 BTree<double> tree(3); // A B Tree with a minimum degree of 3

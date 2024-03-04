@@ -1,7 +1,7 @@
 /*
-    Example Name: Example For RTree Library
+    Example Name: Example For Numeric_Limits Library
 
-    Basic example for the RTree library. This example demonstrates the basic functionality of the RTree library.
+    Basic example for the NumericLimits library. This example demonstrates the basic functionality of the NumericLimits library.
 
     The circuit:
     This Library does not Require any Circuits to run.
@@ -15,7 +15,7 @@
 
 */
 
-#include <numeric_limits.h>
+#include <Numeric_Limits.h>
 
 void setup() {
     // Print the Minimum and Maximum values for various data types

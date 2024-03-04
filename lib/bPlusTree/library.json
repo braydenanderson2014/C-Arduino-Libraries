@@ -6,7 +6,7 @@
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/bPlusTree.git"
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/BPlusTree.git"
         }
     ],
     "authors": [
@@ -21,14 +21,14 @@
             "name": "Example",
             "base": "examples",
             "files": [
-                "Example.ino"
+                "Example/Example.ino"
             ]
         }
     ],
     "headers": [
-        "bPlusTree.h"
+        "BPlusTree.h"
     ],
-    "header": "bPlusTree.h",
+    "header": "BPlusTree.h",
     "Notes": "This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
     "license": "Apache-2.0"
     

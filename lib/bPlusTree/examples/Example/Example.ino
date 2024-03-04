@@ -1,7 +1,7 @@
 /*
-    Example Name: Example For BinaryTree Library
+    Example Name: Example For B+ Tree Library
 
-    Basic example for the BinaryTree library. This example demonstrates the basic functionality of the Binary library.
+    Basic example for the B+ Tree library. This example demonstrates the basic functionality of the B+ Tree library.
 
     The circuit:
     This Library does not Require any Circuits to run.
@@ -15,7 +15,7 @@
 
 */
 
-#include <bPlusTree.h>
+#include <BPlusTree.h>
 
 // Create a new instance of the bPlusTree class
 BPlusTree<int> tree(3); // A B+ Tree with a minimum degree of 3

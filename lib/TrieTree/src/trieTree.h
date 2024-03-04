@@ -93,6 +93,49 @@ class TrieTree {
             findAllWords(node, prefix, words);
             return words;
         }
+
+        void findAllWordsWithPrefix(String prefix, SimpleVector<String>& words){
+            TrieNode* node = root;
+            for (char ch : prefix){
+                if(node->children.count(ch) == 0){
+                    return;
+                }
+                node = node->children[ch];
+            }
+            findAllWords(node, prefix, words);
+        }
+
+        void clear(){
+            delete root;
+            root = new TrieNode();
+        }
+
+        void erase(String word){
+            TrieNode* node = root;
+            for (char ch : word){
+                if(node->children.count(ch) == 0){
+                    return;
+                }
+                node = node->children[ch];
+            }
+            node->isEndOfWord = false;
+        }
+
+        void findAllWordsWithSuffix(String suffix, SimpleVector<String>& words){
+            TrieNode* node = root;
+            for (char ch : suffix){
+                if(node->children.count(ch) == 0){
+                    return;
+                }
+                node = node->children[ch];
+            }
+            findAllWords(node, suffix, words);
+        }
+
+        void deleteWord(String word){
+            erase(word);
+        }
+        
         
 };
 

@@ -14,7 +14,7 @@
     https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/Release/README.md
 
 */
-#include <avlTree.h>
+#include <AVLTree.h>
 
 // Create a new instance of the AVLTree class
 AVLTree<int> tree;

@@ -28,7 +28,7 @@
     "dependencies": {
         "braydenanderson2014/SimpleVector" : ">=1.0.5",
         "braydenanderson2014/TypeTraits" : "*",
-        "braydenanderosn2014/MathLib" : "*",
+        "braydenanderson2014/MathLib" : "*",
         "braydenanderson2014/Numeric_Limits" : "*"
     }
 }

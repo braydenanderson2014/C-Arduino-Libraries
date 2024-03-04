@@ -1,12 +1,12 @@
 {
-    "name": "BinaryTree",
+    "name": "Numeric_Limits",
     "version": "1.0.0-ALPHA",
-    "description": "A Tree Data Structure Library for Arduino. This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
-    "keywords": ["Binary", "Tree", "Data Structure", "Binary Tree", "Balanced Tree"],
+    "description": "Helper library that provides a way to get the minimum and maximum values of different data types. (Currently based off of 32bit systems)",
+    "keywords": ["Datatypes", "data", "Min", "Max", "Arduino", "Minimum", "Maximum", "Numeric", "Limits"],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/BinaryTree.git"
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Numeric_Limits.git"
         }
     ],
     "authors": [
@@ -26,11 +26,14 @@
         }
     ],
     "headers": [
-        "BinaryTree.h"
+        "Numeric_Limits.h"
     ],
-    "header": "BinaryTree.h",
+    "header": "Numeric_Limits.h",
     "Notes": "This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
-    "license": "Apache-2.0"
+    "license": "Apache-2.0",
+    "dependencies": {
+        "braydenanderson2014/TypeTraits": "*"
+    }
     
 
 }

@@ -1,6 +1,6 @@
 {
     "name": "OcTree",
-    "version": "1.0.0",
+    "version": "1.0.0-ALPHA",
     "description": "This Library makes it easy to create and Manage OCTree's. This Library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["OcTree", "3Dimesional", "Tree", "Octets", "SimpleVector", "TypeTraits", "Vector"],
     "repositories": [

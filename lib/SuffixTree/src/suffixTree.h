@@ -26,6 +26,28 @@ class SuffixTree {
     int* splitEnd = nullptr; // split end
     int size = -1; // size of the input string
 
+    // Utility function to traverse the tree and find the longest repeated substring
+    void getLongestRepeatedSubstringUtil(SuffixTreeNode* node, String& longest, String current) {
+        if (node == nullptr) return;
+
+        // Check if this node is an internal node with more than one child
+        if (node != root && node->children.size() > 1) {
+            // Since it's an internal node, update the longest substring if necessary
+            if (current.length() > longest.length()) {
+                longest = current;
+            }
+        }
+
+        for (auto it : node->children) {
+            SuffixTreeNode* child = it.second;
+            if (child != nullptr) {
+                // Construct the substring for this branch
+                String nextSubstring = current + text.substring(child->start, *(child->end) + 1);
+                getLongestRepeatedSubstringUtil(child, longest, nextSubstring);
+            }
+        }
+    }
+
 public:
     SuffixTree(String txt){
         text = txt;
@@ -170,11 +192,182 @@ public:
         }
     }
 
-    void getLongestRepeatedSubstring(){
-        int labelHeight = 0;
-        printTree(root, labelHeight);
-        doDFS(root, labelHeight);
+    void getLongestRepeatedSubstring() {
+        SuffixTreeNode* node = root;
+        String result = "";
+        getLongestRepeatedSubstringUtil(node, result, "");
+        Serial.print("Longest Repeated Substring: ");
+        Serial.println(result);
     }
+
+    bool patternSearch(String pat){
+        SuffixTreeNode* node = root;
+        int length = pat.length();
+        int i = 0;
+        while(i < length){
+            if(node->children[pat[i]] == nullptr){
+                return false;
+            }
+            node = node->children[pat[i]];
+            int j = 0;
+            for(j = 0; j < edgeLength(node); j++){
+                if(i == length){
+                    return true;
+                }
+                if(pat[i] != text[node->start + j]){
+                    return false;
+                }
+                i++;
+            }
+        }
+        return true;
+    }
+
+    void getLongestCommonSubstring(String str1, String str2){
+        String str = str1 + "$" + str2 + "#";
+        SuffixTree tree(str);
+        tree.getLongestRepeatedSubstring();
+    }
+
+    ~SuffixTree(){
+        freeSuffixTreeByPostOrder(root);
+        delete rootEnd;
+    }
+
+    void printTree(){
+        printTree(root, 0);
+    }
+
+    int countPatternOccurences(String pat){
+        SuffixTreeNode* node = root;
+        int length = pat.length();
+        int i = 0;
+        while(i < length){
+            if(node->children[pat[i]] == nullptr){
+                return 0;
+            }
+            node = node->children[pat[i]];
+            int j = 0;
+            for(j = 0; j < edgeLength(node); j++){
+                if(i == length){
+                    return node->suffixIndex;
+                }
+                if(pat[i] != text[node->start + j]){
+                    return 0;
+                }
+                i++;
+            }
+        }
+        return node->suffixIndex;
+    }
+
+    SimpleVector<int> getSuffixIndexes(String pat){
+        SuffixTreeNode* node = root;
+        int length = pat.length();
+        int i = 0;
+        while(i < length){
+            if(node->children[pat[i]] == nullptr){
+                return SimpleVector<int>();
+            }
+            node = node->children[pat[i]];
+            int j = 0;
+            for(j = 0; j < edgeLength(node); j++){
+                if(i == length){
+                    return SimpleVector<int>(node->suffixIndex);
+                }
+                if(pat[i] != text[node->start + j]){
+                    return SimpleVector<int>();
+                }
+                i++;
+            }
+        }
+        return SimpleVector<int>(node->suffixIndex);
+    }
+
+    SimpleVector<int> getSuffixIndexes(){
+        return SimpleVector<int>(root->suffixIndex);
+    }
+
+    SimpleVector<int> findAllOccurences(String pat){
+        SuffixTreeNode* node = root;
+        int length = pat.length();
+        int i = 0;
+        while(i < length){
+            if(node->children[pat[i]] == nullptr){
+                return SimpleVector<int>();
+            }
+            node = node->children[pat[i]];
+            int j = 0;
+            for(j = 0; j < edgeLength(node); j++){
+                if(i == length){
+                    return SimpleVector<int>(node->suffixIndex);
+                }
+                if(pat[i] != text[node->start + j]){
+                    return SimpleVector<int>();
+                }
+                i++;
+            }
+        }
+        return SimpleVector<int>(node->suffixIndex);
+    }
+
+    String longestCommonSubstring(const String& otherText){
+        String str = text + "$" + otherText + "#";
+        SuffixTree tree(str);
+        String result = "";
+        tree.getLongestRepeatedSubstringUtil(tree.root, result, "");
+        return result;
+    }
+
+    String shortestCommonSubstring(const String& otherText){
+        String str = text + "$" + otherText + "#";
+        SuffixTree tree(str);
+        String result = "";
+        tree.getLongestRepeatedSubstringUtil(tree.root, result, "");
+        return result;
+    }
+
+    String longestPalindrome(){
+        String str = text + "$" + text + "#";
+        SuffixTree tree(str);
+        String result = "";
+        tree.getLongestRepeatedSubstringUtil(tree.root, result, "");
+        return result;
+    }
+
+    SimpleVector<String> getAllPalindromes(){
+        SimpleVector<String> result;
+        for(int i = 0; i < size; i++){
+            for(int j = i; j < size; j++){
+                String str = text.substring(i, j + 1);
+                if(isPalindrome(str)){
+                    result.push_back(str);
+                }
+            }
+        }
+        return result;
+    }
+
+    bool isPalindrome(String str){
+        int length = str.length();
+        for(int i = 0; i < length / 2; i++){
+            if(str[i] != str[length - i - 1]){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    SimpleVector<String> getAllPatterns(){
+        SimpleVector<String> result;
+        for(int i = 0; i < size; i++){
+            for(int j = i; j < size; j++){
+                result.push_back(text.substring(i, j + 1));
+            }
+        }
+        return result;
+    }
+
 };
 
 #endif // SUFFIX_TREE_h

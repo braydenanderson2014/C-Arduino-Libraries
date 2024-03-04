@@ -14,7 +14,7 @@
     https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/Release/README.md
 
 */
-#include <kDimensionalTree.h>
+#include <KDimensionalTree.h>
 
 // Create a kdimensionalTree object
 KDimensionalTree<int> kdtree;

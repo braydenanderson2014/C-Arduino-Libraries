@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <SimpleVector.h>
-#include <Math.h>
+#include <MathLib.h>
 
 template <typename T>
 

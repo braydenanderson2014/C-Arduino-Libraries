@@ -16,22 +16,19 @@
             "url": "https://github.com/braydenanderson2014"
         }
     ],
-    "dependencies": {
-        "braydenanderson2014/SimpleVector ": "*"
-    },
     "examples": [
         {
             "name": "Example",
             "base": "examples",
             "files": [
-                "Example.ino"
+                "Example/Example.ino"
             ]
         }
     ],
     "headers": [
-        "avlTree.h"
+        "AVLTree.h"
     ],
-    "header": "avlTree.h",
+    "header": "AVLTree.h",
     "Notes": "This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
     "license": "Apache-2.0"
     
