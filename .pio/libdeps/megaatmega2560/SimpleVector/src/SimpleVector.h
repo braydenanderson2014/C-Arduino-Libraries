@@ -2,6 +2,8 @@
 #define SIMPLEVECTOR_H
 
 #include <Arduino.h>
+#include <initializer_list.h>
+
 template<typename T>
 class SimpleVector {
 private:
@@ -33,7 +35,23 @@ public:
     class SimpleVectorIterator;
 
     SimpleVector() : array(new T[4]), count(0), capacity(4) {}
-    
+
+    SimpleVector(unsigned int initialCapacity) : array(new T[initialCapacity]), count(0), capacity(initialCapacity) {}
+
+    SimpleVector(const SimpleVector& other) : array(new T[other.capacity]), count(other.count), capacity(other.capacity) {
+        for (unsigned int i = 0; i < count; i++) {
+            array[i] = other.array[i];
+        }
+    }
+
+
+    SimpleVector(initializer_list<T> initList) : array(new T[initList.size()]), count(initList.size()), capacity(initList.size()) {
+        int i = 0;
+        for (const auto& value : initList) {
+            array[i++] = value;
+        }
+    }
+
     ~SimpleVector() {
         delete[] array;
     }
@@ -50,6 +68,21 @@ public:
         array = nullptr;
         capacity = 0;
         count = 0;
+    }
+
+    /**
+     * @brief Shrink the capacity of the vector to match the count of elements
+     * @param newCapacity The new capacity of the vector
+     * @return True if the memory was successfully reserved, false otherwise
+     * 
+     * @public This method is public because it is meant to be called by the user.
+    */
+    bool shrinkToFit() {
+        if (count < capacity) {
+            resize(count);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -76,6 +109,24 @@ public:
             resize(2 * capacity);
         }
         array[count++] = item;
+    }
+
+    template<typename... Args>
+    void bulkAdd(Args... args) {
+        const T temp[] = {args...};
+        for (auto& val : temp) {
+            put(val);
+        }
+    }
+
+    /**
+     * @brief Add an element to the vector
+     * @param item The item to be added to the vector
+     * 
+     * @note This method is an alias for the put method.
+    */
+    void push_back(const T& item) {
+        put(item);
     }
 
     // Remove an element from the vector by shifting elements (Added in Version 1.0.1)
@@ -107,12 +158,21 @@ public:
      * @return Reference to the element at the given index, or nullptr if the index is out of bounds.
      */
     T& operator[](unsigned int index) {
-        if (index >= count) {
-            return nullptr; // You can handle this error differently if needed
+        static T dummy;
+        if (index >= count || index < 0) {
+            return dummy; // You can handle this error differently if needed
         }
         return array[index];
     }
 
+
+    // Overload [] operator for const objects.
+    const T& operator[](unsigned int index) const{
+        if (index >= count || index < 0){
+            return nullptr; // You can handle this error differently if needed
+        }
+        return array[index];
+    }
     /**
      * @brief Get the size of the vector
      * @return The size of the vector
