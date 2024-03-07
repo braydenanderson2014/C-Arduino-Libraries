@@ -1,3 +1,3 @@
-#include "iostream.h"
+#include <iostream.h>
 
 iostream cout;

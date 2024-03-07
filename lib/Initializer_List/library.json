@@ -26,9 +26,9 @@
         }
     ],
     "headers": [
-        "Initializer_List.h"
+        "BasicInitializer_List.h"
     ],
-    "header": "Initializer_List.h",
+    "header": "BasicInitializer_List.h",
     "Notes": "This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
     "license": "Apache-2.0",
     "readme": "README.md"

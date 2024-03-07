@@ -212,8 +212,13 @@ double Logn(double x, double n) {
     return Log(x) / Log(n);
 }
 
-double ABS(double x) {
+int ABS(int x) {
     return x < 0 ? -x : x;
+}
+ 
+
+double Round(double x) {
+    return (int)(x + 0.5);
 }
 
 double Ceil(double x) {

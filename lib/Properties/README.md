@@ -110,7 +110,7 @@ You may also need:
 ```cpp 
 #include LittleFSProperties.h
 ```     
-header file, you can use the new Features.. (This library now supports the LITTLE FS library. It is only an Alpha Build and may not work.)
+header file, you can use the new Features.. (This library now supports the LITTLE FS library. It is only an Alpha Build and may not work.) Must use the LittleFSProperties header in order for it to work. And you will lose normal sd functions.
 
 Here's an example of how to use the `Properties` class:
 
