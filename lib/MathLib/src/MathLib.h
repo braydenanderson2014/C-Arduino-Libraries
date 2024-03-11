@@ -229,7 +229,13 @@ double Floor(double x) {
     return (int)x;
 }
 
+int Random(int min, int max) {
+    return min + static_cast<int>(static_cast<long long>(rand()) % (static_cast<long long>(max) - min + 1));
+}
 
+double Random(double min, double max) {
+    return min + (max - min) * (static_cast<double>(rand()) / RAND_MAX);
+}
 
 
 

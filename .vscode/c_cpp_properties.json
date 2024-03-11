@@ -1,3 +1,8 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
 {
     "configurations": [
         {
@@ -5,6 +10,11 @@
             "includePath": [
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/include",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/src",
+                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MemoryManager/src",
+                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Json/src",
+                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/LinkedList/src",
+                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/String/src",
+                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MathLib/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/.pio/libdeps/megaatmega2560/SimpleProperties/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Hashtable/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SimpleVector/src",
@@ -31,8 +41,6 @@
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/cores/arduino",
                 "C:/Users/Admin/.platformio/packages/framework-arduino-avr/variants/mega",
-                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MathLib/src",
-                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/String/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/AVLTree/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/BPlusTree/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/BTree/src",
@@ -46,7 +54,6 @@
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Initializer_List/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/IntervalTree/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/KDimensionalTree/src",
-                "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/LinkedList/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Map/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MatrixMath/src",
                 "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MyDictionary/src",
@@ -98,6 +105,11 @@
                 "path": [
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/include",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/src",
+                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MemoryManager/src",
+                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Json/src",
+                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/LinkedList/src",
+                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/String/src",
+                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MathLib/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/.pio/libdeps/megaatmega2560/SimpleProperties/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Hashtable/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/SimpleVector/src",
@@ -124,8 +136,6 @@
                     "C:/Users/Admin/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
                     "C:/Users/Admin/.platformio/packages/framework-arduino-avr/cores/arduino",
                     "C:/Users/Admin/.platformio/packages/framework-arduino-avr/variants/mega",
-                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MathLib/src",
-                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/String/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/AVLTree/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/BPlusTree/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/BTree/src",
@@ -139,7 +149,6 @@
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Initializer_List/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/IntervalTree/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/KDimensionalTree/src",
-                    "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/LinkedList/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/Map/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MatrixMath/src",
                     "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/lib/MyDictionary/src",
@@ -196,8 +205,8 @@
                 "__AVR_ATmega2560__",
                 ""
             ],
-            "cStandard": "gnu23",
-            "cppStandard": "gnu++23",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
             "compilerPath": "C:/Users/Admin/.platformio/packages/toolchain-atmelavr/bin/avr-gcc.exe",
             "compilerArgs": [
                 "-mmcu=atmega2560",

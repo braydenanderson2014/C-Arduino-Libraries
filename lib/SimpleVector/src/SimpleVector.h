@@ -30,6 +30,16 @@ private:
         capacity = newCapacity;
     }
 
+    /**
+     * @brief Ensure that the vector has enough capacity to add a new element
+     * 
+     * @private This method is private because it is only used internally.
+    */
+    void ensureCapacity() {
+        if (count == capacity) {
+            resize(2 * capacity);
+        }
+    }
 public:
     // The SimpleVectorIterator class will be defined below
     class SimpleVectorIterator;
@@ -117,6 +127,25 @@ public:
         for (auto& val : temp) {
             put(val);
         }
+    }
+
+    void emplace_back() {  
+        ensureCapacity();
+        // Default-construct in place
+        new (elements + size()) T();
+        count++;
+    }
+
+    void emplace_back(const T& value) {
+        ensureCapacity();
+        // Copy-construct in place
+        new (elements + size()) T(value);
+        count++;
+    }
+
+    //back() method
+    T& back() {
+        return array[count - 1];
     }
 
     /**
@@ -210,6 +239,11 @@ public:
         return array[index];
     }
 
+
+    bool isEmpty() const {
+        return count == 0;
+    }
+
     // Get the index of the specified element
     /**
      * @brief Get the index of the specified element
@@ -241,6 +275,14 @@ public:
      * @return An iterator pointing to the end of the vector
     */
     SimpleVectorIterator end() {
+        return SimpleVectorIterator(array + count, array + count);
+    }
+
+    const SimpleVectorIterator begin() const {
+        return SimpleVectorIterator(array, array + count);
+    }
+
+    const SimpleVectorIterator end() const {
         return SimpleVectorIterator(array + count, array + count);
     }
 
