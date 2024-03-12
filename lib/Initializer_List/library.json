@@ -1,6 +1,6 @@
 {
     "name": "Initializer_List",
-    "version": "1.0.0-ALPHA",
+    "version": "1.0.0-ALPHA-1",
     "description": "A Library for being able to include a list of elements as an argument parameter to a function.",
     "keywords": ["Initializer_List", "List", "Data Structure", "Init"],
     "repositories": [

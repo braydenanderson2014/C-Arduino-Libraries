@@ -79,6 +79,16 @@ class ForwardIterator {
     }
 
     /**
+     * @brief Add an element to the Linked List (Adds it to the end of the list)
+     * @param value - the value to be added
+     * 
+     * @details Creates a new node with the given value and appends it to the end of the list. (Just calls the append function)
+    */
+    void add(const T& value) {
+        append(value);
+    }
+
+    /**
      * @brief Append an element to the end of the list
      * @param value - the value to be appended
      * 

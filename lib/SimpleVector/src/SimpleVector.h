@@ -2,8 +2,26 @@
 #define SIMPLEVECTOR_H
 
 #include <Arduino.h>
-#include <Initializer_List.h>
-
+#ifdef ESP32
+    #include <initializer_list>
+    #define useInit
+#endif
+#ifdef ESPRESSIF32
+    #include <initializer_list>
+    #define useInit
+#endif
+#ifdef ESP8266
+    #include <initializer_list>
+    #define useInit
+#endif
+#ifdef ESP32S2
+    #include <initializer_list>
+    #define useInit
+#endif
+#ifdef ESP32C3
+    #include <initializer_list>
+    #define useInit
+#endif
 template<typename T>
 class SimpleVector {
 private:
@@ -54,13 +72,14 @@ public:
         }
     }
 
-
+    #ifdef useInit
     SimpleVector(initializer_list<T> initList) : array(new T[initList.size()]), count(initList.size()), capacity(initList.size()) {
         int i = 0;
         for (const auto& value : initList) {
             array[i++] = value;
         }
     }
+    #endif
 
     ~SimpleVector() {
         delete[] array;

@@ -3,7 +3,28 @@
 #include <Arduino.h>
 //#include <SD.h>
 //#include <FS.h>
-#include <LITTLEFS.h>
+#ifdef useLittleFS
+    #ifdef ESP32
+        #include <LittleFS.h>
+    #endif
+    #ifdef ESPRESSIF32
+        #include <LittleFS.h>
+    #endif
+    #ifdef ESP8266
+
+    #endif
+    #ifdef ESP32S2
+        #include <LittleFS.h>
+    #endif
+    #ifdef ESP32C3
+        #include <LittleFS.h>
+    #endif
+#else
+    #include <SD.h>
+    #define useSD
+#endif
+
+
 /**
  * @brief Construct a new Properties:: Properties object <String, String>
 */
@@ -54,12 +75,14 @@ bool Properties::exists(const String& key, const String& value) {
  * @attention This method must be called before any other method in the class!
  * @return bool
 */
+#ifdef useLittleFS
 bool Properties::beginLFS() {
     if (!LITTLEFS.begin()) {
         return false;
     }
     return true;
 }
+#endif
 
 /**
  * @brief Begin
@@ -202,15 +225,65 @@ bool Properties::isEmpty() {
  * @return bool
 */
 bool Properties::saveToSD(const String& filename) {
-    beginLFS();
-
-    // Remove the existing file if it exists to start fresh
-    if (LITTLEFS.exists(filename.c_str())) {
-        if (!LITTLEFS.remove(filename.c_str())) {
+    #ifdef useSD
+        if (!SD.begin(4)) {
             return false;
         }
-    }
-    // Create a new file or replace the old one
+
+        // Remove the existing file if it exists to start fresh
+        if (SD.exists(filename.c_str())) {
+            if (!SD.remove(filename.c_str())) {
+                return false;
+            }
+        }
+        // Create a new file or replace the old one
+        File file = SD.open(filename.c_str(), FILE_WRITE);
+        if (file) {
+            // Iterate through the properties using the custom iterator and write them to the file
+            for (PropertiesIterator it = begin(); it != end(); ++it) {
+                if (it.value().length() > 0) { // Check that the string is not empty
+                    if(identifierType == IDENTIFIERTYPE::EQUALS){
+                        String line = it.key() + "=" + it.value() + "\n";
+                        file.print(line);
+                    } else if(identifierType == IDENTIFIERTYPE::COLEN){
+                        String line = it.key() + ":" + it.value() + "\n";
+                        file.print(line);
+                    } else if(identifierType == IDENTIFIERTYPE::SEMICOLEN){
+                        String line = it.key() + ";" + it.value() + "\n";
+                        file.print(line);
+                    } else if(identifierType == IDENTIFIERTYPE::HYPHEN){
+                        String line = it.key() + "-" + it.value() + "\n";
+                        file.print(line);
+                    } else if(identifierType == IDENTIFIERTYPE::COMMA){
+                        String line = it.key() + "," + it.value() + "\n";
+                        file.print(line);
+                    } else if(identifierType == IDENTIFIERTYPE::FORWARD_SLASH){
+                        String line = it.key() + "/" + it.value() + "\n";
+                        file.print(line);
+                    } else if(identifierType == IDENTIFIERTYPE::BACKWARD_SLASH){
+                        String line = it.key() + "\\" + it.value() + "\n";
+                        file.print(line);
+                    }
+                }else {
+                    break;
+                }
+            }
+            file.close(); // Make sure to close the file to save the data
+            return true;
+        } 
+        return false;
+    #endif
+    #ifdef useLittleFS
+        beginLFS();
+
+        // Remove the existing file if it exists to start fresh
+        if (LITTLEFS.exists(filename.c_str())) {
+            if (!LITTLEFS.remove(filename.c_str())) {
+                return false;
+            }
+        }
+
+        // Create a new file or replace the old one
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
         // Iterate through the properties using the custom iterator and write them to the file
@@ -246,6 +319,9 @@ bool Properties::saveToSD(const String& filename) {
         return true;
     } 
     return false;
+    #endif
+    
+    
 }
 
 /**
@@ -257,6 +333,42 @@ bool Properties::saveToSD(const String& filename) {
  * @return bool
 */
 bool Properties::loadFromSD(const String& filename) {
+    #ifdef useSD
+    if (!SD.begin(4)) {
+        return false; 
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);;
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex;
+            if(identifierType == IDENTIFIERTYPE::EQUALS){
+                separatorIndex = line.indexOf('=');
+            } else if(identifierType == IDENTIFIERTYPE::COLEN){
+                separatorIndex = line.indexOf(':');
+            } else if(identifierType == IDENTIFIERTYPE::SEMICOLEN){
+                separatorIndex = line.indexOf(';');
+            } else if(identifierType == IDENTIFIERTYPE::HYPHEN){
+                separatorIndex = line.indexOf('-');
+            } else if(identifierType == IDENTIFIERTYPE::COMMA){
+                separatorIndex = line.indexOf(',');
+            } else if(identifierType == IDENTIFIERTYPE::FORWARD_SLASH){
+                separatorIndex = line.indexOf('/');
+            } else if(identifierType == IDENTIFIERTYPE::BACKWARD_SLASH){
+                separatorIndex = line.indexOf('\\');
+            }
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 1);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    } 
+    return false;
+    #endif
+    #ifdef useLittleFS
     if (!LITTLEFS.begin(4)) {
         return false;
     }
@@ -290,6 +402,7 @@ bool Properties::loadFromSD(const String& filename) {
         return true;
     } 
     return false;
+    #endif
 }
 
 /**
@@ -326,8 +439,49 @@ bool Properties::load(const String& filename){
  * @return bool
 */
 bool Properties::store(const String& filename, const String& comments) {
+    #ifdef useSD
+    if (!SD.begin(4)) {
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("#" + String(millis()) + "\n");
+        file.print("# " + comments + "\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                if(identifierType == IDENTIFIERTYPE::EQUALS){
+                    String line = it.key() + "=" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::COLEN){
+                    String line = it.key() + ":" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::SEMICOLEN){
+                    String line = it.key() + ";" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::HYPHEN){
+                    String line = it.key() + "-" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::COMMA){
+                    String line = it.key() + "," + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::FORWARD_SLASH){
+                    String line = it.key() + "/" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::BACKWARD_SLASH){
+                    String line = it.key() + "\\" + it.value() + "\n";
+                    file.print(line);
+                }
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
-    File file = LITTLEFS.open(filename.c_str(), FILE_WRITE);
+    File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
         file.print("#" + String(millis()) + "\n");
         file.print("# " + comments + "\n");
@@ -363,6 +517,7 @@ bool Properties::store(const String& filename, const String& comments) {
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -386,6 +541,15 @@ bool Properties::containsKey(const String& key) {
  * @return bool
 */
 bool Properties::deleteFile(const String& filename) {
+    #ifdef useSD
+        if(SD.exists(filename.c_str())){
+            if(SD.remove(filename.c_str())){
+                return true;
+            }
+            return false;
+        }
+    #endif
+    #ifdef useLittleFS
     if (!LITTLEFS.begin()) {
         return false;
     }
@@ -395,6 +559,7 @@ bool Properties::deleteFile(const String& filename) {
         }
     }
     return true;
+    #endif
 }
 
 /**
@@ -407,6 +572,31 @@ bool Properties::deleteFile(const String& filename) {
  * @return bool
 */
 bool Properties::storeToXML(const String& filename, const String& comments) {
+    #ifdef useSD
+        if(!SD.begin(4)){
+            return false;
+        }
+        File file = SD.open(filename.c_str(), FILE_WRITE);
+        if (file) {
+            file.print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            file.print("<!-- " + comments + " -->\n");
+            file.print("<properties>\n");
+            for (PropertiesIterator it = begin(); it != end(); ++it) {
+                if (it.value().length() > 0) { // Check that the string is not empty
+                    file.print("  <property>\n");
+                    file.print("    <key>" + it.key() + "</key>\n");
+                    file.print("    <value>" + it.value() + "</value>\n");
+                    file.print("  </property>\n");
+                }else {
+                    break;
+                }
+            }
+            file.print("</properties>\n");
+            file.close();
+            return true;
+        }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
@@ -428,6 +618,7 @@ bool Properties::storeToXML(const String& filename, const String& comments) {
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -439,6 +630,29 @@ bool Properties::storeToXML(const String& filename, const String& comments) {
  * @return bool
 */
 bool Properties::loadFromXML(const String& filename) {
+    #ifdef useSD
+    if(!SD.begin(4)){
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int keyStartIndex = line.indexOf("<key>");
+            int keyEndIndex = line.indexOf("</key>");
+            int valueStartIndex = line.indexOf("<value>");
+            int valueEndIndex = line.indexOf("</value>");
+            if (keyStartIndex != -1 && keyEndIndex != -1 && valueStartIndex != -1 && valueEndIndex != -1) {
+                String key = line.substring(keyStartIndex + 5, keyEndIndex);
+                String value = line.substring(valueStartIndex + 7, valueEndIndex);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "r");
     if (file) {
@@ -458,6 +672,7 @@ bool Properties::loadFromXML(const String& filename) {
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -470,6 +685,25 @@ bool Properties::loadFromXML(const String& filename) {
  * @return bool
 */
 bool Properties::storeToMsgPack(const String& filename, const String& comments) {
+    #ifdef useSD
+    if(!SD.begin(4)){
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("# " + comments + "\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + ":" + it.value() + "\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
@@ -485,6 +719,7 @@ bool Properties::storeToMsgPack(const String& filename, const String& comments) 
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -496,6 +731,26 @@ bool Properties::storeToMsgPack(const String& filename, const String& comments) 
  * @return bool
 */
 bool Properties::loadFromMsgPack(const String& filename) {
+    #ifdef useSD
+    if(!SD.begin(4)){
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf(':');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 1);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "r");
     if (file) {
@@ -512,6 +767,7 @@ bool Properties::loadFromMsgPack(const String& filename) {
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -524,6 +780,25 @@ bool Properties::loadFromMsgPack(const String& filename) {
  * @return bool
 */
 bool Properties::storeToTOML(const String& filename, const String& comments) {
+    #ifdef useSD
+    if(!SD.begin(4)){
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("# " + comments + "\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + " = \"" + it.value() + "\"\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
@@ -539,6 +814,7 @@ bool Properties::storeToTOML(const String& filename, const String& comments) {
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -550,6 +826,26 @@ bool Properties::storeToTOML(const String& filename, const String& comments) {
  * @return bool
 */
 bool Properties::loadFromTOML(const String& filename) {
+    #ifdef useSD
+    if(!SD.begin(4)){
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf('=');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 3, line.length() - 2);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "r");
     if (file) {
@@ -566,6 +862,7 @@ bool Properties::loadFromTOML(const String& filename) {
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -578,6 +875,25 @@ bool Properties::loadFromTOML(const String& filename) {
  * @return bool
 */
 bool Properties::storeToCSV(const String& filename, const String& comments) {
+    #ifdef useSD
+    if(!SD.begin(4)){
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("# " + comments + "\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + "," + it.value() + "\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
@@ -593,6 +909,7 @@ bool Properties::storeToCSV(const String& filename, const String& comments) {
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -604,6 +921,26 @@ bool Properties::storeToCSV(const String& filename, const String& comments) {
  * @return bool
 */
 bool Properties::loadFromCSV(const String& filename) {
+    #ifdef useSD
+    if(!SD.begin(4)){
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf(',');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 1);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "r");
     if (file) {
@@ -620,6 +957,7 @@ bool Properties::loadFromCSV(const String& filename) {
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -632,6 +970,36 @@ bool Properties::loadFromCSV(const String& filename) {
  * @return bool
 */
 bool Properties::storeToJSON(const String& filename, const String& comments) {
+    #ifdef useSD
+    if(!SD.begin(4)){
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("{\n");
+        file.print("  \"comments\": \"" + comments + "\",\n");
+        file.print("  \"properties\": [\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print("    {\n");
+                file.print("      \"key\": \"" + it.key() + "\",\n");
+                file.print("      \"value\": \"" + it.value() + "\"\n");
+                file.print("    }");
+                if (it != end()) {
+                    file.print(",");
+                }
+                file.print("\n");
+            }else {
+                break;
+            }
+        }
+        file.print("  ]\n");
+        file.print("}\n");
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
@@ -658,6 +1026,7 @@ bool Properties::storeToJSON(const String& filename, const String& comments) {
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -669,6 +1038,29 @@ bool Properties::storeToJSON(const String& filename, const String& comments) {
  * @return bool
 */
 bool Properties::loadFromJSON(const String& filename) {
+    #ifdef useSD
+    if(!SD.begin(4)){
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int keyStartIndex = line.indexOf("\"key\": \"");
+            int keyEndIndex = line.indexOf("\",");
+            int valueStartIndex = line.indexOf("\"value\": \"");
+            int valueEndIndex = line.indexOf("\"", valueStartIndex + 9);
+            if (keyStartIndex != -1 && keyEndIndex != -1 && valueStartIndex != -1 && valueEndIndex != -1) {
+                String key = line.substring(keyStartIndex + 8, keyEndIndex);
+                String value = line.substring(valueStartIndex + 9, valueEndIndex);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "r");
     if (file) {
@@ -688,6 +1080,7 @@ bool Properties::loadFromJSON(const String& filename) {
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -700,6 +1093,25 @@ bool Properties::loadFromJSON(const String& filename) {
  * @return bool
 */
 bool Properties::storeToYAML(const String& filename, const String& comments) {
+    #ifdef useSD
+    if(!SD.begin(4)){
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("# " + comments + "\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + ": " + it.value() + "\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
@@ -715,6 +1127,7 @@ bool Properties::storeToYAML(const String& filename, const String& comments) {
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -726,6 +1139,26 @@ bool Properties::storeToYAML(const String& filename, const String& comments) {
  * @return bool
 */
 bool Properties::loadFromYAML(const String& filename) {
+    #ifdef useSD
+    if(!SD.begin(4)){
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf(':');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 2);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "r");
     if (file) {
@@ -742,6 +1175,7 @@ bool Properties::loadFromYAML(const String& filename) {
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -754,6 +1188,25 @@ bool Properties::loadFromYAML(const String& filename) {
  * @return bool
 */
 bool Properties::storeToINI(const String& filename, const String& comments) {
+    #ifdef useSD
+    if(!SD.begin(4)){
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_WRITE);
+    if (file) {
+        file.print("; " + comments + "\n");
+        for (PropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + " = " + it.value() + "\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
@@ -769,6 +1222,7 @@ bool Properties::storeToINI(const String& filename, const String& comments) {
         return true;
     }
     return false;
+    #endif
 }
 
 /**
@@ -780,6 +1234,26 @@ bool Properties::storeToINI(const String& filename, const String& comments) {
  * @return bool
 */
 bool Properties::loadFromINI(const String& filename) {
+    #ifdef useSD
+    if(!SD.begin(4)){
+        return false;
+    }
+    File file = SD.open(filename.c_str(), FILE_READ);
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf('=');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 2);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    #endif
+    #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "r");
     if (file) {
@@ -796,4 +1270,5 @@ bool Properties::loadFromINI(const String& filename) {
         return true;
     }
     return false;
+    #endif
 }

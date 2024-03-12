@@ -58,12 +58,14 @@ If you want to Utilize this Library. Please include the
 ### Version 1.0.5:
 * Removed the Serial.print() Statements from the library to save memory. A version of this library that contains these debug statements may be available at some point.
 * Added Function Comments
-### Version 1.0.6: [CURRENT-RELEASE]
+### Version 1.0.6: 
 * Added Support for Range Based For loops
 * Added Support for Adding Elements during Construction.
 * Added BulkAdd Function() to add multiple elements at once.
-
-
+### Version 1.0.7:- ALPHA [CURRENT-RELEASE]
+* Added EmplaceBack Function so new libraries can depend on it correctly.
+* Added Compiler Directives to check if a certain board/Platform is being used. This is to ensure proper functionality with initializer lists.
+* Everything is handled Automatically, but if none of the preprocesor directives are met, then the Initializer_Lists will not be included which means you will not be able to bulk add directly into the constructor as that constructor will be removed by the compiler. However, if the compiler directives are met, then that constructor will remain and be available.
 
 
 

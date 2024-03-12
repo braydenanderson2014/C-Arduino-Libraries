@@ -59,6 +59,7 @@ To use `LinkedList` in your Arduino sketch:
 * Renaming Linked List Files (including src File) to BasicLinkedList. This is due to Arduino Library Manager Requiring Library Headers to Match Library Names. And since you cannot Duplicate Library Names, The library will be Listed the same as PlatformIO. (BasicLinkedList)
 ### Version 1.0.7 [Current-Release]
 * Fixed an issue with the getElement() Function. The function will return the item if its found, or it will return a default constructed T() in the event an item is not found.
+* Added new add() function that will append an item to the end of the list.
 
 
 ## Currently Tested Functions
@@ -76,7 +77,7 @@ prepend, and append were used automatically by the insert function
 To create a linked list, simply declare an instance of `LinkedList` with the desired type:
 
 ```cpp
-#include <LinkedList.h>
+#include <BasicLinkedList.h>
 
 LinkedList<int> myList;
 ```

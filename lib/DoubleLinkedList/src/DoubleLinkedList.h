@@ -265,6 +265,16 @@ public:
     }
 
     /**
+     * @brief Add an element to the list
+     * @details This method adds an element to the list
+     * 
+     * @param value Value to add
+    */
+    void add(const T &value) {
+        append(value);
+    }
+
+    /**
      * @brief Append an element to the end of the list
      * @details This method appends an element to the end of the list
      * 

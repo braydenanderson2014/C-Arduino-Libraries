@@ -51,7 +51,8 @@ To use `DoubleLinkedList` in your Arduino sketch:
 * Added new remove function that takes in an index to remove to match other List Libraries.
 ### Version 1.0.5
 * Fixed an issue with the getElement() Function. The function will return the item if its found, or it will return a default constructed T() in the event an item is not found.
-            
+### Version  1.0.6
+* Added new add() function that adds an element to the list.          
 
 
 ## Usage
