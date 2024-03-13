@@ -11,7 +11,7 @@
         #include <LittleFS.h>
     #endif
     #ifdef ESP8266
-
+        #include <LittleFSWrapper.h>
     #endif
     #ifdef ESP32S2
         #include <LittleFS.h>
