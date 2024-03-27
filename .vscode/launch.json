@@ -12,9 +12,9 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/.pio/build/develop/firmware.elf",
+            "executable": "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/.pio/build/develop/firmware.elf",
             "projectEnvName": "develop",
-            "toolchainBinDir": "C:/Users/brayd/.platformio/packages/toolchain-gccarmnoneeabi/bin",
+            "toolchainBinDir": "C:/Users/Admin/.platformio/packages/toolchain-gccarmnoneeabi/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "preLaunchTask": {
                 "type": "PlatformIO",
@@ -25,18 +25,18 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/.pio/build/develop/firmware.elf",
+            "executable": "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/.pio/build/develop/firmware.elf",
             "projectEnvName": "develop",
-            "toolchainBinDir": "C:/Users/brayd/.platformio/packages/toolchain-gccarmnoneeabi/bin",
+            "toolchainBinDir": "C:/Users/Admin/.platformio/packages/toolchain-gccarmnoneeabi/bin",
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (without uploading)",
-            "executable": "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/.pio/build/develop/firmware.elf",
+            "executable": "C:/Users/Admin/Documents/GitHub/C-Arduino-Libraries/.pio/build/develop/firmware.elf",
             "projectEnvName": "develop",
-            "toolchainBinDir": "C:/Users/brayd/.platformio/packages/toolchain-gccarmnoneeabi/bin",
+            "toolchainBinDir": "C:/Users/Admin/.platformio/packages/toolchain-gccarmnoneeabi/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "loadMode": "manual"
         }
