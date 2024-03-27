@@ -19,6 +19,9 @@
     #ifdef ESP32C3
         #include <LittleFS.h>
     #endif
+    #ifndef ARDUINO_ARCH_MBED
+        #include <MbedLittleFSWrapper.h>
+    #endif
 #else
     #include <SD.h>
     #define useSD

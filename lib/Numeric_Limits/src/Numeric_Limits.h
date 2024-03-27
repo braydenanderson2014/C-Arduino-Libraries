@@ -3,7 +3,9 @@
 
 // COMMENT THE FOLLOWING LINE IF YOU DON'T WANT TO USE A CUSTOM ARCHITECTURE, AND UNCOMMENT THE LINE BELOW IF YOU WANT TO USE A CUSTOM ARCHITECTURE
 //#define CUSTOM_ARCHITECTURE // Uncomment this line if you want to use a custom architecture
+/*
 
+*/
 
 
 #if defined(_i386_) || defined(_M_IX86)
