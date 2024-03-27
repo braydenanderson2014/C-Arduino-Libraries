@@ -1,50 +1,32 @@
 #include <Arduino.h>
-#include <ColorManager.h>
-#include <Dictionary.h>
-#include <SimpleVector.h>
-#include <Map.h>
-#include <ArrayList.h>
-#include <Hashtable.h>
-#include <iterator.h>
-#include <BasicLinkedList.h>
-#include <DoubleLinkedList.h>
-#include <MyDictionary.h>
-#include <Predicates.h>
-#include <Operators.h>
-#include <Properties.h>
-#include <UnorderedMap.h>
-#include <SDList.h>
-#include <TypeTraits.h>
-#include <Stack.h>
-#include <Queue.h>
-#include <iostream.h>
-#include <SimpleArduinoTimer.h>
+#include <CustomString.h>
+//#include <MemoryManager.h>
 #include <MathLib.h>
-#include <MatrixMath.h>
-#include <SDList.h>
-#include <avlTree.h>
-#include <BinarySearchTree.h>
-#include <BinaryTree.h>
-#include <bPlusTree.h>
-#include <bTree.h>
-#include <FenwickTree.h>
-#include <HeapTree.h>
-#include <IntervalTree.h>
-#include <kDimensionalTree.h>
-#include <OcTree.h>
-#include <QuadTree.h>
-#include <RedBlackTree.h>
-#include <SegmentTree.h>
-#include <suffixTree.h>
-#include <trieTree.h>
 
 
 
 //SDList <String> strings(10, "pagefile.dat");
 //ArrayList <String> list = ArrayList<String>(ArrayList<String>::DYNAMIC, 10);
 void setup(){
-  Serial.begin(9600);
+    Custom_String::String str = "Hello, World!"; // Create a string object with the value "Hello, World!"
+    Serial.begin(9600); // Start the serial communication
+    Serial.println(str.C_STR()); // Hello, World!
 
+    str.append(" This is a test!"); // Append the string " This is a test!" to the end of the string
+    Serial.println(str.C_STR()); // Hello, World! This is a test!
+
+    Serial.println(str.Capacity()); // Strings capacity
+
+    int i = 0;
+    Serial.println(str.indexOf('o', i) + i); // 4
+
+    Custom_String::String str2 = "9999";
+    Serial.println(Random(str.toInt(), 5));
+
+    float f = 3.14159*str.toFloat(); // Converts String to float
+    Serial.println(f); // 9.42477
+
+    Serial.println(Round(f)*str.toInt()*str.toFloat()/2.25); // 18
 
 }
 

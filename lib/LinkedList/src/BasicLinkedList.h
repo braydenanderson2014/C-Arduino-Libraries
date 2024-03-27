@@ -79,6 +79,16 @@ class ForwardIterator {
     }
 
     /**
+     * @brief Add an element to the Linked List (Adds it to the end of the list)
+     * @param value - the value to be added
+     * 
+     * @details Creates a new node with the given value and appends it to the end of the list. (Just calls the append function)
+    */
+    void add(const T& value) {
+        append(value);
+    }
+
+    /**
      * @brief Append an element to the end of the list
      * @param value - the value to be appended
      * 
@@ -338,7 +348,75 @@ class ForwardIterator {
         Size = 0;
     }
 
-    
+    //Operators
+    /**
+     * @brief Overload the subscript operator
+     * @param index - the index of the element to get
+     * @return the element at the given index
+     * 
+     * @details Returns the element at the given index in the list.
+     * If the index is out of bounds, the first element is returned.
+     * Otherwise, the element at the given index is returned.
+    */
+    T& operator[](size_t index) {
+        ListNode<T>* current = head;
+        for (size_t i = 0; i < index; i++) {
+            if (!current) {
+                return current->data; // Out of bounds
+            }
+            current = current->next;
+        }
+        if (current) {
+            return current->data;
+        } else {
+            return current->data;
+        }
+    }
+
+    /**
+     * @brief Overload the subscript operator
+     * @param index - the index of the element to get
+     * @return the element at the given index
+     * 
+     * @details Returns the element at the given index in the list.
+     * If the index is out of bounds, the first element is returned.
+     * Otherwise, the element at the given index is returned.
+    */
+    const T& operator[](size_t index) const {
+        ListNode<T>* current = head;
+        for (size_t i = 0; i < index; i++) {
+            if (!current) {
+                return current->data; // Out of bounds
+            }
+            current = current->next;
+        }
+        if (current) {
+            return current->data;
+        } else {
+            return current->data;
+        }
+    }
+
+    //= operator
+    /**
+     * @brief Overload the assignment operator
+     * @param other - the list to copy
+     * @return a reference to the list
+     * 
+     * @details Copies the elements from the given list to this list.
+    */
+    LinkedList& operator=(const LinkedList& other) {
+        if (this != &other) {
+            clear();
+            ListNode<T>* current = other.head;
+            while (current) {
+                append(current->data);
+                current = current->next;
+            }
+        }
+        return *this;
+    }
+
 };
 
 #endif // BASICLINKEDLIST_H

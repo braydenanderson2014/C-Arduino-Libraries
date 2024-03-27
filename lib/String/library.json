@@ -1,0 +1,29 @@
+{
+    "name": "CustomString",
+    "version": "1.0.0-ALPHA",
+    "description": "A String Class for Arduino that supports more Features then the standard String Class",
+    "keywords": ["String", "Simple", "Data Type", "data", "Arduino String", "Arduino"],
+    "Repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/String.git"
+
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "headers": [
+        "CustomString.h"
+    ],
+    "dependencies": {
+        "Arduino": "*"
+    },
+    "license": "Apache-2.0",
+    "Notes:": "This is a test package. It is not intended for use in production environments. This library has not yet been tested. If you would like to test it, please do so at your own risk. If you find any bugs, please report them to the author."
+    
+}

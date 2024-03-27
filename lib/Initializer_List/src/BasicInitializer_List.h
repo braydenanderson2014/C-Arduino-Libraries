@@ -1,9 +1,8 @@
-#ifndef INITIALIZER_LIST_H
-#define INITIALIZER_LIST_H
+#ifndef BASIC_INITIALIZER_LIST_H
+#define BASIC_INITIALIZER_LIST_H
 
 template<class E>
-class initializer_list
-{
+class Basic_Initializer_List {
 public:
     typedef E value_type;
     typedef const E& reference;
@@ -17,7 +16,7 @@ private:
     size_type _size;
 
 public:
-    constexpr initializer_list() noexcept
+    constexpr Basic_Initializer_List() noexcept
         : _begin(nullptr), _size(0) {}
 
     constexpr size_t size() const noexcept { return _size; }

@@ -212,8 +212,13 @@ double Logn(double x, double n) {
     return Log(x) / Log(n);
 }
 
-double ABS(double x) {
+int ABS(int x) {
     return x < 0 ? -x : x;
+}
+ 
+
+double Round(double x) {
+    return (int)(x + 0.5);
 }
 
 double Ceil(double x) {
@@ -224,7 +229,13 @@ double Floor(double x) {
     return (int)x;
 }
 
+int Random(int min, int max) {
+    return min + static_cast<int>(static_cast<long long>(rand()) % (static_cast<long long>(max) - min + 1));
+}
 
+double Random(double min, double max) {
+    return min + (max - min) * (static_cast<double>(rand()) / RAND_MAX);
+}
 
 
 

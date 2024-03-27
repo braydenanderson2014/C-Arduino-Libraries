@@ -3,6 +3,8 @@
         "main"
     ],
     "files.associations": {
-        "new": "cpp"
+        "new": "cpp",
+        "cstring": "cpp",
+        "initializer_list": "cpp"
     }
 }

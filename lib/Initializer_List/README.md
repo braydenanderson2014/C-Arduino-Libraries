@@ -16,9 +16,9 @@ Here's an example demonstrating how to use the initializer_list library to initi
 
 ```cpp
 
-#include "INITIALIZER_LIST_H"
+#include "BasicLinked_List.h"
 
-void processList(const initializer_list<int>& list) {
+void processList(const BasicInitializer_List<int>& list) {
   for (auto item : list) {
     Serial.println(item);
   }
@@ -30,7 +30,7 @@ void setup() {
   while (!Serial) {}
 
   // Initialize a list of integers using initializer_list
-  initializer_list<int> myList = {1, 2, 3, 4, 5};
+  BasicInitializer_List<int> myList = {1, 2, 3, 4, 5};
 
   // Process and print the list
   processList(myList);
