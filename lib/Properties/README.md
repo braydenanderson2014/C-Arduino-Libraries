@@ -43,6 +43,17 @@ You may also need:
 * LiquidCrystal
 * LiquidCrystal_I2C
 
+# LITTLEFSPROPERTIES:
+## ChangeLog
+### UNOFFICIAL RELEASE 1
+* Initital Untested/Unpublished Release
+### UNOFFICIAL RELEASE 2
+* Added Support for new MbedLittleFSWrapper Library (Also Unpublished as of 03/28/2024) [NOTE]: If you want to use the new LITTLEFSPROPERTIES library, you will need to download the necessary files from the github repository. You will need the littlefs-master and MbedLittleFSWrapper libraries contained inside the main repository: C-Arduino-Libraries.
+* Added new ChipSelect pin customizability to match Original Properties Library.
+
+
+# PROPERTIES
+
 # ARDUINO
 ## ChangeLog
 ### Version 1.0.0:
@@ -51,6 +62,8 @@ You may also need:
 * Added Support for Several New File types Including (.csv, .json, .xml, .toml, .ini, .yaml)
 * Added Support for creating your own custom Key-Value Pair file. The saveToSD, store, and loadFromSD functions will read a new enum variable called IDENTIFIERTYPE. The Available options are: EQUALS (=), COLEN (:), SEMICOLEN (;), HYPHEN (-), COMMA (,), FORWARD_SLASH (\), BACKWARD_SLASH (/)
 ### Version 1.0.1 - BETA_1
+* Added new ChipSelect pin customizability... you can now define what pin gets used as the chipselect pin. 
+
 
 # PlatformIO
 ## ChangeLog
@@ -97,12 +110,15 @@ You may also need:
 ### Version 1.1.0:
 * Added Support for Several New File types Including (.csv, .json, .xml, .toml, .ini, .yaml)
 * Added Support for creating your own custom Key-Value Pair file. The saveToSD, store, and loadFromSD functions will read a new enum variable called IDENTIFIERTYPE. The Available options are: EQUALS (=), COLEN (:), SEMICOLEN (;), HYPHEN (-), COMMA (,), FORWARD_SLASH (\), BACKWARD_SLASH (/)
-### Version 1.1.1:  [CURRENT-RELEASE] -> [BETA]
+### Version 1.1.1: 
 * Added Support for msgPack() (Store, Load);
 * Added exists(key) function
 * Added Overload to exists, exists(key, value);
-### Version 1.1.2_beta: [CURRENT-RELEASE] -> [BETA]
+### Version 1.1.2_beta: -> [BETA]
 * EMERGENCY PATCH: Made an error and forgot to test compile, There was a redefinition error. Error has been patched
+### Version 1.1.2: [CURRENT-RELEASE] 
+* Added Support for custom chipSelect pin. You can now setChipSelect and getChipSelect which allows you to customize which pin gets used as the ChipSelect pin on an SD card reader. 
+* This Version moves the library back out of Beta status. Though the library may still have issues... If you spot any bugs, please do not hesitate to file an issue report.
 
             
 ## NEW ALPHA FEATURE
@@ -110,7 +126,7 @@ You may also need:
 ```cpp 
 #include LittleFSProperties.h
 ```     
-header file, you can use the new Features.. (This library now supports the LITTLE FS library. It is only an Alpha Build and may not work.) Must use the LittleFSProperties header in order for it to work. And you will lose normal sd functions.
+header file, you can use the new Features.. (This library now supports the LITTLE FS library. It is only an Alpha Build and may not work.) Must use the LittleFSProperties header in order for it to work. And you will lose normal sd functions. [WARNING]: Please do not include LittleFSProperties.h if you already have Properties.h included. This may cause unintended concequences. 
 
 Here's an example of how to use the `Properties` class:
 

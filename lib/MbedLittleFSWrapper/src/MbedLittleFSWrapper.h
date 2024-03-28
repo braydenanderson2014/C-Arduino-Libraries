@@ -1,12 +1,49 @@
 #ifndef MBED_LITTLEFS_WRAPPER_H
 #define MBED_LITTLEFS_WRAPPER_H
 
-
+#include "LFS.h"
+#include "lfs_util.h"
 
 class MbedLittleFSWrapper {
     bool _mounted;
     lfs_t _lfs;
     lfs_config _cfg;
+
+
+
+
+    // Helper functions
+    bool lfs_exists(lfs_t *lfs, const char *path){
+        struct lfs_info info;
+        int res = lfs_stat(&_lfs, path, &info);
+        return res >= 0;
+    }
+
+    bool lfs_isdir(lfs_t *lfs, const char *path){
+        struct lfs_info info;
+        int err = lfs_stat(&_lfs, path, &info);
+        if (err < 0) {
+            return false;
+        }
+        return info.type == LFS_TYPE_DIR;
+    }
+
+    bool lfs_isfile(lfs_t *lfs, const char *path){
+        struct lfs_info info;
+        int err = lfs_stat(&_lfs, path, &info);
+        if (err < 0) {
+            return false;
+        }
+        return info.type == LFS_TYPE_REG;
+    }
+
+    bool lfs_rmdir(lfs_t *lfs, const char *path){
+        int res = lfs_remove(lfs, path);
+        return res >= 0;
+    }
+
+
+
 
 public:
     bool mount(); // mount the filesystem
@@ -75,8 +112,7 @@ public:
     bool move_directory_recursive(const char *old_path, const char *new_path);  // move a directory recursively
     bool copy_symlink_recursive(const char *old_path, const char *new_path); // copy a symlink recursively
     bool move_symlink_recursive(const char *old_path, const char *new_path); // move a symlink recursively
-    bool copy_file_to_directory(const char *old_path, const char *new_path); // copy a file to a directory
-    bool move_file_to_directory(const char *old_path, const char *new_path); // move a file to a directory
+    
     bool copy_directory_to_directory(const char *old_path, const char *new_path); // copy a directory to a directory
     bool move_directory_to_directory(const char *old_path, const char *new_path); // move a directory to a directory
     bool copy_symlink_to_directory(const char *old_path, const char *new_path); // copy a symlink to a directory
@@ -87,8 +123,7 @@ public:
     bool move_directory_to_directory_recursive(const char *old_path, const char *new_path); // move a directory to a directory recursively
     bool copy_symlink_to_directory_recursive(const char *old_path, const char *new_path); // copy a symlink to a directory recursively
     bool move_symlink_to_directory_recursive(const char *old_path, const char *new_path); // move a symlink to a directory recursively
-    bool copy_file_to_directory(const char *old_path, const char *new_path); // copy a file to a directory
-    bool move_file_to_directory(const char *old_path, const char *new_path); // move a file to a directory
+    
  
     
 

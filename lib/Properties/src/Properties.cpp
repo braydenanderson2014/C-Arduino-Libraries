@@ -16,6 +16,28 @@ Properties::~Properties() {
 }
 
 /**
+ * @brief setChipSelect (Set the chip select pin)
+ * 
+ * @param cs (Chip Select)
+ * 
+ * @details This method sets the chip select pin for the SD card module.
+ * @return void
+*/
+void Properties::setChipSelect(const size_t cs) {
+    chipSelect = cs;
+}
+
+/**
+ * @brief getChipSelect (Get the chip select pin)
+ * 
+ * @details This method returns the chip select pin for the SD card module.
+ * @return size_t
+*/
+size_t Properties::getChipSelect() {
+    return chipSelect;
+}
+
+/**
  * @brief exists (Check if the key exists in the properties)
  * 
  * @param key (Variable Name)
@@ -187,7 +209,7 @@ bool Properties::isEmpty() {
  * @return bool
 */
 bool Properties::saveToSD(const String& filename) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
 
@@ -244,7 +266,7 @@ bool Properties::saveToSD(const String& filename) {
  * @return bool
 */
 bool Properties::loadFromSD(const String& filename) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_READ);
@@ -313,7 +335,7 @@ bool Properties::load(const String& filename){
  * @return bool
 */
 bool Properties::store(const String& filename, const String& comments) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_WRITE);
@@ -396,7 +418,7 @@ bool Properties::deleteFile(const String& filename) {
  * @return bool
 */
 bool Properties::storeToXML(const String& filename, const String& comments) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_WRITE);
@@ -430,7 +452,7 @@ bool Properties::storeToXML(const String& filename, const String& comments) {
  * @return bool
 */
 bool Properties::loadFromXML(const String& filename) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_READ);
@@ -463,7 +485,7 @@ bool Properties::loadFromXML(const String& filename) {
  * @return bool
 */
 bool Properties::storeToMsgPack(const String& filename, const String& comments) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_WRITE);
@@ -491,7 +513,7 @@ bool Properties::storeToMsgPack(const String& filename, const String& comments) 
  * @return bool
 */
 bool Properties::loadFromMsgPack(const String& filename) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_READ);
@@ -521,7 +543,7 @@ bool Properties::loadFromMsgPack(const String& filename) {
  * @return bool
 */
 bool Properties::storeToTOML(const String& filename, const String& comments) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_WRITE);
@@ -549,7 +571,7 @@ bool Properties::storeToTOML(const String& filename, const String& comments) {
  * @return bool
 */
 bool Properties::loadFromTOML(const String& filename) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_READ);
@@ -579,7 +601,7 @@ bool Properties::loadFromTOML(const String& filename) {
  * @return bool
 */
 bool Properties::storeToCSV(const String& filename, const String& comments) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_WRITE);
@@ -607,7 +629,7 @@ bool Properties::storeToCSV(const String& filename, const String& comments) {
  * @return bool
 */
 bool Properties::loadFromCSV(const String& filename) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_READ);
@@ -637,7 +659,7 @@ bool Properties::loadFromCSV(const String& filename) {
  * @return bool
 */
 bool Properties::storeToJSON(const String& filename, const String& comments) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_WRITE);
@@ -676,7 +698,7 @@ bool Properties::storeToJSON(const String& filename, const String& comments) {
  * @return bool
 */
 bool Properties::loadFromJSON(const String& filename) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_READ);
@@ -709,7 +731,7 @@ bool Properties::loadFromJSON(const String& filename) {
  * @return bool
 */
 bool Properties::storeToYAML(const String& filename, const String& comments) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_WRITE);
@@ -737,7 +759,7 @@ bool Properties::storeToYAML(const String& filename, const String& comments) {
  * @return bool
 */
 bool Properties::loadFromYAML(const String& filename) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_READ);
@@ -767,7 +789,7 @@ bool Properties::loadFromYAML(const String& filename) {
  * @return bool
 */
 bool Properties::storeToINI(const String& filename, const String& comments) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_WRITE);
@@ -795,7 +817,7 @@ bool Properties::storeToINI(const String& filename, const String& comments) {
  * @return bool
 */
 bool Properties::loadFromINI(const String& filename) {
-    if (!SD.begin(4)) {
+    if (!SD.begin(chipSelect)) {
         return false;
     }
     File file = SD.open(filename.c_str(), FILE_READ);

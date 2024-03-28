@@ -1,10 +1,10 @@
-#ifndef LITTLEFS_PROPERTIES_H
-#define LITTLEFS_PROPERTIES_H
+#ifndef LITTLEFS_LittleFSProperties_H
+#define LITTLEFS_LittleFSProperties_H
 
 #include <Hashtable.h>
 #include <Arduino.h>
 
-class Properties {
+class LittleFSProperties {
 private:
         Hashtable<String, String> table; // Declaration of the Hashtable (Uses the Hashtable class from the Hashtable.h file in the background)
         enum IDENTIFIERTYPE{ // Enumeration of the identifier types (=, :, ;, -, , , /, \)
@@ -17,11 +17,16 @@ private:
             BACKWARD_SLASH
         };
         IDENTIFIERTYPE identifierType = EQUALS;
+        size_t chipSelect = 4; // Declaration of the chip select pin
     public:
-        Properties(); // Declaration of the constructor
-        ~Properties();
+        LittleFSProperties(); // Declaration of the constructor
+        ~LittleFSProperties();
 
-        bool beginLFS(); // Declaration of the begin method, which sets the identifier type... If not called, Default is EQUALS (=
+        void setChipSelect(const size_t cs); // Declaration of the setChipSelect method, which sets the chip select pin
+        size_t getChipSelect(); // Declaration of the getChipSelect method, which returns the chip select pin
+
+        bool beginLFS(); // Declaration of the begin method, which sets the identifier type... If not called, Default is EQUALS (=) (LFS )
+        bool beginSD(size_t cs, IDENTIFIERTYPE identifierType); // Declaration of the begin method, which sets the identifier type... If not called, Default is EQUALS (=) (SD)
         void identify(const IDENTIFIERTYPE identifierType); // Declaration of the begin method, which sets the identifier type... If not called, Default is EQUALS (=)
         void setProperty(const String& key, const String& value);
         void setProperty(const String& key, const String& value, const String& filePath);
@@ -65,31 +70,31 @@ private:
         bool deleteFile(const String& filename);
     
     /**
-     * @brief Properties Iterator
+     * @brief LittleFSProperties Iterator
     */
-    class PropertiesIterator {
+    class LittleFSPropertiesIterator {
 private:
     Hashtable<String, String>::Iterator it; // Declaration of the Hashtable iterator
 public:
     // Constructor
-    PropertiesIterator(Hashtable<String, String>::Iterator begin)
+    LittleFSPropertiesIterator(Hashtable<String, String>::Iterator begin)
         : it(begin) {}
 
     // Prefix increment
-    PropertiesIterator& operator++() {
+    LittleFSPropertiesIterator& operator++() {
         ++it; // Move to the next element
         return *this;
     }
 
     // Postfix increment
-    PropertiesIterator operator++(int) {
-        PropertiesIterator tmp(*this);
+    LittleFSPropertiesIterator operator++(int) {
+        LittleFSPropertiesIterator tmp(*this);
         ++(*this); // Use the prefix increment
         return tmp;
     }
 
     // Inequality check
-    bool operator!=(const PropertiesIterator& other) const {
+    bool operator!=(const LittleFSPropertiesIterator& other) const {
         return it != other.it; // Directly compare the Hashtable iterators
     }
 
@@ -110,13 +115,13 @@ public:
 };
 
 // Iterator begin
-    PropertiesIterator begin() {
-        return PropertiesIterator(table.begin());
+    LittleFSPropertiesIterator begin() {
+        return LittleFSPropertiesIterator(table.begin());
     }
 
 // Iterator end
-    PropertiesIterator end() {
-        return PropertiesIterator(table.end());
+    LittleFSPropertiesIterator end() {
+        return LittleFSPropertiesIterator(table.end());
     }
 };
 
@@ -125,4 +130,4 @@ public:
 
 
 
-#endif//LITTLEFS_PROPERTIES_H
+#endif//LITTLEFS_LittleFSProperties_H

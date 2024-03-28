@@ -17,10 +17,14 @@ private:
             BACKWARD_SLASH
         };
         IDENTIFIERTYPE identifierType = EQUALS;
+
+        size_t chipSelect = 4; // Declaration of the chip select pin
     public:
         Properties(); // Declaration of the constructor
         ~Properties();
 
+        void setChipSelect(const size_t cs); // Declaration of the setChipSelect method, which sets the chip select pin
+        size_t getChipSelect(); // Declaration of the getChipSelect method, which returns the chip select pin
         void identify(const IDENTIFIERTYPE identifierType); // Declaration of the begin method, which sets the identifier type... If not called, Default is EQUALS (=)
         void setProperty(const String& key, const String& value);
         void setProperty(const String& key, const String& value, const String& filePath);
