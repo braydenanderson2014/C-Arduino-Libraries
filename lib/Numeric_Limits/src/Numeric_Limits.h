@@ -5,7 +5,7 @@
 //#define CUSTOM_ARCHITECTURE // Uncomment this line if you want to use a custom architecture
 /*
 
-*/
+0*/
 
 
 #if defined(_i386_) || defined(_M_IX86)
