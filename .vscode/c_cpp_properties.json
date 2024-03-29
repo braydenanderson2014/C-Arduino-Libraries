@@ -1,3 +1,8 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
 {
     "configurations": [
         {
@@ -128,9 +133,7 @@
                 "C:/Users/brayd/.platformio/packages/framework-arduino-mbed/libraries/openamp_arduino/src",
                 "C:/Users/brayd/.platformio/packages/framework-arduino-mbed/libraries/rpclib/src",
                 "C:/Users/brayd/.platformio/packages/framework-arduino-mbed/libraries/syntiant_ilib/src",
-                "",
-                "${workspaceFolder}/lib/littlefs-master/littlefs-master/bd",
-                "${workspaceFolder}/lib/littlefs-master/littlefs-master"
+                ""
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
