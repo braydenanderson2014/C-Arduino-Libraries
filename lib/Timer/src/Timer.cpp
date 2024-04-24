@@ -1,15 +1,18 @@
 #include "SimpleArduinoTimer.h"
-#include <RTClib.h>
 
+#ifdef useRTCModule
+    #include <RTClib.h>
+    
 RTC_DS3231 timerRTC; // Add an instance of the RTC library
 DateTime timerNow = timerRTC.now();
+#endif
 
 
 
-Timer::Timer() : startTime(0), elapsedTime(0), pauseTime(0), targetDuration(0), isRunning(false), isPaused(false), debug(debug) {
+Timer::Timer(bool debug = false) : startTime(0), elapsedTime(0), pauseTime(0), targetDuration(0), isRunning(false), isPaused(false), debug(debug) {
   useRTC = false;
 }
-
+#ifdef useRTCModule
 void Timer::begin() {
     if(!rtc.begin()){
         useRTC = false;
@@ -30,15 +33,17 @@ bool Timer::getUseRTC() const {
     }
     return useRTC;
 }
-
+#endif
 void Timer::start() {
     if(debug){
         Serial.println("[TIMER]: Starting timer");
     }
     if (!isRunning && !isPaused) {
         if(useRTC){
+            #ifdef useRTCModule
             syncWithRTC();
             startTime = timerNow.unixtime() * 1000; // Convert seconds to milliseconds
+            #endif
         }else{
             startTime = millis();
         }
@@ -52,8 +57,11 @@ void Timer::stop() {
     }
     if (isRunning) {
         if(useRTC){
+            #ifdef useRTCModule
+
             syncWithRTC();
             elapsedTime = timerNow.unixtime() * 1000; // Convert seconds to milliseconds
+            #endif
         }else{
             elapsedTime += millis() - startTime;
         }
@@ -87,8 +95,10 @@ void Timer::pause() {
     }
     if (isRunning && !isPaused) {
         if(useRTC){
+            #ifdef useRTCModule
             syncWithRTC();
             pauseTime = timerNow.unixtime() * 1000; // Convert seconds to milliseconds
+            #endif
         }else{
             pauseTime = millis();
         }
@@ -110,8 +120,10 @@ void Timer::resume() {
     }
     if (isPaused) {
         if(useRTC){
+            #ifdef useRTCModule
             syncWithRTC();
             startTime += (timerNow.unixtime() * 1000 - pauseTime); // Adjusting the start time so that paused duration isn't counted.
+            #endif
         }else{
             startTime += (millis() - pauseTime); // Adjusting the start time so that paused duration isn't counted.
         }
@@ -136,8 +148,12 @@ unsigned long Timer::elapsed() {
             Serial.println("[TIMER]: (Timer Running) Elapsed Time: " + String(elapsedTime + (millis() - startTime)) + " milliseconds");
         }
         if(useRTC){
+            #ifdef useRTCModule
             syncWithRTC();
             return elapsedTime + (timerNow.unixtime() * 1000 - startTime);
+            #else
+            return elapsedTime + (millis() - startTime);
+            #endif
         }else{
             return elapsedTime + (millis() - startTime);
         }
@@ -167,6 +183,7 @@ bool Timer::checkTimer(unsigned long duration)  {
     return elapsed() >= duration;
 }
 
+#ifdef useRTCModule
 void Timer::syncWithRTC() {
     if(debug){
         Serial.println("[TIMER]: Syncing with RTC");
@@ -182,21 +199,21 @@ DateTime Timer::getRTCTime() const {
     }
     return timerRTC.now();
 }
-
+#endif
 bool Timer::isTimerPaused() const { // Rename to isTimerPaused to avoid conflict
     if(debug){
         Serial.println("[TIMER]: Checking if timer is paused : " + String(isPaused));
     }
     return isPaused;
 }
-
+#ifdef useRTCModule
 void Timer::setRTCTime(int year, int month, int day, int hour, int minute, int second) {
     if(debug){
         Serial.println("[TIMER]: Setting RTC time");
     }
     timerRTC.adjust(DateTime(year, month, day, hour, minute, second));
 }
-
+#endif
 void Timer::setTargetDuration(unsigned long duration) {
     if(debug){
         Serial.println("[TIMER]: Setting target duration");

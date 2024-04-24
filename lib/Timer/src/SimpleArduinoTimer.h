@@ -14,9 +14,9 @@ private:
     bool isPaused;
     bool useRTC;
     mutable RTC_DS3231 rtc;
-
+    bool debug;
 public:
-    Timer();
+    Timer(bool debug = false);
 
     void start();
     void stop();
@@ -41,7 +41,6 @@ public:
     void setTargetMinutes(unsigned long minutes);
     void setTargetHours(unsigned long hours);
     bool checkTimer(unsigned long duration);
-    bool debug;
 };
 
 #endif // SIMPLEARDUINOTIMER_h
