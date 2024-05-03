@@ -24,6 +24,22 @@ getRTCTime	KEYWORD2
 isTimerPaused	KEYWORD2
 setRTCTime	KEYWORD2
 setTargetDuration	KEYWORD2
+setTargetSeconds	KEYWORD2
 setTargetMinutes	KEYWORD2
+setTargetHours	KEYWORD2
 hasReachedTarget	KEYWORD2
 remainingTime	KEYWORD2
+updateRemainingTime	KEYWORD2
+setTimerName	KEYWORD2
+getTimerName	KEYWORD2
+setUseRTC	KEYWORD2
+getUseRTC	KEYWORD2
+begin	KEYWORD2
+printTimeRemaining	KEYWORD2
+
+#######################################
+# Constants (KEYWORD3)
+#######################################
+Seconds	KEYWORD3
+Minutes	KEYWORD3
+Hours	KEYWORD3
