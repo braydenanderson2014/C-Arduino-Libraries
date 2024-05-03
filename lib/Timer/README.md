@@ -33,7 +33,7 @@ If you want to Utilize this Library. Please include the
 ## Changelog
 ### Version 1.0.0:
 * Initial Untested Release
-### Version 1.0.1 Alpha:
+### Version 1.0.1 BETA:
 * Tested, Fixed Version
 * Fixes All known bugs at this time. This library has had a few tests now performed and is now working for basic timer functionality.
 * Added the ability to name a timer. Though strictly not necessary, this allows more creative function.
