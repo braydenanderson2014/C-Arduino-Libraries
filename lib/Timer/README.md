@@ -69,7 +69,9 @@ If you want to Utilize this Library. Please include the
 * Fixed the remainingTime function. [WARNING]: This function behaves differently then you might expect. It will auto adjust the unit of measurement being used without letting you know. This is a feature and not a bug.
 * Moved RTC functionality into conditional. You need to define the ```cpp #define useRTCModule``` in order to use the rtc functions. [WARNING]: RTC FUNCTIONALITY IS NOT TESTED AND MAY NOT WORK AS INTENDED.
 * [WARNING]: The pause and resume functionality have not been tested.
-
+### Version 1.0.6:
+* Adjusted serial statements to now say the timers name instead of the timer class name.
+* Fixed Documentation.
     
 
 Here's an example of how to use the `Timer` class:

@@ -1,8 +1,8 @@
 {
     "name": "SimpleArduinoTimer",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "A Simple Timer Library for Arduino that is non blocking. This means you can set multiple timers, or execute NON-BLOCKING Code. (USE millis() instead of delay())",
-    "keywords": ["Timer", "RTC", "Time", "Arduino", "Simple", "Non-Blocking"],
+    "keywords": ["Timer", "RTC", "Time", "Arduino", "Simple", "Non-Blocking", "SimpleTimer", "SimpleArduinoTimer"],
     "repository": {
         "type": "git",
         "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Timer"
