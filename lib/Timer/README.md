@@ -29,7 +29,26 @@ If you want to Utilize this Library. Please include the
 ```cpp 
 #include <Timer.h> 
 ```
+# Arduino
+## Changelog
+### Version 1.0.0:
+* Initial Untested Release
+### Version 1.0.1 BETA:
+* Tested, Fixed Version
+* Fixes All known bugs at this time. This library has had a few tests now performed and is now working for basic timer functionality.
+* Added the ability to name a timer. Though strictly not necessary, this allows more creative function.
+* Added setTargetSeconds() so you can set a timer in seconds.
+* Added printTimeRemaing() so you dont have to create your own interface if you dont want to.
+* New setTimerName and getTimerName functions.
+* Fixed the remainingTime function. [WARNING]: This function behaves differently then you might expect. It will auto adjust the unit of measurement being used without letting you know. This is a feature and not a bug.
+* Moved RTC functionality into conditional. You need to define the ```cpp #define useRTCModule``` in order to use the rtc functions. [WARNING]: RTC FUNCTIONALITY IS NOT TESTED AND MAY NOT WORK AS INTENDED.
+* [WARNING]: The pause and resume functionality have not been tested.
+* Adjusted serial statements to now say the timers name instead of the timer class name.
+* Fixed Documentation.
+    
 
+
+# Platformio 
 ## ChangeLog
 ### Version 1.0.0:
 * Initial Release 
@@ -43,8 +62,18 @@ If you want to Utilize this Library. Please include the
 * Renamed Header File.
 * Added new Functions setTargetHours(), setUseRTC, getUseRTC, begin(). Please note, unless you call the begin() function, the rtc will not function.the begin() function will try and start the rtc. if it fails it will remain using the millis() function instead.
 * Modified some Functions to swap between millis() and the rtc Functions based off of the useRTC boolean.
-
-
+### Version 1.0.5:
+* Fixes All known bugs at this time. This library has had a few tests now performed and is now working for basic timer functionality.
+* Added the ability to name a timer. Though strictly not necessary, this allows more creative function.
+* Added setTargetSeconds() so you can set a timer in seconds.
+* Added printTimeRemaing() so you dont have to create your own interface if you dont want to.
+* New setTimerName and getTimerName functions.
+* Fixed the remainingTime function. [WARNING]: This function behaves differently then you might expect. It will auto adjust the unit of measurement being used without letting you know. This is a feature and not a bug.
+* Moved RTC functionality into conditional. You need to define the ```cpp #define useRTCModule``` in order to use the rtc functions. [WARNING]: RTC FUNCTIONALITY IS NOT TESTED AND MAY NOT WORK AS INTENDED.
+* [WARNING]: The pause and resume functionality have not been tested.
+### Version 1.0.6:
+* Adjusted serial statements to now say the timers name instead of the timer class name.
+* Fixed Documentation.
     
 
 Here's an example of how to use the `Timer` class:
@@ -68,5 +97,5 @@ void loop() {
         // You can also stop or reset the timer as needed.
     }
 }
-
+//SEE the Example.ino for a more detailed example.
 ```

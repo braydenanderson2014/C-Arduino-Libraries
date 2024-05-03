@@ -12,12 +12,16 @@
     #endif
     #ifdef ESP8266
         #include <LittleFSWrapper.h>
+        #define useLittleFSWrapper
     #endif
     #ifdef ESP32S2
         #include <LittleFS.h>
     #endif
     #ifdef ESP32C3
         #include <LittleFS.h>
+    #endif
+    #ifndef ARDUINO_ARCH_MBED
+        #include <MbedLittleFSWrapper.h>
     #endif
 #else
     #include <SD.h>
@@ -26,31 +30,53 @@
 
 
 /**
- * @brief Construct a new Properties:: Properties object <String, String>
+ * @brief Construct a new LittleFSProperties:: LittleFSProperties object <String, String>
 */
-Properties::Properties() {}
+LittleFSProperties::LittleFSProperties() {}
 
 /**
- * @brief Destroy the Properties:: Properties object
+ * @brief Destroy the LittleFSProperties:: LittleFSProperties object
 */
-Properties::~Properties() {
+LittleFSProperties::~LittleFSProperties() {
     table.clear();
 }
 
 /**
- * @brief exists (Check if the key exists in the properties)
+ * @brief setChipSelect (Set the chip select pin)
+ * 
+ * @param cs (Chip Select)
+ * 
+ * @details This method sets the chip select pin for the SD card module.
+ * @return void
+*/
+void LittleFSProperties::setChipSelect(const size_t cs) {
+    chipSelect = cs;
+}
+
+/**
+ * @brief getChipSelect (Get the chip select pin)
+ * 
+ * @details This method returns the chip select pin for the SD card module.
+ * @return size_t
+*/
+size_t LittleFSProperties::getChipSelect() {
+    return chipSelect;
+}
+
+/**
+ * @brief exists (Check if the key exists in the LittleFSProperties)
  * 
  * @param key (Variable Name)
  * 
  * @details This method returns true if the table contains the given key, false otherwise.
  * @return bool
 */
-bool Properties::exists(const String& key) {
+bool LittleFSProperties::exists(const String& key) {
     return table.get(key) != nullptr;
 }
 
 /**
- * @brief exists (Check if the key exists in the properties)
+ * @brief exists (Check if the key exists in the LittleFSProperties)
  * 
  * @overload
  * 
@@ -60,13 +86,32 @@ bool Properties::exists(const String& key) {
  * @details This method returns true if the table contains the given key with the given value, false otherwise.
  * @return bool
 */
-bool Properties::exists(const String& key, const String& value) {
+bool LittleFSProperties::exists(const String& key, const String& value) {
     String* valuePtr = table.get(key);
     if (!valuePtr) {
         return false;
     }
     return *valuePtr == value;
 }
+
+
+/**
+ * @brief Begin
+ * 
+ * @details This method initializes the SD card module.
+ * @attention This method must be called before any other method in the class!
+ * @return bool
+*/
+#ifdef useSD
+bool LittleFSProperties::beginSD(size_t cs = 4 , IDENTIFIERTYPE identifierType = EQUALS) {
+    chipSelect = cs;
+    this->identifierType = identifierType;
+    if (!SD.begin(chipSelect)) {
+        return false;
+    }
+    return true;
+}
+#endif
 
 /**
  * @brief Begin LFS
@@ -76,8 +121,16 @@ bool Properties::exists(const String& key, const String& value) {
  * @return bool
 */
 #ifdef useLittleFS
-bool Properties::beginLFS() {
+bool LittleFSProperties::beginLFS() {
     if (!LITTLEFS.begin()) {
+        return false;
+    }
+    return true;
+}
+#endif
+#ifdef useLittleFSWrapper
+bool LittleFSProperties::beginLFS() {
+    if (!LittleFS.begin()) {
         return false;
     }
     return true;
@@ -89,10 +142,10 @@ bool Properties::beginLFS() {
  * 
  * @param identifierType (Identifier Type)
  * 
- * @details This method sets the identifier type for the properties. The identifier type is used to determine the type of the property separator.
+ * @details This method sets the identifier type for the LittleFSProperties. The identifier type is used to determine the type of the property separator.
  * @return void
 */
-void Properties::identify(const IDENTIFIERTYPE identifierType = EQUALS) {
+void LittleFSProperties::identify(const IDENTIFIERTYPE identifierType = EQUALS) {
     this->identifierType = identifierType;
 }
 
@@ -105,7 +158,7 @@ void Properties::identify(const IDENTIFIERTYPE identifierType = EQUALS) {
  * @details This method sets the property with the given key to the given value.
  * @return void
 */
-void Properties::setProperty(const String& key, const String& value) {
+void LittleFSProperties::setProperty(const String& key, const String& value) {
     table.put(key, value);
 }
 
@@ -118,10 +171,10 @@ void Properties::setProperty(const String& key, const String& value) {
  * @param value (Variable Value)
  * @param filePath (File Path)
  * 
- * @details This method sets the property with the given key to the given value and saves the properties to the given file path.
+ * @details This method sets the property with the given key to the given value and saves the LittleFSProperties to the given file path.
  * @return void
 */
-void Properties::setProperty(const String& key, const String& value, const String& filePath) {
+void LittleFSProperties::setProperty(const String& key, const String& value, const String& filePath) {
     loadFromSD(filePath);
     table.put(key, value);
     saveToSD(filePath);
@@ -135,10 +188,10 @@ void Properties::setProperty(const String& key, const String& value, const Strin
  * @details This method returns the value of the property with the given key.
  * @return String
 */
-String Properties::getProperty(const String& key) {
+String LittleFSProperties::getProperty(const String& key) {
     String* valuePtr = table.get(key);
     if (!valuePtr) {
-        return "[SIMPLE PROPERTIES]: Property with key '" + key + "' not found.";
+        return "[SIMPLE LittleFSProperties]: Property with key '" + key + "' not found.";
     }
     return *valuePtr;
 }
@@ -155,7 +208,7 @@ String Properties::getProperty(const String& key) {
  * @details This method returns the value of the property with the given key. If the property does not exist, it returns the given default value.
  * @return String
 */
-String Properties::getProperty(const String& key, const String& defaultValue, const String& filePath) {
+String LittleFSProperties::getProperty(const String& key, const String& defaultValue, const String& filePath) {
     loadFromSD(filePath);
     String* valuePtr = table.get(key);
     if (!valuePtr) {
@@ -172,17 +225,17 @@ String Properties::getProperty(const String& key, const String& defaultValue, co
  * @details This method removes the property with the given key.
  * @return void
 */
-void Properties::removeProperty(const String& key) {
+void LittleFSProperties::removeProperty(const String& key) {
     table.remove(key);
 }
 
 /**
- * @brief Clear the Properties object
+ * @brief Clear the LittleFSProperties object
  * 
- * @details This method removes all properties from the table.
+ * @details This method removes all LittleFSProperties from the table.
  * @return void
 */
-void Properties::clear() {
+void LittleFSProperties::clear() {
     table.clear();
 }
 
@@ -192,7 +245,7 @@ void Properties::clear() {
  * @details This method returns the current capacity of the table.
  * @return int
 */
-int Properties::size() {
+int LittleFSProperties::size() {
     return table.size();
 }
 
@@ -202,7 +255,7 @@ int Properties::size() {
  * @details This method returns the number of elements in the table.
  * @return int
 */
-int Properties::elements() {
+int LittleFSProperties::elements() {
     return table.elements();
 }
 
@@ -212,7 +265,7 @@ int Properties::elements() {
  * @details This method returns true if the table is empty, false otherwise.
  * @return bool
 */
-bool Properties::isEmpty() {
+bool LittleFSProperties::isEmpty() {
     return table.isEmpty();
 }
 
@@ -221,14 +274,12 @@ bool Properties::isEmpty() {
  * 
  * @param filename (File Name)
  * 
- * @details This method saves the properties to the given file name on the SD card.
+ * @details This method saves the LittleFSProperties to the given file name on the SD card.
  * @return bool
 */
-bool Properties::saveToSD(const String& filename) {
+bool LittleFSProperties::saveToSD(const String& filename) {
     #ifdef useSD
-        if (!SD.begin(4)) {
-            return false;
-        }
+        beginSD(chipSelect, identifierType);
 
         // Remove the existing file if it exists to start fresh
         if (SD.exists(filename.c_str())) {
@@ -239,8 +290,8 @@ bool Properties::saveToSD(const String& filename) {
         // Create a new file or replace the old one
         File file = SD.open(filename.c_str(), FILE_WRITE);
         if (file) {
-            // Iterate through the properties using the custom iterator and write them to the file
-            for (PropertiesIterator it = begin(); it != end(); ++it) {
+            // Iterate through the LittleFSProperties using the custom iterator and write them to the file
+            for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
                 if (it.value().length() > 0) { // Check that the string is not empty
                     if(identifierType == IDENTIFIERTYPE::EQUALS){
                         String line = it.key() + "=" + it.value() + "\n";
@@ -286,8 +337,8 @@ bool Properties::saveToSD(const String& filename) {
         // Create a new file or replace the old one
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
-        // Iterate through the properties using the custom iterator and write them to the file
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        // Iterate through the LittleFSProperties using the custom iterator and write them to the file
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 if(identifierType == IDENTIFIERTYPE::EQUALS){
                     String line = it.key() + "=" + it.value() + "\n";
@@ -320,7 +371,52 @@ bool Properties::saveToSD(const String& filename) {
     } 
     return false;
     #endif
-    
+    #ifdef useLittleFSWrapper
+        beginLFS();
+
+        // Remove the existing file if it exists to start fresh
+        if (LittleFS.exists(filename.c_str())) {
+            if (!LittleFS.remove(filename.c_str())) {
+                return false;
+            }
+        }
+        // Create a new file or replace the old one
+        File file = LittleFS.open(filename.c_str(), "w");
+        if (file) {
+            // Iterate through the LittleFSProperties using the custom iterator and write them to the file
+            for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
+                if (it.value().length() > 0) { // Check that the string is not empty
+                    if(identifierType == IDENTIFIERTYPE::EQUALS){
+                        String line = it.key() + "=" + it.value() + "\n";
+                        file.print(line);
+                    } else if(identifierType == IDENTIFIERTYPE::COLEN){
+                        String line = it.key() + ":" + it.value() + "\n";
+                        file.print(line);
+                    } else if(identifierType == IDENTIFIERTYPE::SEMICOLEN){
+                        String line = it.key() + ";" + it.value() + "\n";
+                        file.print(line);
+                    } else if(identifierType == IDENTIFIERTYPE::HYPHEN){
+                        String line = it.key() + "-" + it.value() + "\n";
+                        file.print(line);
+                    } else if(identifierType == IDENTIFIERTYPE::COMMA){
+                        String line = it.key() + "," + it.value() + "\n";
+                        file.print(line);
+                    } else if(identifierType == IDENTIFIERTYPE::FORWARD_SLASH){
+                        String line = it.key() + "/" + it.value() + "\n";
+                        file.print(line);
+                    } else if(identifierType == IDENTIFIERTYPE::BACKWARD_SLASH){
+                        String line = it.key() + "\\" + it.value() + "\n";
+                        file.print(line);
+                    }
+                }else {
+                    break;
+                }
+            }
+            file.close(); // Make sure to close the file to save the data
+            return true;
+        } 
+        return false;
+    #endif
     
 }
 
@@ -329,14 +425,12 @@ bool Properties::saveToSD(const String& filename) {
  * 
  * @param filename (File Name)
  * 
- * @details This method loads the properties from the given file name on the SD card.
+ * @details This method loads the LittleFSProperties from the given file name on the SD card.
  * @return bool
 */
-bool Properties::loadFromSD(const String& filename) {
+bool LittleFSProperties::loadFromSD(const String& filename) {
     #ifdef useSD
-    if (!SD.begin(4)) {
-        return false; 
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_READ);;
     if (file) {
         while (file.available()) {
@@ -369,9 +463,7 @@ bool Properties::loadFromSD(const String& filename) {
     return false;
     #endif
     #ifdef useLittleFS
-    if (!LITTLEFS.begin(4)) {
-        return false;
-    }
+    beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "r");
     if (file) {
         while (file.available()) {
@@ -403,6 +495,39 @@ bool Properties::loadFromSD(const String& filename) {
     } 
     return false;
     #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "r");
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex;
+            if(identifierType == IDENTIFIERTYPE::EQUALS){
+                separatorIndex = line.indexOf('=');
+            } else if(identifierType == IDENTIFIERTYPE::COLEN){
+                separatorIndex = line.indexOf(':');
+            } else if(identifierType == IDENTIFIERTYPE::SEMICOLEN){
+                separatorIndex = line.indexOf(';');
+            } else if(identifierType == IDENTIFIERTYPE::HYPHEN){
+                separatorIndex = line.indexOf('-');
+            } else if(identifierType == IDENTIFIERTYPE::COMMA){
+                separatorIndex = line.indexOf(',');
+            } else if(identifierType == IDENTIFIERTYPE::FORWARD_SLASH){
+                separatorIndex = line.indexOf('/');
+            } else if(identifierType == IDENTIFIERTYPE::BACKWARD_SLASH){
+                separatorIndex = line.indexOf('\\');
+            }
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 1);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
 }
 
 /**
@@ -413,7 +538,7 @@ bool Properties::loadFromSD(const String& filename) {
  * @details This method calls the saveToSD method with the given file name. It is a wrapper method to provide a more intuitive API.
  * @return bool
 */
-bool Properties::save(const String& filename){
+bool LittleFSProperties::save(const String& filename){
     return saveToSD(filename);
 }
 
@@ -425,29 +550,27 @@ bool Properties::save(const String& filename){
  * @details This method calls the loadFromSD method with the given file name. It is a wrapper method to provide a more intuitive API.
  * @return bool
 */
-bool Properties::load(const String& filename){
+bool LittleFSProperties::load(const String& filename){
     return loadFromSD(filename);
 }
 
 /**
- * @brief store the Properties object (Similar to save, but with comments)
+ * @brief store the LittleFSProperties object (Similar to save, but with comments)
  * 
  * @param filename (File Name)
  * @param comments (Comments)
  * 
- * @details This function stores the properties to the given file name on the SD card with the given comments. Similar to the save method, but with comments.
+ * @details This function stores the LittleFSProperties to the given file name on the SD card with the given comments. Similar to the save method, but with comments.
  * @return bool
 */
-bool Properties::store(const String& filename, const String& comments) {
+bool LittleFSProperties::store(const String& filename, const String& comments) {
     #ifdef useSD
-    if (!SD.begin(4)) {
-        return false;
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_WRITE);
     if (file) {
         file.print("#" + String(millis()) + "\n");
         file.print("# " + comments + "\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 if(identifierType == IDENTIFIERTYPE::EQUALS){
                     String line = it.key() + "=" + it.value() + "\n";
@@ -485,7 +608,46 @@ bool Properties::store(const String& filename, const String& comments) {
     if (file) {
         file.print("#" + String(millis()) + "\n");
         file.print("# " + comments + "\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                if(identifierType == IDENTIFIERTYPE::EQUALS){
+                    String line = it.key() + "=" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::COLEN){
+                    String line = it.key() + ":" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::SEMICOLEN){
+                    String line = it.key() + ";" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::HYPHEN){
+                    String line = it.key() + "-" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::COMMA){
+                    String line = it.key() + "," + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::FORWARD_SLASH){
+                    String line = it.key() + "/" + it.value() + "\n";
+                    file.print(line);
+                } else if(identifierType == IDENTIFIERTYPE::BACKWARD_SLASH){
+                    String line = it.key() + "\\" + it.value() + "\n";
+                    file.print(line);
+                }
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "w");
+    if (file) {
+        file.print("#" + String(millis()) + "\n");
+        file.print("# " + comments + "\n");
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 if(identifierType == IDENTIFIERTYPE::EQUALS){
                     String line = it.key() + "=" + it.value() + "\n";
@@ -521,14 +683,14 @@ bool Properties::store(const String& filename, const String& comments) {
 }
 
 /**
- * @brief containsKey (Check if the key exists in the properties)
+ * @brief containsKey (Check if the key exists in the LittleFSProperties)
  * 
  * @param key (Variable Name)
  * 
  * @details This method returns true if the table contains the given key, false otherwise.
  * @return bool
 */
-bool Properties::containsKey(const String& key) {
+bool LittleFSProperties::containsKey(const String& key) {
     return table.get(key) != nullptr;
 }
 
@@ -540,7 +702,7 @@ bool Properties::containsKey(const String& key) {
  * @details This method deletes the file with the given name from the SD card.
  * @return bool
 */
-bool Properties::deleteFile(const String& filename) {
+bool LittleFSProperties::deleteFile(const String& filename) {
     #ifdef useSD
         if(SD.exists(filename.c_str())){
             if(SD.remove(filename.c_str())){
@@ -563,25 +725,23 @@ bool Properties::deleteFile(const String& filename) {
 }
 
 /**
- * @brief storeToXML (Store the properties to an XML file)
+ * @brief storeToXML (Store the LittleFSProperties to an XML file)
  * 
  * @param filename (File Name)
  * @param comments (Comments)
  * 
- * @details This method stores the properties to the given file name on the SD card in XML format with the given comments.
+ * @details This method stores the LittleFSProperties to the given file name on the SD card in XML format with the given comments.
  * @return bool
 */
-bool Properties::storeToXML(const String& filename, const String& comments) {
+bool LittleFSProperties::storeToXML(const String& filename, const String& comments) {
     #ifdef useSD
-        if(!SD.begin(4)){
-            return false;
-        }
+        beginSD(chipSelect, identifierType);
         File file = SD.open(filename.c_str(), FILE_WRITE);
         if (file) {
             file.print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
             file.print("<!-- " + comments + " -->\n");
-            file.print("<properties>\n");
-            for (PropertiesIterator it = begin(); it != end(); ++it) {
+            file.print("<LittleFSProperties>\n");
+            for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
                 if (it.value().length() > 0) { // Check that the string is not empty
                     file.print("  <property>\n");
                     file.print("    <key>" + it.key() + "</key>\n");
@@ -591,7 +751,7 @@ bool Properties::storeToXML(const String& filename, const String& comments) {
                     break;
                 }
             }
-            file.print("</properties>\n");
+            file.print("</LittleFSProperties>\n");
             file.close();
             return true;
         }
@@ -602,8 +762,8 @@ bool Properties::storeToXML(const String& filename, const String& comments) {
     if (file) {
         file.print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         file.print("<!-- " + comments + " -->\n");
-        file.print("<properties>\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        file.print("<LittleFSProperties>\n");
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 file.print("  <property>\n");
                 file.print("    <key>" + it.key() + "</key>\n");
@@ -613,7 +773,30 @@ bool Properties::storeToXML(const String& filename, const String& comments) {
                 break;
             }
         }
-        file.print("</properties>\n");
+        file.print("</LittleFSProperties>\n");
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "w");
+    if (file) {
+        file.print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        file.print("<!-- " + comments + " -->\n");
+        file.print("<LittleFSProperties>\n");
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print("  <property>\n");
+                file.print("    <key>" + it.key() + "</key>\n");
+                file.print("    <value>" + it.value() + "</value>\n");
+                file.print("  </property>\n");
+            }else {
+                break;
+            }
+        }
+        file.print("</LittleFSProperties>\n");
         file.close();
         return true;
     }
@@ -622,18 +805,16 @@ bool Properties::storeToXML(const String& filename, const String& comments) {
 }
 
 /**
- * @brief loadFromXML (Load the properties from an XML file)
+ * @brief loadFromXML (Load the LittleFSProperties from an XML file)
  * 
  * @param filename (File Name)
  * 
- * @details This method loads the properties from the given file name on the SD card in XML format.
+ * @details This method loads the LittleFSProperties from the given file name on the SD card in XML format.
  * @return bool
 */
-bool Properties::loadFromXML(const String& filename) {
+bool LittleFSProperties::loadFromXML(const String& filename) {
     #ifdef useSD
-    if(!SD.begin(4)){
-        return false;
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_READ);
     if (file) {
         while (file.available()) {
@@ -673,26 +854,45 @@ bool Properties::loadFromXML(const String& filename) {
     }
     return false;
     #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "r");
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int keyStartIndex = line.indexOf("<key>");
+            int keyEndIndex = line.indexOf("</key>");
+            int valueStartIndex = line.indexOf("<value>");
+            int valueEndIndex = line.indexOf("</value>");
+            if (keyStartIndex != -1 && keyEndIndex != -1 && valueStartIndex != -1 && valueEndIndex != -1) {
+                String key = line.substring(keyStartIndex + 5, keyEndIndex);
+                String value = line.substring(valueStartIndex + 7, valueEndIndex);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
 }
 
 /**
- * @brief storeToMsgPack (Store the properties to a MsgPack file)
+ * @brief storeToMsgPack (Store the LittleFSProperties to a MsgPack file)
  * 
  * @param filename (File Name)
  * @param comments (Comments)
  * 
- * @details This method stores the properties to the given file name on the SD card in MsgPack format with the given comments.
+ * @details This method stores the LittleFSProperties to the given file name on the SD card in MsgPack format with the given comments.
  * @return bool
 */
-bool Properties::storeToMsgPack(const String& filename, const String& comments) {
+bool LittleFSProperties::storeToMsgPack(const String& filename, const String& comments) {
     #ifdef useSD
-    if(!SD.begin(4)){
-        return false;
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_WRITE);
     if (file) {
         file.print("# " + comments + "\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 file.print(it.key() + ":" + it.value() + "\n");
             }else {
@@ -708,7 +908,24 @@ bool Properties::storeToMsgPack(const String& filename, const String& comments) 
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
         file.print("# " + comments + "\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + ":" + it.value() + "\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "w");
+    if (file) {
+        file.print("# " + comments + "\n");
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 file.print(it.key() + ":" + it.value() + "\n");
             }else {
@@ -723,18 +940,16 @@ bool Properties::storeToMsgPack(const String& filename, const String& comments) 
 }
 
 /**
- * @brief loadFromMsgPack (Load the properties from a MsgPack file)
+ * @brief loadFromMsgPack (Load the LittleFSProperties from a MsgPack file)
  * 
  * @param filename (File Name)
  * 
- * @details This method loads the properties from the given file name on the SD card in MsgPack format.
+ * @details This method loads the LittleFSProperties from the given file name on the SD card in MsgPack format.
  * @return bool
 */
-bool Properties::loadFromMsgPack(const String& filename) {
+bool LittleFSProperties::loadFromMsgPack(const String& filename) {
     #ifdef useSD
-    if(!SD.begin(4)){
-        return false;
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_READ);
     if (file) {
         while (file.available()) {
@@ -768,26 +983,42 @@ bool Properties::loadFromMsgPack(const String& filename) {
     }
     return false;
     #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "r");
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf(':');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 1);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
 }
 
 /**
- * @brief storeToTOML (Store the properties to a TOML file)
+ * @brief storeToTOML (Store the LittleFSProperties to a TOML file)
  * 
  * @param filename (File Name)
  * @param comments (Comments)
  * 
- * @details This method stores the properties to the given file name on the SD card in TOML format with the given comments.
+ * @details This method stores the LittleFSProperties to the given file name on the SD card in TOML format with the given comments.
  * @return bool
 */
-bool Properties::storeToTOML(const String& filename, const String& comments) {
+bool LittleFSProperties::storeToTOML(const String& filename, const String& comments) {
     #ifdef useSD
-    if(!SD.begin(4)){
-        return false;
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_WRITE);
     if (file) {
         file.print("# " + comments + "\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 file.print(it.key() + " = \"" + it.value() + "\"\n");
             }else {
@@ -803,7 +1034,24 @@ bool Properties::storeToTOML(const String& filename, const String& comments) {
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
         file.print("# " + comments + "\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + " = \"" + it.value() + "\"\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "w");
+    if (file) {
+        file.print("# " + comments + "\n");
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 file.print(it.key() + " = \"" + it.value() + "\"\n");
             }else {
@@ -818,18 +1066,16 @@ bool Properties::storeToTOML(const String& filename, const String& comments) {
 }
 
 /**
- * @brief loadFromTOML (Load the properties from a TOML file)
+ * @brief loadFromTOML (Load the LittleFSProperties from a TOML file)
  * 
  * @param filename (File Name)
  * 
- * @details This method loads the properties from the given file name on the SD card in TOML format.
+ * @details This method loads the LittleFSProperties from the given file name on the SD card in TOML format.
  * @return bool
 */
-bool Properties::loadFromTOML(const String& filename) {
+bool LittleFSProperties::loadFromTOML(const String& filename) {
     #ifdef useSD
-    if(!SD.begin(4)){
-        return false;
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_READ);
     if (file) {
         while (file.available()) {
@@ -863,26 +1109,42 @@ bool Properties::loadFromTOML(const String& filename) {
     }
     return false;
     #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "r");
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf('=');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 3, line.length() - 2);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
 }
 
 /**
- * @brief storeToCSV (Store the properties to a CSV file)
+ * @brief storeToCSV (Store the LittleFSProperties to a CSV file)
  * 
  * @param filename (File Name)
  * @param comments (Comments)
  * 
- * @details This method stores the properties to the given file name on the SD card in CSV format with the given comments.
+ * @details This method stores the LittleFSProperties to the given file name on the SD card in CSV format with the given comments.
  * @return bool
 */
-bool Properties::storeToCSV(const String& filename, const String& comments) {
+bool LittleFSProperties::storeToCSV(const String& filename, const String& comments) {
     #ifdef useSD
-    if(!SD.begin(4)){
-        return false;
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_WRITE);
     if (file) {
         file.print("# " + comments + "\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 file.print(it.key() + "," + it.value() + "\n");
             }else {
@@ -898,7 +1160,24 @@ bool Properties::storeToCSV(const String& filename, const String& comments) {
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
         file.print("# " + comments + "\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + "," + it.value() + "\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "w");
+    if (file) {
+        file.print("# " + comments + "\n");
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 file.print(it.key() + "," + it.value() + "\n");
             }else {
@@ -913,18 +1192,16 @@ bool Properties::storeToCSV(const String& filename, const String& comments) {
 }
 
 /**
- * @brief loadFromCSV (Load the properties from a CSV file)
+ * @brief loadFromCSV (Load the LittleFSProperties from a CSV file)
  * 
  * @param filename (File Name)
  * 
- * @details This method loads the properties from the given file name on the SD card in CSV format.
+ * @details This method loads the LittleFSProperties from the given file name on the SD card in CSV format.
  * @return bool
 */
-bool Properties::loadFromCSV(const String& filename) {
+bool LittleFSProperties::loadFromCSV(const String& filename) {
     #ifdef useSD
-    if(!SD.begin(4)){
-        return false;
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_READ);
     if (file) {
         while (file.available()) {
@@ -958,28 +1235,44 @@ bool Properties::loadFromCSV(const String& filename) {
     }
     return false;
     #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "r");
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf(',');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 1);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
 }
 
 /**
- * @brief storeToJSON (Store the properties to a JSON file)
+ * @brief storeToJSON (Store the LittleFSProperties to a JSON file)
  * 
  * @param filename (File Name)
  * @param comments (Comments)
  * 
- * @details This method stores the properties to the given file name on the SD card in JSON format with the given comments.
+ * @details This method stores the LittleFSProperties to the given file name on the SD card in JSON format with the given comments.
  * @return bool
 */
-bool Properties::storeToJSON(const String& filename, const String& comments) {
+bool LittleFSProperties::storeToJSON(const String& filename, const String& comments) {
     #ifdef useSD
-    if(!SD.begin(4)){
-        return false;
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_WRITE);
     if (file) {
         file.print("{\n");
         file.print("  \"comments\": \"" + comments + "\",\n");
-        file.print("  \"properties\": [\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        file.print("  \"LittleFSProperties\": [\n");
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 file.print("    {\n");
                 file.print("      \"key\": \"" + it.key() + "\",\n");
@@ -1005,8 +1298,36 @@ bool Properties::storeToJSON(const String& filename, const String& comments) {
     if (file) {
         file.print("{\n");
         file.print("  \"comments\": \"" + comments + "\",\n");
-        file.print("  \"properties\": [\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        file.print("  \"LittleFSProperties\": [\n");
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print("    {\n");
+                file.print("      \"key\": \"" + it.key() + "\",\n");
+                file.print("      \"value\": \"" + it.value() + "\"\n");
+                file.print("    }");
+                if (it != end()) {
+                    file.print(",");
+                }
+                file.print("\n");
+            }else {
+                break;
+            }
+        }
+        file.print("  ]\n");
+        file.print("}\n");
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "w");
+    if (file) {
+        file.print("{\n");
+        file.print("  \"comments\": \"" + comments + "\",\n");
+        file.print("  \"LittleFSProperties\": [\n");
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 file.print("    {\n");
                 file.print("      \"key\": \"" + it.key() + "\",\n");
@@ -1030,18 +1351,16 @@ bool Properties::storeToJSON(const String& filename, const String& comments) {
 }
 
 /**
- * @brief loadFromJSON (Load the properties from a JSON file)
+ * @brief loadFromJSON (Load the LittleFSProperties from a JSON file)
  * 
  * @param filename (File Name)
  * 
- * @details This method loads the properties from the given file name on the SD card in JSON format.
+ * @details This method loads the LittleFSProperties from the given file name on the SD card in JSON format.
  * @return bool
 */
-bool Properties::loadFromJSON(const String& filename) {
+bool LittleFSProperties::loadFromJSON(const String& filename) {
     #ifdef useSD
-    if(!SD.begin(4)){
-        return false;
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_READ);
     if (file) {
         while (file.available()) {
@@ -1081,26 +1400,45 @@ bool Properties::loadFromJSON(const String& filename) {
     }
     return false;
     #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "r");
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int keyStartIndex = line.indexOf("\"key\": \"");
+            int keyEndIndex = line.indexOf("\",");
+            int valueStartIndex = line.indexOf("\"value\": \"");
+            int valueEndIndex = line.indexOf("\"", valueStartIndex + 9);
+            if (keyStartIndex != -1 && keyEndIndex != -1 && valueStartIndex != -1 && valueEndIndex != -1) {
+                String key = line.substring(keyStartIndex + 8, keyEndIndex);
+                String value = line.substring(valueStartIndex + 9, valueEndIndex);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
 }
 
 /**
- * @brief storeToYAML (Store the properties to a YAML file)
+ * @brief storeToYAML (Store the LittleFSProperties to a YAML file)
  * 
  * @param filename (File Name)
  * @param comments (Comments)
  * 
- * @details This method stores the properties to the given file name on the SD card in YAML format with the given comments.
+ * @details This method stores the LittleFSProperties to the given file name on the SD card in YAML format with the given comments.
  * @return bool
 */
-bool Properties::storeToYAML(const String& filename, const String& comments) {
+bool LittleFSProperties::storeToYAML(const String& filename, const String& comments) {
     #ifdef useSD
-    if(!SD.begin(4)){
-        return false;
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_WRITE);
     if (file) {
         file.print("# " + comments + "\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 file.print(it.key() + ": " + it.value() + "\n");
             }else {
@@ -1116,7 +1454,24 @@ bool Properties::storeToYAML(const String& filename, const String& comments) {
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
         file.print("# " + comments + "\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + ": " + it.value() + "\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "w");
+    if (file) {
+        file.print("# " + comments + "\n");
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 file.print(it.key() + ": " + it.value() + "\n");
             }else {
@@ -1131,18 +1486,16 @@ bool Properties::storeToYAML(const String& filename, const String& comments) {
 }
 
 /**
- * @brief loadFromYAML (Load the properties from a YAML file)
+ * @brief loadFromYAML (Load the LittleFSProperties from a YAML file)
  * 
  * @param filename (File Name)
  * 
- * @details This method loads the properties from the given file name on the SD card in YAML format.
+ * @details This method loads the LittleFSProperties from the given file name on the SD card in YAML format.
  * @return bool
 */
-bool Properties::loadFromYAML(const String& filename) {
+bool LittleFSProperties::loadFromYAML(const String& filename) {
     #ifdef useSD
-    if(!SD.begin(4)){
-        return false;
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_READ);
     if (file) {
         while (file.available()) {
@@ -1176,26 +1529,42 @@ bool Properties::loadFromYAML(const String& filename) {
     }
     return false;
     #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "r");
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf(':');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 2);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
 }
 
 /**
- * @brief storeToINI (Store the properties to an INI file)
+ * @brief storeToINI (Store the LittleFSProperties to an INI file)
  * 
  * @param filename (File Name)
  * @param comments (Comments)
  * 
- * @details This method stores the properties to the given file name on the SD card in INI format with the given comments.
+ * @details This method stores the LittleFSProperties to the given file name on the SD card in INI format with the given comments.
  * @return bool
 */
-bool Properties::storeToINI(const String& filename, const String& comments) {
+bool LittleFSProperties::storeToINI(const String& filename, const String& comments) {
     #ifdef useSD
-    if(!SD.begin(4)){
-        return false;
-    }
+    beginSD(chipSelect, identifierType);
     File file = SD.open(filename.c_str(), FILE_WRITE);
     if (file) {
         file.print("; " + comments + "\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 file.print(it.key() + " = " + it.value() + "\n");
             }else {
@@ -1211,7 +1580,24 @@ bool Properties::storeToINI(const String& filename, const String& comments) {
     File file = LITTLEFS.open(filename.c_str(), "w");
     if (file) {
         file.print("; " + comments + "\n");
-        for (PropertiesIterator it = begin(); it != end(); ++it) {
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
+            if (it.value().length() > 0) { // Check that the string is not empty
+                file.print(it.key() + " = " + it.value() + "\n");
+            }else {
+                break;
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "w");
+    if (file) {
+        file.print("; " + comments + "\n");
+        for (LittleFSPropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) { // Check that the string is not empty
                 file.print(it.key() + " = " + it.value() + "\n");
             }else {
@@ -1226,18 +1612,16 @@ bool Properties::storeToINI(const String& filename, const String& comments) {
 }
 
 /**
- * @brief loadFromINI (Load the properties from an INI file)
+ * @brief loadFromINI (Load the LittleFSProperties from an INI file)
  * 
  * @param filename (File Name)
  * 
- * @details This method loads the properties from the given file name on the SD card in INI format.
+ * @details This method loads the LittleFSProperties from the given file name on the SD card in INI format.
  * @return bool
 */
-bool Properties::loadFromINI(const String& filename) {
+bool LittleFSProperties::loadFromINI(const String& filename) {
     #ifdef useSD
-    if(!SD.begin(4)){
-        return false;
-    }
+    beginSD(chipSelect, identifierType);    
     File file = SD.open(filename.c_str(), FILE_READ);
     if (file) {
         while (file.available()) {
@@ -1256,6 +1640,24 @@ bool Properties::loadFromINI(const String& filename) {
     #ifdef useLittleFS
     beginLFS();
     File file = LITTLEFS.open(filename.c_str(), "r");
+    if (file) {
+        while (file.available()) {
+            String line = file.readStringUntil('\n');
+            int separatorIndex = line.indexOf('=');
+            if (separatorIndex != -1) {
+                String key = line.substring(0, separatorIndex);
+                String value = line.substring(separatorIndex + 2);
+                table.put(key, value);
+            }
+        }
+        file.close();
+        return true;
+    }
+    return false;
+    #endif
+    #ifdef useLittleFSWrapper
+    beginLFS();
+    File file = LittleFS.open(filename.c_str(), "r");
     if (file) {
         while (file.available()) {
             String line = file.readStringUntil('\n');

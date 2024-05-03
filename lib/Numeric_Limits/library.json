@@ -1,6 +1,6 @@
 {
     "name": "Numeric_Limits",
-    "version": "1.0.0-ALPHA",
+    "version": "1.0.0-BETA",
     "description": "Helper library that provides a way to get the minimum and maximum values of different data types. (Currently based off of 32bit systems)",
     "keywords": ["Datatypes", "data", "Min", "Max", "Arduino", "Minimum", "Maximum", "Numeric", "Limits"],
     "repositories": [

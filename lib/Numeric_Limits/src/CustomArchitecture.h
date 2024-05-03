@@ -1,6 +1,10 @@
 #ifndef CUSTOMARCHITECTURE_H
 #define CUSTOMARCHITECTURE_H
 
+    /*
+    
+    */
+
     #define CHAR_MIN //(-128) //Define the minimum value of char
     #define CHAR_MAX //127 // Define the maximum value of char
 

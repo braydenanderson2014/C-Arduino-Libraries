@@ -3,10 +3,12 @@
 
 // COMMENT THE FOLLOWING LINE IF YOU DON'T WANT TO USE A CUSTOM ARCHITECTURE, AND UNCOMMENT THE LINE BELOW IF YOU WANT TO USE A CUSTOM ARCHITECTURE
 //#define CUSTOM_ARCHITECTURE // Uncomment this line if you want to use a custom architecture
+/*
+
+0*/
 
 
-
-#if defined(_i386_) || defined(_M_IX86)
+#if defined(_i386_) || defined(_M_IX86) // x86 32-bit
     #define CHAR_MIN (-128)
     #define CHAR_MAX 127
 
@@ -24,7 +26,7 @@
 
     #define DBL_MIN FLT_MIN // On Arduino, double is often the same as float
     #define DBL_MAX FLT_MAX
-#elif defined(_x86_64_) || defined(_M_X64)
+#elif defined(_x86_64_) || defined(_M_X64) // x86 64-bit
     #define CHAR_MIN (-128)
     #define CHAR_MAX 127
 
@@ -43,7 +45,7 @@
     #define DBL_MIN FLT_MIN // On Arduino, double is often the same as float
     #define DBL_MAX FLT_MAX
 
-#elif defined(_ARM_) || defined(_M_ARM)
+#elif defined(_ARM_) || defined(_M_ARM) // ARM 32-bit
     #define CHAR_MIN (-128)
     #define CHAR_MAX 127
 
@@ -62,7 +64,7 @@
     #define DBL_MIN FLT_MIN // On Arduino, double is often the same as float
     #define DBL_MAX FLT_MAX
 
-#elif defined(_MIPS_) || defined(_M_MIPS) // MIPS
+#elif defined(_MIPS_) || defined(_M_MIPS) // MIPS 32-bit
     #define CHAR_MIN (-128)
     #define CHAR_MAX 127
 
@@ -81,7 +83,7 @@
     #define DBL_MIN FLT_MIN // On Arduino, double is often the same as float
     #define DBL_MAX FLT_MAX
 
-#elif defined(_PPC_) || defined(_M_PPC) // PowerPC
+#elif defined(_PPC_) || defined(_M_PPC) // PowerPC 32-bit
     #define CHAR_MIN (-128)
     #define CHAR_MAX 127
 
@@ -100,7 +102,7 @@
     #define DBL_MIN FLT_MIN // On Arduino, double is often the same as float
     #define DBL_MAX FLT_MAX
 
-#elif defined(_RISCV_) || defined(_M_RISCV) // RISC-V
+#elif defined(_RISCV_) || defined(_M_RISCV) // RISC-V 32-bit
     #define CHAR_MIN (-128)
     #define CHAR_MAX 127
 
@@ -119,7 +121,7 @@
     #define DBL_MIN FLT_MIN // On Arduino, double is often the same as float
     #define DBL_MAX FLT_MAX
 
-#elif defined(_AVR_) || defined(_M_AVR) // AVR (Arduino) - 8-bit
+#elif defined(_AVR_) || defined(_M_AVR) // AVR (Arduino) - 8-bit 
     #define CHAR_MIN (-128)
     #define CHAR_MAX 127
 
@@ -137,7 +139,7 @@
 
     #define DBL_MIN FLT_MIN // On Arduino, double is often the same as float
     #define DBL_MAX FLT_MAX
-#elif defined(_ARC_) || defined(_M_ARC) // ARC
+#elif defined(_ARC_) || defined(_M_ARC) // ARC - 32-bit
     #define CHAR_MIN (-128)
     #define CHAR_MAX 127
 
@@ -375,7 +377,42 @@
 
     #define DBL_MIN FLT_MIN // On Arduino, double is often the same as float
     #define DBL_MAX FLT_MAX
+#elif defined (_AVR_ATmega2560_)
+    #define CHAR_MIN (-128)
+    #define CHAR_MAX 127
 
+    #define BYTE_MIN 0
+    #define BYTE_MAX 255
+
+    #define INT_MIN (-32768)
+    #define INT_MAX 32767
+
+    #define LONG_MIN (-2147483648L)
+    #define LONG_MAX 2147483647L
+
+    #define FLT_MIN 1.175494351e-38F
+    #define FLT_MAX 3.402823466e+38F
+
+    #define DBL_MIN FLT_MIN // On Arduino, double is often the same as float
+    #define DBL_MAX FLT_MAX
+#elif defined (ARDUINO_GIGA) || defined(_M_GIGA) // GIGA (Arduino) - 32-bit ARM
+    #define CHAR_MIN (-128)
+    #define CHAR_MAX 127
+
+    #define BYTE_MIN 0
+    #define BYTE_MAX 255
+
+    #define INT_MIN (-32768)
+    #define INT_MAX 32767
+
+    #define LONG_MIN (-2147483648L)
+    #define LONG_MAX 2147483647L
+
+    #define FLT_MIN 1.175494351e-38F
+    #define FLT_MAX 3.402823466e+38F
+
+    #define DBL_MIN FLT_MIN // On Arduino, double is often the same as float
+    #define DBL_MAX FLT_MAX
 #else
     #ifndef CUSTOM_ARCHITECTURE
         static_assert(false, "Unknown architecture");

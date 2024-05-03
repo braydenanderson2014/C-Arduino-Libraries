@@ -14,10 +14,16 @@ private:
     bool isPaused;
     bool useRTC;
     mutable RTC_DS3231 rtc;
-
+    bool debug;
+    unsigned long remainingTimeOnTimer;
+    enum mode {Seconds, Minutes, Hours};
+    mode timerMode = Minutes;
+    String TimerName;
 public:
-    Timer();
-
+    Timer(bool debug);
+    void setTimerName(String timerName);
+    String getTimerName() const;
+    void updateRemainingTime();
     void start();
     void stop();
     void reset();
@@ -26,7 +32,7 @@ public:
     void resume();
     void setUseRTC(bool useRTC);
     void begin();
-    
+    void printTimeRemaining();
     unsigned long elapsed();
     bool isTimerRunning() const;
     bool hasReachedTarget();
@@ -38,10 +44,10 @@ public:
     bool isTimerPaused() const;
     void setRTCTime(int year, int month, int day, int hour, int minute, int second);
     void setTargetDuration(unsigned long duration);
+    void setTargetSeconds(unsigned long seconds);
     void setTargetMinutes(unsigned long minutes);
     void setTargetHours(unsigned long hours);
     bool checkTimer(unsigned long duration);
-    bool debug;
 };
 
 #endif // SIMPLEARDUINOTIMER_h
