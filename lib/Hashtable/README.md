@@ -75,7 +75,7 @@ If you want to Utilize this Library. Please include the
 ## ChangeLog
 ### Version 1.0.0:
 * Initial Release. Based off of PlatformIO version v1.1.2 
-### Version 1.0.1:
+### Version 1.0.1- BETA:
 * Added New getKey() Function for Iterator
 * Added New getValue() Function for Iterator
 * Added New find() Function for Iterator.

@@ -5,7 +5,7 @@
 
 ### Please Note, some of these libraries have different names then their published counterparts. For example, (Properties) is published as -> SimpleProperties... These are Noted below in the List of available Libraries.
 
-## List of All Available Libraries ## [WARNING]: UNTESTED/Partially Tested BY AUTHOR
+## List of All Available Libraries ## [WARNING]: Tested/Partially Tested BY AUTHOR
 * [Dictionary](#dictionary-class) [DEVELOPMENT-COMPLETE] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING-NOT-NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
 * [Hashtable](#hashtable-class) [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED], [STABLE]
 * [iostream](#iostream-class) [PASSIVE-DEVELOPMENT] (Published as : BasicIOStream), [PARTIALLY-TESTED], [STABLE]
@@ -25,6 +25,7 @@
 * [Predicates](#predicates-class) [PASSIVE-DEVELOPMENT], [STABLE]
 * [TypeTraits](#typetraits-library) [PASSIVE-DEVELOPMENT], [STABLE]
 * [Numeric_Limits](#numeric-limits-library-for-arduino) [ACTIVE-DEVELOPMENT], [STABLE]
+* [Map](#map-library-for-arduino) [ACTIVE-DEVELOPMENT], [STABLE], [PARTIALLY-TESTED]
 
 
 Total Available Libraries: (40)
@@ -50,7 +51,6 @@ Total Libraries: (43)
 11. [IntervalTree](#interval-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
 12. [KDimensionalTree](#k-dimensional-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
 13. [MathLib](#mathlib-for-arduino)  [ACTIVE-DEVELOPMENT], [TESTING]
-14. [Map](#map-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
 15. [MatrixMath](#matrixmath-library-for-arduino)[ACTIVE-DEVELOPMENT], [TESTING]
 16. [OCTree](#octree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
 17. [QuadTree](#quadtree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]

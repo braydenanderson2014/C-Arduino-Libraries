@@ -76,10 +76,12 @@ double CSC(double x) {
     return 1 / Sin(x);
 }
 
+//REFRACTORED to not use Factorial... this is to ensure no overflow occurs.
 double Arcsin(double x) {
-    double sum = 0.0;
-    for(int i = 0; i < MYMAX_ITERATIONS; i++) {
-        double term = Factorial(2 * i) * Power(x, 2 * i + 1) / (Power(4, i) * Power(Factorial(i), 2) * (2 * i + 1));
+    double term = x;
+    double sum = term;
+    for(int i = 1; i < MYMAX_ITERATIONS; i++) {
+        term *= (x * x * (2 * i - 1) * (2 * i - 1)) / (4 * i * i * (2 * i + 1));
         sum += term;
     }
     return sum;
@@ -153,13 +155,9 @@ double Csch(double x) {
     return 1 / Sinh(x);
 }
 
+//REFRACTORED to not use Factorial... this is to ensure no overflow occurs.
 double Arcsinh(double x) {
-    double sum = 0.0;
-    for(int i = 0; i < MYMAX_ITERATIONS; i++) {
-        double term = Factorial(2 * i) * Power(x, 2 * i + 1) / (Power(4, i) * Power(Factorial(i), 2) * (2 * i + 1));
-        sum += term;
-    }
-    return sum;
+    return log(x + sqrt(x*x + 1));
 }
 
 double Log(double x) {
