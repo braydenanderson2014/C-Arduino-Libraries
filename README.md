@@ -1,6 +1,8 @@
 # C-Arduino-Libraries
 ### All Libraries are contained under the `lib` folder. For Best Editing Results, Open Parent folder this README.md File is contained inside. This will make the whole Project Available to check out. The `src` folder contains the main project `main.cpp` that you can use to test the Libraries. Follow the directions for the Libraries to import them into your project and set them up correctly. Down below is a list of all Libraries and their status's. You can use the list to go directly to each Libraries infromation. It should be identical to the readme files contained inside each library folder.
 
+### CONSIDER SUPPORTING ME: https://gofund.me/923e5f10
+
 ### Most Libraries have been [PARTIALLY-TESTED], or [MOSTLY-TESTED]. However even the libraries that are [STABLE] or [CONSIDERED-STABLE] may have Unknown Bugs. If you Run Across any Bugs or have a question about the library, Please raise an issue report so I can look into it.
 
 ### Please Note, some of these libraries have different names then their published counterparts. For example, (Properties) is published as -> SimpleProperties... These are Noted below in the List of available Libraries.
