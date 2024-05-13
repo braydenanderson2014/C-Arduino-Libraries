@@ -7,7 +7,7 @@ template <typename T>
 class ArrayList {
 public:
     enum SizeType { FIXED, DYNAMIC }; // Size type
-    enum SortAlgorithm { BUBBLE_SORT, QUICK_SORT }; // Sorting algorithms
+    enum SortAlgorithm { BUBBLE_SORT, QUICK_SORT, MERGE_SORT }; // Sorting algorithms
     //Constructor and Destructor
     
     /**
@@ -587,6 +587,50 @@ public:
     }
 
     /**
+     * @brief Sets the sorting algorithm to use for sorting the ArrayList.
+     *
+     * This function sets the sorting algorithm to use for sorting the ArrayList.
+     * The sorting algorithm is specified by the SortAlgorithm enum value.
+     *
+     * @param algorithm The sorting algorithm to use.
+    */
+    void setSortAlgorithm(SortAlgorithm algorithm = MERGE_SORT){
+        sortAlgorithm = algorithm;
+    }
+
+    /**
+     * @brief Gets the sorting algorithm used for sorting the ArrayList.
+     *
+     * This function gets the sorting algorithm used for sorting the ArrayList.
+     * The sorting algorithm is specified by the SortAlgorithm enum value.
+     *
+     * @return The sorting algorithm used for sorting the ArrayList.
+    */
+    SortAlgorithm getSortAlgorithm(){
+        return sortAlgorithm;
+    }
+
+    /**
+     * @brief Sorts the ArrayList.
+     * 
+     * This function sorts the ArrayList using the specified comparator function
+     * Sorting Algorithm is determined by the sortAlgorithm variable (use the sort function to set the sorting algorithm)
+    */
+    void sort(bool (*comparator)(T, T)) {
+        switch (sortAlgorithm) {
+            case BUBBLE_SORT:
+                bubbleSort(comparator);
+                break;
+            case QUICK_SORT:
+                quickSort(comparator, 0, count - 1);
+                break;
+            default:
+                mergeSort(*this, 0, count - 1);
+            break;
+        }
+    }
+
+    /**
      * @brief Sorts the ArrayList.
      *
      * This function sorts the ArrayList using the specified comparator function and sorting algorithm.
@@ -595,7 +639,7 @@ public:
      * The function uses the bubble sort algorithm by default.
      * The function can use the Predicates library, which can be found at:
     */ 
-    void sort(bool (*comparator)(T, T), SortAlgorithm algorithm = BUBBLE_SORT) { 
+    void sort(bool (*comparator)(T, T), SortAlgorithm algorithm) { 
         switch (algorithm) { 
             case BUBBLE_SORT: 
                 bubbleSort(comparator); 
@@ -603,6 +647,9 @@ public:
             case QUICK_SORT: 
                 quickSort(comparator, 0, count - 1); 
             break; // Add cases for additional sorting algorithms 
+            default:
+                mergeSort(*this, 0, count - 1);
+            break;
         } 
     }
 
@@ -665,12 +712,34 @@ public:
         return &array[count]; 
     }
 
+
+    /**
+     * Recursively sorts the elements of an ArrayList using the Merge Sort algorithm.
+     * This function splits the list into two halves, calls itself for the two halves,
+     * and then merges the two sorted halves. The function uses the merge() function
+     * for merging two halves. The recursive sorting continues until the sub-arrays
+     * have only one element each, which are inherently sorted.
+     * 
+     * @param list Reference to an ArrayList of template type T to be sorted.
+     * @param l The starting index of the sub-array to be sorted.
+     * @param r The ending index of the sub-array to be sorted.
+     * @template T The data type of the elements in the ArrayList.
+    */
+    void mergeSort(ArrayList<T>& list, int l, int r) {
+        if (l < r) {
+            int m = l + (r - l) / 2;
+            mergeSort(list, l, m);
+            mergeSort(list, m + 1, r);
+            merge(list, l, m, r);
+        }
+    }
+
 private:
     T* array;
     SizeType sizeType;
     size_t arrayCapacity;
     size_t count;
-
+    SortAlgorithm sortAlgorithm;
     /**
      * @brief Resizes the ArrayList.
      *
@@ -735,6 +804,66 @@ private:
         } 
     }
  
+    /**
+     * Merges two halves of an ArrayList that have been sorted independently.
+     * The function takes three indices, l (left index), m (middle index), and r (right index).
+     * It assumes that the sub-arrays ArrayList[l..m] and ArrayList[m+1..r] are sorted,
+     * and merges them into a single sorted sub-array ArrayList[l..r].
+     * 
+     * @param list Reference to an ArrayList of template type T that is being sorted.
+     * @param l The starting index of the first sub-array.
+     * @param m The ending index of the first sub-array, which also serves as the middle point.
+     * @param r The ending index of the second sub-array.
+    */
+    void merge(ArrayList<T>& list, int l, int m, int r) {
+        int i, j, k;
+        int n1 = m - l + 1;
+        int n2 = r - m;
+
+        // Create temp arrays
+        T* L = new T[n1];
+        T* R = new T[n2];
+
+        // Copy data to temp arrays L[] and R[]
+        for (i = 0; i < n1; i++)
+            L[i] = list[l + i];
+        for (j = 0; j < n2; j++)
+            R[j] = list[m + 1 + j];
+
+        // Merge the temp arrays back into list[l..r]
+        i = 0; // Initial index of first subarray
+        j = 0; // Initial index of second subarray
+        k = l; // Initial index of merged subarray
+        while (i < n1 && j < n2) {
+            if (L[i] <= R[j]) {
+                list[k] = L[i];
+                i++;
+            } else {
+                list[k] = R[j];
+                j++;
+            }
+            k++;
+        }
+
+        // Copy the remaining elements of L[], if there are any
+        while (i < n1) {
+            list[k] = L[i];
+            i++;
+            k++;
+        }
+
+        // Copy the remaining elements of R[], if there are any
+        while (j < n2) {
+            list[k] = R[j];
+            j++;
+            k++;
+        }
+
+        delete[] L;
+        delete[] R;
+    }
+
+
     /**
      * @brief Swaps two items in the ArrayList.
      *

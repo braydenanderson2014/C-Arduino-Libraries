@@ -7,10 +7,11 @@
 #include "SimpleArduinoTimer.h"
 #include "Map.h"
 #include "MathLib.h"
+#include "ArrayList.h"
 Map <String, int> ThisMap;
 Timer timer = new Timer(false);
 // SDList <String> strings(10, "pagefile.dat");
-// ArrayList <String> list = ArrayList<String>(ArrayList<String>::DYNAMIC, 10);
+ArrayList <String> list = ArrayList<String>(ArrayList<String>::DYNAMIC, 10);
 void setup()
 {
     /*

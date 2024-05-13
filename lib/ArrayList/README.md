@@ -83,6 +83,18 @@ If you want to Utilize this Library. Please include the
 #include <ArrayList.h> 
 ```
 
+# ARDUINO
+## ChangeLog
+### Version 1.0.0:
+* Initial Release
+### Version 1.0.1-BETA:
+* Added new MergeSort Function 
+* Added new Merge Helper Function (PRIVATE)
+* New Sort option (MergeSort) added to the Sort Functions.
+* Added new Sort function that does not take in a Sort Paremeter. 
+* Added new Set and Get Functions for sort Algorithm
+
+# PLATFORM IO 
 ## ChangeLog
 ### Version 1.0.0:
 * Initial Release 
@@ -104,8 +116,17 @@ If you want to Utilize this Library. Please include the
 * Added new Sort Algorithm. (Quick Sort) 
 * Modified the sort function so the user can select between bubble sort and quick sort.
 * Fixed Library Changelog to reflect current State of Library Changes
-### Version 1.0.4:
-* Added 2 new dependencies to help people find the two Libraries that this ArrayList Library can use. (Predicates, Operators) you are not required to utilize them but you can if you want. just add the necessary Headers 
+### Version 1.0.4-BETA:
+* Added new MergeSort Function 
+* Added new Merge Helper Function (PRIVATE)
+* New Sort option (MergeSort) added to the Sort Functions.
+* Added new Sort function that does not take in a Sort Paremeter. 
+* Added new Set and Get Functions for sort Algorithm
+* Documentation Fix... Marked the library as 1.0.4 even though it was only on version 1.0.3.
+
+** PLEASE NOTE THAT NEW FUNCTIONS HAVE NOT BEEN TESTED **
+
+
 ```#include <Predicates>```cpp 
 ```#include <Operators>```cpp
 
