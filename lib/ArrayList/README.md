@@ -6,15 +6,14 @@ The `ArrayList` class is a C++ template class that provides an implementation of
 
 The `ArrayList` class is designed to offer a dynamic and scalable ArrayList with the following features:
 
-- **Dynamic Sizing**: The List can dynamically resizes itself when the ArrayList becomes full. (Only if you specify "DYNAMIC" in the constructor)
-- **Fixed Size**: The List can remain a fixed size when specified in the constructor.
+- **Dynamic Sizing**: The List can dynamically resizes itself when the ArrayList becomes full. (This is the default behavior)
+- **Fixed Size**: The List can remain a fixed size when specified in the constructor. (Must Be Passed into the Constructor, otherwise the list will be dynamic)
 - **Iterator Support**: You can iterate through the Values in the List.
 
 ## WARNING: This Library Utilizes POINTERS * to Memory. This is due to the Libraries ability to utilize any return type. (Bool, String, int, float, etc)
 
 ## ADDITIONAL WARNING: Please Ensure you have initialized the Serial Interface (Serial.begin()) before using debug mode. 
 
-## Please Ensure you have Added the Arduino.h Header in your project. This is required to utilize this library!
 ### GENERAL INFO: 
 This library is heavily based around the Java ArrayList Class. Almost all functions contained inside Java's ArrayList class have been implemented in this library. This does ***NOT*** mean it behaves exactly the same way. Some functions, due to the fact that they were designed for Arduino, are super simplistic in design. This means that sometimes, instead of returning a value, the library may just display a message instead. (ONLY IN DEBUG MODE). Please be Mindful of this behavior. If you are having issues with the library, please pass the debug boolean into the constructor, and keep track of the libraries output. This will be useful when reporting a bug. Thank you!
 - Brayden Anderson (Developer)
@@ -83,6 +82,18 @@ If you want to Utilize this Library. Please include the
 #include <ArrayList.h> 
 ```
 
+# ARDUINO
+## ChangeLog
+### Version 1.0.0:
+* Initial Release
+### Version 1.0.1-BETA:
+* Added new MergeSort Function 
+* Added new Merge Helper Function (PRIVATE)
+* New Sort option (MergeSort) added to the Sort Functions.
+* Added new Sort function that does not take in a Sort Paremeter. 
+* Added new Set and Get Functions for sort Algorithm
+
+# PLATFORM IO 
 ## ChangeLog
 ### Version 1.0.0:
 * Initial Release 
@@ -100,14 +111,24 @@ If you want to Utilize this Library. Please include the
 * Added new getAsString() function to return a String instead of a type T
 * Deprecated the setDebug() and getDebug() functions. Library Messages will no longer be supported to save on memory
 * Added Function Comments to all functions. This will help with the documentation of the library
-* Adjusted the add funciton to utilize a load factor instead of it waiting to fill to capacity. This will help to ensure the array can be resized.
+* Adjusted the add function to utilize a load factor instead of it waiting to fill to capacity. This will help to ensure the array can be resized.
 * Added new Sort Algorithm. (Quick Sort) 
 * Modified the sort function so the user can select between bubble sort and quick sort.
 * Fixed Library Changelog to reflect current State of Library Changes
-### Version 1.0.4:
-* Added 2 new dependencies to help people find the two Libraries that this ArrayList Library can use. (Predicates, Operators) you are not required to utilize them but you can if you want. just add the necessary Headers 
-```#include <Predicates>```cpp 
-```#include <Operators>```cpp
+### Version 1.0.4-BETA:
+* Added new MergeSort Function 
+* Added new Merge Helper Function (PRIVATE)
+* New Sort option (MergeSort) added to the Sort Functions.
+* Added new Sort function that does not take in a Sort Paremeter. 
+* Added new Set and Get Functions for sort Algorithm
+* Documentation Fix... Marked the library as 1.0.4 even though it was only on version 1.0.3.
+
+** PLEASE NOTE THAT NEW FUNCTIONS HAVE NOT BEEN TESTED **
+
+
+### This Library Pairs well with the following libraries
+```#include <Predicates>```cpp (Boolean Predicates)
+```#include <Operators>```cpp (Mathmatical Operators)
 
 
 

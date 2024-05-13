@@ -1,6 +1,6 @@
 {
     "name": "ArrayList",
-    "version": "1.0.4",
+    "version": "1.0.4-BETA",
     "description": "A Basic ArrayList Structure which supports Dynamic and Fixed Arrays",
     "keywords": ["ArrayList", "Dynamic List", "Fixed List", "List", "Array", "Dynamic Array", "Fixed Array", "Array List", "Dynamic Array List", "Fixed Array List", "Dynamic List Array", "Fixed List Array", "Data Structure", "Utilities", "Dynamic Data Structure"],
     "repository": {
@@ -15,9 +15,7 @@
         }
     ],
     "dependencies": {
-        "Arduino": "*",
-        "braydenanderson2014/Operators": "*",
-        "braydenanderson2014/Predicates": "*"
+        "Arduino": "*"
     },
     "categories": [
         "Data Structures",
@@ -26,16 +24,16 @@
     "examples": [
         {
             "name": "Auto Dynamic Example",
-            "base": "examples",
+            "base": "examples/example",
             "files": [
-                "Example.cpp"
+                "example.ino"
             ]
         },
         {
             "name": "Fixed Size Example",
-            "base": "Example",
+            "base": "examples/example2",
             "files": [
-                "Example2.cpp"
+                "example2.ino"
             ]
         }
     ],
