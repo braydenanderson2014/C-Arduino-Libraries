@@ -3,6 +3,7 @@
 
 #include <SimpleVector.h>
 #include <Arduino.h>
+
 // Forward declaration of KeyHash
 /**
  * @brief A functor that hashes a key of type K
@@ -430,6 +431,13 @@ public:
         return nullptr; // Return null if the key is not found
     }
 
+    /**
+     * @brief Returns the element stored with the specified key
+     * 
+     * @note if a key does not exits, return the Default constructor for the type specified.
+     * 
+     * @return The value associated with the key, or a default constructed object if key not found.
+    */
     V getElement(const K& key) const {
         int index = hash(key);
         Entry* entry = table[index];
@@ -439,9 +447,33 @@ public:
             }
             entry = entry->next;
         }
-        return; // Return null if the key is not found
+        return V();
     }
 
+    /**
+    * @brief Returns the element stored with the specified key
+    * 
+    * @param key The key to search for
+    * @param value Pointer to a variable where the found value will be stored
+    * 
+    * @return true if the key was found and the value was stored, false if the key was not found
+    * 
+    * @note If the key is found, the function stores the associated value in the variable pointed to by the value parameter.
+    *       If the key is not found, the function returns false and does not modify the variable pointed to by the value parameter.
+    */
+    bool getElement(const K& key, V* value) const{
+        int index = hash(key);
+        Entry* entry = table[index];
+        while (entry != nullptr) {
+            if (entry->key == key) {
+                *value = entry->value;
+                return true;
+            }
+            entry = entry->next;
+        }
+        return false; // Return false if the key is not found
+    }
+    
     /**
      * @brief Check if a key exists in the hash table
      * @details This function checks if a key exists in the hash table.
