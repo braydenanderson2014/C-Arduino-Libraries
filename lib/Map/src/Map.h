@@ -135,6 +135,26 @@ class Map {
         }
 
         /**
+         * Returns the index of the specified key in the map.
+         * 
+         * @param key The key to search for in the map.
+         * @return The index of the key if found, or -1 if the key is not present in the map.
+         */
+        int getIndex(K key) {
+            MapNode* p = head;
+            int index = 0;
+            while (p != nullptr && p->key != key) {
+                p = p->next;
+                index++;
+            }
+            if (p != nullptr) {
+                return index;
+            } else {
+                return -1;
+            }
+        }
+
+        /**
          * @brief Removes a key-value pair from the map.
          * 
          * @param key The key of the key-value pair to be removed.
@@ -152,6 +172,27 @@ class Map {
                 delete temp;
                 Count--;
             }
+        }
+
+        /**
+         * @brief Removes the element at the specified index from the Map.
+         * 
+         * @param index The index of the element to be removed.
+         * @return true if the element was successfully removed, false otherwise.
+         */
+        bool removeAtIndex(int index){
+            if (index < 0 || index >= Count) {
+                return false;
+            }
+            MapNode** pp = &head;
+            for (int i = 0; i < index; i++) {
+                pp = &(*pp)->next;
+            }
+            MapNode* temp = *pp;
+            *pp = (*pp)->next;
+            delete temp;
+            Count--;
+            return true;
         }
 
         /**
