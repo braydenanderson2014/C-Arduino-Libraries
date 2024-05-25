@@ -6,7 +6,7 @@
 template <typename T>
 class ArrayList {
 public:
-    enum SizeType { FIXED, DYNAMIC }; // Size type
+    enum SizeType { FIXED, DYNAMIC, DYNAMIC2 }; // Size type
     enum SortAlgorithm { BUBBLE_SORT, QUICK_SORT, MERGE_SORT }; // Sorting algorithms
     //Constructor and Destructor
     
@@ -21,7 +21,7 @@ public:
      * @param initialSize The initial capacity of the ArrayList.
      * @param debug A flag indicating whether debug messages should be printed.
     */
-    ArrayList(SizeType type = DYNAMIC, size_t initialSize = 8)
+    ArrayList(SizeType type = DYNAMIC2, size_t initialSize = 8)
         : sizeType(type), arrayCapacity(initialSize), count(0) {
         array = new T[arrayCapacity];
     }
@@ -56,6 +56,8 @@ public:
         // Resize the array if the load factor is greater than or equal to 0.8
         if (sizeType == DYNAMIC && loadFactor >= 0.8) {
             resize();
+        } else if(sizeType == DYNAMIC2 && loadFactor >= 0.8) {
+            resize2();
         }
         // Add the item to the array
         if (count < arrayCapacity) {
@@ -77,6 +79,9 @@ public:
     bool addAll(const ArrayList<T>& other) {
         if (sizeType == DYNAMIC && count + other.count > arrayCapacity) {
             resize();
+        }
+        if(sizeType == DYNAMIC2 && count + other.count > arrayCapacity){
+            resize2();
         }
         if (count + other.count <= arrayCapacity) {
             memcpy(array + count, other.array, other.count * sizeof(T));
@@ -101,6 +106,9 @@ public:
     bool addAll(const T* other, size_t length) {
         if (sizeType == DYNAMIC && count + length > arrayCapacity) {
             resize();
+        }
+        if(sizeType == DYNAMIC2 && count + length > arrayCapacity){
+            resize2();
         }
         if (count + length <= arrayCapacity) {
             memcpy(array + count, other, length * sizeof(T));
@@ -128,6 +136,8 @@ public:
         if (count == arrayCapacity) {
             if (sizeType == DYNAMIC) {
                 resize();
+            } else if(sizeType == DYNAMIC2){
+                resize2();
             } else {
                 return false;
             }
@@ -158,6 +168,8 @@ public:
         if (count + other.count > arrayCapacity) {
             if (sizeType == DYNAMIC) {
                 resize();
+            } else if(sizeType == DYNAMIC2) {
+                resize2();
             } else {
                 return false;
             }
@@ -189,6 +201,8 @@ public:
         if (count + length > arrayCapacity) {
             if (sizeType == DYNAMIC) {
                 resize();
+            } else if(sizeType == DYNAMIC2) {
+                resize2();  
             } else {
                 return false;
             }
@@ -551,6 +565,19 @@ public:
     }
 
     /**
+     * @brief Creates a clone of the ArrayList with a specified initial capacity.
+     * 
+     * This function creates a new ArrayList that is a clone of the original ArrayList with a specified initial capacity.
+     * The new ArrayList has the same size type, capacity, and items as the original ArrayList.
+     * 
+    */
+    ArrayList<T>* clone(int InitialCapacity) const {
+        ArrayList<T>* clone = new ArrayList<T>(sizeType, InitialCapacity);
+        clone->addAll(*this);
+        return clone;
+    }
+
+    /**
      * @brief Ensures that the ArrayList can hold at least the specified number of items without needing to resize.
      *
      * This function checks if the ArrayList's current capacity is less than the specified minimum capacity.
@@ -578,6 +605,12 @@ public:
     */
     void trimToSize() {
         if (sizeType == DYNAMIC && count < arrayCapacity) {
+            T* newArray = new T[count];
+            memcpy(newArray, array, count * sizeof(T));
+            delete[] array;
+            array = newArray;
+            arrayCapacity = count;
+        } else if(sizeType == DYNAMIC2 && count < arrayCapacity){
             T* newArray = new T[count];
             memcpy(newArray, array, count * sizeof(T));
             delete[] array;
@@ -748,9 +781,25 @@ private:
      * If the new capacity is greater than the maximum size_t value, it prints an error message (if debug is true) and does not resize the ArrayList.
     */
     void resize() {
-        size_t newCapacity = arrayCapacity * 1.5;
+        size_t newCapacity = arrayCapacity * 2;
         T* newArray = new T[newCapacity];
         memcpy(newArray, array, count * sizeof(T));
+        delete[] array;
+        array = newArray;
+        size_t tempCapacity = newCapacity;
+        int oldCapacity = arrayCapacity;
+        arrayCapacity = newCapacity;
+        if(tempCapacity != arrayCapacity){
+            arrayCapacity = oldCapacity;
+        }
+    }
+
+    void resize2(){
+        size_t newCapacity = arrayCapacity * 1.5;
+        T* newArray = new T[newCapacity];
+        for(size_t i = 0; i < count; i++){
+            newArray[i] = array[i];
+        }
         delete[] array;
         array = newArray;
         size_t tempCapacity = newCapacity;
