@@ -35,6 +35,8 @@ If you want to Utilize this Library. Please include the
 * Initial Release; On pair with Platformio Version 1.0.5
 ### Version 1.0.1:
 * Added Support for Range Based for Loops.
+### Version 1.0.2:
+* Removed Uneccessary negative number check in function operator[] since its not possible for unsigned int's to be negative.
 
 
 # PlatformIO Registry.
@@ -62,11 +64,12 @@ If you want to Utilize this Library. Please include the
 * Added Support for Range Based For loops
 * Added Support for Adding Elements during Construction.
 * Added BulkAdd Function() to add multiple elements at once.
-### Version 1.0.7:- ALPHA [CURRENT-RELEASE]
+### Version 1.0.7:- ALPHA 
 * Added EmplaceBack Function so new libraries can depend on it correctly.
 * Added Compiler Directives to check if a certain board/Platform is being used. This is to ensure proper functionality with initializer lists.
 * Everything is handled Automatically, but if none of the preprocesor directives are met, then the Initializer_Lists will not be included which means you will not be able to bulk add directly into the constructor as that constructor will be removed by the compiler. However, if the compiler directives are met, then that constructor will remain and be available.
-
+### Version 1.0.7:- BETA [CURRENT-RELEASE]
+* Removed Uneccessary negative number check in function operator[] since its not possible for unsigned int's to be negative.
 
 
 Here's an example of how to use the `SimpleVector` class:

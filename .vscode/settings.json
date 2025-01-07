@@ -5,6 +5,12 @@
     "files.associations": {
         "new": "cpp",
         "cstring": "cpp",
-        "initializer_list": "cpp"
+        "initializer_list": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp",
+        "array": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp"
     }
 }

@@ -80,6 +80,37 @@ If you want to Utilize this Library. Please include the
 * Added New getValue() Function for Iterator
 * Added New find() Function for Iterator.
 * NOTE: All 3 functions are not tested and should be used with Caution. 
+### Version 1.0.1: 
+* RESOLVED ISSUE: Iterator Iterates out of bounds (Issue #85)
+* RESOLVED ISSUE: Resizing corrupts data in hashtable (Issue #81)
+* RESOLVED ISSUE: get() and getElement() returning incorrectly (Issue #82)
+* Added new operator[] function that allows you to access elements by index in the Hashtable
+* Added new getBucket() function that returns the bucket at a specific index in the Hashtable
+* Added new getBucketSize() function that returns the size of a bucket at a specific index in the Hashtable
+* Added new debugIterator() function that iterates the table and prints out the [key, value] pairs.
+* Adjusted Iterator operator* function. 
+[FROM THIS]
+```cpp
+    KeyValuePair operator*() const {
+        
+        return KeyValuePair{currentEntry->key, currentEntry->value};
+    }
+```
+[TO THIS]
+```cpp
+    KeyValuePair operator*() const {
+        if (!currentEntry) {
+            return KeyValuePair{"", ""}; // Return an empty key-value pair if invalid
+        }
+        return KeyValuePair{currentEntry->key, currentEntry->value};
+    }
+```
+This is to make sure that empty data is printed as empty and not garbage data.
+* Adjusted begin() function to return end() instead of 
+```cpp 
+return Iterator(this, TABLE_SIZE, nullptr);
+```
+which is exactly what end() already has inside. This is just to be neater.
 
 =============================================================================
 
@@ -136,10 +167,41 @@ If you want to Utilize this Library. Please include the
 * Adjusted Library Keywords
 ### Version 1.1.2: 
 * Added new getElement() Function that returns an element at a specific index in the Hashtable
-### Version 1.1.3: [Latest-Release]
+### Version 1.1.3-BETA: 
 * Added New getKey() Function for Iterator
 * Added New getValue() Function for Iterator
 * Added New find() Function for Iterator.
+### Version 1.1.3: [Latest-Release]
+* RESOLVED ISSUE: Iterator Iterates out of bounds (Issue #85)
+* RESOLVED ISSUE: Resizing corrupts data in hashtable (Issue #81)
+* RESOLVED ISSUE: get() and getElement() returning incorrectly (Issue #82)
+* Added new operator[] function that allows you to access elements by index in the Hashtable
+* Added new getBucket() function that returns the bucket at a specific index in the Hashtable
+* Added new getBucketSize() function that returns the size of a bucket at a specific index in the Hashtable
+* Added new debugIterator() function that iterates the table and prints out the [key, value] pairs.
+* Adjusted Iterator operator* function. 
+[FROM THIS]
+```cpp
+    KeyValuePair operator*() const {
+        
+        return KeyValuePair{currentEntry->key, currentEntry->value};
+    }
+```
+[TO THIS]
+```cpp
+    KeyValuePair operator*() const {
+        if (!currentEntry) {
+            return KeyValuePair{"", ""}; // Return an empty key-value pair if invalid
+        }
+        return KeyValuePair{currentEntry->key, currentEntry->value};
+    }
+```
+This is to make sure that empty data is printed as empty and not garbage data.
+* Adjusted begin() function to return end() instead of 
+```cpp 
+return Iterator(this, TABLE_SIZE, nullptr);
+```
+which is exactly what end() already has inside. This is just to be neater.
 
 
 
@@ -150,7 +212,7 @@ Here's an example of how to use the `Hashtable` class:
 
 ```cpp
 #include <Hashtable.h>
-#include <Arduino.h>
+#include <Arduino.h> // IF YOU ARE USING ARDUNINO's IDE, IGNORE THIS LINE
 int main() {
     Hashtable<int, String> dictionary;
 
@@ -161,7 +223,15 @@ int main() {
 
     // Retrieve values using keys
     String value = dictionary.getElement(2);
-    Serial.println("Value for key 2: ");
+    Serial.println("Value for key 2: " + value);
+
+    //Another way of retrieving values using keys
+    String* value = dictionary.get(3);
+    if (value != nullptr) {
+        Serial.println("Value of key1: " + *value);
+    } else {
+        Serial.println("Key1 not found");
+    }
 
     // Remove a key-value pair
     dictionary.remove(1);
@@ -174,13 +244,32 @@ int main() {
     }
 
     // Iterate through the keys
-    Hashtable<int, String>::HashtableIterator it = dictionary.keys();
-    while (it.hasNext()) {
-        int key = it.next();
-        Serial.println("Key" + key);
+    for (auto it = dictionary.begin(); it != dictionary.end(); ++it) {
+        auto kv = *it;
+        Serial.print("Iterator output: Key: ");
+        Serial.print(kv.key);
+        Serial.print(", Value: ");
+        Serial.println(kv.value);
     }
 
-    return 0;
+    //inbuilt iterator/debug tool
+    dictionary.debugIterator();
+
+    //Verify Bucket Data
+    void debugTable() {
+        for (int i = 0; i < dictionary.bucketCount(); ++i) {
+            Serial.print("Bucket ");
+            Serial.print(i);
+            Serial.print(": ");
+            auto entry = dictionary.getBucket(i); // Use a method to get the bucket by index
+            while (entry != nullptr) {
+                Serial.print(entry->key + " -> " + entry->value + ", ");
+                entry = entry->next;
+            }
+            Serial.println();
+        }
+    }
+
 }
 
 ```

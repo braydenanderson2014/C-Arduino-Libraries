@@ -27,6 +27,23 @@ public:
     }
 
     /**
+    * @brief COPY Constructor
+    */
+    ArrayList(const ArrayList<T>& list){
+        array = new T[arrayCapacity];
+        this -> type = list.type;
+        this -> inititalSize = list.initialSize;
+        this -> arrayCapacity = list.arrayCapacity + this -> arrayCapacity;
+        this -> count = list.count;
+
+        for(int i = 0; i < list.Size(); i++){
+            array.add(list.get(i));
+        }
+        list.clear();
+        list.~ArrayList();
+    }
+
+    /**
      * @brief Destroys the ArrayList.
      *
      * This destructor deletes the ArrayList and frees the memory allocated for it.
@@ -138,6 +155,42 @@ public:
         array[index] = item;
         ++count;
         return true;
+    }
+
+    /**
+     * @brief Overloads the assignment operator to copy the contents of another ArrayList to this ArrayList.
+     */
+    ArrayList& operator =(const ArrayList<T>& list){
+        if(this == &list){
+            return *this;
+        }
+        delete[] array;
+
+        array = new T[arrayCapacity];
+        array.type= list.type;
+        array.inititalSize = list.initialSize;
+        array.arrayCapacity = list.arrayCapacity + array.arrayCapacity;
+        array.count = list.count;
+
+        for(int i = 0; i < list.Size(); i++){
+            array.add(list.get(i));
+        }
+        list.clear();
+        list.~ArrayList();
+
+        return *this;
+    }
+
+
+    /**
+     * @brief Overloads the [] operator to access items in the ArrayList.
+     * 
+     */
+    T& operator [] (size_t index){
+        if(index >= size){
+            return T();
+        }
+        return array[index];
     }
 
     /**
