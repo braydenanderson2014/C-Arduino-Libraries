@@ -8,7 +8,7 @@
 
     Created  month day year   // 02/18/2024
     By author's name braydenanderson2014 (Brayden Anderson)
-    Modified day month year  // 02/18/2024
+    Modified day month year  // 01/07/2025
     By author's name  braydenanderson2014 (Brayden Anderson)
 
     https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/Release/README.md
@@ -28,10 +28,10 @@ int main() {
 
     // Retrieving values by key
     int appleCount = myHashtable.getElement("apple");
-    int bananaCount = myHashtable.getElement("banana");
+    int* bananaCount = myHashtable.get("banana");
 
     Serial.println("Apple count: " + appleCount);
-    Serial.println("Banana count: " + bananaCount);
+    Serial.println("Banana count: " + *bananaCount);
 
     // Removing a key-value pair
     myHashtable.remove("cherry");
@@ -52,6 +52,28 @@ int main() {
         Serial.println(myHashtable.getElement(key)); // Get the value associated with the key
         Serial.println(*myHashtable.get(key)); // Get the value associated with the key using a pointer
     }
+
+    // Iterating through values
+    SimpleVector<int> values = myHashtable.values(); // Get a vector of all the values in the hashtable
+    for (int value : values) { // Iterate through the values, using a range-based for loop
+        Serial.println("Value: " + value);
+    }
+
+    //Alternative way to iterate through the hashtable
+    for (auto it = myHashtable.begin(); it != myHashtable.end(); ++it) {
+        auto kv = *it;
+        Serial.print("Key: ");
+        Serial.print(kv.key);
+        Serial.print(", Value: ");
+        Serial.println(kv.value);
+    }
+
+    //debugging the hashtable iterator
+    myHashtable.debugIterator();
+
+    // Clearing the hashtable
+    myHashtable.clear();
+
 
     return 0;
 }

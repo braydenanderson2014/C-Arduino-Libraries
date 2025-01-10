@@ -1,140 +1,81 @@
-#include <Arduino.h>
-#include <ArrayList.h>
+#include "Hashtable.h"
+Hashtable<String, String> table;
 
-ArrayList<String> list;
-unsigned long lastMillis = 0;
-void setup(){
-    Serial.begin(9600);
-    while(!Serial);
-    delay(5000);
-    list.add("1234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 0: " + list.get(0));
-    delay(1000);
 
-    list.add("2234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 1: " + list.get(1));
-    delay(1000);
+void debugTable();
+void setup() {
+    Serial.begin(9600); // Start Serial Connection
 
-    list.add("3234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 2: " + list.get(2));
-    delay(1000);
-
-    list.add("4234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 3: " + list.get(3));
-    delay(1000);
-
-    list.add("5234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 4: " + list.get(4));
-    delay(1000);
-
-    list.add("6234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 5: " + list.get(5));
-    delay(1000);
-
-    list.add("7234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 6: " + list.get(6));
-    delay(1000);
-
-    list.add("8234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 7: " + list.get(7));
-    delay(1000);
-
-    list.add("9234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 8: " + list.get(8));
-    delay(1000);
-
-    list.add("A234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 9: " + list.get(9));
-    delay(1000);
-
-    list.add("B234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 10: " + list.get(10));
-    delay(1000);
-
-    list.add("C234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 11: " + list.get(11));
-    delay(1000);
-
-    list.add("D234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 12: " + list.get(12));
-    delay(1000);
-
-    list.add("E234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 13: " + list.get(13));
-    delay(1000);
-
-    list.add("F234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 14: " + list.get(14));
-    delay(1000);
-
-    list.add("G234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 15: " + list.get(15));
-    delay(1000);
+    //ADD ELEMENTS TO THE TABLE
+    table.put("key1", "value1");
+    table.put("key2", "value2");
+    table.put("key3", "value3");
+    table.put("key4", "value4");
+    table.put("key5", "value5");
+    table.put("key6", "value6");
+    table.put("key7", "value7");
+    table.put("key8", "value8");
+    table.put("key9", "value9");
+    table.put("key10", "value10");
+    table.put("key11", "value11");
+    table.put("key12", "value12");
+    table.put("key13", "value13");
+    table.put("key14", "value14");
+    table.put("key15", "value15");
+    table.put("key16", "value16");
+    table.put("key17", "value17");
+    table.put("key18", "value18");
+    table.put("key19", "value19");
+    table.put("key20", "value20");
     
-    list.add("H234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 16: " + list.get(16));
-    delay(1000);
 
-    list.add("I234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 17: " + list.get(17));
-    delay(1000);
+    Serial.println("Size: " + String(table.size()));
+    Serial.println("Elements: " + String(table.elements()));
+    Serial.println("Is Empty: " + String(table.isEmpty()));
 
-    list.add("J234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 18: " + list.get(18));
-    delay(1000);
-
-    list.add("K234567890ABCDEF12345678");
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
-    Serial.println("Element at index 19: " + list.get(19));
-    delay(1000);
-
-    Serial.println("Removing Now Printing");
-    for(int i = 0; i < list.size(); i++){
-        Serial.println(list.get(i));
+    /*
+    for (auto it = table.begin(); it != table.end(); ++it) {
+        auto kv = *it;
+        Serial.print("Iterator output: Key: ");
+        Serial.print(kv.key);
+        Serial.print(", Value: ");
+        Serial.println(kv.value);
     }
-    Serial.println("Size: " + String(list.size()));
-    Serial.println("Capacity: " + String(list.capacity()));
+    */
+    //debugTable();
+    Serial.println("Iterator complete");
+
+
+
+
+    String* value = table.get("key1");
+    if (value != nullptr) {
+        Serial.println("Value of key1: " + *value);
+    } else {
+        Serial.println("Key1 not found");
+    }
+
+    String value2 = table.getElement("key2");
+    Serial.println("Value of key2: " + value2);
+
 }
 
+void debugTable() {
+    for (int i = 0; i < table.bucketCount(); ++i) {
+        Serial.print("Bucket ");
+        Serial.print(i);
+        Serial.print(": ");
+        auto entry = table.getBucket(i); // Use a method to get the bucket by index
+        while (entry != nullptr) {
+            Serial.print(entry->key + " -> " + entry->value + ", ");
+            entry = entry->next;
+        }
+        Serial.println();
+    }
+}
+
+
+
 void loop(){
-    
+
 }

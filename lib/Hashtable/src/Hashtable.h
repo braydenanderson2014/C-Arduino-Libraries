@@ -120,6 +120,17 @@ private:
     int hash(const K& key) const {
         return hashFunction(key) % TABLE_SIZE;
     }
+
+    /**
+    * @brief Calculates the index of a key in the hash table
+    * @details This function calculates the index of a key in the hash table.
+    * @param key The key to calculate the index for
+    * @param tableSize The size of the hash table
+    * @return The index of the key in the hash table
+    */
+    int calculateIndex(const K& key, int tableSize) const {
+        return hashFunction(key) % tableSize;
+    }
  // Private function to resize the hash table
     /**
      * @brief Resize the hash table
@@ -136,6 +147,8 @@ private:
      * @return Whether or not the resize was successful
     */
     bool resize(int newSize) {
+        Serial.print("Resizing to new size: ");
+        Serial.println(newSize);
         Entry** newTable = new Entry*[newSize]();
         if (!newTable) {
             return false; // Memory allocation failed
@@ -145,7 +158,12 @@ private:
             Entry* entry = table[i];
             while (entry) {
                 Entry* next = entry->next;
-                int index = hash(entry->key) % newSize; // Hash with respect to the new table size
+                int index = calculateIndex(entry->key, newSize); // Hash with respect to the new table size
+                Serial.print("Rehashing: Key: ");
+                Serial.print(entry->key);
+                Serial.print(", New Index: ");
+                Serial.println(index);
+                
                 entry->next = newTable[index];
                 newTable[index] = entry;
                 entry = next;
@@ -182,16 +200,25 @@ public:
         */
         void goToNextEntry() {
             if (currentEntry && currentEntry->next) {
+                // Move to the next entry in the current bucket
                 currentEntry = currentEntry->next;
             } else {
-                do {
-                    currentBucket++;
-                    if (currentBucket < hashtable->TABLE_SIZE) {
+                // Move to the next bucket with entries
+                currentEntry = nullptr;  // Reset currentEntry to avoid stale data
+                while (++currentBucket < hashtable->TABLE_SIZE) {
+                    if (hashtable->table[currentBucket]) {
                         currentEntry = hashtable->table[currentBucket];
+                        break;
                     }
-                } while (!currentEntry && currentBucket < hashtable->TABLE_SIZE - 1);
+                }
+                // Stop incrementing if beyond the last bucket
+                if (currentBucket >= hashtable->TABLE_SIZE) {
+                    currentBucket = hashtable->TABLE_SIZE; // Cap to table size
+                }
             }
         }
+
+
 
     public:
          // Define the dereference operator to return a key-value pair.
@@ -204,6 +231,9 @@ public:
          * @note This operator returns a key-value pair.
         **/
         KeyValuePair operator*() const {
+            if (!currentEntry) {
+                return KeyValuePair{"", ""}; // Return an empty key-value pair if invalid
+            }
             return KeyValuePair{currentEntry->key, currentEntry->value};
         }
 
@@ -240,8 +270,11 @@ public:
          * @return Whether or not the iterators are not equal
         */
         bool operator!=(const Iterator& other) const {
-            return currentEntry != other.currentEntry || currentBucket != other.currentBucket;
+           // Ensure both currentEntry and currentBucket match
+           return currentEntry != other.currentEntry || currentBucket != other.currentBucket;
         }
+
+
 
         /**
          * @brief Prefix increment operator
@@ -291,6 +324,8 @@ public:
             }
             return values;
         }
+
+        
     };
 
     /**
@@ -309,7 +344,7 @@ public:
                 return Iterator(this, i, table[i]);
             }
         }
-        return Iterator(this, TABLE_SIZE, nullptr);
+        return end();
     }
 
     /**
@@ -383,7 +418,18 @@ public:
      * @note If the key already exists, the value will be overwritten.
     */
     void put(const K& key, const V& value) {
-        int index = hash(key);
+        int index = calculateIndex(key, TABLE_SIZE);
+        Serial.print("Put: Key: ");
+        Serial.print(key);
+        Serial.print(", Hash: ");
+        Serial.print(hashFunction(key));
+        Serial.print(", Index: ");
+        Serial.println(index);
+        Serial.print("Calculate Index: Key: ");
+
+        Serial.print(", Table Size: ");
+        Serial.print(TABLE_SIZE);
+
         Entry* entry = table[index];
         while (entry != nullptr) {
             if (entry->key == key) {
@@ -420,7 +466,16 @@ public:
      * @return The value associated with the key
     */
     V* get(const K& key) const {
-        int index = hash(key);
+        int index = calculateIndex(key, TABLE_SIZE);
+        Serial.print("Get: Key: ");
+        Serial.print(key);
+        Serial.print(", Hash: ");
+        Serial.print(hashFunction(key));
+        Serial.print(", Index: ");
+        Serial.println(index);
+        Serial.print(", Table Size: ");
+        Serial.print(TABLE_SIZE);
+
         Entry* entry = table[index];
         while (entry != nullptr) {
             if (entry->key == key) {
@@ -439,7 +494,16 @@ public:
      * @return The value associated with the key, or a default constructed object if key not found.
     */
     V getElement(const K& key) const {
-        int index = hash(key);
+        int index = calculateIndex(key, TABLE_SIZE);
+        Serial.print("Get: Key: ");
+        Serial.print(key);
+        Serial.print(", Hash: ");
+        Serial.print(hashFunction(key));
+        Serial.print(", Index: ");
+        Serial.println(index);
+        Serial.print(", Table Size: ");
+        Serial.print(TABLE_SIZE);
+
         Entry* entry = table[index];
         while (entry != nullptr) {
             if (entry->key == key) {
@@ -485,7 +549,7 @@ public:
      * @param key The key to check for
     */
     bool exists(const K& key) const {
-        int index = hash(key);
+        int index = calculateIndex(key, TABLE_SIZE);
         Entry* entry = table[index];
         while (entry != nullptr) {
             if (entry->key == key) {
@@ -512,7 +576,7 @@ public:
      * @return Whether or not the key exists in the hash table
     */
     bool exists(const K& key, V& value) const {
-        int index = hash(key);
+        int index = calculateIndex(key, TABLE_SIZE);
         Entry* entry = table[index];
         while (entry != nullptr) {
             if (entry->key == key) {
@@ -537,7 +601,7 @@ public:
      * @return Whether or not the key was removed
     */
     bool remove(const K& key) {
-        int index = hash(key);
+        int index = calculateIndex(key, TABLE_SIZE);
         Entry* current = table[index];
         Entry* prev = nullptr;
 
@@ -605,10 +669,12 @@ public:
      * @note This function is used to check to see if the load factor is greater than or equal to the load factor threshold and resizes, and rehashes if it is.
      * 
     */
-    void checkLoadFactorAndRehash() {
+    bool checkLoadFactorAndRehash() {
+        bool success = false;
         if (loadFactor() >= loadFactorThreshold) {
-            resize(TABLE_SIZE * 2);
+            success = resize(TABLE_SIZE * 2);
         }
+        return success;
     }
 
     // Inside Hashtable
@@ -769,6 +835,109 @@ public:
         return values;
     }
 
+    //operator[]
+    /**
+     * @brief Get the value associated with a key
+     * @details This function gets the value associated with a key.
+     * 
+     * @note This function is defined inside the Hashtable class.
+     * @note This function is used to get the value associated with a key.
+     * @note This function takes the key as a parameter.
+     * 
+     * @param key The key to get the value for
+     * 
+     * @return The value associated with the key
+    */
+    V& operator[](const K& key) {
+        int index = hash(key);
+        Entry* entry = table[index];
+        while (entry != nullptr) {
+            if (entry->key == key) {
+                return entry->value;
+            }
+            entry = entry->next;
+        }
+        // If the key does not exist, create a new entry with the default value
+        V defaultValue = V();
+        put(key, defaultValue);
+        return table[index]->value;
+    }
+
+    /**
+     * @brief Get the value associated with a key
+     * @details This function gets the value associated with a key.
+     * 
+     * @note This function is defined inside the Hashtable class.
+     * @note This function is used to get the value associated with a key.
+     * @note This function takes the key as a parameter.
+     * 
+     * @param key The key to get the value for
+     * 
+     * @return The value associated with the key
+    */
+    const V& operator[](const K& key) const {
+        int index = hash(key);
+        Entry* entry = table[index];
+        while (entry != nullptr) {
+            if (entry->key == key) {
+                return entry->value;
+            }
+            entry = entry->next;
+        }
+        // If the key does not exist, return the default value
+        return V();
+    }
+
+    //get bucket
+
+    /**
+     * @brief Get the bucket associated with a key
+     * @details This function gets the bucket associated with a key.
+     * 
+     * @note This function is defined inside the Hashtable class.
+     * @note This function is used to get the bucket associated with a key.
+     * @note This function takes the key as a parameter.
+     * 
+     * @param key The key to get the bucket for
+     * 
+     * @return The bucket associated with the key
+    */
+    Entry* getBucket(int index) const {
+        if (index >= 0 && index < TABLE_SIZE) {
+            return table[index];
+        }
+        return nullptr;
+    }
+
+    //getbucketsize
+    size_t getBucketSize(int index) const {
+        if (index >= 0 && index < TABLE_SIZE) {
+            return bucketSize(index);
+        }
+        return 0;
+    }
+
+    /**
+     * @brief Inbuilt function to print the hash table.
+     * @details This function prints the hash table by iterating over it using the Iterator class.
+     * 
+     * @note Function can be used as a normal Iterator or an example of an iterator if you dont feel
+     * like trying to set it up yourself. :)
+     */
+    void debugIterator() {
+        Serial.println("[HASHTABLE]: Debugging Iterator:");
+        auto it = begin();
+        while (it != end()) {
+            auto kv = *it;
+            Serial.print("[HASHTABLE ITERATOR]: Key: ");
+            Serial.print(kv.key);
+            Serial.print(", Value: ");
+            Serial.println(kv.value);
+            ++it;
+        }
+        Serial.println("[HASHTABLE]: Iterator completed successfully.");
+
+    }
 
 };
 

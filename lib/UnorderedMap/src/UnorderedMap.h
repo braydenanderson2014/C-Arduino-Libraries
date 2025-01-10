@@ -1,212 +1,241 @@
 #ifndef UNORDERED_MAP_H
 #define UNORDERED_MAP_H
 
-#include "Hashtable.h"
+#include <Arduino.h>
+#include <stddef.h>
 
-template <typename KeyType, typename ValueType, typename Hash = KeyHash<KeyType>>
+template <typename KeyType, typename ValueType>
 class UnorderedMap {
 private:
-    Hashtable<KeyType, ValueType, Hash> hashtable = Hashtable<KeyType, ValueType, Hash>();
+    struct Node {
+        KeyType key;
+        ValueType value;
+        Node* next;
+    };
+
+    Node** table;  // Array of pointers to linked lists (buckets)
+    size_t capacity; // Size of the table
+    size_t count; // Number of key-value pairs in the map
+    float loadFactor; // Maximum load factor before resizing
+
+    size_t hash(const KeyType& key) const; // Hash function
+    void resize(); // Resize the hashtable
 
 public:
-    // Forward the constructor arguments
-    // Forward the constructor arguments
-    UnorderedMap(size_t initialCapacity = 16, float loadFactor = 0.7) : hashtable(initialCapacity, loadFactor) {}
+    UnorderedMap(size_t initialCapacity = 16, float loadFactor = 0.75); // Constructor
+    ~UnorderedMap(); // Destructor
 
+    void put(const KeyType& key, const ValueType& value); // Add or update a key-value pair
+    ValueType getValue(const KeyType& key) const; // Get the value associated with the given key
+    bool contains(const KeyType& key) const; // Check if the given key is present in the map
+    bool remove(const KeyType& key); // Remove the key-value pair with the given key
+    void clear(); // Remove all key-value pairs from the map
+    size_t size() const; // Get the number of key-value pairs in the map
+    bool isEmpty() const; // Check if the map is empty
 
-    // Forward the destructor
-    ~UnorderedMap() = default;
+    // Indexing support
+    Node& operator[](size_t index) const; // Get the node at the given index
 
-    // Forward the put operation
-    /**
-     * @brief Put a key-value pair into the map
-     * @param key The key to insert
-     * @param value The value to insert
-     * 
-     * @implements Hashtable::put
-     * @note If the key already exists, the value will be overwritten.
-     * 
-     */
-    void put(const KeyType& key, const ValueType& value) {
-        hashtable.put(key, value);
+    // Iterator support (nested class)
+    class Iterator {
+    private:
+        Node** table;
+        size_t tableSize;
+        size_t currentIndex;
+        Node* currentNode;
+
+    public:
+        Iterator(Node** table, size_t tableSize, size_t startIndex)
+            : table(table), tableSize(tableSize), currentIndex(startIndex), currentNode(nullptr) {
+            // Move to the first non-empty bucket
+            while (currentIndex < tableSize && table[currentIndex] == nullptr) {
+                currentIndex++;
+            }
+            if (currentIndex < tableSize) {
+                currentNode = table[currentIndex];
+            }
+        }
+
+        bool operator!=(const Iterator& other) const {
+            return currentIndex != other.currentIndex || currentNode != other.currentNode;
+        }
+
+        void operator++() {
+            if (currentNode) {
+                currentNode = currentNode->next;
+            }
+            while (!currentNode && currentIndex < tableSize) {
+                currentIndex++;
+                if (currentIndex < tableSize) {
+                    currentNode = table[currentIndex];
+                }
+            }
+        }
+
+        Node& operator*() { return *currentNode; }
+        Node* operator->() { return currentNode; }
+    };
+
+    Iterator begin() const {
+        return Iterator(table, capacity, 0);
     }
 
-    // Forward the get operation (by reference and by value)
-    /**
-     * @brief Get the value associated with a key
-     * @param key The key to get the value for
-     * @return The value associated with the key
-     * 
-     * @implements Hashtable::get
-     * @note If the key does not exist, a default-constructed value will be returned.
-     * 
-     */
-    ValueType getValue(const KeyType& key) const {
-        return *hashtable.get(key);
+    Iterator end() const {
+        return Iterator(table, capacity, capacity);
+    }
+};
+
+template <typename KeyType, typename ValueType>
+UnorderedMap<KeyType, ValueType>::UnorderedMap(size_t initialCapacity, float loadFactor)
+    : capacity(initialCapacity), count(0), loadFactor(loadFactor) {
+    table = new Node*[capacity];
+    for (size_t i = 0; i < capacity; ++i) {
+        table[i] = nullptr;
+    }
+}
+
+template <typename KeyType, typename ValueType>
+UnorderedMap<KeyType, ValueType>::~UnorderedMap() {
+    clear();
+    delete[] table;
+}
+
+template <typename KeyType, typename ValueType>
+size_t UnorderedMap<KeyType, ValueType>::hash(const KeyType& key) const {
+    return static_cast<size_t>(key) % capacity; // Replace with an appropriate hash function
+}
+
+template <typename KeyType, typename ValueType>
+void UnorderedMap<KeyType, ValueType>::resize() {
+    size_t newCapacity = capacity * 2;
+    Node** newTable = new Node*[newCapacity];
+    for (size_t i = 0; i < newCapacity; ++i) {
+        newTable[i] = nullptr;
     }
 
-    KeyType getKey(const KeyType& key) const {
-        return hashtable.getKey(key);
-    }
-    // Forward the containsKey operation
-    /**
-     * @brief Check if a key exists in the map
-     * @param key The key to check for
-     * @return Whether or not the key exists in the map
-     * 
-     * @implements Hashtable::containsKey
-     * 
-     */
-    bool contains(const KeyType& key) const {
-        return hashtable.containsKey(key);
+    for (size_t i = 0; i < capacity; ++i) {
+        Node* node = table[i];
+        while (node) {
+            Node* next = node->next;
+            size_t newIndex = static_cast<size_t>(node->key) % newCapacity;
+            node->next = newTable[newIndex];
+            newTable[newIndex] = node;
+            node = next;
+        }
     }
 
-    // Forward the remove operation
-    /**
-     * @brief Remove a key-value pair from the map
-     * @param key The key to remove
-     * @return Whether or not the key was removed
-     * 
-     * @implements Hashtable::remove
-     * 
-     */
-    bool remove(const KeyType& key) {
-        hashtable.remove(key);
-        if(contains(key)){
-            return false;
-        } else {
+    delete[] table;
+    table = newTable;
+    capacity = newCapacity;
+}
+
+template <typename KeyType, typename ValueType>
+void UnorderedMap<KeyType, ValueType>::put(const KeyType& key, const ValueType& value) {
+    if ((float)count / capacity >= loadFactor) {
+        resize();
+    }
+
+    size_t index = hash(key);
+    Node* node = table[index];
+    while (node) {
+        if (node->key == key) {
+            node->value = value;
+            return;
+        }
+        node = node->next;
+    }
+
+    Node* newNode = new Node{key, value, table[index]};
+    table[index] = newNode;
+    count++;
+}
+
+template <typename KeyType, typename ValueType>
+ValueType UnorderedMap<KeyType, ValueType>::getValue(const KeyType& key) const {
+    size_t index = hash(key);
+    Node* node = table[index];
+    while (node) {
+        if (node->key == key) {
+            return node->value;
+        }
+        node = node->next;
+    }
+    return ValueType();
+}
+
+template <typename KeyType, typename ValueType>
+bool UnorderedMap<KeyType, ValueType>::contains(const KeyType& key) const {
+    size_t index = hash(key);
+    Node* node = table[index];
+    while (node) {
+        if (node->key == key) {
             return true;
         }
+        node = node->next;
     }
+    return false;
+}
 
-    // Forward the clear operation
-    /**
-     * @brief Clear the map
-     * 
-     * @implements Hashtable::clear
-     * 
-     */
-    void clear() {
-        return hashtable.clear();
-    }
-
-    // Forward the size operation
-    /**
-     * @brief Get the number of elements in the map
-     * @return The number of elements in the map
-     * 
-     * @implements Hashtable::elements
-    */
-    size_t getSize() const {
-        return hashtable.elements();
-    }
-
-    // Forward the capacity operation
-    /**
-     * @brief Get the capacity of the map
-     * @return The capacity of the map
-     * 
-     * @implements Hashtable::size
-     * 
-     */
-    size_t getCapacity() const {
-        return hashtable.size();
-    }
-
-    // Forward the isEmpty operation
-    /**
-     * @brief Check if the map is empty
-     * @return Whether or not the map is empty
-     * 
-     * @implements Hashtable::isEmpty
-     * 
-     */
-    bool isEmpty() const {
-        return hashtable.isEmpty();
-    }
-
-    // Provide a begin() iterator operation
-    /**
-     * @brief Get an iterator to the beginning of the map
-     * @return An iterator to the beginning of the map
-    */
-    typename Hashtable<KeyType, ValueType, Hash>::Iterator begin() const {
-        return hashtable.begin();
-    }
-
-    // Provide an end() iterator operation
-    /**
-     * @brief Get an iterator to the end of the map
-     * @return An iterator to the end of the map
-    */
-    typename Hashtable<KeyType, ValueType, Hash>::Iterator end() const {
-        return hashtable.end();
-    }
-
-    // Forward other operations as needed...
-    // Inside UnorderedMap
-    /**
-     * @brief Get the hash function used by the map
-     * @return The hash function used by the map
-     * 
-    */
-    Hash hashFunction() const {
-        return hashtable.hashFunction;
-    }
-
-    // Inside UnorderedMap
-    /**
-     * @overload operator[] 
-     * Overloads the subscript operator
-     * 
-     * This function is used to access or modify elements in the map.
-     * If the key does not exist in the map, a new element with the key and a default-constructed value is inserted.
-     * 
-     * @param key The key of the element to be accessed or modified.
-     * @return Reference to the value associated with the key.
-    */
-    ValueType& operator[](const KeyType& key) {
-        // Attempt to get the value, and if it doesn't exist, insert a new one
-        ValueType* value = hashtable.get(key);
-        if (!value) {
-            hashtable.put(key, ValueType());
-            value = hashtable.get(key);
+template <typename KeyType, typename ValueType>
+bool UnorderedMap<KeyType, ValueType>::remove(const KeyType& key) {
+    size_t index = hash(key);
+    Node* current = table[index];
+    Node* prev = nullptr;
+    while (current) {
+        if (current->key == key) {
+            if (prev) {
+                prev->next = current->next;
+            } else {
+                table[index] = current->next;
+            }
+            delete current;
+            count--;
+            return true;
         }
-        return *value;
+        prev = current;
+        current = current->next;
     }
+    return false;
+}
 
-    // Inside UnorderedMap
-    /**
-     * Finds an element with a specific key in the hashtable.
-     * 
-     * This function is used to find an element in the map by its key.
-     * It returns an iterator pointing to the element if the key is found, 
-     * otherwise it returns an iterator pointing to the end of the map.
-     * 
-     * @param key The key of the element to be found.
-     * @return An iterator pointing to the element if found, otherwise an iterator pointing to the end of the map.
-    */
-    typename Hashtable<KeyType, ValueType, Hash>::Iterator find(const KeyType& key) const {
-        return hashtable.find(key); // Assuming Hashtable has a find method
+template <typename KeyType, typename ValueType>
+void UnorderedMap<KeyType, ValueType>::clear() {
+    for (size_t i = 0; i < capacity; ++i) {
+        Node* node = table[i];
+        while (node) {
+            Node* temp = node;
+            node = node->next;
+            delete temp;
+        }
+        table[i] = nullptr;
     }
+    count = 0;
+}
 
-   /**
-     * @brief Returns whether a specific key exists in the hashtable.
-     * 
-     * This function is used to check if a key is present in the map.
-     * If the key exists in the map, it returns 1, otherwise it returns 0.
-     * 
-     * @param key The key to be checked in the map.
-     * @return 1 if the key exists in the map, 0 otherwise.
-    */
-    size_t count(const KeyType& key) const {
-        return hashtable.containsKey(key) ? 1 : 0;
+template <typename KeyType, typename ValueType>
+size_t UnorderedMap<KeyType, ValueType>::size() const {
+    return count;
+}
+
+template <typename KeyType, typename ValueType>
+bool UnorderedMap<KeyType, ValueType>::isEmpty() const {
+    return count == 0;
+}
+
+template <typename KeyType, typename ValueType>
+typename UnorderedMap<KeyType, ValueType>::Node& UnorderedMap<KeyType, ValueType>::operator[](size_t index) const {
+    size_t current = 0;
+    for (size_t i = 0; i < capacity; ++i) {
+        Node* node = table[i];
+        while (node) {
+            if (current == index) {
+                return *node;
+            }
+            node = node->next;
+            current++;
+        }
     }
-
-// Implement equal_range if needed, returning a pair of iterators
-
-// Key equality is implicit in your design, so you can provide a placeholder if needed.
-
-};
+    return *table[0]; // Return the first element if index is out of bounds
+}
 
 #endif // UNORDERED_MAP_H

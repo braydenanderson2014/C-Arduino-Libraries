@@ -1,6 +1,6 @@
 {
     "name": "Hashtable",
-    "version": "1.1.2",
+    "version": "1.1.3",
     "description": "A hashtable implementation for Arduino",
     "keywords": ["Hashtable", "Hashtable Iterator", "Hash", "Table", "Dynamic Hashtable", "Arduino Hashtable", "Arduino Hash", "Arduino Table", "Arduino Dynamic Hashtable", "Hashset", "Arduino Hashset", "Arduino Dynamic Hashset", "Key-Value Pairs"],
     "repository": {
@@ -38,129 +38,6 @@
         "Data Structures",
         "Dynamic Data Structures",
         "Utilities"
-    ],
-    "ChangeLog": [
-        {
-            "version": "1.0.0",
-            "date": "2023-10-25",
-            "changes": [
-                "Initial release",
-                "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
-                "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them." 
-            ]
-        },
-        {
-            "version": "1.0.1",
-            "date": "2023-10-25",
-            "changes": [
-                "Added Example for how the library works (Example.cpp)",
-                "Added Example for how the library works (Example2.cpp)",
-                "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
-                "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them."   
-            ]
-
-        },
-        {
-            "version": "1.0.2",
-            "date": "2023-10-26",
-            "changes": [
-                "Added Dynamic Downsize for the Vector to save memory (Useful for Memory Constrained Environments Such As Arduino)",
-                "Added This ChangeLog :)",   
-                "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
-                "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them."
-            ]
- 
-        },
-        {
-            "version": "1.0.3",
-            "date": "2023-10-28",
-            "changes": [
-                "Updated Included Libraries to Latest Version",
-                "Added merge Function that allows you to merge two Hashtables together"
-            ]
-        },
-        {
-            "version": "1.0.4",
-            "date": "2023-11-03",
-            "changes": [
-                "Fixed Issue with get function: Conversion from 'int' to 'const String' is ambiguous. -> Issue appears to happen when you use the get function with a int as the key",
-                "Fixed Hashing Issue: Hashing was not working correctly, causing the get function to not work correctly",
-                "Added containsKey() Function: This function allows you to check if a key exists in the Hashtable",
-                "Added containsValue() Function: This function allows you to check if a value exists in the Hashtable"
-            ]
-        },
-        {
-            "version": "1.0.5",
-            "date": "2023-11-06",
-            "changes": [
-                "Added Iterator to the Hashtable: This allows you to iterate through the Hashtable",
-                "This Iterator is Untested, Please Report any bugs you find if you use it"
-            ]
-        },
-        {
-            "version": "1.0.6",
-            "date": "2023-11-07",
-            "changes": [
-                "Fixed Iterator: Iterator was getting stuck",
-                "Fixed clear() Function: clear() function was not clearing the Hashtable or was getting stuck at times.",
-                "Added elements() function to return the number of elements currently on the table.",
-                "Adjusted size() function to return current capacity",
-                "Adjusted clear() function to properly clear the table"
-            ]
-        },
-        {
-            "version": "1.0.7",
-            "date": "2023-11-09",
-            "changes": [
-                "New Overloaded Constructor to allow you to set the initial capacity and load factor",
-                "Added new loadFactor() function to return the current calculated load factor",
-                "Added new checkLoadFactorAndRehash() which checks the load factor and rehashes the table if needed",
-                "Added new bucketCount() function to return the number of buckets in the table",
-                "Added new bucketSize() function to return the size of a bucket",
-                "All new functions are untested, please report any bugs you find!",
-                "These functions are desinged to open up the library to allow you to use it in more ways, such as using it as a hashset"
-            ]
-        },
-        {
-            "version": "1.0.8",
-            "date": "2023-11-11",
-            "changes": [
-                "Added [HASHTABLE]: to the start of all Serial.print() statements to make it easier to debug"
-            ]
-        },
-        {
-            "version": "1.0.9",
-            "date": "2023-11-26",
-            "changes": [
-                "Modified the Constructor to accept a boolean value to allow you to disable the Serial.print() statements",
-                "Added support for 3 new types: float, double, boolean",
-                "Please note you can add your own specializations for other types if you wish, please see the README.md for more information"
-            ]
-        },
-        {
-            "version": "1.1.0",
-            "date": "2024-01-30",
-            "changes": [
-                "Added new exists() Function that only takes in 1 parameter, the key, this function returns a boolean value",
-                "Added function comments.",
-                "Added new values() Function that returns a SimpleVector of all the values in the Hashtable"
-            ]
-        },
-        {
-            "version": "1.1.1",
-            "date": "2024-02-02",
-            "changes": [
-                "Emergency Patch: Fixed an issue where the Constructor wasnt properly overloaded.",
-                "Adjusted Library Keywords"
-            ]
-        },
-        {
-            "version": "1.1.2",
-            "date": "2024-02-18",
-            "changes": [
-                "Added new getElement() Function that returns an element at a specific index in the Hashtable"
-            ]
-        }
     ],
 
     "Notes": "This library is a work in progress. It has been mostly tested now and is considered mostly stable, however issue may still arise, please report any bugs you find!"

@@ -21,10 +21,14 @@ goToNextEntry	KEYWORD2
 operator*	KEYWORD2
 operator!=	KEYWORD2
 operator++	KEYWORD2
+operator[] KEYWORD2
+find KEYWORD2
 begin	KEYWORD2
 end	KEYWORD2
 put	KEYWORD2
 get	KEYWORD2
+getElement  KEYWORD2
+calculateIndex KEYWORD2
 exists	KEYWORD2
 remove	KEYWORD2
 clear	KEYWORD2
@@ -32,6 +36,9 @@ loadFactor	KEYWORD2
 checkLoadFactorAndRehash	KEYWORD2
 bucketCount	KEYWORD2
 bucketSize	KEYWORD2
+getBucket KEYWORD2
+getBucketSize KEYWORD2
+debugIterator KEYWORD2
 size	KEYWORD2
 isEmpty	KEYWORD2
 elements	KEYWORD2
@@ -39,6 +46,8 @@ keys	KEYWORD2
 containsKey	KEYWORD2
 containsValue	KEYWORD2
 values	KEYWORD2
+getKeys KEYWORD2
+getValues KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

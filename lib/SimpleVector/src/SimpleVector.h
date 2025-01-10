@@ -216,7 +216,7 @@ public:
 
     // Overload [] operator for const objects.
     const T& operator[](unsigned int index) const{
-        if (index >= count || index < 0){
+        if (index >= count){
             return nullptr; // You can handle this error differently if needed
         }
         return array[index];

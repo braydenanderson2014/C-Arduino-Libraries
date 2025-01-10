@@ -14,6 +14,7 @@
     https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/Release/README.md
 
 */
+#include <Arduino.h>
 #include <Hashtable.h>
 
 // Custom class for values
