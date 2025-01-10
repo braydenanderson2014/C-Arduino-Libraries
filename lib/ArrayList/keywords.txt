@@ -45,12 +45,15 @@ setSortAlgorithm KEYWORD2
 getSortAlgorithm KEYWORD2
 begin	KEYWORD2
 end	KEYWORD2
+resize KEYWORD2
+resize2 KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
 #######################################
 FIXED	LITERAL1
 DYNAMIC	LITERAL1
+DYNAMIC2 LITERAL1
 BUBBLE_SORT	LITERAL1
 QUICK_SORT	LITERAL1
 MERGE_SORT LITERAL1

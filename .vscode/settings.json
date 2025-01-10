@@ -6,6 +6,11 @@
         "new": "cpp",
         "cstring": "cpp",
         "initializer_list": "cpp",
+
+        "*.tcc": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "vector": "cpp"
         "vector": "cpp",
         "xstring": "cpp",
         "array": "cpp",

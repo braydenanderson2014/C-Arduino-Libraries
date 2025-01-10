@@ -21,9 +21,14 @@
 Map<int, int> map;
 
 void setup() {
+
+    map.put(20,5);
+    map.put(30,10);
+    map.put(40,15);
+    map.put(50,20);
     // Insert a key-value pair into the map
-    map.insert(1, 2); // This will insert the key-value pair (1, 2) into the map
-    map.insert(3, 4); // This will insert the key-value pair (3, 4) into the map
+    map.insert(1, 2, 2); // This will insert the key-value pair (1, 2) into the map at position 2
+    map.insert(3, 4, 4); // This will insert the key-value pair (3, 4) into the map at position 4
 
     map.add(5, 6); // This will insert the key-value pair (5, 6) into the map
     map.add(7, 8); // This will insert the key-value pair (7, 8) into the map
@@ -45,7 +50,7 @@ void setup() {
         Serial.println("Key not found");
     }
     // Remove a key-value pair from the map
-    map.remove(1);
+    map.remove(1); // This will remove the key-value pair with key 1 from the map
 
     map.clear(); // This will clear the map
 }

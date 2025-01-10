@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 #include "Hashtable.h"
 Hashtable<String, String> table;
 

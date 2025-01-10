@@ -1,6 +1,6 @@
 {
     "name": "Map",
-    "version": "1.0.0-ALPHA",
+    "version": "1.0.0-BETA",
     "description": "A lightweight and efficient implementation of a dynamic array, suitable for use in memory-constrained environments.",
     "keywords": ["Arduino", "Map", "Data", "Data Structure", "Maps", "Dynamic Array", "Array", "List", "Key Value Pair"],
     "Repositories": [

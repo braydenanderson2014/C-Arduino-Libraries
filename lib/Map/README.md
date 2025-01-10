@@ -63,6 +63,29 @@ for (auto it = ageMap.begin(); it != ageMap.end(); ++it) {
 }
 
 ```
+# Arduino Library Manager
+## ChangeLog
+### Version 1.0.0-ALPHA:
+* Initial Release
+### Version 1.0.0-BETA:
+* Fixed an issue with the [] override operator. It would not properly count the amount of items.
+* Fixed the Insert Function. The original version was no different then the add and put function. It now properly inserts an item at the specified index.
+* Added new removeAtIndex() function to allow you to remove an item at an index.
+* Added new getIndex() function that allows you to get an index of a certain key value pair by feeding it the key.
+* Added Function Comments
+
+# PlatformIO Library Manager
+## ChangeLog
+### Version 1.0.0-ALPHA:
+* Initial Release
+### Version 1.0.0-BETA:
+* Fixed an issue with the [] override operator. It would not properly count the amount of items.
+* Fixed the Insert Function. The original version was no different then the add and put function. It now properly inserts an item at the specified index.
+* Added new removeAtIndex() function to allow you to remove an item at an index.
+* Added new getIndex() function that allows you to get an index of a certain key value pair by feeding it the key.
+* Added Function Comments
+
+
 ## Contribution
 Contributions to the Map library are welcome. Whether you're fixing bugs, adding new features, or improving the documentation, your help will enhance this library for the Arduino community.
 

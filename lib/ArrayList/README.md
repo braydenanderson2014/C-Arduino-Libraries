@@ -45,17 +45,37 @@ This library is heavily based around the Java ArrayList Class. Almost all functi
 - `toArray(T* outputArray)` : Transforms an ArrayList to a normal Array.
 - `sublist(size_t fromIndex, size_t toIndex)` : Creates a new List out of the specified index range.
 - `clone()` : Clones the ArrayList.
+- `clone(int initialCapacity)` : Clones the Arraylist... The clone will have the specified default capacity.
 - `ensureCapacity(size_t minCapacity)` : resizes the ArrayList to the specified capacity.
 - `trimToSize()` : This method is used to trim the capacity of an ArrayList instance to the list's current size (capacity of the ArrayList will be set to the number of elements currently stored)
-- `sort(bool (*comparator)(T, T)) ` : Sorts the ArrayList according to the argument parameters
+- `sort(bool (*comparator)(T, T))` : Chooses which sort algorithm to use based off the current set Algorithm
+- `sort(bool (*comparator)(T, T), SortAlgorithm algorithm) ` : Chooses which sort algorithm to use based off of the specified sort algorithm.
+- `setSortAlgorithm(SortAlgorithm algorithm = MERGE_SORT)`: Set the global Sort Algorithm
+- `getSortAlgorithm()` : Gets the Global Sort Algorithm
+- `mergeSort(ArrayList<T>& list, int l, int r)`
+- `quickSort(bool (*comparator)(T, T))`
+-` bubbleSort(bool (*comparator)(T, T))`
 - `resize()` : Private function: resizes the List
+- `resize2()`: Private function that resizes the List. This is slower then the resize() function but more accurate. [DEFAULT]
 - `removeAt(T item)` : Private Function: Removes an item at the index specified (remove function utilizes this function to work)
-
-
+- `swap(T* a, T* b)`
+- `merge(ArrayList<T>& list, int l, int m, int r)`
+- `quickSortHelper(bool (*comparator)(T, T), int low, int high) `
+- `partition(bool (*comparator)(T, T), int low, int high)`
 
 #### Specific Iterator Functions
 - `begin()` : Defines the Iterator Start Position
 - `end()` : Defines the Iterator Stop Position
+
+#### Sort Options:
+- BUBBLE_SORT 
+- QUICK_SORT 
+- MERGE_SORT
+
+### Size Types:
+- FIXED: Fixed size list that cannot be resized
+- DYNAMIC: Dynamically resizes the list based off of the capacity and size factors.
+- DYNAMIC2: More Reliable then DYNAMIC, but it is technically slower. [DEFAULT]
 
 
 #### **Please Note, You can use a Simple for-loop instead of the iterator. It will work the same. The iterator is only there for those who like to utilize them**
@@ -72,7 +92,7 @@ To use the `ArrayList` class, follow these steps:
 ## Installation
 
 ```powershell
-git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Hashtable.git"
+git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/ArrayList.git"
 
 ```
 ## Header
@@ -92,6 +112,10 @@ If you want to Utilize this Library. Please include the
 * New Sort option (MergeSort) added to the Sort Functions.
 * Added new Sort function that does not take in a Sort Paremeter. 
 * Added new Set and Get Functions for sort Algorithm
+### Version 1.0.1: [LATEST]
+* Added new resize2() function that is more reliable with Strings when copying data from 1 array to the other.
+* Added new DYNAMIC2 option to the mode enum. This is now the default option for the Arraylist.
+* Added new clone() function that allows you to specify the initial capacity of the clone.
 
 # PLATFORM IO 
 ## ChangeLog
@@ -122,6 +146,11 @@ If you want to Utilize this Library. Please include the
 * Added new Sort function that does not take in a Sort Paremeter. 
 * Added new Set and Get Functions for sort Algorithm
 * Documentation Fix... Marked the library as 1.0.4 even though it was only on version 1.0.3.
+### Version 1.0.4: [LATEST]
+* Added new resize2() function that is more reliable with Strings when copying data from 1 array to the other.
+* Added new DYNAMIC2 option to the mode enum. This is now the default option for the Arraylist.
+* Added new clone() function that allows you to specify the initial capacity of the clone.
+
 
 ** PLEASE NOTE THAT NEW FUNCTIONS HAVE NOT BEEN TESTED **
 
@@ -139,10 +168,9 @@ Here's an example of how to use the `ArrayList` class:
 ```cpp
 #include <ArrayList.h>
 #include <Arduino.h>
-ArrayList<int> List(ArrayList<int>::DYNAMIC, 10);
-ArrayList<String> myList(ArrayList<String>::FIXED, 10); // Fixed size, with a size of 10
-ArrayList<double> doubleList(ArrayList<double>::Dynamic, 10, true); //Enables Debug mode
-ArrayList<String> stringList(ArrayList<String>::FIXED, 10, false); //Keeps Debug mode Disabled.
+ArrayList<int> List(ArrayList<int>::DYNAMIC, 10); // ORIGINAL Default option, this uses memcpy to copy data from 1 array to another while resizing.
+ArrayList<String> myList(ArrayList<String>::FIXED, 10); // Fixed size, with a size of 10 [CANNOT RESIZE AT ALL!!!!]
+ArrayList<double> doubleList(ArrayList<double>::DYNAMIC2, 10); //DEFAULT OPTION: Specifies the use of resize2() function which is more reliable {BUT SLOWER!!!} 
 ArrayList<bool> boolList;
 
 int main() {
