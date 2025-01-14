@@ -521,13 +521,10 @@ public:
     bool set(size_t index, T item) {
         if (index < count) {
             array[index] = item;
-            if(array[index] == item){
-                return true;
-            }
+            return array[index] == item;
         }
-        if(index >= count){
-            return false;
-        }
+        
+        return false;
     }
 
     /**
