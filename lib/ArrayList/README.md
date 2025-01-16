@@ -112,12 +112,14 @@ If you want to Utilize this Library. Please include the
 * New Sort option (MergeSort) added to the Sort Functions.
 * Added new Sort function that does not take in a Sort Paremeter. 
 * Added new Set and Get Functions for sort Algorithm
-### Version 1.0.1: [LATEST]
+### Version 1.0.1: 
 * Added new resize2() function that is more reliable with Strings when copying data from 1 array to the other.
 * Added new DYNAMIC2 option to the mode enum. This is now the default option for the Arraylist.
 * Added new clone() function that allows you to specify the initial capacity of the clone.
+### Version 1.0.2 - BETA: [LATEST]
+* Fixed: [MERGED-PULL-REQUEST]: Fixed a bug in the set() function that wouldnt return a type boolean even when the function was supposed to return a type boolean.
 
-# PLATFORM IO 
+# PLATFORMIO 
 ## ChangeLog
 ### Version 1.0.0:
 * Initial Release 
@@ -146,10 +148,13 @@ If you want to Utilize this Library. Please include the
 * Added new Sort function that does not take in a Sort Paremeter. 
 * Added new Set and Get Functions for sort Algorithm
 * Documentation Fix... Marked the library as 1.0.4 even though it was only on version 1.0.3.
-### Version 1.0.4: [LATEST]
+### Version 1.0.4: 
 * Added new resize2() function that is more reliable with Strings when copying data from 1 array to the other.
 * Added new DYNAMIC2 option to the mode enum. This is now the default option for the Arraylist.
 * Added new clone() function that allows you to specify the initial capacity of the clone.
+### Version 1.0.5 - BETA: [LATEST]
+* Fixed: [MERGED-PULL-REQUEST]: Fixed a bug in the set() function that wouldnt return a type boolean even when the function was supposed to return a type boolean.
+
 
 
 ** PLEASE NOTE THAT NEW FUNCTIONS HAVE NOT BEEN TESTED **
