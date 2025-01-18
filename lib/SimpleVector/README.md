@@ -32,15 +32,17 @@ If you want to Utilize this Library. Please include the
 # Arduino Library Manager:
 ## Changelog: 
 ### Version 1.0.0:
-* Initial Release; On pair with Platformio Version 1.0.5
+* Initial Release; On par with Platformio Version 1.0.5
 ### Version 1.0.1:
 * Added Support for Range Based for Loops.
+* On par with Platformio Version 1.0.6
 ### Version 1.0.2:
 * Removed Uneccessary negative number check in function operator[] since its not possible for unsigned int's to be negative.
+* On par with Platformio Version 1.0.7 - BETA
 
 
-# PlatformIO Registry.
-## ChangeLog
+# PlatformIO Registry:
+## ChangeLog:
 ### Version 1.0.0:
 * Initial Release 
 ### Version 1.0.1:
@@ -75,10 +77,11 @@ If you want to Utilize this Library. Please include the
 Here's an example of how to use the `SimpleVector` class:
 
 ```cpp
-#include <iostream>
+#include <Arduino.h>
 #include "SimpleVector.h"
 
-int main() {
+void setup() {
+    Serial.begin(9600);
     // Create a SimpleVector of integers
     SimpleVector<int> intVector;
 
@@ -89,19 +92,17 @@ int main() {
 
     // Access elements using subscript operator
     int element = intVector[1];
-    std::cout << "Element at index 1: " << element << std::endl;
-
+    Serial.println("Element at index 1: " + element);
     // Remove an element
     intVector.remove(20);
 
     // Get the current size of the vector
-    std::cout << "Vector size: " << intVector.size() << std::endl;
-
+    Serial.println("Vector size: " + intVector.size());
     // Iterate over the elements using an iterator
     SimpleVector<int>::SimpleVectorIterator it = intVector.begin();
     while (it.hasNext()) {
         int value = it.next();
-        std::cout << "Element: " << value << std::endl;
+        Serial.println("Element: " + value);
     }
 
     // Release memory (optional)

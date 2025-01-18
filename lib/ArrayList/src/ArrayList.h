@@ -63,21 +63,27 @@ public:
      * @param item The item to add to the ArrayList.
     */
     void add(T item) {
-        if(sizeType == FIXED && count >= arrayCapacity){
+        if(sizeType == FIXED && count >= arrayCapacity){ //If size type is fixed and the count is greater than or equal to the array capacity, return nothing;
             return;
         }
         
         // Calculate the load factor
         float loadFactor = (float)count / arrayCapacity;
-
-        // Resize the array if the load factor is greater than or equal to 0.8
-        if (sizeType == DYNAMIC && loadFactor >= 0.8) {
+        if(loadFactor >= 0.8){ //If the load factor is greater than or equal to 0.8, resize the array
             resize();
-        } else if(sizeType == DYNAMIC2 && loadFactor >= 0.8) {
+        }
+        
+        // Resize the array if the load factor is greater than or equal to 0.8
+        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
+        /*
+        if (sizeType == DYNAMIC && loadFactor >= 0.8) { //uses original resize function. This function is less reliable but faster
+            resize();
+        } else if(sizeType == DYNAMIC2 && loadFactor >= 0.8) {// uses new resize2 function that is more reliable but slower
             resize2();
         }
+        */
         // Add the item to the array
-        if (count < arrayCapacity) {
+        if (count < arrayCapacity) { //If the count is less than the array capacity add the element. (Verifies that you arent adding an element out of bounds)
             array[count++] = item;
         }
     }
@@ -94,18 +100,26 @@ public:
      * @return true if the items were added successfully, false otherwise.
     */
     bool addAll(const ArrayList<T>& other) {
-        if (sizeType == DYNAMIC && count + other.count > arrayCapacity) {
+        bool resizeNeeded = verifyResizeNeededed(count+other.count);
+        if(resizeNeeded){
             resize();
         }
+        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
+        /*
+        if (sizeType == DYNAMIC && count + other.count > arrayCapacity) {
+            resize(); // original resize
+        }
         if(sizeType == DYNAMIC2 && count + other.count > arrayCapacity){
-            resize2();
+            resize2(); // new resize
         }
+        */
+        
         if (count + other.count <= arrayCapacity) {
-            memcpy(array + count, other.array, other.count * sizeof(T));
-            count += other.count;
-            return true;
+            memcpy(array + count, other.array, other.count * sizeof(T)); //Copies the items from the other array to the new array
+            count += other.count; //Updates the count
+            return true; //Returns true if the items were added successfully
         }
-        return false;
+        return false; //Returns false if the items were not added successfully
     }
 
     /**
@@ -121,12 +135,20 @@ public:
      * @return true if the items were added successfully, false otherwise.
     */
     bool addAll(const T* other, size_t length) {
+        bool resizeNeeded = verifyResizeNeededed(count+length);
+        if(resizeNeeded){
+            resize();
+        }
+        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
+        /*
         if (sizeType == DYNAMIC && count + length > arrayCapacity) {
             resize();
         }
         if(sizeType == DYNAMIC2 && count + length > arrayCapacity){
             resize2();
         }
+        */
+    
         if (count + length <= arrayCapacity) {
             memcpy(array + count, other, length * sizeof(T));
             count += length;
@@ -150,6 +172,12 @@ public:
         if (index > count) {
             return false;
         }
+        bool resizeNeeded = verifyResizeNeededed(count);
+        if(resizeNeeded){
+            resize();
+        }
+        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
+        /*
         if (count == arrayCapacity) {
             if (sizeType == DYNAMIC) {
                 resize();
@@ -159,6 +187,7 @@ public:
                 return false;
             }
         }
+        */
         for (size_t i = count; i > index; --i) {
             array[i] = array[i - 1];
         }
@@ -218,15 +247,22 @@ public:
         if (index > count) {
             return false;
         }
-        if (count + other.count > arrayCapacity) {
+        bool resizeNeeded = verifyResizeNeededed(count + other.count);
+        if(resizeNeeded){
+            resize();
+        }
+        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
+        /*
+        if (count + length > arrayCapacity) {
             if (sizeType == DYNAMIC) {
                 resize();
             } else if(sizeType == DYNAMIC2) {
-                resize2();
+                resize2();  
             } else {
                 return false;
             }
         }
+        */
         for (size_t i = count + other.count - 1; i >= index + other.count; --i) {
             array[i] = array[i - other.count];
         }
@@ -251,6 +287,12 @@ public:
         if (index > count) {
             return false;
         }
+        bool resizeNeeded = verifyResizeNeededed(count + length);
+        if(resizeNeeded){
+            resize();
+        }
+        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
+        /*
         if (count + length > arrayCapacity) {
             if (sizeType == DYNAMIC) {
                 resize();
@@ -260,6 +302,8 @@ public:
                 return false;
             }
         }
+        */
+        
         for (size_t i = count + length - 1; i >= index + length; --i) {
             array[i] = array[i - length];
         }
@@ -829,8 +873,13 @@ private:
      * This function resizes the ArrayList to 1.5 times its current capacity.
      * It creates a new array with the new capacity, copies the items to the new array, and deletes the old array.
      * If the new capacity is greater than the maximum size_t value, it prints an error message (if debug is true) and does not resize the ArrayList.
+     * @attention The function name has been changed to resize1() from resize() PIO: Version 1.0.5 ALM: 1.0.2
+     * 
+     * @details This function uses a different algorithm then resize2() to resize the ArrayList. This function is faster than resize2() but is less reliable.
+     * also, it resizes to 2 times it current capacity
+     * @related resize2()
     */
-    void resize() {
+    void resize1() {
         size_t newCapacity = arrayCapacity * 2;
         T* newArray = new T[newCapacity];
         memcpy(newArray, array, count * sizeof(T));
@@ -844,7 +893,18 @@ private:
         }
     }
 
-    void resize2(){
+    /**
+     * @brief Resizes the ArrayList.
+     *
+     * This function resizes the ArrayList to 1.5 times its current capacity.
+     * It creates a new array with the new capacity, copies the items to the new array, and deletes the old array.
+     * If the new capacity is greater than the maximum size_t value, it prints an error message (if debug is true) and does not resize the ArrayList.
+     * @details This uses a different algorithm then resize1() to resize the ArrayList. ADDED PIO: Version 1.0.4 ALM: 1.0.1 
+     * This function is slower then resize1() but is more reliable. Also resizes to 1.5 times its current capacity
+     * 
+     * @related resize1()
+     */
+    void resize2() {
         size_t newCapacity = arrayCapacity * 1.5;
         T* newArray = new T[newCapacity];
         for(size_t i = 0; i < count; i++){
@@ -858,6 +918,46 @@ private:
         if(tempCapacity != arrayCapacity){
             arrayCapacity = oldCapacity;
         }
+    }
+
+    /**
+     * @brief Verifies if a resize is needed.
+     *
+     * This function verifies if a resize is needed based on the number of spaces needed.
+     * If the size type is FIXED, the function returns false.
+     * If the count plus the number of spaces needed is greater than the array capacity, or the load factor is greater than 0.75, the function returns true.
+     * Otherwise, the function returns false.
+     *
+     * @param spacesNeeded The number of spaces needed in the ArrayList.
+     * @return true if a resize is needed, false otherwise.
+    */
+    bool verifyResizeNeeded(size_t spacesNeeded) {
+        if(sizeType == FIXED){
+            return false;
+        }
+        float loadFactor = (float)count / (float)arrayCapacity;
+        if(count + spacesNeeded > arrayCapacity || loadFactor > 0.75){
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @brief Resizes the ArrayList.
+     * This function calls the necessary resize functions based on the size type.
+     * If the size type is DYNAMIC, it calls resize1().
+     * If the size type is DYNAMIC2, it calls resize2().
+     * If the size type is FIXED, it does nothing. returns void
+     */
+    void resize(){
+        if(sizeType == FIXED){
+            return;
+        }
+        if(sizeType == DYNAMIC){
+            resize();
+        } else if(sizeType == DYNAMIC2){
+            resize2();
+        } 
     }
 
     /**

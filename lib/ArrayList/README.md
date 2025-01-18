@@ -118,6 +118,11 @@ If you want to Utilize this Library. Please include the
 * Added new clone() function that allows you to specify the initial capacity of the clone.
 ### Version 1.0.2 - BETA: [LATEST]
 * Fixed: [MERGED-PULL-REQUEST]: Fixed a bug in the set() function that wouldnt return a type boolean even when the function was supposed to return a type boolean.
+### Version 1.0.2: [FUTURE]
+* Adjusted all add, inserts, etc. All resize calculation logic has been moved to separate functions.
+* Renamed original resize() function to resize1() so a new resize() function can be enacted.
+* Added new resize() function that runs the check for what type of ArrayList (DYNAMIC, FIXED, DYNAMIC2) then calls the appropriate resize function if applicable (FIXED does not resize)
+* Added new verifyResizeNeeded() that checks the amount of items you want to add to see if the array can deal with it. It also checks the load factor. 
 
 # PLATFORMIO 
 ## ChangeLog
@@ -154,6 +159,11 @@ If you want to Utilize this Library. Please include the
 * Added new clone() function that allows you to specify the initial capacity of the clone.
 ### Version 1.0.5 - BETA: [LATEST]
 * Fixed: [MERGED-PULL-REQUEST]: Fixed a bug in the set() function that wouldnt return a type boolean even when the function was supposed to return a type boolean.
+### Version 1.0.5: [FUTURE]
+* Adjusted all add, inserts, etc. All resize calculation logic has been moved to separate functions.
+* Renamed original resize() function to resize1() so a new resize() function can be enacted.
+* Added new resize() function that runs the check for what type of ArrayList (DYNAMIC, FIXED, DYNAMIC2) then calls the appropriate resize function if applicable (FIXED does not resize)
+* Added new verifyResizeNeeded() that checks the amount of items you want to add to see if the array can deal with it. It also checks the load factor. 
 
 
 
