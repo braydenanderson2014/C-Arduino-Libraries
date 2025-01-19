@@ -153,6 +153,15 @@ class SDList {
         }
 
         /**
+         * @brief Get the underlying ArrayList object
+         * 
+         * @return ArrayList<T> The underlying ArrayList object
+         */
+        ArrayList<T> getUnderlyingStructure() {
+            return arrayList;
+        }
+
+        /**
          * @brief Begin the SDList object
          * 
          * @param csPin The chip select pin for the SD card

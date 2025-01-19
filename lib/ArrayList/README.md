@@ -123,6 +123,18 @@ If you want to Utilize this Library. Please include the
 * Renamed original resize() function to resize1() so a new resize() function can be enacted.
 * Added new resize() function that runs the check for what type of ArrayList (DYNAMIC, FIXED, DYNAMIC2) then calls the appropriate resize function if applicable (FIXED does not resize)
 * Added new verifyResizeNeeded() that checks the amount of items you want to add to see if the array can deal with it. It also checks the load factor. 
+* Added New setSizeType() and getSizeType() functions so you can change the list mode.
+* Fixed a newly discovered bug/Syntax error in the copy constructor. Calling variables that dont exist...
+Due to an oversight, the copy constructor was calling wrong variables.
+Example:
+```cpp
+this -> type = list.type;
+```
+instead of
+```cpp
+this -> sizeType = list.sizeType;
+```
+
 
 # PLATFORMIO 
 ## ChangeLog

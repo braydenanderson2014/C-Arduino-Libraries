@@ -1,0 +1,41 @@
+{
+    "name": "OrderedMap",
+    "version": "1.0.0 - BETA",
+    "description": "",
+    "keywords": [], 
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/OrderedMap.git"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "dependencies": {
+        "Arduino": "*",
+        "SDList": "*"
+    },
+    "examples": [
+        {
+            "name": "Example",
+            "base": "examples",
+            "files": [
+                "example.cpp"
+            ]
+        }
+    ],
+    "header": "Properties.h",
+    "headers": [
+        "Arduino.h",
+        "SD.h",
+        "SDList.h",
+        "ArrayList.h"
+    ],
+    "Notes": "This library is designed to be simple and easy to use. It mimicks the Java Properties class. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author. To install this library, please use the the Properties.h header file.",
+    "license": "Apache-2.0"
+}

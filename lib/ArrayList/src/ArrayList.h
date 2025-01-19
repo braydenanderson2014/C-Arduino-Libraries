@@ -31,12 +31,11 @@ public:
     */
     ArrayList(const ArrayList<T>& list){
         array = new T[arrayCapacity];
-        this -> type = list.type;
-        this -> inititalSize = list.initialSize;
+        this -> sizeType = list.sizeType;
         this -> arrayCapacity = list.arrayCapacity + this -> arrayCapacity;
         this -> count = list.count;
 
-        for(int i = 0; i < list.Size(); i++){
+        for(int i = 0; i < list.size(); i++){
             array.add(list.get(i));
         }
         list.clear();
@@ -100,7 +99,7 @@ public:
      * @return true if the items were added successfully, false otherwise.
     */
     bool addAll(const ArrayList<T>& other) {
-        bool resizeNeeded = verifyResizeNeededed(count+other.count);
+        bool resizeNeeded = verifyResizeNeeded(count+other.count);
         if(resizeNeeded){
             resize();
         }
@@ -135,7 +134,7 @@ public:
      * @return true if the items were added successfully, false otherwise.
     */
     bool addAll(const T* other, size_t length) {
-        bool resizeNeeded = verifyResizeNeededed(count+length);
+        bool resizeNeeded = verifyResizeNeeded(count+length);
         if(resizeNeeded){
             resize();
         }
@@ -172,7 +171,7 @@ public:
         if (index > count) {
             return false;
         }
-        bool resizeNeeded = verifyResizeNeededed(count);
+        bool resizeNeeded = verifyResizeNeeded(count);
         if(resizeNeeded){
             resize();
         }
@@ -211,7 +210,7 @@ public:
         array.arrayCapacity = list.arrayCapacity + array.arrayCapacity;
         array.count = list.count;
 
-        for(int i = 0; i < list.Size(); i++){
+        for(int i = 0; i < list.size(); i++){
             array.add(list.get(i));
         }
         list.clear();
@@ -247,7 +246,7 @@ public:
         if (index > count) {
             return false;
         }
-        bool resizeNeeded = verifyResizeNeededed(count + other.count);
+        bool resizeNeeded = verifyResizeNeeded(count + other.count);
         if(resizeNeeded){
             resize();
         }
@@ -287,7 +286,7 @@ public:
         if (index > count) {
             return false;
         }
-        bool resizeNeeded = verifyResizeNeededed(count + length);
+        bool resizeNeeded = verifyResizeNeeded(count + length);
         if(resizeNeeded){
             resize();
         }
@@ -859,6 +858,14 @@ public:
             mergeSort(list, m + 1, r);
             merge(list, l, m, r);
         }
+    }
+
+    void setSizeType(SizeType type){
+        sizeType = type;
+    }
+
+    SizeType getSizeType(){
+        return sizeType;
     }
 
 private:
