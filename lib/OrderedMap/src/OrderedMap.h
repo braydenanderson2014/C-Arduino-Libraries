@@ -1,33 +1,29 @@
 #include <Arduino.h>
-#include "SDList.h"
+#include "ArrayList.h"
 
 template <typename K, typename V>
 class OrderedMap {
 private:
-    SDList<K> internalKeys ;       // Holds all keys
-    SDList<V> internalValues;     // Holds all values
+    ArrayList<K> internalKeys ;       // Holds all keys
+    ArrayList<V> internalValues;     // Holds all values
     Mode mode = MEMORY;           // Use the global Mode enum
 
 public:
-    OrderedMap()
-        : internalKeys(MEMORY, 8), internalValues(MEMORY, 1), mode(MEMORY) {
-            internalKeys.getUnderlyingStructure().setSizeType(ArrayList<K>::DYNAMIC2);
-            internalValues.getUnderlyingStructure().setSizeType(ArrayList<V>::DYNAMIC2);
-            internalValues.setMode(MEMORY);
-            internalKeys.setMode(MEMORY);
+    OrderedMap() {
+            internalKeys.setSizeType(ArrayList<K>::DYNAMIC2);
+            internalValues.setSizeType(ArrayList<V>::DYNAMIC2);
+            
         }
 
-    OrderedMap(size_t initialCapacity, Mode mode = MEMORY)
-        : internalKeys(mode, initialCapacity), internalValues(mode, initialCapacity), mode(mode) {
-            internalKeys.getUnderlyingStructure().setSizeType(ArrayList<K>::DYNAMIC2);
-            internalValues.getUnderlyingStructure().setSizeType(ArrayList<V>::DYNAMIC2);
-            internalValues.setMode(MEMORY);
-            internalKeys.setMode(MEMORY);
-        }
+    OrderedMap(size_t initialCapacity)
+        : internalKeys(initialCapacity), internalValues(initialCapacity) {
+            internalKeys.setSizeType(ArrayList<K>::DYNAMIC2);
+            internalValues.setSizeType(ArrayList<V>::DYNAMIC2);
+    }
 
     void put(K key, V value) {
-        internalKeys.append(key);
-        internalValues.append(value);
+        internalKeys.add(key);
+        internalValues.add(value);
     }
 
     V get(K key) {
@@ -69,27 +65,9 @@ public:
         internalValues.clear();
     }
 
-    SDList<K> keys() { return internalKeys; }
+    ArrayList<K> keys() { return internalKeys; }
 
-    SDList<V> values() { return internalValues; }
-
-    bool save(const String& filename) {
-        internalKeys.dumpMemoryToFile();
-        internalValues.dumpMemoryToFile();
-        return true;
-    }
-
-    bool load(const String& filename) {
-        internalKeys.readFileIntoMemory();
-        internalValues.readFileIntoMemory();
-        return true;
-    }
-
-    bool store(const String& filename, const String& comments) {
-        internalKeys.dumpMemoryToFile();
-        internalValues.dumpMemoryToFile();
-        return true;
-    }
+    ArrayList<V> values() { return internalValues; }
 
     bool exists(const String& key) { return internalKeys.contains(key); }
 
@@ -133,27 +111,4 @@ public:
         return SD.remove(oldFilename);
     }
 
-    
-
-    void swapMode() {
-        mode = (mode == MEMORY) ? SDCARD : MEMORY;
-        setMode(mode);
-    }
-
-    Mode getMode() const { return mode; }
-
-    Mode getKeyMode() const { return internalKeys.getMode(); }  
-
-    Mode getValueMode() const { return internalValues.getMode(); }
-
-    void setMode(Mode newMode) {
-        internalKeys.setMode(newMode);
-        internalValues.setMode(newMode);
-        mode = newMode;
-    }
-
-    void begin() {
-        internalKeys.begin();
-        internalValues.begin();
-    }
 };
