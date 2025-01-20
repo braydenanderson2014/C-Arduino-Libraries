@@ -13,12 +13,16 @@ public:
         : internalKeys(MEMORY, 8), internalValues(MEMORY, 1), mode(MEMORY) {
             internalKeys.getUnderlyingStructure().setSizeType(ArrayList<K>::DYNAMIC2);
             internalValues.getUnderlyingStructure().setSizeType(ArrayList<V>::DYNAMIC2);
+            internalValues.setMode(MEMORY);
+            internalKeys.setMode(MEMORY);
         }
 
     OrderedMap(size_t initialCapacity, Mode mode = MEMORY)
         : internalKeys(mode, initialCapacity), internalValues(mode, initialCapacity), mode(mode) {
             internalKeys.getUnderlyingStructure().setSizeType(ArrayList<K>::DYNAMIC2);
             internalValues.getUnderlyingStructure().setSizeType(ArrayList<V>::DYNAMIC2);
+            internalValues.setMode(MEMORY);
+            internalKeys.setMode(MEMORY);
         }
 
     void put(K key, V value) {

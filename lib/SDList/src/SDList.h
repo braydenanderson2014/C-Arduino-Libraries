@@ -139,7 +139,7 @@ class SDList {
          * @param initialCapacity Passes directly into the ArrayList constructor
          * 
         */
-        SDList(Mode mode = SDCARD, size_t initialCapacity = 8) : arrayList(ArrayList<T>::DYNAMIC, initialCapacity) {
+        SDList(Mode mode = SDCARD, size_t initialCapacity = 8) : arrayList(ArrayList<T>::DYNAMIC2, initialCapacity) {
             this -> mode = mode;
             //this -> begin(csPin);
         }
@@ -247,6 +247,8 @@ class SDList {
                 bool success = checkElement(element);
                 if(!success) {
                     addElement(element);
+                } else {
+                    Serial.println("Element already exists" + element);
                 }
             }
         }
@@ -286,6 +288,9 @@ class SDList {
                     String line;
                     while (file.available()) {
                         line = file.readStringUntil('\n');
+                        if(line == "") {
+                            continue;
+                        }
                         arrayList.add(line);  // Add each line from the file to the arrayList
                     }
                     file.close();

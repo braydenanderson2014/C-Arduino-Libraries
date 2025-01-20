@@ -84,7 +84,7 @@ public:
         // Add the item to the array
         if (count < arrayCapacity) { //If the count is less than the array capacity add the element. (Verifies that you arent adding an element out of bounds)
             array[count++] = item;
-        }
+        } 
     }
 
     /**
@@ -943,7 +943,7 @@ private:
             return false;
         }
         float loadFactor = (float)count / (float)arrayCapacity;
-        if(count + spacesNeeded > arrayCapacity || loadFactor > 0.75){
+        if(count + spacesNeeded > arrayCapacity || loadFactor >= 0.75){
             return true;
         }
         return false;
@@ -961,7 +961,7 @@ private:
             return;
         }
         if(sizeType == DYNAMIC){
-            resize();
+            resize1();
         } else if(sizeType == DYNAMIC2){
             resize2();
         } 
