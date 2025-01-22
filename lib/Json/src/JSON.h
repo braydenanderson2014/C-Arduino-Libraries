@@ -1,151 +1,136 @@
 #ifndef JSON_H
 #define JSON_H
 
-#include <CustomString.h>
-#include "SimpleVector.h"
 #include <SD.h>
+#include "CustomString.h"
+#include "SimpleVector.h"
+
+// Forward declare JSON class
+class JSON;
 
 class JSON {
 public:
+    // Possible data types in JSON
+    enum class ValueType {
+        Null,
+        Bool,
+        Number,
+        String,
+        Object,
+        Array
+    };
+
+    // A node in the JSON tree
     struct Node {
-        Custom_String::String key;
-        Custom_String::String value;
+        Custom_String::String key;       // The key name (if inside an object).
+        ValueType type;                 // What kind of value this node holds?
+        
+        // Depending on 'type', one of these will be valid:
+        bool boolValue;
+        double numberValue;
+        Custom_String::String stringValue;
+        
+        // If type == Object or Array, children will hold sub-nodes
         SimpleVector<Node> children;
 
-        Node(const Custom_String::String& key = "", const Custom_String::String& value = "") : key(key), value(value) {}
+        Node()
+            : type(ValueType::Null),
+              boolValue(false),
+              numberValue(0.0) {}
+
+        bool operator==(const Node& other) const {
+            return (key == other.key
+                    && type == other.type
+                    && boolValue == other.boolValue
+                    && numberValue == other.numberValue
+                    && stringValue == other.stringValue
+                    // possibly compare children here if desired
+                   );
+        }
     };
 
 private:
-    Node root;
+    Node root;  // Root of the JSON tree (top-level object or array)
 
 public:
-    JSON() {}
-
-    // Adds or updates a value by its path, supporting nested structures.
-    void set(const Custom_String::String& path, const Custom_String::String& value) {
-        auto& node = findOrCreateNode(path);
-        node.value = value;
+    JSON() {
+        // By default, consider the root as an OBJECT (empty).
+        root.type = ValueType::Object;
     }
 
-    // Retrieves a value by its path as a string. Returns an empty string if not found.
-    Custom_String::String get(const Custom_String::String& path) const {
-        const Node* node = findNode(path);
-        if (node) {
-            return node->value;
-        }
-        return "";
-    }
+    // ------------------------------
+    // PUBLIC: Reading & Writing
+    // ------------------------------
 
-    // Writes the JSON structure to a file.
-    void writeToFile(const Custom_String::String& filename) {
-        File file = SD.open(filename.C_STR(), FILE_WRITE);
-        if (file) {
-            Custom_String::String jsonStr;
-            serializeNode(root, jsonStr, 0);
-            file.println(jsonStr.C_STR());
-            file.close();
-        }
-    }
-    
-    //Deserializes the JSON structure from a string.
-    void readFromFile(const Custom_String::String& filename) {
-        File file = SD.open(filename.C_STR(), FILE_READ);
-        if (file) {
-            String jsonStr =file.readString();
-            Custom_String::String jsonSTR = jsonStr.c_str();
-            file.close();
-            deserializeNode(jsonSTR, root);
-        }
-    }
+    // Read JSON from a file on SD and parse it into 'root'.
+    bool readFromFile(const Custom_String::String& filename);
+
+    // Write the current JSON tree to a file on SD.
+    bool writeToFile(const Custom_String::String& filename, bool pretty = true) const;
+
+    // Parse from string directly (no file).
+    bool readFromString(const Custom_String::String& jsonStr);
+
+    // Serialize to string (in-memory).
+    Custom_String::String writeToString(bool pretty = true) const;
+
+
+    // ------------------------------
+    // PUBLIC: Typed Getters/Setters
+    // ------------------------------
+
+    void setString(const Custom_String::String& path, const Custom_String::String& value);
+    void setNumber(const Custom_String::String& path, double value);
+    void setBool(const Custom_String::String& path, bool value);
+    void setNull(const Custom_String::String& path);
+
+    // Overload for arrays: create or expand array at that path
+    void pushBack(const Custom_String::String& path, const Custom_String::String& value);
+    void pushBack(const Custom_String::String& path, double value);
+    void pushBack(const Custom_String::String& path, bool value);
+
+    // Retrieve typed data (returns default if not found or type mismatch)
+    Custom_String::String getString(const Custom_String::String& path, const Custom_String::String& defaultVal = "") const;
+    double getNumber(const Custom_String::String& path, double defaultVal = 0.0) const;
+    bool getBool(const Custom_String::String& path, bool defaultVal = false) const;
+    bool isNull(const Custom_String::String& path) const;
+
+    // Remove a node (object member or array element) by path
+    bool remove(const Custom_String::String& path);
+
+    // Access the root node directly if needed
+    const Node& getRoot() const { return root; }
+    Node& getRoot() { return root; }
+    bool operator==(const Node& other) const ;
 
 private:
-    // Recursively finds or creates a node based on a path.
-    Node& findOrCreateNode(const Custom_String::String& path) {
-        size_t pos = 0;
-        Node* node = &root;
-        while ((pos = path.indexOf('.', pos)) != Custom_String::String::NPOS) {
-            Custom_String::String key = path.Sub_String(0, pos);
-            node->children.push_back(Node(key));
-            node = &node->children.back();
-            pos++;
-        }
-        return *node;
-    }
+    // --------------- Parsing Helpers ---------------
+    // A minimal JSON parser
+    bool parse(const Custom_String::String& json);
+    bool parseValue(const char* &p, Node &node);
+    bool parseObject(const char* &p, Node &node);
+    bool parseArray(const char* &p, Node &node);
+    bool parseString(const char* &p, Custom_String::String &out);
+    bool parseNumber(const char* &p, double &out);
+    bool parseBool(const char* &p, bool &out);
+    bool parseNull(const char* &p);
 
-    // Recursively searches for a node by path.
-    const Node* findNode(const Custom_String::String& path, const Node* currentNode = nullptr) const {
-        if (!currentNode) {
-            currentNode = &root;
-        }
-        size_t pos = path.indexOf('.');
-        if (pos == Custom_String::String::NPOS) {
-            for (const auto& child : currentNode->children) {
-                if (child.key == path) {
-                    return &child;
-                }
-            }
-        } else {
-            Custom_String::String key = path.Sub_String(0, pos);
-            Custom_String::String rest = path.Sub_String(pos + 1, path.size() - pos - 1);
-            for (const auto& child : currentNode->children) {
-                if (child.key == key) {
-                    return findNode(rest, &child);
-                }
-            }
-        }
-        return nullptr;
-    }
+    void skipWhitespace(const char* &p);
 
-    void serializeNode(const Node& node, Custom_String::String& output, int depth) const {
-    for (const auto& child : node.children) {
-        // Create indentation String
-        Custom_String::String indentation(depth * 2, ' ');
-        
-        // Key with quotes
-        Custom_String::String keyWithQuotes = (Custom_String::String)"\"" + child.key + "\": ";
-        
-        // Concatenate indentation, key with quotes
-        output += indentation + keyWithQuotes;
+    // --------------- Serialization Helpers ---------------
+    void serializeNode(const Node &node, Custom_String::String &out, int indentLevel, bool pretty) const;
+    void serializeValue(const Node &node, Custom_String::String &out, int indentLevel, bool pretty) const;
 
-        if (!child.children.isEmpty()) {
-            output += "{\n";
-            serializeNode(child, output, depth + 1);
-            output += indentation + "},\n";
-        } else {
-            // Value with quotes
-            Custom_String::String valueWithQuotes = (Custom_String::String)"\"" + child.value + "\",\n";
-            output += valueWithQuotes;
-        }
-    }
-}
+    // --------------- Path Helpers ---------------
+    Node* findOrCreateNode(const Custom_String::String& path, bool createIntermediate);
+    Node* findNode(const Custom_String::String& path) const;
+    Node* findNodeImpl(Node* current, const Custom_String::String& path, int startIndex, bool createIntermediate) const;
 
+    // --------------- Remove Helpers ---------------
+    bool removeChild(Node &parent, const Custom_String::String &keyOrIndex);
 
-    // Deserializes the JSON structure from a string.
-    void deserializeNode(const Custom_String::String& input, Node& node) {
-        size_t pos = 0;
-        while (pos < input.size()) {
-            size_t keyStart = input.indexOf('\"', pos);
-            if (keyStart == Custom_String::String::NPOS) {
-                break;
-            }
-            size_t keyEnd = input.indexOf('\"', keyStart + 1);
-            if (keyEnd == Custom_String::String::NPOS) {
-                break;
-            }
-            size_t valueStart = input.indexOf('\"', keyEnd + 1);
-            if (valueStart == Custom_String::String::NPOS) {
-                break;
-            }
-            size_t valueEnd = input.indexOf('\"', valueStart + 1);
-            if (valueEnd == Custom_String::String::NPOS) {
-                break;
-            }
-            Custom_String::String key = input.Sub_String(keyStart + 1, keyEnd - keyStart - 1);
-            Custom_String::String value = input.Sub_String(valueStart + 1, valueEnd - valueStart - 1);
-            node.children.push_back(Node(key, value));
-            pos = valueEnd + 1;
-        }
-    }
+    // Utility to convert a substring to int
+    int toInt(const Custom_String::String& s) const { return atoi(s.C_STR()); }
 };
 
 #endif // JSON_H

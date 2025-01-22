@@ -126,6 +126,17 @@ public:
         count = 0; // Reset the count
     }
 
+    /**
+     * @brief Removes an item by index instead of feeding in the item itself.
+     * 
+     * @public This method is public
+     * 
+     * @date Added: 01/20/2025
+     * @version Added Version 1.0.7 (PlatformIO) and Version 1.02 (Arduino Library Manager)
+     */
+    void erase(int index){
+        remove(get(index));
+    }
 
 //Changed to put() for better naming conventions.
     /**
@@ -215,12 +226,14 @@ public:
 
 
     // Overload [] operator for const objects.
-    const T& operator[](unsigned int index) const{
-        if (index >= count){
-            return nullptr; // You can handle this error differently if needed
+    const T& operator[](unsigned int index) const {
+        static T dummy = T();
+        if (index >= count) {
+            return dummy;
         }
         return array[index];
     }
+
     /**
      * @brief Get the size of the vector
      * @return The size of the vector
@@ -252,11 +265,21 @@ public:
      * @return Reference to the element at the specified index
     */
     T& get(unsigned int index) {
+        static T dummy = T();
         if (index >= count) {
-            return nullptr; // You can handle this error differently if needed
+            return dummy;
         }
         return array[index];
     }
+
+    //NEW
+    T* getPtr(unsigned int index) {
+        if (index >= count) {
+            return nullptr;
+        }
+        return &array[index];
+    }
+
 
 
     bool isEmpty() const {

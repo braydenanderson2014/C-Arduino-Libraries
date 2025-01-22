@@ -275,6 +275,13 @@ struct Custom_String {
             Copy(temp);
         }
 
+        // Constructor with double
+        String(double value) : String() {
+            char temp[32]; // big enough for typical double -> string
+            // Use either sprintf (if available) or dtostrf in Arduino
+            SPRINTF(temp, "%f", value); 
+            Copy(temp);
+        }
 
         // DeSTRuctor
         /**
@@ -389,6 +396,15 @@ struct Custom_String {
             }
             return *this;
         }
+
+        String& operator=(double value) {
+            char temp[32];
+            SPRINTF(temp, "%f", value);
+            *this = temp;
+            return *this;
+        }
+
+
 
         /**
          * A simplified implementation of the sprintf function.
