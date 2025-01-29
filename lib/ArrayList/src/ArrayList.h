@@ -32,7 +32,7 @@ public:
     ArrayList(const ArrayList<T>& list){
         array = new T[arrayCapacity];
         this -> type = list.type;
-        this -> inititalSize = list.initialSize;
+        this -> initalSize = list.initialSize;
         this -> arrayCapacity = list.arrayCapacity + this -> arrayCapacity;
         this -> count = list.count;
 
@@ -178,7 +178,7 @@ public:
 
         array = new T[arrayCapacity];
         array.type= list.type;
-        array.inititalSize = list.initialSize;
+        array.initalSize = list.initialSize;
         array.arrayCapacity = list.arrayCapacity + array.arrayCapacity;
         array.count = list.count;
 
