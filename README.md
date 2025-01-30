@@ -1,5 +1,5 @@
 # C-Arduino-Libraries
-### All Libraries are contained under the `lib` folder. For Best Editing Results, Open Parent folder this README.md File is contained inside. This will make the whole Project Available to check out. The `src` folder contains the main project `main.cpp` that you can use to test the Libraries. Follow the directions for the Libraries to import them into your project and set them up correctly. Down below is a list of all Libraries and their status's. You can use the list to go directly to each Libraries infromation. It should be identical to the readme files contained inside each library folder.
+### All Libraries are contained under the `lib` folder. For Best Editing Results, Open Parent folder this README.md File is contained inside. This will make the whole Project Available to check out. The `src` folder contains the main project `main.cpp` that you can use to test the Libraries. The 'Test' folder is where you can write unit tests and test the libraries (Or your code) with the Unity library. Just enable the dependency in the 'platformio.ini' file. Follow the directions for the Libraries to import them into your project and set them up correctly. Down below is a list of all Libraries and their status's. You can use the list to go directly to each Libraries infromation. It should be identical to the readme files contained inside each library folder. Some libraries are available on Arduino Library Manager. These libraries are listed below. Please note not all Arduino library versions are up to date with the platformio versions. If the library is listed with `[ON-PAR]`, this means the versions are the same. But if it is not listed, it may not be the same version. Arduino versions have their own repository, however if you encounter issues, please report them on this repository and just mention which version you are using. Thank you!
 
 ### CONSIDER SUPPORTING ME: https://gofund.me/923e5f10
 
@@ -9,33 +9,46 @@
 
 ## List of All Available Libraries ## [WARNING]: Tested/Partially Tested BY AUTHOR
 * [Dictionary](#dictionary-class) [DEVELOPMENT-COMPLETE] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING-NOT-NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
-* [Hashtable](#hashtable-class) [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED], [STABLE]
+* [Hashtable](#hashtable-class) [PASSIVE-DEVELOPMENT], [TESTED], [STABLE]
 * [iostream](#iostream-class) [PASSIVE-DEVELOPMENT] (Published as : BasicIOStream), [PARTIALLY-TESTED], [STABLE]
 * [iterator](#iterator-class) [DEVELOPMENT-COMPLETE], (PURE VIRTUAL : No Concrete Implementation in this Library)  [TESTING-NOT-NECESSARY] 
 * [Properties](#properties-class) [PASSIVE-DEVELOPMENT] (Published as : SimpleProperties), [MOSTLY-TESTED], [STABLE]
-* [SimpleVector](#simplevector-class) [PASSIVE-DEVELOPMENT] , [MOSTLY-TESTED], [STABLE]
-* [Timer](#timer-class) [PASSIVE_DEVELOPMENT] (Published as : SimpleArduinoTimer), [MOSTLY-TESTED]
+* [SimpleVector](#simplevector-class) [PASSIVE-DEVELOPMENT] , [TESTED], [STABLE]
+* [Timer](#timer-class) [PASSIVE_DEVELOPMENT] (Published as : SimpleArduinoTimer), [MOSTLY-TESTED], [SEMI-STABLE]
 * [UnorderedMap](#unorderedmap-class) [PASSIVE-DEVELOPMENT], [PARTIALLY-TESTED], [STABLE]
 * [LinkedList](#linkedlist-class) [PASSIVE-DEVELOPMENT] (Published as : BasicLinkedList), [PARTIALLY-TESTED], [STABLE]
 * [DoubleLinkedList](#doublelinkedlist-class) [PASSIVE-DEVELOPMENT], [PARTIALLY-TESTED], [STABLE]
 * [MyDictionary](#mydictionary-class) [ACTIVE-DEVELOPMENT],(implemented Version of the Dictionary Class), [UNTESTED]
-* [SDList](#sdlist-class) [PASSIVE-DEVELOPMENT], [REIMPLEMENTED], [MOSTLY-TESTED], [CONSIDERED-STABLE]
-* [ArrayList](#arraylist-class) [PASSIVE-DEVELOPMENT], [MOSTLY-TESTED]
+* [SDList](#sdlist-class) [PASSIVE-DEVELOPMENT], [REIMPLEMENTED], [MOSTLY-TESTED], [UNSTABLE]
+* [ArrayList](#arraylist-class) [PASSIVE-DEVELOPMENT], [TESTED], [STABLE]
 * [SimpleMutex](#simplemutex-class) [ACTIVE-DEVELOPMENT]
 * [SimpleThreadManager](#simplethreadmanager-class) [ACTIVE-DEVELOPMENT]
 * [Operators](#operators-class) [PASSIVE-DEVELOPMENT], [STABLE]
 * [Predicates](#predicates-class) [PASSIVE-DEVELOPMENT], [STABLE]
 * [TypeTraits](#typetraits-library) [PASSIVE-DEVELOPMENT], [STABLE]
-* [Numeric_Limits](#numeric-limits-library-for-arduino) [ACTIVE-DEVELOPMENT], [STABLE]
+* [Numeric_Limits](#numeric-limits-library-for-arduino) [PASSIVE-DEVELOPMENT], [STABLE]
 * [Map](#map-library-for-arduino) [ACTIVE-DEVELOPMENT], [STABLE], [PARTIALLY-TESTED]
+* [Queue](#queue-library-for-arduino) [PASSIVE-DEVELOPMENT], [STABLE]
+* [Stack](#stack-library-for-arduino) [PASSIVE-DEVELOPMENT], [STABLE]
+* [Predicates](#predicates-class) [PASSIVE-DEVELOPMENT], [UNTESTED]
+* [Operators](#operators-class) [PASSIVE-DEVELOPMENT], [UNTESTED]
+* [MatrixMath](#matrixmath-library-for-arduino) [PASSIVE-DEVELOPMENT], [UNTESTED]
+* [MathLib](#mathlib-for-arduino) [PASSIVE-DEVELOPMENT], [UNTESTED]
+* [ColorManager](#colormapper-library) [PASSIVE-DEVELOPMENT], [UNTESTED]
+* [InitializerList](#initializer-list-library-for-arduino) [PASSIVE-DEVELOPMENT], [UNTESTED]
 
 
-Total Available Libraries: (40)
-Total Libraries: (43)
+Total Available Libraries: (42)
+Total Libraries: (48)
 
 ## ACTIVELY WORKING ON LISTED LIBRARIES (Bug Fixing or Feature Adding):
 1.  [SimpleMutex]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
 2.  [SimpleThreadManager]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
+3.  [OrderedMap]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
+4.  [JSON]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
+5.  [STRING]() [ACTIVE-DEVELOPMENT], [UNPUBLISHED]
+6.  [MemoryManager](#memory-management)
+
 
 =======
 
@@ -46,23 +59,20 @@ Total Libraries: (43)
 4. [BINARY Tree](#binary-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
 5. [B+ Tree](#b-plus-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
 6. [B Tree](#btree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
-7. [ColorMapper](#colormapper-library) [ACTIVE-DEVELOPMENT], [TESTING]
-8. [FenwickTree](#fenwick-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
-9. [HeapTree](#heap-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
-10. [InitializerList](#initializer-list-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
-11. [IntervalTree](#interval-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
-12. [KDimensionalTree](#k-dimensional-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
-13. [MathLib](#mathlib-for-arduino)  [ACTIVE-DEVELOPMENT], [TESTING]
-15. [MatrixMath](#matrixmath-library-for-arduino)[ACTIVE-DEVELOPMENT], [TESTING]
-16. [OCTree](#octree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
-17. [QuadTree](#quadtree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
-18. [Queue](#queue-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
-19. [RedBlackTree](#red-black-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
-20. [RTree](#r-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
-21. [SegmentTree](#segment-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
-22. [Stack](#stack-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING] 
-23. [Suffixtree](#suffix-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING] 
-24. [TrieTree](#trie-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+7. [FenwickTree](#fenwick-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+8. [HeapTree](#heap-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+9. [InitializerList](#initializer-list-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+10. [IntervalTree](#interval-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+11. [KDimensionalTree](#k-dimensional-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+12. [MathLib](#mathlib-for-arduino)  [ACTIVE-DEVELOPMENT], [TESTING]
+13. [MatrixMath](#matrixmath-library-for-arduino)[ACTIVE-DEVELOPMENT], [TESTING]
+14. [OCTree](#octree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+15. [QuadTree](#quadtree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+16. [RedBlackTree](#red-black-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+17. [RTree](#r-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+18. [SegmentTree](#segment-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
+19. [Suffixtree](#suffix-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING] 
+20. [TrieTree](#trie-tree-library-for-arduino) [ACTIVE-DEVELOPMENT], [TESTING]
 
 =======
 
@@ -81,48 +91,60 @@ Total Libraries: (43)
 
 ## ALL LIBRARIES INCLUDE A README.md ##
 
-# PlatformIO Leaderboard for these Libraries (Out of /13,940 Libraries on the Platform) UPDATED 03/22/2024 11:11am Mountain
-## Library Name: Position (Increase or Decrease) Downloads Month-To-Date, Total Downloads
-* ArrayList: 1,805; 8 Downloads MTD; *22 Downloads*
-* Dictionary: 2705; 1 Download MTD; *8 Downloads*
-* SimpleArduinoTimer: 5259; 2 Downloads MTD; *5 Downloads*
-* UnorderedMap: 1,923; 14 Downloads MTD; *19 Downloads*
-* SimpleProperties: 2,063; 6 Downloads MTD; *13 Downloads*
-* Iterator: 2704; 1 Download MTD; *9 Downloads*
-* BasicIO: 956; 30 Downloads MTD; *130 Downloads*
-* SDList: 2706; 5 Downloads MTD; *3 Downloads*
-* Hashtable: 1317; 24 Downloads MTD; *35 Downloads*
-* SimpleVector: 1190; 21 Downloads MTD; *37 Downloads*
-* MyDictionary: 13,611; 0 Downloads MTD; *0 Downloads* :(
-* Operators: 3,855; 2 Download MTD; *2 Download*
-* Predicates: 3,856; 2 Downloads MTD; *2 Download*
-* BasicLinkedList: 13,610; 0 Downloads MTD; *5 Downloads*
-* DoubleLinkedList: 5,268; 0 Downloads MTD; *0 Downloads* :(
-* TypeTraits: 2724; 2 Download MTD; *2 Downloads*
-* AVLTree: 13,841; 0 Download MTD; *0 Downloads*
-* BinarySearchTree: 13,842; 0 Download MTD; *0 Downloads*
-* BinaryTree: 13,843; 0 Download MTD; *0 Downloads*
-* B+ Tree: 13,844; 0 Download MTD; *0 Downloads*
-* B Tree: 13,845; 0 Download MTD; *0 Downloads*
-* ColorManager: 13,846; 0 Download MTD; *0 Downloads*
-* FenwickTree: 13,847; 0 Download MTD; *0 Downloads*
-* HeapTree: 13,848; 0 Download MTD; *0 Downloads*
-* InitializerList: 1932; 3 Download MTD; *3 Downloads*
-* IntervalTree: 13,849; 0 Download MTD; *0 Downloads*
-* KDimensionalTree: 13,850; 0 Download MTD; *0 Downloads*
-* MathLib: 2724; 2 Download MTD; *2 Downloads*
+# PlatformIO Leaderboard for these Libraries (Out of /15,214 Libraries on the Platform) UPDATED 01/29/2025 09:08pm Mountain
+## Library Name: Position Downloads-Month-To-Date, Total Downloads
+* ArrayList: 1,100; 26 Downloads MTD; *22 Downloads*
+* Dictionary: 14,128; 0 Download MTD; *8 Downloads*
+* SimpleArduinoTimer: 3,947; 2 Downloads MTD; *5 Downloads*
+* UnorderedMap: 3,952; 2 Downloads MTD; *19 Downloads*
+* SimpleProperties: 3,948; 2 Downloads MTD; *13 Downloads*
+* Iterator: 3949; 2 Download MTD; *9 Downloads*
+* BasicIO: 1679; 12 Downloads MTD; *130 Downloads*
+* SDList: 3951; 2 Downloads MTD; *3 Downloads*
+* Hashtable: 1375; 17 Downloads MTD; *35 Downloads*
+* SimpleVector: 1259; 21 Downloads MTD; *37 Downloads*
+* MyDictionary: 14,136; 0 Downloads MTD; *0 Downloads* :(
+* Operators: 14,221; 0 Download MTD; *2 Download*
+* Predicates: 14,222; 0 Downloads MTD; *2 Download*
+* BasicLinkedList: 2818(13,610); 4 Downloads MTD; *5 Downloads*
+* DoubleLinkedList: 3,250; 3 Downloads MTD; * Downloads* :)
+* TypeTraits: 3980; 2 Download MTD; *2 Downloads*
+* AVLTree: 14,422; 0 Download MTD; *0 Downloads*
+* BinarySearchTree: 14,423; 0 Download MTD; *0 Downloads*
+* BinaryTree: 14,424; 0 Download MTD; *0 Downloads*
+* B+ Tree: 14,425; 0 Download MTD; *0 Downloads*
+* B Tree: 14,426; 0 Download MTD; *0 Downloads*
+* ColorManager: 14,427; 0 Download MTD; *0 Downloads*
+* FenwickTree: 14,428; 0 Download MTD; *0 Downloads*
+* HeapTree: 14,429; 0 Download MTD; *0 Downloads*
+* InitializerList: 1379; 18 Download MTD; *3 Downloads*
+* IntervalTree: 14,430; 0 Download MTD; *0 Downloads*
+* KDimensionalTree: 14,431; 0 Download MTD; *0 Downloads*
+* MathLib: 3,982; 2 Download MTD; *2 Downloads*
 * Map: 2726; 1 Download MTD; *1 Downloads*
-* MatrixMath: 27; 0 Download MTD; *0 Downloads*
-* Numeric_Limits: 3193;  1 Download MTD; *1 Downloads*
-* OCTree: 13,851; 0 Download MTD; *0 Downloads* 
-* QuadTree: 13,852; 0 Download MTD; *0 Downloads*            
-* Queue: 13,853; 0 Download MTD; *0 Downloads*
-* RedBlackTree: 13,854; 0 Download MTD; *0 Downloads*
-* RTree: 13,855; 0 Download MTD; *0 Downloads*
-* SegmentTree: 13,856; 0 Download MTD; *0 Downloads*
-* Stack: 13,857; 0 Download MTD; *0 Downloads*
-* SuffixTree: 13,858; 0 Download MTD; *0 Downloads*
-* TrieTree: 13,859; 0 Download MTD; *0 Downloads*
+* MatrixMath: 14,444; 0 Download MTD; *0 Downloads*
+* Numeric_Limits: 3983;  2 Download MTD; *1 Downloads*
+* OCTree: 14,432; 0 Download MTD; *0 Downloads* 
+* QuadTree: 14,436; 0 Download MTD; *0 Downloads*            
+* Queue: 14,437; 0 Download MTD; *0 Downloads*
+* RedBlackTree: 14,438; 0 Download MTD; *0 Downloads*
+* RTree: 14,439; 0 Download MTD; *0 Downloads*
+* SegmentTree: 14,440; 0 Download MTD; *0 Downloads*
+* Stack: 14,441; 0 Download MTD; *0 Downloads*
+* SuffixTree: 14,442; 0 Download MTD; *0 Downloads*
+* TrieTree: 14,443; 0 Download MTD; *0 Downloads*
+
+# Libraries Published on Arduino Library Manager
+* ArrayList [ON-PAR]
+* SimpleVector [ON-PAR]
+* Hashtable [ON-PAR]
+* Properties (Simple Properties)
+* Timer (ArduinoTimer)
+* LinkedList (ArduinoLinkedList)
+* UnorderedMap 
+* DoubleLinkedList (ArduinoDoubleLinkedList)
+* SDList (Arduino SDList) [ON-PAR]
+
 
 # Dictionary Class
 
@@ -3166,4 +3188,8 @@ Make sure to comply with the library's license and respect the contributions of 
 * ACTIVE-DEVELOPMENT: Actively Building the library. Things are Extremely likely to change as things get built. The library may still be considered stable if it has been tested at all. However it is advised to use at your own risk!
 * PASSIVE-DEVELOPMENT: Library is usually tested at this point. May add features or modify a few things, especially if bugs are found. Mostly the readme files may be updated if they have not already been updated.
 * STABLE: Means the library should be functioning as intended.
+* UNSTABLE: Library May have issues.
+* SEMI-STABLE: Library may have a few issues but overall should operate as intended
 * UNPUBLISHED: Means the library has not been published on PlatformIO. This is reseverd for New Libraries that are Still being developed.
+* ON-PAR: Arduino Library Manager Version and Platformio Versions are the same
+
