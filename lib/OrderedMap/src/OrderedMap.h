@@ -2,215 +2,144 @@
 #include "ArrayList.h"
 #include <SD.h>
 #include "JSON.h"
-
+#include "TypeTraits.h"
 template <typename K, typename V>
 class OrderedMap {
 private:
-    ArrayList<K> internalKeys ;       // Holds all keys
-    ArrayList<V> internalValues;     // Holds all values
-
+    ArrayList<K> internalKeys;
+    ArrayList<V> internalValues;
     JSON json;
-    //Mode mode = MEMORY;           // Use the global Mode enum
 
-    // Recursive helper that does the real flattening
-    void flattenNodeRecursive(const JSON::Node& node,
-                              const String& prefix)
-    {
-        // Distinguish by node type
-        if (node.type == JSON::ValueType::Object) {
-            // Iterate children
-            for (int i = 0; i < node.children.size(); i++) {
-                const JSON::Node& child = node.children[i];
-
-                // Build nextKey: either child.key or prefix + "." + child.key
-                String nextKey;
-                if (prefix.length() == 0) {
-                    nextKey = child.key;
-                } else {
-                    nextKey = prefix + "." + child.key.C_STR(); // Convert child from Custom_String to C_String which is compatible with Arduino String
-                }
-                // If child is another object or an array, recurse
-                if (child.type == JSON::ValueType::Object ||
-                    child.type == JSON::ValueType::Array) 
-                {
-                    flattenNodeRecursive(child, nextKey);
-                } else {
-                    // It's a leaf: convert to string, insert into map
-                    String leafVal = nodeToString(child);
-                    this->insert(nextKey, leafVal);
-                }
-            }
-        }
-        else if (node.type == JSON::ValueType::Array) {
-            // Flatten arrays by numeric indices
-            for (int i = 0; i < node.children.size(); i++) {
-                const JSON::Node& child = node.children[i];
-                
-                // Build something like: prefix + "." + i
-                // e.g. "myArray.0", "myArray.1", etc.
-                String indexKey = prefix + ".";
-                indexKey += i; // automatically convert 'i' to string
-                
-                if (child.type == JSON::ValueType::Object ||
-                    child.type == JSON::ValueType::Array)
-                {
-                    flattenNodeRecursive(child, indexKey);
-                } else {
-                    // Leaf
-                    String leafVal = nodeToString(child);
-                    this->insert(indexKey, leafVal);
-                }
-            }
-        }
-        else {
-            // If node is a top-level leaf (rare if root isn't an object or array)
-            // Just store it at 'prefix'
-            String leafVal = nodeToString(node);
-            this->insert(prefix, leafVal);
+    // Helper functions for conversions
+    String keyToString(const K& key) const {
+        if constexpr (is_same<K, const char*>::value || is_same<K, String>::value) {
+            return String(key);
+        } else if constexpr (is_Integral<K>::value || is_floating_point<K>::value) {
+            return String(key);
+        } else {
+            return String("UnsupportedKey");
         }
     }
 
-    String nodeToString(const JSON::Node& node) {
-        switch (node.type) {
-            case JSON::ValueType::Null:
-                return "null";
-            case JSON::ValueType::Bool:
-                return node.boolValue ? "true" : "false";
-            case JSON::ValueType::Number: {
-                char buf[32];
-                dtostrf(node.numberValue, 0, 6, buf); 
-                return String(buf);
-            }
-            case JSON::ValueType::String:
-                return node.stringValue;
-            default:
-                return "";
+    String valueToString(const V& value) const {
+        if constexpr (is_same<V, const char*>::value || is_same<V, String>::value) {
+            return String(value);
+        } else if constexpr (is_Integral<V>::value || is_floating_point<V>::value) {
+            return String(value);
+        } else if constexpr (is_Bool<V>::value) {
+            return value ? "true" : "false";
+        } else {
+            return String("UnsupportedValue");
+        }
+    }
+
+    K stringToKey(const String& str) const {
+        if constexpr (is_same<K, const char*>::value) {
+            return str.c_str();
+        } else if constexpr (is_same<K, String>::value) {
+            return str;
+        } else if constexpr (is_Integral<K>::value) {
+            return static_cast<K>(str.toInt());
+        } else if constexpr (is_floating_point<K>::value) {
+            return static_cast<K>(str.toFloat());
+        } else {
+            return K(); // Default value for unsupported types
+        }
+    }
+
+    V stringToValue(const String& str) const {
+        if constexpr (is_same<V, const char*>::value) {
+            return str.c_str();
+        } else if constexpr (is_same<V, String>::value) {
+            return str;
+        } else if constexpr (is_Integral<V>::value) {
+            return static_cast<V>(str.toInt());
+        } else if constexpr (is_floating_point<V>::value) {
+            return static_cast<V>(str.toFloat());
+        } else if constexpr (is_Bool<V>::value) {
+            return (str == "true" || str == "1");
+        } else {
+            return V(); // Default value for unsupported types
         }
     }
 
 public:
-    OrderedMap() {
-            internalKeys.setSizeType(ArrayList<K>::DYNAMIC2);
-            internalValues.setSizeType(ArrayList<V>::DYNAMIC2);
-            
+    OrderedMap() = default;
+
+    void put(const K& key, const V& value) {
+        for (size_t i = 0; i < internalKeys.size(); i++) {
+            if (internalKeys.get(i) == key) {
+                internalValues.set(i, value);
+                return;
+            }
         }
-
-    OrderedMap(size_t initialCapacity)
-        : internalKeys(initialCapacity), internalValues(initialCapacity) {
-            internalKeys.setSizeType(ArrayList<K>::DYNAMIC2);
-            internalValues.setSizeType(ArrayList<V>::DYNAMIC2);
-    }
-
-    void insert(K key, V value, size_t index = size()){
-        internalKeys.insert(internalKeys.size() + 1, key);
-        internalValues.insert(internalValues.size() + 1, key);
-    }
-
-    void put(K key, V value) {
         internalKeys.add(key);
         internalValues.add(value);
     }
 
-    V get(K key) {
-        for (int i = 0; i < internalKeys.size(); i++) {
+    V get(const K& key) const {
+        for (size_t i = 0; i < internalKeys.size(); i++) {
             if (internalKeys.get(i) == key) {
                 return internalValues.get(i);
             }
         }
-        return V(); // Default value of V
+        return V();
     }
 
-    void remove(K key) {
-        for (int i = 0; i < internalKeys.size(); i++) {
-            if (internalKeys.get(i) == key) {
-                internalKeys.remove(i);
-                internalValues.remove(i);
-                return;
+    size_t size() const { return internalKeys.size(); }
+
+    // Serialize to JSON
+    void serializeToJSON(const String& filename) {
+        for (size_t i = 0; i < internalKeys.size(); i++) {
+            String keyStr = keyToString(internalKeys.get(i));
+            const V& value = internalValues.get(i);
+
+            if constexpr (is_same<V, String>::value || is_same<V, const char*>::value) {
+                json.setString(keyStr, valueToString(value));
+            } else if constexpr (is_Integral<V>::value || is_floating_point<V>::value) {
+                json.setNumber(keyStr, static_cast<double>(value));
+            } else if constexpr (is_Bool<V>::value) {
+                json.setBool(keyStr, value);
+            } else {
+                json.setString(keyStr, valueToString(value));
             }
+        }
+        Serial.println("Writing to file...");
+        json.writeToFile(filename);
+        Serial.println("Done.");
+    }
+
+    // Deserialize from JSON
+    void deserializeFromJSON(const String& filename) {
+        if (!json.readFromFile(filename)) {
+            Serial.println("Failed to read JSON file.");
+            return;
+        }
+
+        clear(); // Clear current map
+
+        const JSON::Node& root = json.getRoot();
+        for (int i = 0; i < root.children->size(); i++) {
+            const JSON::Node& child = root.children->get(i);
+
+            K key = stringToKey(child.key);
+            V value;
+
+            if (child.type == JSON::ValueType::String) {
+                value = stringToValue(child.stringValue);
+            } else if (child.type == JSON::ValueType::Number) {
+                value = static_cast<V>(child.numberValue);
+            } else if (child.type == JSON::ValueType::Bool) {
+                value = static_cast<V>(child.boolValue);
+            }
+
+            put(key, value);
         }
     }
 
-    bool containsKey(K key) {
-        for (int i = 0; i < internalKeys.size(); i++) {
-            if (internalKeys.get(i) == key) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    size_t size() { return internalKeys.size(); }
-
-    size_t capacity() { return internalKeys.capacity(); }
-
-    bool isEmpty() { return internalKeys.isEmpty(); }
-
+    // Clear the map
     void clear() {
         internalKeys.clear();
         internalValues.clear();
     }
-
-    ArrayList<K> keys() { return internalKeys; }
-
-    ArrayList<V> values() { return internalValues; }
-
-    bool exists(const K& key) { return internalKeys.contains(key); }
-
-    bool exists(const K& key, const String& value) {
-        for (int i = 0; i < internalKeys.size(); i++) {
-            if (internalKeys.get(i) == key && internalValues.get(i) == value) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool fileExists(const String& filename) { return SD.exists(filename); }
-
-    bool deleteFile(const String& filename) { return SD.remove(filename); }
-
-    bool renameFile(const String& oldFilename, const String& newFilename) {
-        File oldFile = SD.open(oldFilename, FILE_READ);
-        if (!oldFile) {
-            // Failed to open the old file
-            return false;
-        }
-
-        File newFile = SD.open(newFilename, FILE_WRITE);
-        if (!newFile) {
-            // Failed to create the new file
-            oldFile.close();
-            return false;
-        }
-
-        // Copy the contents of the old file to the new file
-        while (oldFile.available()) {
-            newFile.write(oldFile.read());
-        }
-
-        // Close both files
-        oldFile.close();
-        newFile.close();
-
-        // Delete the old file
-        return SD.remove(oldFilename);
-    }
-
-    void saveToJson(){
-        for(size_t i = 0; i <= internalKeys.size(); i++){
-            json.setString(internalKeys[i], internalValues[i]);
-        }
-        json.writeToFile("OrderedMap.txt");
-    }
-
-    void loadFromJson() {
-        json.readFromFile("OrderedMap.json");
-        fromJsonNode(json.getRoot());
-        
-    }
-
-    void fromJsonNode(const JSON::Node& rootNode, const String& prefix = "") {
-        flattenNodeRecursive(rootNode, prefix);
-    }
-
 };

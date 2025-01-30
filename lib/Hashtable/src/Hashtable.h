@@ -147,23 +147,15 @@ private:
      * @return Whether or not the resize was successful
     */
     bool resize(int newSize) {
-        Serial.print("Resizing to new size: ");
-        Serial.println(newSize);
         Entry** newTable = new Entry*[newSize]();
         if (!newTable) {
             return false; // Memory allocation failed
         }
-
         for (int i = 0; i < TABLE_SIZE; ++i) {
             Entry* entry = table[i];
             while (entry) {
                 Entry* next = entry->next;
                 int index = calculateIndex(entry->key, newSize); // Hash with respect to the new table size
-                Serial.print("Rehashing: Key: ");
-                Serial.print(entry->key);
-                Serial.print(", New Index: ");
-                Serial.println(index);
-                
                 entry->next = newTable[index];
                 newTable[index] = entry;
                 entry = next;
@@ -324,8 +316,6 @@ public:
             }
             return values;
         }
-
-        
     };
 
     /**
@@ -419,17 +409,6 @@ public:
     */
     void put(const K& key, const V& value) {
         int index = calculateIndex(key, TABLE_SIZE);
-        Serial.print("Put: Key: ");
-        Serial.print(key);
-        Serial.print(", Hash: ");
-        Serial.print(hashFunction(key));
-        Serial.print(", Index: ");
-        Serial.println(index);
-        Serial.print("Calculate Index: Key: ");
-
-        Serial.print(", Table Size: ");
-        Serial.print(TABLE_SIZE);
-
         Entry* entry = table[index];
         while (entry != nullptr) {
             if (entry->key == key) {
@@ -438,7 +417,6 @@ public:
             }
             entry = entry->next;
         }
-
         Entry* newEntry = new Entry(key, value);
         newEntry->next = table[index];
         table[index] = newEntry;
@@ -467,15 +445,6 @@ public:
     */
     V* get(const K& key) const {
         int index = calculateIndex(key, TABLE_SIZE);
-        Serial.print("Get: Key: ");
-        Serial.print(key);
-        Serial.print(", Hash: ");
-        Serial.print(hashFunction(key));
-        Serial.print(", Index: ");
-        Serial.println(index);
-        Serial.print(", Table Size: ");
-        Serial.print(TABLE_SIZE);
-
         Entry* entry = table[index];
         while (entry != nullptr) {
             if (entry->key == key) {
@@ -494,16 +463,6 @@ public:
      * @return The value associated with the key, or a default constructed object if key not found.
     */
     V getElement(const K& key) const {
-        int index = calculateIndex(key, TABLE_SIZE);
-        Serial.print("Get: Key: ");
-        Serial.print(key);
-        Serial.print(", Hash: ");
-        Serial.print(hashFunction(key));
-        Serial.print(", Index: ");
-        Serial.println(index);
-        Serial.print(", Table Size: ");
-        Serial.print(TABLE_SIZE);
-
         Entry* entry = table[index];
         while (entry != nullptr) {
             if (entry->key == key) {
@@ -560,8 +519,6 @@ public:
         return false;
     }
 
-//Changed to exists instead of get
-
     /**
      * @brief Check if a key exists in the hash table
      * @details This function checks if a key exists in the hash table.
@@ -604,7 +561,6 @@ public:
         int index = calculateIndex(key, TABLE_SIZE);
         Entry* current = table[index];
         Entry* prev = nullptr;
-
         while (current != nullptr) {
             if (current->key == key) {
                 if (prev != nullptr) {
@@ -936,9 +892,7 @@ public:
             ++it;
         }
         Serial.println("[HASHTABLE]: Iterator completed successfully.");
-
     }
-
 };
 
 #endif // HASHTABLE_H

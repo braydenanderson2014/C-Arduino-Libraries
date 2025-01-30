@@ -79,6 +79,16 @@ struct is_Integral<bool> {
 };
 
 template <typename T>
+struct is_Bool {
+    static const bool value = false;
+};
+
+template <>
+struct is_Bool<bool> {
+    static const bool value = true;
+};
+
+template <typename T>
 struct is_floating_point {
     static const bool value = false;
 };
@@ -168,6 +178,29 @@ struct is_void {
     static const bool value = false;
 };
 
+template <>
+struct is_void<void> {
+    static const bool value = true;
+};
 
+template <typename T>
+struct is_nullptr {
+    static const bool value = false;
+};
+
+template <>
+struct is_nullptr<decltype(nullptr)> {
+    static const bool value = true;
+};
+
+template <typename T>
+struct is_Null {
+    static const bool value = false;
+};
+
+template <>
+struct is_Null<decltype(nullptr)> {
+    static const bool value = true;
+};
 
 #endif // TYPETRAITS_H

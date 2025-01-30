@@ -1,57 +1,91 @@
 #include <Arduino.h>
 #include "OrderedMap.h"
 #include "SDList.h"
+#include "JSON.h"
 
-//OrderedMap<String, String> myMap;
-SDList<String> list;
+
+
 
 void setup() {
-    Serial.begin(9600); // Start Serial Connection
-    /*
-    myMap.setMode(Mode::MEMORY);
-    myMap.begin();
-    Serial.println(myMap.getMode());
-    Serial.println(myMap.getKeyMode());
-    Serial.println(myMap.getValueMode());
+    Serial.begin(9600);
+    while(!Serial){}
+    //OrderedMap<const char*, const char*> myMap;
+    OrderedMap<String, String> myMap;
 
-    for(size_t i = 0; i < 50; i++){
-        myMap.put(String(i), String(i*2));
-        Serial.println(i);
-    }
+    while(!Serial);
+    for (int i = 0; i < 5; i++) {
+        char key[10];
+        char value[10];
 
-    for(size_t i = 0; i < myMap.size(); i++){
-        Serial.println("Key: " + String(i) + " Value: " + myMap.get(String(i)));
+        // Format keys and values as strings (e.g., "key0", "value0").
+        snprintf(key, sizeof(key), "key%d", i);
+        snprintf(value, sizeof(value), "val%d", i);
+
+        myMap.put(key, value);
     }
-    */
+    myMap.serializeToJSON("test.json");
+}
+
+extern char *__brkval;
+int freeMemory() {
+    char top;
+    return &top - __brkval;
+}
+
+
 
 /*
+void setup(){
+    Serial.begin(9600);
+    while(!Serial){}
+    Serial.println("Starting setup...");
+    Serial.print("Free memory before SimpleVector: ");
+    Serial.println(freeMemory());
 
-    ArrayList<String> myArray;
-    
-    for(size_t i = 0; i < 50; i++){
-        myArray.add("Array: " + String(i));
+    SimpleVector<int> testVector;
+
+    Serial.print("Free memory after SimpleVector: ");
+    Serial.println(freeMemory());
+
+    //JSON json;
+
+    testSimpleVectorWithNode();
+
+    Serial.print("Free memory after JSON: ");
+    Serial.println(freeMemory());
+
+    Serial.println("Setup done.");
+
+    keys.add("key1");
+    keys.add("key2");    
+    values.add("value1");
+    values.add("value2");
+
+    Serial.println("Size: " + String(keys.size()));
+    Serial.println("Size: " + String(values.size()));
+
+    keys.clear();
+    values.clear();
+
+    Serial.println("Starting loop...");
+    for (int i = 0; i < 50; i++) {
+        char key[10];
+        char value[10];
+
+        // Format keys and values as strings (e.g., "key0", "value0").
+        snprintf(key, sizeof(key), "key%d", i);
+        snprintf(value, sizeof(value), "val%d", i);
+
+        keys.add(key);
+        values.add(value);
+        Serial.print("Added Key: ");
+        Serial.print(key);
+        Serial.print(", Value: ");
+        Serial.println(value);
     }
-    for(size_t i = 0; i < myArray.size(); i++){
-        Serial.println("Array: " + myArray.get(i));
-    }
-    myArray.clear();
-*/
-    list.setMode(Mode::SDCARD);
-    //ArrayList<String> list;
-    for(size_t i = 0; i < 50; i++){
-        delay(100);
-        list.append(String(i));
-        Serial.println(i);
-    }
-    delay(1000);
-        Serial.println("List Size: " + list.size());
-        Serial.println("List Capacity: " + list.capacity());
-    delay(1000);
-    for(size_t i = 0; i < list.size(); i++){
-        Serial.println(list.get(i));
-    }
-    Serial.println(list.getMode());
 }
+*/
+
 
 
 void loop(){

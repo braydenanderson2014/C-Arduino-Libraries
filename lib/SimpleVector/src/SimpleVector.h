@@ -39,7 +39,10 @@ private:
     */
     void resize(unsigned int newCapacity) {
         T* newArray = new T[newCapacity];
-        
+        if (!newArray) {
+            Serial.println("Memory allocation failed during resize.");
+            return;
+        }
         for (unsigned int i = 0; i < count; i++) {
             newArray[i] = array[i];
         }
@@ -62,9 +65,17 @@ public:
     // The SimpleVectorIterator class will be defined below
     class SimpleVectorIterator;
 
-    SimpleVector() : array(new T[4]), count(0), capacity(4) {}
+    SimpleVector() : array(new T[4]), count(0), capacity(4) {
+        if(!array){
+            Serial.println("Memory allocation failed.");
+        }
+    }
 
-    SimpleVector(unsigned int initialCapacity) : array(new T[initialCapacity]), count(0), capacity(initialCapacity) {}
+    SimpleVector(unsigned int initialCapacity) : array(new T[initialCapacity]), count(0), capacity(initialCapacity) {
+        if(!array){
+            Serial.println("Memory allocation failed.");
+        }
+    }
 
     SimpleVector(const SimpleVector& other) : array(new T[other.capacity]), count(other.count), capacity(other.capacity) {
         for (unsigned int i = 0; i < count; i++) {
@@ -82,8 +93,9 @@ public:
     #endif
 
     ~SimpleVector() {
-        delete[] array;
+        releaseMemory();
     }
+
 
     // ... Other methods ...
 
@@ -93,10 +105,12 @@ public:
      * @public This method is public because it is meant to be called by the user.
     */
     void releaseMemory() {
-        delete[] array;
-        array = nullptr;
-        capacity = 0;
-        count = 0;
+        if(array){
+            delete[] array;
+            array = nullptr;
+            capacity = 0;
+            count = 0;
+        }
     }
 
     /**
@@ -120,10 +134,28 @@ public:
     * @public This method is public because it is meant to be called by the user.
     */
     void clear() {
-        for (unsigned int i = 0; i < count; i++) {
-            array[i] = T(); // Set each element to its default value
+        if(array){
+            delete[] array;
         }
-        count = 0; // Reset the count
+        array = new T[4];
+        count = 0;
+        capacity = 4;
+
+    }
+
+    /**
+     * @brief Clears the vector and sets the capacity to the specified value.
+     * @param newCapacity The new capacity of the vector
+     * 
+     * @public This method is public because it is meant to be called by the user.
+    */
+    void clear(size_t newCapacity) {
+        if(array){
+            delete[] array;
+        }
+        array = new T[newCapacity];
+        count = 0;
+        capacity = newCapacity;
     }
 
     /**
@@ -232,6 +264,32 @@ public:
             return dummy;
         }
         return array[index];
+    }
+
+    SimpleVector& operator=(const SimpleVector& other) {
+        if (this != &other) {
+            delete[] array;
+            array = new T[other.capacity];
+            count = other.count;
+            capacity = other.capacity;
+            for (unsigned int i = 0; i < count; i++) {
+                array[i] = other.array[i];
+            }
+        }
+        return *this;
+    }
+
+    const SimpleVector& operator=(const SimpleVector& other) const {
+        if (this != &other) {
+            delete[] array;
+            array = new T[other.capacity];
+            count = other.count;
+            capacity = other.capacity;
+            for (unsigned int i = 0; i < count; i++) {
+                array[i] = other.array[i];
+            }
+        }
+        return *this;
     }
 
     /**

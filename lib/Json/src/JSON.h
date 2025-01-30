@@ -2,8 +2,8 @@
 #define JSON_H
 
 #include <SD.h>
-#include "CustomString.h"
-#include "SimpleVector.h"
+#include <Arduino.h>
+#include <SimpleVector.h>
 
 // Forward declare JSON class
 class JSON;
@@ -22,21 +22,21 @@ public:
 
     // A node in the JSON tree
     struct Node {
-        Custom_String::String key;       // The key name (if inside an object).
+        String key;       // The key name (if inside an object).
         ValueType type;                 // What kind of value this node holds?
         
         // Depending on 'type', one of these will be valid:
         bool boolValue;
         double numberValue;
-        Custom_String::String stringValue;
+        String stringValue;
         
         // If type == Object or Array, children will hold sub-nodes
-        SimpleVector<Node> children;
-
+        SimpleVector<Node>* children;
         Node()
             : type(ValueType::Null),
               boolValue(false),
-              numberValue(0.0) {}
+              numberValue(0.0) {
+              }
 
         bool operator==(const Node& other) const {
             return (key == other.key
@@ -56,6 +56,10 @@ public:
     JSON() {
         // By default, consider the root as an OBJECT (empty).
         root.type = ValueType::Object;
+        if (root.children) {
+            root.children->clear();
+        }
+
     }
 
     // ------------------------------
@@ -63,40 +67,40 @@ public:
     // ------------------------------
 
     // Read JSON from a file on SD and parse it into 'root'.
-    bool readFromFile(const Custom_String::String& filename);
+    bool readFromFile(const String& filename);
 
     // Write the current JSON tree to a file on SD.
-    bool writeToFile(const Custom_String::String& filename, bool pretty = true) const;
+    bool writeToFile(const String& filename, bool pretty = true) const;
 
     // Parse from string directly (no file).
-    bool readFromString(const Custom_String::String& jsonStr);
+    bool readFromString(const String& jsonStr);
 
     // Serialize to string (in-memory).
-    Custom_String::String writeToString(bool pretty = true) const;
+    String writeToString(bool pretty = true) const;
 
 
     // ------------------------------
     // PUBLIC: Typed Getters/Setters
     // ------------------------------
 
-    void setString(const Custom_String::String& path, const Custom_String::String& value);
-    void setNumber(const Custom_String::String& path, double value);
-    void setBool(const Custom_String::String& path, bool value);
-    void setNull(const Custom_String::String& path);
+    void setString(const String& path, const String& value);
+    void setNumber(const String& path, double value);
+    void setBool(const String& path, bool value);
+    void setNull(const String& path);
 
     // Overload for arrays: create or expand array at that path
-    void pushBack(const Custom_String::String& path, const Custom_String::String& value);
-    void pushBack(const Custom_String::String& path, double value);
-    void pushBack(const Custom_String::String& path, bool value);
+    void pushBack(const String& path, const String& value);
+    void pushBack(const String& path, double value);
+    void pushBack(const String& path, bool value);
 
     // Retrieve typed data (returns default if not found or type mismatch)
-    Custom_String::String getString(const Custom_String::String& path, const Custom_String::String& defaultVal = "") const;
-    double getNumber(const Custom_String::String& path, double defaultVal = 0.0) const;
-    bool getBool(const Custom_String::String& path, bool defaultVal = false) const;
-    bool isNull(const Custom_String::String& path) const;
+    String getString(const String& path, const String& defaultVal = "") const;
+    double getNumber(const String& path, double defaultVal = 0.0) const;
+    bool getBool(const String& path, bool defaultVal = false) const;
+    bool isNull(const String& path) const;
 
     // Remove a node (object member or array element) by path
-    bool remove(const Custom_String::String& path);
+    bool remove(const String& path);
 
     // Access the root node directly if needed
     const Node& getRoot() const { return root; }
@@ -106,11 +110,11 @@ public:
 private:
     // --------------- Parsing Helpers ---------------
     // A minimal JSON parser
-    bool parse(const Custom_String::String& json);
+    bool parse(const String& json);
     bool parseValue(const char* &p, Node &node);
     bool parseObject(const char* &p, Node &node);
     bool parseArray(const char* &p, Node &node);
-    bool parseString(const char* &p, Custom_String::String &out);
+    bool parseString(const char* &p, String &out);
     bool parseNumber(const char* &p, double &out);
     bool parseBool(const char* &p, bool &out);
     bool parseNull(const char* &p);
@@ -118,19 +122,19 @@ private:
     void skipWhitespace(const char* &p);
 
     // --------------- Serialization Helpers ---------------
-    void serializeNode(const Node &node, Custom_String::String &out, int indentLevel, bool pretty) const;
-    void serializeValue(const Node &node, Custom_String::String &out, int indentLevel, bool pretty) const;
+    void serializeNode(const Node &node, String &out, int indentLevel, bool pretty) const;
+    void serializeValue(const Node &node, String &out, int indentLevel, bool pretty) const;
 
     // --------------- Path Helpers ---------------
-    Node* findOrCreateNode(const Custom_String::String& path, bool createIntermediate);
-    Node* findNode(const Custom_String::String& path) const;
-    Node* findNodeImpl(Node* current, const Custom_String::String& path, int startIndex, bool createIntermediate) const;
+    Node* findOrCreateNode(const String& path, bool createIntermediate);
+    Node* findNode(const String& path) const;
+    Node* findNodeImpl(Node* current, const String& path, int startIndex, bool createIntermediate) const;
 
     // --------------- Remove Helpers ---------------
-    bool removeChild(Node &parent, const Custom_String::String &keyOrIndex);
+    bool removeChild(Node &parent, const String &keyOrIndex);
 
     // Utility to convert a substring to int
-    int toInt(const Custom_String::String& s) const { return atoi(s.C_STR()); }
+    int toInt(const String& s) const { return atoi(s.c_str()); }
 };
 
 #endif // JSON_H
