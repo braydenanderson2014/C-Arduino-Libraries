@@ -2,6 +2,7 @@
 #include "OrderedMap.h"
 #include "SDList.h"
 #include "JSON.h"
+#include "DynamicStorageLibrary.h"
 
 
 
@@ -9,7 +10,9 @@
 void setup() {
     Serial.begin(9600);
     while(!Serial){}
+    DynamicStorage<String, String> storage(DynamicStorage<String, String>::AUTO);
     //OrderedMap<const char*, const char*> myMap;
+    /*
     OrderedMap<String, String> myMap;
 
     while(!Serial);
@@ -24,6 +27,7 @@ void setup() {
         myMap.put(key, value);
     }
     myMap.serializeToJSON("test.json");
+    */
 }
 
 extern char *__brkval;

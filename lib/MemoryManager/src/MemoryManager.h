@@ -19,44 +19,41 @@ struct MemoryBlock {
     void* baseAddress; // Store the base address of the allocation
 };
 
-
 class MemoryManager {
-    private:
-        LinkedList<MemoryBlock*> blocks; // Assuming LinkedList can hold MemoryBlock pointers
-        bool useSDFile = false;
+private:
+    LinkedList<MemoryBlock*> blocks; // LinkedList of allocated MemoryBlocks
+    bool useSDFile = false;
 
-    public:
+public:
     MemoryManager() {}
 
-   void* malloc(unsigned int size, const char* file, unsigned int line) {
+    void* malloc(unsigned int size, const char* file, unsigned int line) {
         MemoryBlock* block = (MemoryBlock*)::malloc(size + sizeof(MemoryBlock));
         if (block) {
             block->free = false;
             block->size = size;
             block->data = (char*)block + sizeof(MemoryBlock);
             block->baseAddress = block;
-            block->id = Random(1, (int)99999);
+            block->id = Random(1, 99999);
             block->line = line;
             block->file = file;
-
-            // Additional initialization...
+            blocks.add(block); // Add to linked list
         }
         return block ? block->data : nullptr;
     }
 
     ~MemoryManager() {
-        // Iterate over blocks and free them
         for (size_t i = 0; i < blocks.size(); ++i) {
             MemoryBlock* block = *(blocks.get(i));
-            ::operator delete(block); // Adjust to just use free on the block
+            ::free(block);
         }
     }
 
     void free(void* ptr) {
         MemoryBlock* block = (MemoryBlock*)((char*)ptr - sizeof(MemoryBlock));
         block->free = true;
-        // Additional cleanup...
         blocks.removeElement(block);
+        ::free(block);
     }
 
     void* realloc(void* ptr, unsigned int size, const char* file, unsigned int line) {
@@ -81,7 +78,7 @@ class MemoryManager {
         if (blocks.size() > 0) {
             for (size_t i = 0; i < blocks.size(); ++i) {
                 MemoryBlock* block = *(blocks.get(i));
-                if (block->free == false) {
+                if (!block->free) {
                     Serial.print("Memory leak detected: ");
                     Serial.print(block->file.C_STR());
                     Serial.print(" (line ");
@@ -105,7 +102,7 @@ class MemoryManager {
                 if (blocks.size() > 0) {
                     for (size_t i = 0; i < blocks.size(); ++i) {
                         MemoryBlock* block = *(blocks.get(i));
-                        if (block->free == false) {
+                        if (!block->free) {
                             file.print("Memory leak detected: ");
                             file.print(block->file.C_STR());
                             file.print(" (line ");
@@ -122,20 +119,7 @@ class MemoryManager {
     }
 
     void writeMemoryLeaksToSerial() {
-        if (blocks.size() > 0) {
-            for (size_t i = 0; i < blocks.size(); ++i) {
-                MemoryBlock* block = *(blocks.get(i));
-                if (block->free == false) {
-                    Serial.print("Memory leak detected: ");
-                    Serial.print(block->file.C_STR());
-                    Serial.print(" (line ");
-                    Serial.print(block->line);
-                    Serial.print(") ");
-                    Serial.print(block->size);
-                    Serial.println(" bytes");
-                }
-            }
-        }
+        dumpMemoryLeaks();
     }
 
     void writeMemoryLeaksToSerialAndFile(const char* filename) {
@@ -143,41 +127,57 @@ class MemoryManager {
         writeMemoryLeaksToFile(filename);
     }
 
-    //store using json format
+    // Store memory blocks in JSON format
     void storeMemoryBlockToFile(const char* filename) {
         if (useSDFile) {
             JSON json;
+
             for (size_t i = 0; i < blocks.size(); ++i) {
                 MemoryBlock* block = *(blocks.get(i));
-                Custom_String::String blockPath = (Custom_String::String)"blocks." + Custom_String::String(int(block->id));
-                json.set(blockPath + ".free", block->free ? "true" : "false");
-                json.set(blockPath + ".size", Custom_String::String(float(block->size)));
-                json.set(blockPath + ".line", Custom_String::String(float(block->line)));
-                json.set(blockPath + ".file", block->file);
-                // Include other MemoryBlock attributes as needed
+                String blockPath = "blocks." + String(block->id);
+
+                json.setBool(blockPath + ".free", block->free);
+                json.setNumber(blockPath + ".size", block->size);
+                json.setNumber(blockPath + ".line", block->line);
+                json.setString(blockPath + ".file", block->file.C_STR());
             }
-            json.writeToFile(filename);
+
+            json.writeToFile(filename, true);
         }
     } 
 
-    //load using json format
+    // Load memory blocks from JSON format
     void loadMemoryBlockFromFile(const char* filename) {
         if (useSDFile) {
             JSON json;
-            json.readFromFile(filename);
+            if (!json.readFromFile(filename)) {
+                Serial.println("Failed to load JSON file.");
+                return;
+            }
+
             for (size_t i = 0; i < blocks.size(); ++i) {
                 MemoryBlock* block = *(blocks.get(i));
-                Custom_String::String blockPath = (Custom_String::String)"blocks." + Custom_String::String(int(block->id));
-                block->free = json.get(blockPath + ".free") == "true";
-                block->size = json.get(blockPath + ".size").toInt();
-                block->line = json.get(blockPath + ".line").toInt();
-                block->file = json.get(blockPath + ".file");
-                // Include other MemoryBlock attributes as needed
+                String blockPath = "blocks." + String(block->id);
+
+                block->free = json.getBool(blockPath + ".free", false);
+                block->size = json.getNumber(blockPath + ".size", 0);
+                block->line = json.getNumber(blockPath + ".line", 0);
+                block->file = json.getString(blockPath + ".file", "").c_str();
             }
         }
     }
-    
 
+    //getfreememory
+    uint32_t getFreeMemory() {
+        uint32_t freeMemory = 0;
+        for (size_t i = 0; i < blocks.size(); ++i) {
+            MemoryBlock* block = *(blocks.get(i));
+            if (block->free) {
+                freeMemory += block->size;
+            }
+        }
+        return freeMemory;
+    }
 };
 
 #endif // MEMORY_MANAGER_H
