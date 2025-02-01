@@ -22,7 +22,24 @@
 //#define OverrideInsertAll //Uncomment this line to override the insertAll function when in SkinnyArray Mode
 //#define OverrideSpecialtyRemove //Uncomment this line to override the remove function when in SkinnyArray Mode
 //#define OverrideUtilityFunctions //Uncomment this line to override the utility functions when in SkinnyArray Mode
+
 #endif
+#define AL_RESIZE_SUCCESS 0
+#define AL_RESIZE_ERROR 1
+#define AL_RESIZE_ERROR2 2
+#define AL_FIXED_SIZE_ERROR 3
+#define AL_BUBBLESORT_FAILURE 4
+#define AL_QUICKSORT_FAILURE 5
+#define AL_MERGESORT_FAILURE 6
+#define AL_SORT_SUCCESS 7
+#define AL_ADD_ERROR 8
+#define AL_ELEMENT_NOT_FOUND 9
+#define AL_OUT_OF_BOUNDS 10
+#define AL_INSERT_ERROR 11
+#define AL_REMOVE_ERROR 12
+#define AL_MAX_CAPACITY_ERROR 13
+
+
 template <typename T>
 class ArrayList {
 public:
