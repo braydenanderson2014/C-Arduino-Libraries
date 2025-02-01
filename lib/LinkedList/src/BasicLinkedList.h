@@ -86,6 +86,7 @@ class ForwardIterator {
     */
     void add(const T& value) {
         append(value);
+        debugPrintList();
     }
 
     /**
@@ -208,10 +209,9 @@ class ForwardIterator {
      * @param value - the value to be removed
      * 
     */
-    void removeElement(const T& value) {
-        if (!head) {
-            return; // List is empty
-        }
+    void removeElement(T value) {
+        if (!head) return;
+    
         if (head->data == value) {
             ListNode<T>* temp = head;
             head = head->next;
@@ -219,6 +219,7 @@ class ForwardIterator {
             Size--;
             return;
         }
+    
         ListNode<T>* current = head;
         while (current->next) {
             if (current->next->data == value) {
@@ -231,6 +232,7 @@ class ForwardIterator {
             current = current->next;
         }
     }
+
     // Get the element at a specific position
     // Change the return type to a pointer
     /**
@@ -246,17 +248,12 @@ class ForwardIterator {
     T* get(size_t position) const {
         ListNode<T>* current = head;
         for (size_t i = 0; i < position; i++) {
-            if (!current) {
-                return nullptr; // Out of bounds
-            }
+            if (!current) return nullptr;
             current = current->next;
         }
-        if (current) {
-            return &(current->data);
-        } else {
-            return nullptr;
-        }
+        return current ? &(current->data) : nullptr;
     }
+
 
     T getElement(size_t position) const {
         ListNode<T>* current = head;
@@ -321,7 +318,13 @@ class ForwardIterator {
      * @return the number of elements in the list
     */
     size_t size() const {
-        return Size;
+        size_t count = 0;
+        ListNode<T>* current = head;
+        while (current) {
+            count++;
+            current = current->next;
+        }
+        return count;
     }
 
     // Check if the list is empty
@@ -416,6 +419,21 @@ class ForwardIterator {
         }
         return *this;
     }
+
+    void debugPrintList() {
+        Serial.print("List Size: ");
+        Serial.println(Size);
+        ListNode<T>* current = head;
+        int index = 0;
+        while (current) {
+            Serial.print("Index ");
+            Serial.print(index++);
+            Serial.print(": ");
+            Serial.println((uintptr_t)current->data, HEX);  // Print address
+            current = current->next;
+        }
+    }
+
 
 };
 
