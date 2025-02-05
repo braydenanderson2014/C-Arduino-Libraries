@@ -7,6 +7,8 @@
 
 ### Please Note, some of these libraries have different names then their published counterparts. For example, (Properties) is published as -> SimpleProperties... These are Noted below in the List of available Libraries.
 
+### Please Note (Also XD) that any library published to the [Development-Branch] is considered Pure development versions and are subject to change at any time. While most will still work with no trouble, alot of libraries are under Active Development and may not compile. For up To date working (Theoretically). Any Library published under main should be functional and [On-Par] with Platformio or Arduino Library Manager.
+
 ## List of All Available Libraries ## [WARNING]: Tested/Partially Tested BY AUTHOR
 * [Dictionary](#dictionary-class) [DEVELOPMENT-COMPLETE] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING-NOT-NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
 * [Hashtable](#hashtable-class) [PASSIVE-DEVELOPMENT], [TESTED], [STABLE]
