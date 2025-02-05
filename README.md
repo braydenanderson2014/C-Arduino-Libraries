@@ -95,46 +95,46 @@ Total Libraries: (48)
 
 # PlatformIO Leaderboard for these Libraries (Out of /15,214 Libraries on the Platform) UPDATED 01/29/2025 09:08pm Mountain
 ## Library Name: Position Downloads-Month-To-Date, Total Downloads
-* ArrayList: 1,100; 26 Downloads MTD; *22 Downloads*
-* Dictionary: 14,128; 0 Download MTD; *8 Downloads*
-* SimpleArduinoTimer: 3,947; 2 Downloads MTD; *5 Downloads*
-* UnorderedMap: 3,952; 2 Downloads MTD; *19 Downloads*
-* SimpleProperties: 3,948; 2 Downloads MTD; *13 Downloads*
-* Iterator: 3949; 2 Download MTD; *9 Downloads*
-* BasicIO: 1679; 12 Downloads MTD; *130 Downloads*
-* SDList: 3951; 2 Downloads MTD; *3 Downloads*
-* Hashtable: 1375; 17 Downloads MTD; *35 Downloads*
-* SimpleVector: 1259; 21 Downloads MTD; *37 Downloads*
-* MyDictionary: 14,136; 0 Downloads MTD; *0 Downloads* :(
-* Operators: 14,221; 0 Download MTD; *2 Download*
-* Predicates: 14,222; 0 Downloads MTD; *2 Download*
-* BasicLinkedList: 2818(13,610); 4 Downloads MTD; *5 Downloads*
-* DoubleLinkedList: 3,250; 3 Downloads MTD; * Downloads* :)
-* TypeTraits: 3980; 2 Download MTD; *2 Downloads*
-* AVLTree: 14,422; 0 Download MTD; *0 Downloads*
-* BinarySearchTree: 14,423; 0 Download MTD; *0 Downloads*
-* BinaryTree: 14,424; 0 Download MTD; *0 Downloads*
-* B+ Tree: 14,425; 0 Download MTD; *0 Downloads*
-* B Tree: 14,426; 0 Download MTD; *0 Downloads*
-* ColorManager: 14,427; 0 Download MTD; *0 Downloads*
-* FenwickTree: 14,428; 0 Download MTD; *0 Downloads*
-* HeapTree: 14,429; 0 Download MTD; *0 Downloads*
-* InitializerList: 1379; 18 Download MTD; *3 Downloads*
-* IntervalTree: 14,430; 0 Download MTD; *0 Downloads*
-* KDimensionalTree: 14,431; 0 Download MTD; *0 Downloads*
-* MathLib: 3,982; 2 Download MTD; *2 Downloads*
-* Map: 2726; 1 Download MTD; *1 Downloads*
-* MatrixMath: 14,444; 0 Download MTD; *0 Downloads*
-* Numeric_Limits: 3983;  2 Download MTD; *1 Downloads*
-* OCTree: 14,432; 0 Download MTD; *0 Downloads* 
-* QuadTree: 14,436; 0 Download MTD; *0 Downloads*            
-* Queue: 14,437; 0 Download MTD; *0 Downloads*
-* RedBlackTree: 14,438; 0 Download MTD; *0 Downloads*
-* RTree: 14,439; 0 Download MTD; *0 Downloads*
-* SegmentTree: 14,440; 0 Download MTD; *0 Downloads*
-* Stack: 14,441; 0 Download MTD; *0 Downloads*
-* SuffixTree: 14,442; 0 Download MTD; *0 Downloads*
-* TrieTree: 14,443; 0 Download MTD; *0 Downloads*
+* ArrayList: 1,100; 26 Downloads MTD; *174 Downloads*
+* Dictionary: 14,128; 0 Download MTD; *16 Downloads*
+* SimpleArduinoTimer: 3,947; 2 Downloads MTD; *16 Downloads*
+* UnorderedMap: 3,952; 2 Downloads MTD; *46 Downloads*
+* SimpleProperties: 3,948; 2 Downloads MTD; *46 Downloads*
+* Iterator: 3949; 2 Download MTD; *25 Downloads*
+* BasicIO: 1679; 12 Downloads MTD; *360 Downloads*
+* SDList: 3951; 2 Downloads MTD; *12 Downloads*
+* Hashtable: 1375; 17 Downloads MTD; *183 Downloads*
+* SimpleVector: 1259; 21 Downloads MTD; *247 Downloads*
+* MyDictionary: 14,136; 0 Downloads MTD; *3 Downloads* :(
+* Operators: 14,221; 0 Download MTD; *15 Download*
+* Predicates: 14,222; 0 Downloads MTD; *15 Download*
+* BasicLinkedList: 2818(13,610); 4 Downloads MTD; *20 Downloads*
+* DoubleLinkedList: 3,250; 3 Downloads MTD; *21 Downloads* :)
+* TypeTraits: 3980; 2 Download MTD; *28 Downloads*
+* AVLTree: 14,422; 0 Download MTD; *4 Downloads*
+* BinarySearchTree: 14,423; 0 Download MTD; *4 Downloads*
+* BinaryTree: 14,424; 0 Download MTD; *4 Downloads*
+* B+ Tree: 14,425; 0 Download MTD; *4 Downloads*
+* B Tree: 14,426; 0 Download MTD; *4 Downloads*
+* ColorManager: 14,427; 0 Download MTD; *5 Downloads*
+* FenwickTree: 14,428; 0 Download MTD; *4 Downloads*
+* HeapTree: 14,429; 0 Download MTD; *4 Downloads*
+* InitializerList: 1379; 18 Download MTD; *217 Downloads*
+* IntervalTree: 14,430; 0 Download MTD; *4 Downloads*
+* KDimensionalTree: 14,431; 0 Download MTD; *4 Downloads*
+* MathLib: 3,982; 2 Download MTD; *21 Downloads*
+* Map: 2726; 1 Download MTD; *38 Downloads*
+* MatrixMath: 14,444; 0 Download MTD; *4 Downloads*
+* Numeric_Limits: 3983;  2 Download MTD; *25 Downloads*
+* OCTree: 14,432; 0 Download MTD; *4 Downloads* 
+* QuadTree: 14,436; 0 Download MTD; *4 Downloads*            
+* Queue: 14,437; 0 Download MTD; *5 Downloads*
+* RedBlackTree: 14,438; 0 Download MTD; *4 Downloads*
+* RTree: 14,439; 0 Download MTD; *4 Downloads*
+* SegmentTree: 14,440; 0 Download MTD; *4 Downloads*
+* Stack: 14,441; 0 Download MTD; *6 Downloads*
+* SuffixTree: 14,442; 0 Download MTD; *4 Downloads*
+* TrieTree: 14,443; 0 Download MTD; *4 Downloads*
 
 # Libraries Published on Arduino Library Manager
 * ArrayList [ON-PAR]
