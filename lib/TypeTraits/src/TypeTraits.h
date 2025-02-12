@@ -128,10 +128,19 @@ struct is_pointer<T*> {
     static const bool value = true;
 };
 
+
 template <typename T>
-struct is_pointer<T* const> {
-    static const bool value = true;
+struct remove_pointer {
+    typedef T type;
 };
+
+template <typename T>
+struct remove_pointer<T*> {
+    typedef T type;
+};
+
+#define remove_pointer_t(T) typename remove_pointer<T>::type
+
 
 template <typename T>
 struct is_reference {

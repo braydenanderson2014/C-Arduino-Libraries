@@ -10,7 +10,6 @@ class Variant {
 private:
     bool isList; // true if ArrayList/SimpleVector (if you cant figure out why its called isList, then maybe you shouldnt be using this class :))    T singleValue;
     T singleValue; // Holds the single value
-
     #ifndef useSimpleVector
     ArrayList<T> listValues; // ArrayList of values
     #elif defined(useSimpleVector)

@@ -2,24 +2,8 @@
 #define SIMPLEVECTOR_H
 
 #include <Arduino.h>
-#ifdef ESP32
-    #include <initializer_list>
-    #define useInit
-#endif
-#ifdef ESPRESSIF32
-    #include <initializer_list>
-    #define useInit
-#endif
-#ifdef ESP8266
-    #include <initializer_list>
-    #define useInit
-#endif
-#ifdef ESP32S2
-    #include <initializer_list>
-    #define useInit
-#endif
-#ifdef ESP32C3
-    #include <initializer_list>
+#if defined(ESP32) || defined(ESPRESSIF32) || defined(ESP8266) || defined(ESP32S2) || defined(ESP32C3)
+    //#include <initializer_list>
     #define useInit
 #endif
 template<typename T>
@@ -84,12 +68,28 @@ public:
     }
 
     #ifdef useInit
-    SimpleVector(initializer_list<T> initList) : array(new T[initList.size()]), count(initList.size()), capacity(initList.size()) {
-        int i = 0;
-        for (const auto& value : initList) {
-            array[i++] = value;
-        }
+    template<typename... Args>
+    SimpleVector(T first, Args... rest) {
+        count = sizeof...(rest) + 1;  // Number of elements
+        capacity = count;
+        array = new T[capacity];
+
+        // Initialize the first value
+        array[0] = first;
+
+        // Unpack the rest using recursion
+        fillArray(1, rest...);
     }
+
+    // Recursive unpacking function
+    template<typename... Args>
+    void fillArray(size_t index, T first, Args... rest) {
+        array[index] = first;
+        fillArray(index + 1, rest...);
+    }
+
+    // Base case for recursion
+    void fillArray(size_t) {}
     #endif
 
     ~SimpleVector() {

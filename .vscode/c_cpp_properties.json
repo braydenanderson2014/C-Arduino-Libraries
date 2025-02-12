@@ -10,7 +10,7 @@
             "includePath": [
                 "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/include",
                 "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/src",
-                "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/Json/src",
+                "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/.pio/libdeps/arduino_mega2560/lz4/lib",
                 "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/.pio/libdeps/arduino_mega2560/Hashtable/src",
                 "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/.pio/libdeps/arduino_mega2560/ArrayList/src",
                 "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/.pio/libdeps/arduino_mega2560/SimpleArduinoTimer/src",
@@ -39,6 +39,7 @@
                 "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/HeapTree/src",
                 "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/Initializer_List/src",
                 "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/IntervalTree/src",
+                "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/Json/src",
                 "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/LinkedList/src",
                 "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/Map/src",
                 "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/MathLib/src",
@@ -95,7 +96,7 @@
                 "path": [
                     "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/include",
                     "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/src",
-                    "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/Json/src",
+                    "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/.pio/libdeps/arduino_mega2560/lz4/lib",
                     "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/.pio/libdeps/arduino_mega2560/Hashtable/src",
                     "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/.pio/libdeps/arduino_mega2560/ArrayList/src",
                     "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/.pio/libdeps/arduino_mega2560/SimpleArduinoTimer/src",
@@ -124,6 +125,7 @@
                     "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/HeapTree/src",
                     "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/Initializer_List/src",
                     "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/IntervalTree/src",
+                    "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/Json/src",
                     "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/LinkedList/src",
                     "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/Map/src",
                     "c:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/lib/MathLib/src",
