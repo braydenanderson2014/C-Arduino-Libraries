@@ -26,9 +26,9 @@
     "examples": [
         {
             "name": "Basic Usage",
-            "base": "Examples",
+            "base": "examples",
             "files": [
-                "Variant_Example.cpp"
+                "example.cpp"
             ]
         }
     ],
