@@ -48,6 +48,19 @@ void setup() {
     Optional<String> text;
     text.emplace("Hello, Optional!");
     Serial.println(text.getValue());
+
+    int* ptr = nullptr;
+    Optional<int> opt1 = Optional<int>::ofNullable(ptr);
+    Serial.print("opt1 has value: ");
+    Serial.println(opt1.hasValue());  // Should print "false"
+
+    int value = 42;
+    ptr = &value;
+    Optional<int> opt2 = Optional<int>::ofNullable(ptr);
+    Serial.print("opt2 has value: ");
+    Serial.println(opt2.hasValue());  // Should print "true"
+    Serial.print("opt2 value: ");
+    Serial.println(opt2.getValue());  // Should print "42"
 }
 
 void loop() {
