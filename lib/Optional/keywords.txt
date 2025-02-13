@@ -1,0 +1,28 @@
+#######################################
+# Syntax Coloring Map For Optional
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+Optional	KEYWORD1
+
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+hasValue	KEYWORD2
+getValue	KEYWORD2
+reset	KEYWORD2
+operator=	KEYWORD2
+operator==	KEYWORD2
+operator!=	KEYWORD2
+orElse	KEYWORD2
+orElseGet	KEYWORD2
+map	KEYWORD2
+ifPresent	KEYWORD2
+swap	KEYWORD2
+isDefaultValue	KEYWORD2
+emplace	KEYWORD2
+clear	KEYWORD2
+ref	KEYWORD2

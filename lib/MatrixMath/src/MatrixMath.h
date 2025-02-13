@@ -1,368 +1,238 @@
-#ifndef MATRIXMATH_h
-#define MATRIXMATH_h
+#ifndef MATRIXMATH_H
+#define MATRIXMATH_H
 
 #include <Arduino.h>
-#include <Math.h>
+#include <math.h>
+#include "MemoryManager.h"
+
 class MatrixMath {
-    private:
-        float *matrix;
-        int rows;
-        int cols;
-    public:
-        MatrixMath(int rows, int cols){
-            matrix = new float[rows * cols];
-            this->rows = rows;
-            this->cols = cols;
-        }
-        ~MatrixMath(){
-            delete[] matrix;
-        }
-        void set(int row, int col, float value){
-            matrix[row * cols + col] = value;
-        }
-        float get(int row, int col){
-            return matrix[row * cols + col];
-        }
-        void add(MatrixMath m){
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    set(i, j, get(i, j) + m.get(i, j));
-                }
-            }
-        }
-        void subtract(MatrixMath m){
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    set(i, j, get(i, j) - m.get(i, j));
-                }
-            }
-        }
+private:
+    float *matrix;
+    size_t rows;
+    size_t cols;
+    MemoryManager &memManager; // Memory manager reference
 
-        void multiply(MatrixMath m){
-            float *result = new float[rows * m.cols];
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < m.cols; j++){
-                    float sum = 0;
-                    for(float k = 0; k < cols; k++){
-                        sum += get(i, k) * m.get(k, j);
-                    }
-                    result[i * m.cols + j] = sum;
-                }
-            }
-            delete[] matrix;
-            matrix = result;
-            cols = m.cols;
-        }
-        void print(){
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    Serial.print(get(i, j));
-                    Serial.print(" ");
-                }
-                Serial.println();
-            }
-        }
+    // Allocate memory using MemoryManager
+    void allocate(size_t r, size_t c) {
+        if (matrix) memManager.free(matrix);
+        rows = r;
+        cols = c;
+        matrix = (float*)memManager.malloc(rows * cols * sizeof(float), __FILE__, __LINE__);
+        if (matrix) memset(matrix, 0, rows * cols * sizeof(float));
+    }
 
-        void scale(float scalar){
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    set(i, j, get(i, j) * scalar);
-                }
-            }
-        }
+public:
+    // Constructor
+    MatrixMath(size_t r, size_t c, MemoryManager &manager) : memManager(manager), matrix(nullptr), rows(r), cols(c) {
+        allocate(rows, cols);
+    }
 
-        void transpose(){
-            float *result = new float[cols * rows];
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    result[j * rows + i] = get(i, j);
-                }
-            }
-            delete[] matrix;
-            matrix = result;
-            float temp = rows;
-            rows = cols;
-            cols = temp;
-        }
+    // Destructor
+    ~MatrixMath() {
+        if (matrix) memManager.free(matrix);
+    }
 
-        void invert(){
-            float *result = new float[rows * cols];
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    result[i * cols + j] = get(j, i);
-                }
-            }
-            delete[] matrix;
-            matrix = result;
-        }
+    // Set a value
+    void set(size_t row, size_t col, float value) {
+        matrix[row * cols + col] = value;
+    }
 
-        void copy(MatrixMath m){
-            delete[] matrix;
-            matrix = new float[m.rows * m.cols];
-            rows = m.rows;
-            cols = m.cols;
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    set(i, j, m.get(i, j));
-                }
-            }
-        }
+    // Get a value
+    float get(size_t row, size_t col) const {
+        return matrix[row * cols + col];
+    }
 
-        void clear(){
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    set(i, j, 0);
-                }
-            }
-        }
-        
-        void identity(int size){
-            delete[] matrix;
-            matrix = new float[size * size];
-            rows = size;
-            cols = size;
-            for(int i = 0; i < size; i++){
-                for(int j = 0; j < size; j++){
-                    if(i == j){
-                        set(i, j, 1);
-                    } else {
-                        set(i, j, 0);
-                    }
-                }
-            }
-        }
+    // Add two matrices
+    void add(const MatrixMath &m) {
+        if (rows != m.rows || cols != m.cols) return;
+        for (size_t i = 0; i < rows * cols; ++i) matrix[i] += m.matrix[i];
+    }
 
-        void zero(int rows, int cols){
-            delete[] matrix;
-            matrix = new float[rows * cols];
-            this->rows = rows;
-            this->cols = cols;
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    set(i, j, 0);
-                }
-            }
-        }
+    // Subtract two matrices
+    void subtract(const MatrixMath &m) {
+        if (rows != m.rows || cols != m.cols) return;
+        for (size_t i = 0; i < rows * cols; ++i) matrix[i] -= m.matrix[i];
+    }
 
-        void copy(float *m, int rows, int cols){
-            delete[] matrix;
-            matrix = new float[rows * cols];
-            this->rows = rows;
-            this->cols = cols;
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    set(i, j, m[i * cols + j]);
-                }
-            }
-        }
+    // Multiply two matrices
+    void multiply(const MatrixMath &m) {
+        if (cols != m.rows) return;
+        float* result = (float*)memManager.malloc(rows * m.cols * sizeof(float), __FILE__, __LINE__);
+        if (!result) return;
+        memset(result, 0, rows * m.cols * sizeof(float));
 
-        void add(float scalar){
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    set(i, j, get(i, j) + scalar);
-                }
-            }
-        }
-
-        void subtract(float scalar){
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    set(i, j, get(i, j) - scalar);
-                }
-            }
-        }
-
-        void multiply(float scalar){
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    set(i, j, get(i, j) * scalar);
-                }
-            }
-        }
-
-        void divide(float scalar){
-            for(int i = 0; i < rows; i++){
-                for(int j = 0; j < cols; j++){
-                    set(i, j, get(i, j) / scalar);
-                }
-            }
-        }
-
-        void dotProduct(float *vector, float size){
-            float *result = new float[rows];
-            for(int i = 0; i < rows; i++){
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < m.cols; ++j) {
                 float sum = 0;
-                for(int j = 0; j < size; j++){
-                    sum += get(i, j) * vector[j];
+                for (size_t k = 0; k < cols; ++k) {
+                    sum += get(i, k) * m.get(k, j);
                 }
-                result[i] = sum;
-            }
-            delete[] matrix;
-            matrix = result;
-            cols = 1;
-        }
-
-        void crossProduct(float *vector){
-            float *result = new float[3];
-            result[0] = get(1, 0) * vector[2] - get(2, 0) * vector[1];
-            result[1] = get(2, 0) * vector[0] - get(0, 0) * vector[2];
-            result[2] = get(0, 0) * vector[1] - get(1, 0) * vector[0];
-            delete[] matrix;
-            matrix = result;
-            rows = 3;
-            cols = 1;
-        }
-
-        void crossProduct(MatrixMath m){
-            float *result = new float[3];
-            result[0] = get(1, 0) * m.get(2, 0) - get(2, 0) * m.get(1, 0);
-            result[1] = get(2, 0) * m.get(0, 0) - get(0, 0) * m.get(2, 0);
-            result[2] = get(0, 0) * m.get(1, 0) - get(1, 0) * m.get(0, 0);
-            delete[] matrix;
-            matrix = result;
-            rows = 3;
-            cols = 1;
-        }
-
-        void normalize(){
-            float magnitude = 0;
-            for(int i = 0; i < rows; i++){
-                magnitude += get(i, 0) * get(i, 0);
-            }
-            magnitude = Sqrt(magnitude);
-            for(int i = 0; i < rows; i++){
-                set(i, 0, get(i, 0) / magnitude);
+                result[i * m.cols + j] = sum;
             }
         }
 
-        float magnitude(){
-            float result = 0;
-            for(int i = 0; i < rows; i++){
-                result += get(i, 0) * get(i, 0);
+        memManager.free(matrix);
+        matrix = result;
+        cols = m.cols;
+    }
+
+    // Scale matrix by a scalar
+    void scale(float scalar) {
+        for (size_t i = 0; i < rows * cols; ++i) matrix[i] *= scalar;
+    }
+
+    // Transpose matrix
+    void transpose() {
+        float *result = (float*)memManager.malloc(cols * rows * sizeof(float), __FILE__, __LINE__);
+        if (!result) return;
+
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                result[j * rows + i] = get(i, j);
             }
-            return Sqrt(result);
         }
 
-        void rotateX(float angle){
-            float *result = new float[9];
-            float c = Cos(angle);
-            float s = Sin(angle);
-            result[0] = 1;
-            result[1] = 0;
-            result[2] = 0;
-            result[3] = 0;
-            result[4] = c;
-            result[5] = -s;
-            result[6] = 0;
-            result[7] = s;
-            result[8] = c;
-            delete[] matrix;
-            matrix = result;
-            rows = 3;
-            cols = 3;
-        }
+        memManager.free(matrix);
+        matrix = result;
+        size_t temp = rows;
+        rows = cols;
+        cols = temp;
+    }
 
-        void rotateY(float angle){
-            float *result = new float[9];
-            float c = Cos(angle);
-            float s = Sin(angle);
-            result[0] = c;
-            result[1] = 0;
-            result[2] = s;
-            result[3] = 0;
-            result[4] = 1;
-            result[5] = 0;
-            result[6] = -s;
-            result[7] = 0;
-            result[8] = c;
-            delete[] matrix;
-            matrix = result;
-            rows = 3;
-            cols = 3;
+    // Identity matrix
+    void identity(size_t size) {
+        allocate(size, size);
+        for (size_t i = 0; i < size; ++i) {
+            for (size_t j = 0; j < size; ++j) {
+                set(i, j, (i == j) ? 1.0f : 0.0f);
+            }
         }
+    }
 
-        void rotateZ(float angle){
-            float *result = new float[9];
-            float c = Cos(angle);
-            float s = Sin(angle);
-            result[0] = c;
-            result[1] = -s;
-            result[2] = 0;
-            result[3] = s;
-            result[4] = c;
-            result[5] = 0;
-            result[6] = 0;
-            result[7] = 0;
-            result[8] = 1;
-            delete[] matrix;
-            matrix = result;
-            rows = 3;
-            cols = 3;
+    // Clear matrix (set all elements to zero)
+    void clear() {
+        if (matrix) memset(matrix, 0, rows * cols * sizeof(float));
+    }
+
+    // Print matrix
+    void print() const {
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                Serial.print(get(i, j), 3);
+                Serial.print(" ");
+            }
+            Serial.println();
         }
+    }
 
-        void rotate(float x, float y, float z, float angle){
-            float *result = new float[9];
-            float c = Cos(angle);
-            float s = Sin(angle);
-            float t = 1 - c;
-            result[0] = t * x * x + c;
-            result[1] = t * x * y - z * s;
-            result[2] = t * x * z + y * s;
-            result[3] = t * x * y + z * s;
-            result[4] = t * y * y + c;
-            result[5] = t * y * z - x * s;
-            result[6] = t * x * z - y * s;
-            result[7] = t * y * z + x * s;
-            result[8] = t * z * z + c;
-            delete[] matrix;
-            matrix = result;
-            rows = 3;
-            cols = 3;
+    // Compute magnitude (for vector interpretation)
+    float magnitude() const {
+        float sum = 0;
+        for (size_t i = 0; i < rows; ++i) {
+            sum += get(i, 0) * get(i, 0);
         }
+        return sqrt(sum);
+    }
 
-        void rotate(MatrixMath m, float angle){
-            float *result = new float[9];
-            float c = Cos(angle);
-            float s = Sin(angle);
-            float t = 1 - c;
-            result[0] = t * m.get(0, 0) * m.get(0, 0) + c;
-            result[1] = t * m.get(0, 0) * m.get(1, 0) - m.get(2, 0) * s;
-            result[2] = t * m.get(0, 0) * m.get(2, 0) + m.get(1, 0) * s;
-            result[3] = t * m.get(0, 0) * m.get(1, 0) + m.get(2, 0) * s;
-            result[4] = t * m.get(1, 0) * m.get(1, 0) + c;
-            result[5] = t * m.get(1, 0) * m.get(2, 0) - m.get(0, 0) * s;
-            result[6] = t * m.get(0, 0) * m.get(2, 0) - m.get(1, 0) * s;
-            result[7] = t * m.get(1, 0) * m.get(2, 0) + m.get(0, 0) * s;
-            result[8] = t * m.get(2, 0) * m.get(2, 0) + c;
-            delete[] matrix;
-            matrix = result;
-            rows = 3;
-            cols = 3;
+    // Normalize matrix as a vector
+    void normalize() {
+        float mag = magnitude();
+        if (mag > 0) scale(1 / mag);
+    }
+
+    // Compute dot product with a vector
+    float dotProduct(const MatrixMath &vector) const {
+        if (cols != 1 || vector.cols != 1 || rows != vector.rows) return 0.0f;
+        float sum = 0;
+        for (size_t i = 0; i < rows; ++i) {
+            sum += get(i, 0) * vector.get(i, 0);
         }
+        return sum;
+    }
 
-        void rotate(float *m, float angle){
-            float *result = new float[9];
-            float c = Cos(angle);
-            float s = Sin(angle);
-            float t = 1 - c;
-            result[0] = t * m[0] * m[0] + c;
-            result[1] = t * m[0] * m[1] - m[2] * s;
-            result[2] = t * m[0] * m[2] + m[1] * s;
-            result[3] = t * m[0] * m[1] + m[2] * s;
-            result[4] = t * m[1] * m[1] + c;
-            result[5] = t * m[1] * m[2] - m[0] * s;
-            result[6] = t * m[0] * m[2] - m[1] * s;
-            result[7] = t * m[1] * m[2] + m[0] * s;
-            result[8] = t * m[2] * m[2] + c;
-            delete[] matrix;
-            matrix = result;
-            rows = 3;
-            cols = 3;
+    // Compute cross product (only for 3D vectors)
+    MatrixMath crossProduct(const MatrixMath &m) const {
+        if (rows != 3 || cols != 1 || m.rows != 3 || m.cols != 1) return MatrixMath(0, 0, memManager);
+        MatrixMath result(3, 1, memManager);
+        result.set(0, 0, get(1, 0) * m.get(2, 0) - get(2, 0) * m.get(1, 0));
+        result.set(1, 0, get(2, 0) * m.get(0, 0) - get(0, 0) * m.get(2, 0));
+        result.set(2, 0, get(0, 0) * m.get(1, 0) - get(1, 0) * m.get(0, 0));
+        return result;
+    }
+
+    //operators
+
+    // Assignment operator
+    MatrixMath &operator=(const MatrixMath &m) {
+        if (this == &m) return *this;
+        if (rows != m.rows || cols != m.cols) allocate(m.rows, m.cols);
+        memcpy(matrix, m.matrix, rows * cols * sizeof(float));
+        return *this;
+    }
+
+    // Addition operator
+    MatrixMath operator+(const MatrixMath &m) const {
+        MatrixMath result(*this);
+        result.add(m);
+        return result;
+    }
+
+    // Subtraction operator
+    MatrixMath operator-(const MatrixMath &m) const {
+        MatrixMath result(*this);
+        result.subtract(m);
+        return result;
+    }
+
+    // Multiplication operator
+    MatrixMath operator*(const MatrixMath &m) const {
+        MatrixMath result(rows, m.cols, memManager);
+        result.multiply(m);
+        return result;
+    }
+
+    // Scale operator
+    MatrixMath operator*(float scalar) const {
+        MatrixMath result(*this);
+        result.scale(scalar);
+        return result;
+    }
+
+    // Equality operator
+    bool operator==(const MatrixMath &m) const {
+        if (rows != m.rows || cols != m.cols) return false;
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                if (get(i, j) != m.get(i, j)) return false;
+            }
         }
+        return true;
+    }
 
-        
+    // Inequality operator
+    bool operator!=(const MatrixMath &m) const {
+        return !(*this == m);
+    }
+
+    // Access operator
+    float operator()(size_t i, size_t j) const {
+        return get(i, j);
+    }
+
+    // Access operator
+    float &operator()(size_t i, size_t j) {
+        return matrix[i * cols + j];
+    }
+
+    // Get number of rows
+    size_t getRows() const {
+        return rows;
+    }
+
+    // Get number of columns
+    size_t getCols() const {
+        return cols;
+    }
 };
 
-
-
-#endif // MATRIXMATH_h
+#endif // MATRIXMATH_H

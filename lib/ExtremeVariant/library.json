@@ -1,0 +1,83 @@
+{
+    "name": "ExtremeVariant",
+    "version": "1.0.0-BETA",
+    "description": "This library takes a normal Variant Class to the Extreme by adding 1 more layer. This allows for more complex data structures to be created and used. This library supports single item, list of items, and key value pair's of items (Hashtable)",
+    "keywords": ["ExtremeVariant", "Variant", "Hashtable", "Optional", "Dynamic Data Structures", "SimpleVector", "Data Structures"],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/ExtremeVariant.git"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "dependencies": {
+        "Arduino": "*",
+        "Optional": "*",
+        "Hashtable": "*",
+        "SimpleVector": "*"
+    },
+    "examples": [
+        {
+            "name": "Example",
+            "base": "examples",
+            "files": [
+                "Example/Example.cpp"
+            ]
+        }
+    ],
+    "Categories": [
+        "Data Structures",
+        "Dynamic Data Structures",
+        "Utilities"
+    ],
+    "headers": [
+        "Arduino.h",
+        "Optional.h",
+        "Hashtable.h",
+        "SimpleVector.h"
+    ],
+    "header": "ExtremeVariant.h",
+    "license": "Apache-2.0",
+    "readme": "README.md",
+    "ChangeLog": [
+        {
+            "version": "1.0.0",
+            "date": "2023-11-12",
+            "changes": [
+                "Initial Partially tested release",
+                "Added Library name in the Serial Outputs for debugging purposes",
+                "This particular version is not tested and may not work as intended. USE AT YOUR OWN RISK!",
+                "This Library is extremely similar to the LinkedList Library, but with a few changes to the code to make it a double linked list instead of a single linked list.",
+                "Added 3 new Iterators to this Library. They are: ForwardIterator, BackwardIterator, and RandomIterator. They are all used for iterating through the list. They are currently untested",
+                "Redefinition of the LinkedNode. It is now called DoubledLinkedNode so it will not clash with the LinkedList Version.",
+                "This Library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author"
+            ]
+        },
+        {
+            "version": "1.0.1",
+            "date": "2023-11-27",
+            "changes": [
+                "Added a boolean to the Constructor that determines if the Library should print the Debug Messages to the Serial Monitor or not. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.",
+                "Added a new function called setDebugMode() that allows you to change the Debug Mode after the Library has been initialized. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.",
+                "Added a new function called getDebugMode() that allows you to get the current Debug Mode of the Library. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing.",
+                "By default, the Debug Mode is set to false. This means that the Debug Messages will not be printed to the Serial Monitor if you do not pass the boolean in. This is useful for when you want to use the Serial Monitor for other things and don't want the Debug Messages to interfere with the other things you are doing."
+            ]
+        },
+        {
+            "version": "1.0.2",
+            "date": "2024-01-31",
+            "changes": [
+                "Added new getAsString() function that returns the list element as a String. This is useful for when you want to print the list to the Serial Monitor or to a LCD Screen.",
+                "Deprecated valueExists() function, as it is no longer needed. This function will be removed in the next release. Use the contains function instead",
+                "Removed Debug Messages from the Library, This is to save Memory space.",
+                "Added Function Comments to all of the functions in the Library"
+            ]
+        }
+    ]
+}

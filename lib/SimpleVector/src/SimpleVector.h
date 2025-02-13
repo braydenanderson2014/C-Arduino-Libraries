@@ -2,24 +2,8 @@
 #define SIMPLEVECTOR_H
 
 #include <Arduino.h>
-#ifdef ESP32
-    #include <initializer_list>
-    #define useInit
-#endif
-#ifdef ESPRESSIF32
-    #include <initializer_list>
-    #define useInit
-#endif
-#ifdef ESP8266
-    #include <initializer_list>
-    #define useInit
-#endif
-#ifdef ESP32S2
-    #include <initializer_list>
-    #define useInit
-#endif
-#ifdef ESP32C3
-    #include <initializer_list>
+#if defined(ESP32) || defined(ESPRESSIF32) || defined(ESP8266) || defined(ESP32S2) || defined(ESP32C3)
+    //#include <initializer_list>
     #define useInit
 #endif
 template<typename T>
@@ -39,7 +23,10 @@ private:
     */
     void resize(unsigned int newCapacity) {
         T* newArray = new T[newCapacity];
-        
+        if (!newArray) {
+            Serial.println("Memory allocation failed during resize.");
+            return;
+        }
         for (unsigned int i = 0; i < count; i++) {
             newArray[i] = array[i];
         }
@@ -62,9 +49,17 @@ public:
     // The SimpleVectorIterator class will be defined below
     class SimpleVectorIterator;
 
-    SimpleVector() : array(new T[4]), count(0), capacity(4) {}
+    SimpleVector() : array(new T[4]), count(0), capacity(4) {
+        if(!array){
+            Serial.println("Memory allocation failed.");
+        }
+    }
 
-    SimpleVector(unsigned int initialCapacity) : array(new T[initialCapacity]), count(0), capacity(initialCapacity) {}
+    SimpleVector(unsigned int initialCapacity) : array(new T[initialCapacity]), count(0), capacity(initialCapacity) {
+        if(!array){
+            Serial.println("Memory allocation failed.");
+        }
+    }
 
     SimpleVector(const SimpleVector& other) : array(new T[other.capacity]), count(other.count), capacity(other.capacity) {
         for (unsigned int i = 0; i < count; i++) {
@@ -73,17 +68,34 @@ public:
     }
 
     #ifdef useInit
-    SimpleVector(initializer_list<T> initList) : array(new T[initList.size()]), count(initList.size()), capacity(initList.size()) {
-        int i = 0;
-        for (const auto& value : initList) {
-            array[i++] = value;
-        }
+    template<typename... Args>
+    SimpleVector(T first, Args... rest) {
+        count = sizeof...(rest) + 1;  // Number of elements
+        capacity = count;
+        array = new T[capacity];
+
+        // Initialize the first value
+        array[0] = first;
+
+        // Unpack the rest using recursion
+        fillArray(1, rest...);
     }
+
+    // Recursive unpacking function
+    template<typename... Args>
+    void fillArray(size_t index, T first, Args... rest) {
+        array[index] = first;
+        fillArray(index + 1, rest...);
+    }
+
+    // Base case for recursion
+    void fillArray(size_t) {}
     #endif
 
     ~SimpleVector() {
-        delete[] array;
+        releaseMemory();
     }
+
 
     // ... Other methods ...
 
@@ -93,10 +105,12 @@ public:
      * @public This method is public because it is meant to be called by the user.
     */
     void releaseMemory() {
-        delete[] array;
-        array = nullptr;
-        capacity = 0;
-        count = 0;
+        if(array){
+            delete[] array;
+            array = nullptr;
+            capacity = 0;
+            count = 0;
+        }
     }
 
     /**
@@ -120,12 +134,41 @@ public:
     * @public This method is public because it is meant to be called by the user.
     */
     void clear() {
-        for (unsigned int i = 0; i < count; i++) {
-            array[i] = T(); // Set each element to its default value
+        if(array){
+            delete[] array;
         }
-        count = 0; // Reset the count
+        array = new T[4];
+        count = 0;
+        capacity = 4;
+
     }
 
+    /**
+     * @brief Clears the vector and sets the capacity to the specified value.
+     * @param newCapacity The new capacity of the vector
+     * 
+     * @public This method is public because it is meant to be called by the user.
+    */
+    void clear(size_t newCapacity) {
+        if(array){
+            delete[] array;
+        }
+        array = new T[newCapacity];
+        count = 0;
+        capacity = newCapacity;
+    }
+
+    /**
+     * @brief Removes an item by index instead of feeding in the item itself.
+     * 
+     * @public This method is public
+     * 
+     * @date Added: 01/20/2025
+     * @version Added Version 1.0.7 (PlatformIO) and Version 1.02 (Arduino Library Manager)
+     */
+    void erase(int index){
+        remove(get(index));
+    }
 
 //Changed to put() for better naming conventions.
     /**
@@ -215,12 +258,40 @@ public:
 
 
     // Overload [] operator for const objects.
-    const T& operator[](unsigned int index) const{
-        if (index >= count){
-            return nullptr; // You can handle this error differently if needed
+    const T& operator[](unsigned int index) const {
+        static T dummy = T();
+        if (index >= count) {
+            return dummy;
         }
         return array[index];
     }
+
+    SimpleVector& operator=(const SimpleVector& other) {
+        if (this != &other) {
+            delete[] array;
+            array = new T[other.capacity];
+            count = other.count;
+            capacity = other.capacity;
+            for (unsigned int i = 0; i < count; i++) {
+                array[i] = other.array[i];
+            }
+        }
+        return *this;
+    }
+
+    const SimpleVector& operator=(const SimpleVector& other) const {
+        if (this != &other) {
+            delete[] array;
+            array = new T[other.capacity];
+            count = other.count;
+            capacity = other.capacity;
+            for (unsigned int i = 0; i < count; i++) {
+                array[i] = other.array[i];
+            }
+        }
+        return *this;
+    }
+
     /**
      * @brief Get the size of the vector
      * @return The size of the vector
@@ -252,11 +323,21 @@ public:
      * @return Reference to the element at the specified index
     */
     T& get(unsigned int index) {
+        static T dummy = T();
         if (index >= count) {
-            return nullptr; // You can handle this error differently if needed
+            return dummy;
         }
         return array[index];
     }
+
+    //NEW
+    T* getPtr(unsigned int index) {
+        if (index >= count) {
+            return nullptr;
+        }
+        return &array[index];
+    }
+
 
 
     bool isEmpty() const {

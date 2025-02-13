@@ -16,26 +16,38 @@ To use `SDList` in your Arduino project:
 1. Copy `SDList.h` to your project's directory.
 2. Include the `SDList.h` file in your sketch.
 
+## Arduino Library Manager
 ## ChangeLog
 ### Version 1.0.0
+* Initial Release -> On par with Platformio version 1.0.5
+
+
+
+## ChangeLog
+### Version 1.0.0:
 * Initial Release
-### Version 1.0.1
+### Version 1.0.1:
 * Dependency Update (Issues with certain Dependencies)
-### Version 1.0.2  
+### Version 1.0.2:  
 * Dependency Update (Issue was not resolved in 1.0.1 but is now properly resolved)
 * Added [SD LIST]: in front of all Serial.prints to make it easier to debug
-### Version 1.0.3 
+### Version 1.0.3: 
 * Update to README
 * Completely Reimplemented this library, It now functions properly and is much more stable. (Only Lightly Tested)
 * This Library now uses the ArrayList Library to store the list in memory, and then writes the list to the SD card when the list is modified (In SDLIST). This makes the library much more stable and reliable.
 * This Library has not been Thoughly tested, and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author
 * Removed the c++ file and moved implementation to the header file
-### Version 1.0.4
+### Version 1.0.4:
 * This Version was removed from PlatformIO due to a missing feature that was supposed to be added.
-### Version 1.0.5 [BETA-TESTING]
+### Version 1.0.5: [BETA-TESTING]
 * Library src Directory was not included in the previous release. This has been fixed.
 * Re-Added Examples
 * Added Overloaded begin() function to allow for custom file names. begin(csPin) was the original, and begin(csPin, Filename) is the new overloaded function.
+### Version 1.0.5:
+* Added new getUnderlyingStructure() function that returns the ArrayList Object
+
+
+
 ## Usage
 
 To create an `SDList`, specify the data type you want to store and provide the Chip Select (CS) pin and a filename for the page file on the SD card.

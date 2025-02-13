@@ -1,81 +1,64 @@
-#include "Hashtable.h"
-Hashtable<String, String> table;
 
 
-void debugTable();
+
+
+#include <Arduino.h>
+//#include "OrderedMap.h"
+//#include "SDList.h"
+#include "JSON.h"
+//#include "DynamicStorageLibrary.h"
+#include <LZ4.h>
+#include "Optional.h"
+
+//#include "MemoryManager.h"
+String jsonStr = "{\"hello\":\"world\"}";  // Example JSON string
+//uint8_t compressed[128];  // Buffer for compressed data
+//uint8_t decompressed[128];
+
 void setup() {
-    Serial.begin(9600); // Start Serial Connection
+    Serial.begin(115200);
+    while (!Serial) {}  // Ensure Serial is ready
+    JSON json;
 
-    //ADD ELEMENTS TO THE TABLE
-    table.put("key1", "value1");
-    table.put("key2", "value2");
-    table.put("key3", "value3");
-    table.put("key4", "value4");
-    table.put("key5", "value5");
-    table.put("key6", "value6");
-    table.put("key7", "value7");
-    table.put("key8", "value8");
-    table.put("key9", "value9");
-    table.put("key10", "value10");
-    table.put("key11", "value11");
-    table.put("key12", "value12");
-    table.put("key13", "value13");
-    table.put("key14", "value14");
-    table.put("key15", "value15");
-    table.put("key16", "value16");
-    table.put("key17", "value17");
-    table.put("key18", "value18");
-    table.put("key19", "value19");
-    table.put("key20", "value20");
+    const char* jsonKey = "Number";
+    //const char* jsonStr = "{\"hello\":\"world\"}";
+    //json.setString(jsonKey, jsonStr);
+    json.setNumber(jsonKey, 42);
+
+
+    String jsonOutput = json.writeToString();
+    Serial.print("Serialized JSON: ");
+    Serial.println(jsonOutput);
+
+    bool success = json.writeToFile("test.json");
+    Serial.println(success ? "Yes" : "No");
+
     
+}
 
-    Serial.println("Size: " + String(table.size()));
-    Serial.println("Elements: " + String(table.elements()));
-    Serial.println("Is Empty: " + String(table.isEmpty()));
+void loop() {
+    // put your main code here, to run repeatedly:
+}
 
-    /*
-    for (auto it = table.begin(); it != table.end(); ++it) {
-        auto kv = *it;
-        Serial.print("Iterator output: Key: ");
-        Serial.print(kv.key);
-        Serial.print(", Value: ");
-        Serial.println(kv.value);
-    }
-    */
-    //debugTable();
-    Serial.println("Iterator complete");
+/*
+#define MEMORY_POOL_SIZE 2048  // Preallocate 2KB
+char memoryPool[MEMORY_POOL_SIZE];
 
+extern unsigned int __bss_end;
+extern void *__brkval;
 
-
-
-    String* value = table.get("key1");
-    if (value != nullptr) {
-        Serial.println("Value of key1: " + *value);
+int freeMemory() {
+    int free_memory;
+    if ((int)__brkval == 0) {
+        free_memory = ((int)&free_memory) - ((int)&__bss_end);
     } else {
-        Serial.println("Key1 not found");
+        free_memory = ((int)&free_memory) - ((int)__brkval);
     }
-
-    String value2 = table.getElement("key2");
-    Serial.println("Value of key2: " + value2);
-
-}
-
-void debugTable() {
-    for (int i = 0; i < table.bucketCount(); ++i) {
-        Serial.print("Bucket ");
-        Serial.print(i);
-        Serial.print(": ");
-        auto entry = table.getBucket(i); // Use a method to get the bucket by index
-        while (entry != nullptr) {
-            Serial.print(entry->key + " -> " + entry->value + ", ");
-            entry = entry->next;
-        }
-        Serial.println();
-    }
+    return free_memory;
 }
 
 
 
-void loop(){
+*/
+//DynamicStorage<String, String> storage(DynamicStorage<String, String>::AUTO);
 
-}

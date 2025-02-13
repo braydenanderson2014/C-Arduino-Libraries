@@ -115,7 +115,7 @@ typedef char* va_list;
 #include <LiquidCrystal_I2C.h>
 #include <LiquidCrystal.h>
 #include <Wire.h>
-#include <SD.h>
+#include <SDFat.h>
 #include <SPI.h>
 //#include <hyperdisplay.h>
 
@@ -447,6 +447,7 @@ public:
         }
     }
 
+    /*
     bool saveToFile(const char* filename, const char* data) {
         File file = SD.open(filename, FILE_WRITE);
         if (!file) {
@@ -456,8 +457,10 @@ public:
         file.close();
         return true;
     }
+    */
     
     // Load data from a file on the SD card
+    /*
     bool loadFromFile(const char* filename, char* buffer, size_t bufferSize) {
         File file = SD.open(filename);
         if (!file) {
@@ -467,7 +470,7 @@ public:
         buffer[bytesRead] = '\0';
         file.close();
         return true;
-    }
+    }*/
     //... Add other I/O methods as needed 
 };
 

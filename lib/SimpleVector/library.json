@@ -1,6 +1,6 @@
 {
     "name": "SimpleVector",
-    "version": "1.0.7-Beta",
+    "version": "1.0.9-Beta",
     "description": "A lightweight and efficient implementation of a dynamic array, suitable for use in memory-constrained environments.",
     "keywords": ["SimpleVector", "VectorIterator", "Vector", "List", "Array", "DynamicArray", "DynamicList", "DynamicVector", "Arduino"],
     "Repositories": [

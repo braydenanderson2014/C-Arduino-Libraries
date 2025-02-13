@@ -1,0 +1,22 @@
+######################################
+# Syntax Highlighting for Variant Library
+######################################
+
+# Class
+Variant    KEYWORD1
+
+# Data Types
+ArrayList  KEYWORD2
+SimpleVector  KEYWORD2
+
+# Methods
+isSingle    KEYWORD2
+isArrayList KEYWORD2
+isSimpleVector KEYWORD2
+setSingle   KEYWORD2
+setList     KEYWORD2
+getSingle   KEYWORD2
+getList     KEYWORD2
+addValue    KEYWORD2
+size        KEYWORD2
+clear       KEYWORD2

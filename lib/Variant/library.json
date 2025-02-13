@@ -1,0 +1,44 @@
+{
+    "name": "Variant",
+    "version": "1.0.0",
+    "description": "A flexible template-based Variant class supporting both single values and dynamic lists using ArrayList or SimpleVector.",
+    "keywords": ["Variant", "Dynamic Storage", "List", "ArrayList", "SimpleVector", "Data"],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Variant.git"
+        }
+    ],
+    "Description": "This Library allows storing either a single value or a list of values dynamically. It provides an easy-to-use interface for switching between single and list modes. The class supports ArrayList or SimpleVector, giving flexibility in memory management.",
+    
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "dependencies": {
+        "Arduino": "*",
+        "braydenanderson2014/ArrayList": "*",
+        "braydenanderson2014/SimpleVector": "*"
+    },
+    "examples": [
+        {
+            "name": "Basic Usage",
+            "base": "examples",
+            "files": [
+                "example.cpp"
+            ]
+        }
+    ],
+    "headers": [
+        "ArrayList.h",
+        "SimpleVector.h",
+        "Variant.h"
+    ],
+    "header": "Variant.h",
+    "Notes": "The Variant class is designed for flexible data storage in Arduino projects. It enables easy conversion between single values and dynamic lists. It supports both ArrayList and SimpleVector for optimal memory management.",
+    "license": "Apache-2.0"
+    
+}

@@ -3,6 +3,13 @@
 #define BASICLINKEDLIST_H
 
 #include <Arduino.h>
+#include "Optional.h"
+
+#define LL_SUCCESS 0
+#define LL_OUT_OF_BOUNDS 1
+#define LL_ELEMENT_NOT_FOUND 2
+#define LL_EMPTY_LIST 3
+
 
 /**
  * @brief A node in a singly-linked list.
@@ -86,6 +93,7 @@ class ForwardIterator {
     */
     void add(const T& value) {
         append(value);
+        debugPrintList();
     }
 
     /**
@@ -185,13 +193,13 @@ class ForwardIterator {
      * If the position is greater than or equal to the size of the list, nothing happens.
      * Otherwise, the element at the given position is removed.
     */
-    void remove(const int index){
+    int remove(const int index){
         if(index == 0){
             ListNode<T>* temp = head;
             head = head->next;
             delete temp;
             Size--;
-            return;
+            return LL_SUCCESS;
         }
         ListNode<T>* current = head;
         for(int i = 0; i < index - 1; i++){
@@ -201,6 +209,7 @@ class ForwardIterator {
         current->next = temp->next;
         delete temp;
         Size--;
+        return LL_SUCCESS;
     }
     
     /**
@@ -208,17 +217,17 @@ class ForwardIterator {
      * @param value - the value to be removed
      * 
     */
-    void removeElement(const T& value) {
-        if (!head) {
-            return; // List is empty
-        }
+    int removeElement(T value) {
+        if (!head) return LL_EMPTY_LIST;
+
         if (head->data == value) {
             ListNode<T>* temp = head;
             head = head->next;
             delete temp;
             Size--;
-            return;
+            return LL_SUCCESS;
         }
+
         ListNode<T>* current = head;
         while (current->next) {
             if (current->next->data == value) {
@@ -226,11 +235,14 @@ class ForwardIterator {
                 current->next = current->next->next;
                 delete temp;
                 Size--;
-                return;
+                return LL_SUCCESS;
             }
             current = current->next;
         }
+        return LL_ELEMENT_NOT_FOUND; // ✅ Now properly returns if the element is not found
     }
+
+
     // Get the element at a specific position
     // Change the return type to a pointer
     /**
@@ -246,32 +258,23 @@ class ForwardIterator {
     T* get(size_t position) const {
         ListNode<T>* current = head;
         for (size_t i = 0; i < position; i++) {
-            if (!current) {
-                return nullptr; // Out of bounds
-            }
+            if (!current || !current->next) return nullptr; // ✅ Ensure current is valid before moving
             current = current->next;
         }
-        if (current) {
-            return &(current->data);
-        } else {
-            return nullptr;
-        }
+        return current ? &(current->data) : nullptr;
     }
 
-    T getElement(size_t position) const {
+
+
+    Optional<T> getElement(size_t position) const {
         ListNode<T>* current = head;
         for (size_t i = 0; i < position; i++) {
-            if (!current) {
-                return T(); // Out of bounds
-            }
+            if (!current) return Optional<T>(); // Return an empty Optional to indicate an error
             current = current->next;
         }
-        if (current) {
-            return current->data;
-        } else {
-            return T();
-        }
+        return Optional<T>(current->data); // Return a valid Optional with the data
     }
+
 
     /**
      * @brief Get the element at a specific position as a String
@@ -286,7 +289,8 @@ class ForwardIterator {
         ListNode<T>* current = head;
         for (size_t i = 0; i < position; i++) {
             if (!current) {
-                return nullptr; // Out of bounds
+                static String error_value = static_cast<String>(LL_OUT_OF_BOUNDS); // Static variable to hold the error code
+                return error_value; // Out of bounds
             }
             current = current->next;
         }
@@ -321,7 +325,13 @@ class ForwardIterator {
      * @return the number of elements in the list
     */
     size_t size() const {
-        return Size;
+        size_t count = 0;
+        ListNode<T>* current = head;
+        while (current) {
+            count++;
+            current = current->next;
+        }
+        return count;
     }
 
     // Check if the list is empty
@@ -348,6 +358,21 @@ class ForwardIterator {
         Size = 0;
     }
 
+    Optional<size_t> find(const T& value) const {
+        ListNode<T>* current = head;
+        size_t index = 0;
+        
+        while (current) {
+            if (current->data == value) {
+                return Optional<size_t>(index); // ✅ Return index wrapped in Optional
+            }
+            current = current->next;
+            index++;
+        }
+        return Optional<size_t>(); // ✅ Return empty Optional if not found
+    }
+
+
     //Operators
     /**
      * @brief Overload the subscript operator
@@ -358,20 +383,15 @@ class ForwardIterator {
      * If the index is out of bounds, the first element is returned.
      * Otherwise, the element at the given index is returned.
     */
-    T& operator[](size_t index) {
+    Optional<T> operator[](size_t index) {
         ListNode<T>* current = head;
         for (size_t i = 0; i < index; i++) {
-            if (!current) {
-                return current->data; // Out of bounds
-            }
+            if (!current) return Optional<T>(); // Return an empty Optional to indicate an error
             current = current->next;
         }
-        if (current) {
-            return current->data;
-        } else {
-            return current->data;
-        }
+        return Optional<T>(current->data); // Return a valid Optional with the data
     }
+
 
     /**
      * @brief Overload the subscript operator
@@ -382,20 +402,15 @@ class ForwardIterator {
      * If the index is out of bounds, the first element is returned.
      * Otherwise, the element at the given index is returned.
     */
-    const T& operator[](size_t index) const {
+    Optional<T> operator[](size_t index) const {
         ListNode<T>* current = head;
         for (size_t i = 0; i < index; i++) {
-            if (!current) {
-                return current->data; // Out of bounds
-            }
+            if (!current) return Optional<T>(); // Return an empty Optional to indicate an error
             current = current->next;
         }
-        if (current) {
-            return current->data;
-        } else {
-            return current->data;
-        }
+        return Optional<T>(current->data); // Return a valid Optional with the data
     }
+
 
     //= operator
     /**
@@ -416,6 +431,21 @@ class ForwardIterator {
         }
         return *this;
     }
+
+    void debugPrintList() {
+        Serial.print("List Size: ");
+        Serial.println(Size);
+        ListNode<T>* current = head;
+        int index = 0;
+        while (current) {
+            Serial.print("Index ");
+            Serial.print(index++);
+            Serial.print(": ");
+            Serial.println((uintptr_t)current->data, HEX);  // Print address
+            current = current->next;
+        }
+    }
+
 
 };
 

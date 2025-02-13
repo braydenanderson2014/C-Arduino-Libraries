@@ -1,183 +1,230 @@
 #ifndef MEMORY_MANAGER_H
 #define MEMORY_MANAGER_H
 
-#define MEMORYBLOCKSIZE 64
-#include <CustomString.h>
 #include "BasicLinkedList.h"
 #include <new>
-#include <MathLib.h>
-#include <SD.h>
+#include <SdFat.h>   // ✅ Use Adafruit SdFat library
 #include <JSON.h>
+#include "ArrayList.h"
+#include "SimpleVector.h"
+
+// Error Codes
+#define MM_SUCCESS 0
+#define MM_MEMORY_LEAK_ERROR 1
+#define MM_ALLOCATION_FAILED 2
+#define MM_FILE_WRITE_ERROR 3
+#define MM_FILE_READ_ERROR 4
+#define MM_FILE_NOT_FOUND 5
+#define MM_NO_AVAILABLE_BLOCKS 6
+#define MM_BLOCK_NOT_FOUND 7
+#define MM_SD_FOUND 8
+#define MM_SD_NOT_FOUND 9
+#define MM_TEST_FILE_ERROR 10
+#define MM_ROOT_DIR_ERROR 11
+#define MM_SD_OUT_OF_SPACE 12
+#define MM_UNKNOWN_ERROR 99
+
+#define MEMORYBLOCKSIZE 64
+#define ENABLE_JSON_STORAGE  // Uncomment to enable JSON-based storage tracking
+#define DEBUG_MEMORY 1 // Set to 1 to enable debug prints
+
+#if DEBUG_MEMORY
+    #define DEBUG_PRINT(x) Serial.println(x)
+#else
+    #define DEBUG_PRINT(x)
+#endif
+
+//#define ENABLE_GARBAGE_COLLECTION  // Uncomment to enable memory block reuse
+//#define SD_CS_PIN 10
+SdFat sdFat;  // ✅ Use SdFat instead of SD
 
 struct MemoryBlock {
-    bool free; // Is the block free?
-    unsigned int size; // Size of the allocation
-    unsigned int id; // Unique identifier for the block
-    unsigned int line; // Line number of the allocation
-    Custom_String::String file; // File name of the allocation
-    void* data; // Pointer to the user data portion
-    void* baseAddress; // Store the base address of the allocation
+    bool free;
+    unsigned int size;
+    unsigned int id;
+    unsigned int line;
+    char* file;
+    void* data;
 };
 
-
 class MemoryManager {
-    private:
-        LinkedList<MemoryBlock*> blocks; // Assuming LinkedList can hold MemoryBlock pointers
-        bool useSDFile = false;
+private:
+    SimpleVector<MemoryBlock*>* memoryBlocks;
+    bool useSDFile = false;
+    int lastError = MM_SUCCESS;
+    static unsigned int idCounter;
 
-    public:
-    MemoryManager() {}
+    unsigned long totalSDBytes = 0;
+    unsigned long usedSDBytes = 0;
 
-   void* malloc(unsigned int size, const char* file, unsigned int line) {
-        MemoryBlock* block = (MemoryBlock*)::malloc(size + sizeof(MemoryBlock));
-        if (block) {
-            block->free = false;
-            block->size = size;
-            block->data = (char*)block + sizeof(MemoryBlock);
-            block->baseAddress = block;
-            block->id = Random(1, (int)99999);
-            block->line = line;
-            block->file = file;
-
-            // Additional initialization...
+public:
+    MemoryManager() {
+        if (sdFat.begin(SD_CS_PIN, SD_SCK_MHZ(50))) {  // ✅ Initialize SD
+            useSDFile = true;
+            totalSDBytes = getTotalSDSize();
+        } else {
+            Serial.println("MM_SD_NOT_FOUND");
+            useSDFile = false;
         }
-        return block ? block->data : nullptr;
+    }
+
+    // **Get Total SD Card Size**
+    unsigned long getTotalSDSize() {
+        if (!useSDFile) return 0;
+
+        uint32_t sectorCount = sdFat.card()->sectorCount();
+        if (sectorCount == 0) {
+            lastError = MM_TEST_FILE_ERROR;
+            return 0;
+        }
+
+        totalSDBytes = sectorCount * 512;  // ✅ 512 bytes per sector
+
+        return totalSDBytes;
+    }
+
+    // **Calculate Used Space on SD Card**
+    unsigned long getUsedSDBytes() {
+        if (!useSDFile) return 0;
+
+        uint32_t freeClusters = sdFat.vol()->freeClusterCount();
+        uint32_t totalClusters = sdFat.vol()->clusterCount();
+        uint32_t usedClusters = totalClusters - freeClusters;
+
+        usedSDBytes = usedClusters * sdFat.vol()->sectorsPerCluster() * 512;  // ✅ Convert to bytes
+
+        return usedSDBytes;
+    }
+
+    unsigned long getFreeSDBytes() {
+        return totalSDBytes - getUsedSDBytes();
+    }
+
+    void* malloc(unsigned int size, const char* file, unsigned int line) {
+        lastError = MM_SUCCESS;
+
+        DEBUG_PRINT("Allocating memory: " + String(size) + " bytes...");
+
+        // Perform memory check before allocation
+        if (useSDFile) {
+            unsigned long freeSpace = getFreeSDBytes();
+            if (size > freeSpace) {
+                DEBUG_PRINT("MM_SD_OUT_OF_SPACE");
+                lastError = MM_SD_OUT_OF_SPACE;
+                return nullptr;
+            }
+        }
+
+        MemoryBlock* block = (MemoryBlock*)::malloc(sizeof(MemoryBlock));
+        if (!block) {
+            DEBUG_PRINT("MM_ALLOCATION_FAILED");
+            lastError = MM_ALLOCATION_FAILED;
+            return nullptr;
+        }
+
+        block->data = ::malloc(size);
+        if (!block->data) {
+            DEBUG_PRINT("MM_ALLOCATION_FAILED");
+            ::free(block);
+            lastError = MM_ALLOCATION_FAILED;
+            return nullptr;
+        }
+
+        block->free = false;
+        block->size = size;
+        block->id = idCounter++;
+        block->line = line;
+        block->file = new char[strlen(file) + 1];
+        strcpy(block->file, file);
+
+        DEBUG_PRINT("MM_SUCCESS");
+        memoryBlocks->put(block);
+        return block->data;
+    }
+
+
+    int free(void* ptr) {
+        if (!ptr) return MM_ALLOCATION_FAILED;
+
+        for (size_t i = 0; i < memoryBlocks->size(); ++i) {
+            Optional<MemoryBlock*> optionalBlock = memoryBlocks->get(i);
+            if (!optionalBlock.hasValue()) continue;
+            MemoryBlock* block = optionalBlock.getValue();
+
+            if (block->data == ptr) {
+                block->free = true;
+                memoryBlocks->remove(block);
+                ::free(block->data);
+                delete[] block->file;
+                ::free(block);
+                return MM_SUCCESS;
+            }
+        }
+
+        lastError = MM_UNKNOWN_ERROR;
+        return MM_UNKNOWN_ERROR;
+    }
+
+    unsigned int getFreeMemory() {
+        unsigned int freeMemory = 0;
+        for (size_t i = 0; i < memoryBlocks->size(); ++i) {
+            Optional<MemoryBlock*> optionalBlock = memoryBlocks->get(i);
+            if (!optionalBlock.hasValue()) continue;
+            MemoryBlock* block = optionalBlock.getValue();
+            if (block->free) freeMemory += block->size;
+        }
+        return freeMemory;
+    }
+
+    int getLastError() {
+        return lastError;
+    }
+
+    unsigned long getTotalSDMemory() {
+        return totalSDBytes;
     }
 
     ~MemoryManager() {
-        // Iterate over blocks and free them
-        for (size_t i = 0; i < blocks.size(); ++i) {
-            MemoryBlock* block = *(blocks.get(i));
-            ::operator delete(block); // Adjust to just use free on the block
-        }
-    }
-
-    void free(void* ptr) {
-        MemoryBlock* block = (MemoryBlock*)((char*)ptr - sizeof(MemoryBlock));
-        block->free = true;
-        // Additional cleanup...
-        blocks.removeElement(block);
-    }
-
-    void* realloc(void* ptr, unsigned int size, const char* file, unsigned int line) {
-        MemoryBlock* block = (MemoryBlock*)((char*)ptr - sizeof(MemoryBlock));
-        void* newPtr = malloc(size, file, line);
-        if (newPtr) {
-            memcpy(newPtr, ptr, block->size);
-            free(ptr);
-        }
-        return newPtr;
-    }
-
-    void* calloc(unsigned int num, unsigned int size, const char* file, unsigned int line) {
-        void* ptr = malloc(num * size, file, line);
-        if (ptr) {
-            memset(ptr, 0, num * size);
-        }
-        return ptr;
-    }
-
-    void dumpMemoryLeaks() {
-        if (blocks.size() > 0) {
-            for (size_t i = 0; i < blocks.size(); ++i) {
-                MemoryBlock* block = *(blocks.get(i));
-                if (block->free == false) {
-                    Serial.print("Memory leak detected: ");
-                    Serial.print(block->file.C_STR());
-                    Serial.print(" (line ");
-                    Serial.print(block->line);
-                    Serial.print(") ");
-                    Serial.print(block->size);
-                    Serial.println(" bytes");
-                }
+        Serial.println("Destroying MemoryManager...");
+        while (!memoryBlocks->isEmpty()) {
+            Optional<MemoryBlock*> optionalBlock = memoryBlocks->get(0);
+            if (!optionalBlock.hasValue()) continue;
+            MemoryBlock* block = optionalBlock.getValue();
+            if (block) {
+                memoryBlocks->remove(0);
+                ::free(block->data);
+                delete[] block->file;
+                ::free(block);
             }
         }
     }
 
-    void setUseSDFile(bool useSD) {
-        useSDFile = useSD;
-    }
+    void detectMemoryLeaks() {
+        Serial.println("Checking for memory leaks...");
+        unsigned long leakedMemory = 0;
 
-    void writeMemoryLeaksToFile(const char* filename) {
-        if (useSDFile) {
-            File file = SD.open(filename, FILE_WRITE);
-            if (file) {
-                if (blocks.size() > 0) {
-                    for (size_t i = 0; i < blocks.size(); ++i) {
-                        MemoryBlock* block = *(blocks.get(i));
-                        if (block->free == false) {
-                            file.print("Memory leak detected: ");
-                            file.print(block->file.C_STR());
-                            file.print(" (line ");
-                            file.print(block->line);
-                            file.print(") ");
-                            file.print(block->size);
-                            file.println(" bytes");
-                        }
-                    }
-                }
-                file.close();
+        for (size_t i = 0; i < memoryBlocks->size(); ++i) {
+            Optional<MemoryBlock*> optionalBlock = memoryBlocks->get(i);
+            if (!optionalBlock.hasValue()) continue;
+            MemoryBlock* block = optionalBlock.getValue();
+            if (!block->free) {
+                Serial.print("Memory leak detected: ");
+                Serial.print(block->size);
+                Serial.print(" bytes at ");
+                Serial.print(block->file);
+                Serial.print(":");
+                Serial.println(block->line);
+                leakedMemory += block->size;
             }
         }
+
+        Serial.print("Total Leaked Memory: ");
+        Serial.print(leakedMemory);
+        Serial.println(" bytes.");
     }
-
-    void writeMemoryLeaksToSerial() {
-        if (blocks.size() > 0) {
-            for (size_t i = 0; i < blocks.size(); ++i) {
-                MemoryBlock* block = *(blocks.get(i));
-                if (block->free == false) {
-                    Serial.print("Memory leak detected: ");
-                    Serial.print(block->file.C_STR());
-                    Serial.print(" (line ");
-                    Serial.print(block->line);
-                    Serial.print(") ");
-                    Serial.print(block->size);
-                    Serial.println(" bytes");
-                }
-            }
-        }
-    }
-
-    void writeMemoryLeaksToSerialAndFile(const char* filename) {
-        writeMemoryLeaksToSerial();
-        writeMemoryLeaksToFile(filename);
-    }
-
-    //store using json format
-    void storeMemoryBlockToFile(const char* filename) {
-        if (useSDFile) {
-            JSON json;
-            for (size_t i = 0; i < blocks.size(); ++i) {
-                MemoryBlock* block = *(blocks.get(i));
-                Custom_String::String blockPath = (Custom_String::String)"blocks." + Custom_String::String(int(block->id));
-                json.set(blockPath + ".free", block->free ? "true" : "false");
-                json.set(blockPath + ".size", Custom_String::String(float(block->size)));
-                json.set(blockPath + ".line", Custom_String::String(float(block->line)));
-                json.set(blockPath + ".file", block->file);
-                // Include other MemoryBlock attributes as needed
-            }
-            json.writeToFile(filename);
-        }
-    } 
-
-    //load using json format
-    void loadMemoryBlockFromFile(const char* filename) {
-        if (useSDFile) {
-            JSON json;
-            json.readFromFile(filename);
-            for (size_t i = 0; i < blocks.size(); ++i) {
-                MemoryBlock* block = *(blocks.get(i));
-                Custom_String::String blockPath = (Custom_String::String)"blocks." + Custom_String::String(int(block->id));
-                block->free = json.get(blockPath + ".free") == "true";
-                block->size = json.get(blockPath + ".size").toInt();
-                block->line = json.get(blockPath + ".line").toInt();
-                block->file = json.get(blockPath + ".file");
-                // Include other MemoryBlock attributes as needed
-            }
-        }
-    }
-    
-
 };
+
+// Initialize static ID counter
+unsigned int MemoryManager::idCounter = 1;
 
 #endif // MEMORY_MANAGER_H

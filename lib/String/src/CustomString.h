@@ -3,6 +3,13 @@
 
 #include <MathLib.h>
 #include <stdarg.h> 
+#include <stddef.h>  // For size_t
+#include <string.h>  // For memcpy, memset
+#include <stdio.h>   // For sprintf (if needed)
+
+#ifdef ARDUINO
+    #include <Arduino.h>
+#endif
 /**
  * Custom String class
  * Wrapped in a struct to avoid conflicts with the standard String class
@@ -275,6 +282,13 @@ struct Custom_String {
             Copy(temp);
         }
 
+        // Constructor with double
+        String(double value) : String() {
+            char temp[32]; // big enough for typical double -> string
+            // Use either sprintf (if available) or dtostrf in Arduino
+            SPRINTF(temp, "%f", value); 
+            Copy(temp);
+        }
 
         // DeSTRuctor
         /**
@@ -390,6 +404,53 @@ struct Custom_String {
             return *this;
         }
 
+        String& operator=(double value) {
+            char temp[32];
+            SPRINTF(temp, "%f", value);
+            *this = temp;
+            return *this;
+        }
+
+        String& operator=(float value) {
+            char temp[32];
+            SPRINTF(temp, "%f", value);
+            *this = temp;
+            return *this;
+        }
+
+        String& operator=(int value) {
+            char temp[32];
+            SPRINTF(temp, "%d", value);
+            *this = temp;
+            return *this;
+        }
+
+        String& operator=(char c) {
+            clear();
+            append(c);
+            return *this;
+        }
+
+        Custom_String::String& operator=(const char* STR) {
+            clear();
+            if (STR) Copy(STR);
+            return *this;
+        }
+
+
+
+        // Append a single character to the STRing
+        /**
+         * @brief Append a single character to the STRing
+         * 
+         * @param c - The character to append
+        */
+        void append(char c) {
+            ensureCapacity(Length + 1); // Ensure there is enough space for the new character
+            Buffer[Length++] = c; // Append the character
+            Buffer[Length] = '\0'; // Null-terminate the STRing
+        }
+
         /**
          * A simplified implementation of the sprintf function.
          *
@@ -426,74 +487,6 @@ struct Custom_String {
             }
             *STR = '\0';
             va_end(args);
-        }
-
-
-        // Assignment operator from C-STRing
-        /**
-         * @brief Assignment operator from C-STRing
-         * 
-         * @param STR - The C-style STRing to assign
-         * @return String& - The assigned STRing
-        */
-        String& operator=(const char* STR) {
-            clear();
-            if (STR) Copy(STR);
-            return *this;
-        }
-
-        // Assignment operator from character
-        /**
-         * @brief Assignment operator from character
-         * 
-         * @param c - The character to assign
-         * @return String& - The assigned STRing
-        */
-        String& operator=(char c) {
-            clear();
-            append(c);
-            return *this;
-        }
-
-        // Assignment operator from integer
-        /**
-         * @brief Assignment operator from integer
-         * 
-         * @param value - The integer to assign
-         * @return String& - The assigned STRing
-        */
-        String& operator=(int value) {
-            char temp[12]; // 12 characters is enough for 32-bit integer
-            SPRINTF(temp, "%d", value);
-            *this = temp;
-            return *this;
-        }
-
-        // Assignment operator from float
-        /**
-         * @brief Assignment operator from float
-         * 
-         * @param value - The float to assign
-         * @return String& - The assigned STRing
-        */
-        String& operator=(float value) {
-            char temp[32]; // 32 characters is enough for 32-bit float
-            SPRINTF(temp, "%f", value);
-            *this = temp;
-            return *this;
-        }
-
-        
-
-        // Append a character to the STRing
-        /**
-         * @brief Append a character to the STRing
-         * 
-         * @param c - The character to append
-        */
-        void append(char c) {
-            Reallocate(Length + 2); // +1 for the new character, +1 for null terminator
-            Buffer[Length++] = c;
         }
 
         // Append a C-STRing to the STRing
@@ -1068,12 +1061,14 @@ struct Custom_String {
             return String(value);
         }
 
+        #ifdef ARDUINO
         /**
          * @brief print... Prints the STRing.
         */
         void print() const {
             Serial.print(Buffer);
         }
+        #endif
         // Output STReam operator
 
         /**
