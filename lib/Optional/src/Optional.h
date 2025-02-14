@@ -1,10 +1,6 @@
 #ifndef OPTIONAL_H
 #define OPTIONAL_H
 
-
-
-
-//#include <utility.h> // std::forward
 //#define MINIMUM_IMPLEMENTATION
 template <typename T>
 class Optional {
@@ -13,7 +9,8 @@ public:
     Optional(const T& value) : has_value(true), value(value) {} // Constructor with value
 
     bool hasValue() const { return has_value; } // Check if the Optional has a value
-    
+    bool isPresent() const { return has_value; } // Check if the Optional has a value (alternative name)
+
     /**
      * @brief Retrieves the stored value.
      * 
@@ -237,6 +234,28 @@ public:
         return value;
     }
     
+    /**
+     * @brief Creates an Optional describing the given value, or an empty Optional if the value is null.
+     * 
+     * @param value The value to describe, which may be null.
+     * @return An Optional with a present value if the specified value is non-null, otherwise an empty Optional.
+     */
+    static Optional<T> ofNullable(const T* value) {
+        if (value) {
+            return Optional<T>(*value);
+        }
+        return Optional<T>();
+    }
+
+    /**
+     * @brief Creates an Optional describing the given value.
+     * 
+     * @param value The value to describe.
+     * @return An Optional with the given value present.
+     */
+    static Optional<T> of(const T& value) {
+        return Optional<T>(value);
+    }
     #endif // MINIMUM_IMPLEMENTATION
 private:
     bool has_value;
@@ -250,6 +269,8 @@ public:
     Optional() : has_value(false) {}
 
     bool hasValue() const { return has_value; }
+    bool isPresent() const { return has_value; }
+
     void set() { has_value = true; }
     void reset() { has_value = false; }
     explicit operator bool() const { return has_value; }
