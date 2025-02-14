@@ -1,10 +1,6 @@
 #ifndef OPTIONAL_H
 #define OPTIONAL_H
 
-
-
-
-//#include <utility.h> // std::forward
 //#define MINIMUM_IMPLEMENTATION
 template <typename T>
 class Optional {
