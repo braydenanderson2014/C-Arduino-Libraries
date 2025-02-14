@@ -17,6 +17,10 @@ The `ArrayList` class is designed to offer a dynamic and scalable list with the 
 
 ⚠️ **This library utilizes pointers (`*`)** for dynamic memory management.
 ⚠️ **Compiler Directives** are available to optimize memory usage and selectively enable/disable functions.
+⚠️ **Known Issue** There is a known issue where if you place ArrayList in a struct, then create an ArrayList of that struct, 
+recursion can occur. A work around would be to utilize lazy loading. (turn Arraylist into a pointer *) Another possible workaround
+might be to use Variant instead. 
+
 # 📚 ArrayList API Reference
 
 ## 🛠️ Usage
