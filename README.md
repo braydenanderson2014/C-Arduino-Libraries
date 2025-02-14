@@ -83,13 +83,15 @@ Total Libraries: (51)
 | Library | Status | Notes |
 |---------|--------|-------|
 | [MyDictionary](lib/MyDictionary/README.md) | 🔥 ACTIVE-DEVELOPMENT | ⚠ UNTESTED |
-| [SimpleMutex](lib/SimpleMutex/) | 🔥 ACTIVE-DEVELOPMENT | 🚧 IN PROGRESS |
-| [SimpleThreadManager](lib/SimpleThreadManager/) | 🔥 ACTIVE-DEVELOPMENT | 🚧 IN PROGRESS |
+| [SimpleMutex](lib/SimpleMutex/) | 🔥 ACTIVE-DEVELOPMENT | 🚧 DEVELOPMENT-PAUSED |
+| [SimpleThreadManager](lib/SimpleThreadManager/) | 🚧 DEVELOPMENT-PAUSED | ⚠ UNTESTED |
 | [JSON](lib/Json/) | 🔥 ACTIVE-DEVELOPMENT | 🚧 UNPUBLISHED |
 | [MemoryManager](lib/MemoryManager/README.md) | 🔥 ACTIVE-DEVELOPMENT | 🚧 UNPUBLISHED |
 | [Optional](lib/Optional/README.md) | 🔥 ACTIVE-DEVELOPMENT | ✅ MOSTLY-TESTED |
 | [Variant](lib/Variant/README.md) | 🔥 ACTIVE-DEVELOPMENT | ✅ MOSTLY-TESTED |
 | [ExtremeVariant](lib/ExtremeVariant/README.md) | 🔥 ACTIVE-DEVELOPMENT | ✅ MOSTLY-TESTED |
+| [DynamicStorage](lib/DynamicStorageLibrary/README.md) | 🔥 ACTIVE-DEVELOPMENT | 🚧 IN PROGRESS |
+
 
 ---
 ## 🧪 **Currently Testing Libraries** 🔍  
@@ -116,6 +118,7 @@ Total Libraries: (51)
 | STRING | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
 | MemoryManager | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
 | ExtremeVariant | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
+| DynamicStorage | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
 
 ---
 
@@ -203,3 +206,25 @@ Total Libraries: (51)
 | [Optional](lib/Optional/README.md) | [NEW] | 0 | 0 |
 | [Variant](lib/Variant/README.md) | [NEW] | 0 | 0 | 
 | [ExtremeVariant](lib/ExtremeVariant/README.md) | [NEW] | 0 | 0 |
+
+
+## Information about this document ##
+| Status | Meaning |
+|--------|---------|
+|[TESTED] | Library has been tested and found to operate as intended (newer updates may not actually be tested) |
+| [PARTIALLY-TESTED] | Library has had some tests completed, the library could still be unstable |
+| ✅ [MOSTLY-TESTED] ✅ | Similar to partially tested, most functions have been tested. (main functions) |
+| [UNTESTED] | If I have to explain this to you, you got problems ;) Library has not been tested |
+| ❌ [UNPUBLISHED] ❌ | The library is only on github. This is usually a temporary tag. |
+| [DEVELOPMENT-COMPLETE] | I have no intention to further develop library. (will fix bugs) |
+| 🔥 [ACTIVE-DEVELOPMENT] 🔥 | Actively working on library. Enhancements, bug fixes, ext. | 
+| 🛠 [PASSIVE-DEVELOPMENT] 🛠 | Resevered for libraries that I have plans for, but am not working on currently |
+| 🚧 [DEVELOPMENT-PAUSED] 🚧 | Development is no longer a priority, and the Development will not be progressed  |
+| 🏆 [STABLE] 🏆 | Library should work as intended and shouldnt give any trouble. |
+| [CONSIDERED-STABLE] | Library hasnt been fully tested, but the vast majority of the functions seem to work fine with no issues |
+| ⚠ [SEMI-STABLE] ⚠ | Library has some aspects that are stable, but others that may not be stable |
+| [UNSTABLE] | Testing is showing that a library is not working properly. Even though a library is not labled with this, please consider all libraries on the Development-Branch to be Unstable. Some libraries on main may also be unstable if it had to be merged early. |
+| [REIMPLEMENTED] | Library was rebuilt from the ground up. Functionality may have changed |
+| [TESTING-NOT-NECESSARY] | Library is Virtual and has no concrete implementation |
+| [ON-PAR] | Means the Arduino Current Version and the Platformio Current Version are the same. This is not always true, so this label is used to show that they are currently in sync. Absense of this label should be taken as the library versions are not identical. |
+| 🚧 [IN-PROGRESS] 🚧 | Essentially this and Active development are the same. However this means this library is priority |
