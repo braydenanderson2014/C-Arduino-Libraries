@@ -28,37 +28,35 @@ Most libraries are **[PARTIALLY-TESTED]** or **[MOSTLY-TESTED]**. Even **[STABLE
 
 ---
 ## 📚 **Available Libraries**  
-* [Dictionary](#dictionary-class) [DEVELOPMENT-COMPLETE] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING-NOT-NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
-* [Hashtable](#hashtable-class) [PASSIVE-DEVELOPMENT], [TESTED], [STABLE]
-* [iostream](#iostream-class) [PASSIVE-DEVELOPMENT] (Published as : BasicIOStream), [PARTIALLY-TESTED], [STABLE]
-* [iterator](#iterator-class) [DEVELOPMENT-COMPLETE], (PURE VIRTUAL : No Concrete Implementation in this Library)  [TESTING-NOT-NECESSARY] 
-* [Properties](#properties-class) [PASSIVE-DEVELOPMENT] (Published as : SimpleProperties), [MOSTLY-TESTED], [STABLE]
-* [SimpleVector](#simplevector-class) [PASSIVE-DEVELOPMENT] , [TESTED], [STABLE]
-* [Timer](#timer-class) [PASSIVE_DEVELOPMENT] (Published as : SimpleArduinoTimer), [MOSTLY-TESTED], [SEMI-STABLE]
-* [UnorderedMap](#unorderedmap-class) [PASSIVE-DEVELOPMENT], [PARTIALLY-TESTED], [STABLE]
-* [LinkedList](#linkedlist-class) [PASSIVE-DEVELOPMENT] (Published as : BasicLinkedList), [PARTIALLY-TESTED], [STABLE]
-* [DoubleLinkedList](#doublelinkedlist-class) [PASSIVE-DEVELOPMENT], [PARTIALLY-TESTED], [STABLE]
-* [MyDictionary](#mydictionary-class) [ACTIVE-DEVELOPMENT],(implemented Version of the Dictionary Class), [UNTESTED]
-* [SDList](#sdlist-class) [PASSIVE-DEVELOPMENT], [REIMPLEMENTED], [MOSTLY-TESTED], [UNSTABLE]
-* [ArrayList](#arraylist-class) [PASSIVE-DEVELOPMENT], [TESTED], [STABLE]
-* [SimpleMutex](#simplemutex-class) [ACTIVE-DEVELOPMENT]
-* [SimpleThreadManager](#simplethreadmanager-class) [ACTIVE-DEVELOPMENT]
-* [Operators](#operators-class) [PASSIVE-DEVELOPMENT], [STABLE]
-* [Predicates](#predicates-class) [PASSIVE-DEVELOPMENT], [STABLE]
-* [TypeTraits](#typetraits-library) [PASSIVE-DEVELOPMENT], [STABLE]
-* [Numeric_Limits](#numeric-limits-library-for-arduino) [PASSIVE-DEVELOPMENT], [STABLE]
-* [Map](#map-library-for-arduino) [ACTIVE-DEVELOPMENT], [STABLE], [PARTIALLY-TESTED]
-* [Queue](#queue-library-for-arduino) [PASSIVE-DEVELOPMENT], [STABLE]
-* [Stack](#stack-library-for-arduino) [PASSIVE-DEVELOPMENT], [STABLE]
-* [Predicates](#predicates-class) [PASSIVE-DEVELOPMENT], [UNTESTED]
-* [Operators](#operators-class) [PASSIVE-DEVELOPMENT], [UNTESTED]
-* [MatrixMath](#matrixmath-library-for-arduino) [PASSIVE-DEVELOPMENT], [UNTESTED]
-* [MathLib](#mathlib-for-arduino) [PASSIVE-DEVELOPMENT], [UNTESTED]
-* [ColorManager](#colormapper-library) [PASSIVE-DEVELOPMENT], [UNTESTED]
-* [InitializerList](#initializer-list-library-for-arduino) [PASSIVE-DEVELOPMENT], [UNTESTED]
-* [Optional]() [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED]
-* [Variant]() [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED]
-* [ExtremeVariant]() [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED]
+* [Dictionary](lib/Dictionary/README.md) [DEVELOPMENT-COMPLETE] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING-NOT-NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
+* [Hashtable](lib/Hashtable/README.md) [PASSIVE-DEVELOPMENT], [TESTED], [STABLE]
+* [iostream](lib/iostream/README.md) [PASSIVE-DEVELOPMENT] (Published as : BasicIOStream), [PARTIALLY-TESTED], [STABLE]
+* [iterator](lib/iterator/README.md) [DEVELOPMENT-COMPLETE], (PURE VIRTUAL : No Concrete Implementation in this Library)  [TESTING-NOT-NECESSARY] 
+* [Properties](lib/Properties/README.md) [PASSIVE-DEVELOPMENT] (Published as : SimpleProperties), [MOSTLY-TESTED], [STABLE]
+* [SimpleVector](lib/SimpleVector/README.md) [PASSIVE-DEVELOPMENT] , [TESTED], [STABLE]
+* [Timer](lib/Timer/README.md) [PASSIVE_DEVELOPMENT] (Published as : SimpleArduinoTimer), [MOSTLY-TESTED], [SEMI-STABLE]
+* [UnorderedMap](lib/UnorderedMap/README.md) [PASSIVE-DEVELOPMENT], [PARTIALLY-TESTED], [STABLE]
+* [LinkedList](lib/LinkedList/README.md) [PASSIVE-DEVELOPMENT] (Published as : BasicLinkedList), [PARTIALLY-TESTED], [STABLE]
+* [DoubleLinkedList](lib/DoubleLinkedList/README.md) [PASSIVE-DEVELOPMENT], [PARTIALLY-TESTED], [STABLE]
+* [MyDictionary](lib/MyDictionary/README.md) [ACTIVE-DEVELOPMENT],(implemented Version of the Dictionary Class), [UNTESTED]
+* [SDList](lib/SDList/README.md) [PASSIVE-DEVELOPMENT], [REIMPLEMENTED], [MOSTLY-TESTED], [UNSTABLE]
+* [ArrayList](lib/ArrayList/README.md) [PASSIVE-DEVELOPMENT], [TESTED], [STABLE]
+* [SimpleMutex](lib/SimpleMutex/) [ACTIVE-DEVELOPMENT]
+* [SimpleThreadManager](lib/SimpleThreadManager/) [ACTIVE-DEVELOPMENT]
+* [Operators](lib/Operators/README.md) [PASSIVE-DEVELOPMENT], [STABLE]
+* [Predicates](lib/Predicates/README.md) [PASSIVE-DEVELOPMENT], [STABLE]
+* [TypeTraits](lib/TypeTraits/README.md) [PASSIVE-DEVELOPMENT], [STABLE]
+* [Numeric_Limits](lib/Numeric_Limits/README.md) [PASSIVE-DEVELOPMENT], [STABLE]
+* [Map](lib/Map/README.md) [ACTIVE-DEVELOPMENT], [STABLE], [PARTIALLY-TESTED]
+* [Queue](lib/Queue/README.md) [PASSIVE-DEVELOPMENT], [STABLE]
+* [Stack](lib/Stack/README.md) [PASSIVE-DEVELOPMENT], [STABLE]
+* [MatrixMath](lib/MatrixMath/README.md) [PASSIVE-DEVELOPMENT], [UNTESTED]
+* [MathLib](lib/MathLib/README.md) [PASSIVE-DEVELOPMENT], [UNTESTED]
+* [ColorManager](lib/ColorManager/README.md) [PASSIVE-DEVELOPMENT], [UNTESTED]
+* [InitializerList](lib/Initializer_List/README.md) [PASSIVE-DEVELOPMENT], [UNTESTED]
+* [Optional](lib/Optional/README.md) [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED]
+* [Variant](lib/Variant/README.md) [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED]
+* [ExtremeVariant](lib/ExtremeVariant/README.md) [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED]
 
 
 Total Available Libraries: (45)
@@ -67,42 +65,43 @@ Total Libraries: (51)
 ### 🏆 **Stable & Tested Libraries** ✅  
 | Library | Status | Notes |
 |---------|--------|-------|
-| [Dictionary](#dictionary-class) | ✅ DEVELOPMENT-COMPLETE | Pure Virtual (No Concrete Implementation) |
-| [Hashtable](#hashtable-class) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
-| [SimpleVector](#simplevector-class) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
-| [ArrayList](#arraylist-class) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, ⚠ SEMI-STABLE |
-| [Timer](#timer-class) | 🛠 PASSIVE-DEVELOPMENT | ✅ MOSTLY-TESTED, ⚠ SEMI-STABLE |
-| [LinkedList](#linkedlist-class) | 🛠 PASSIVE-DEVELOPMENT | ✅ PARTIALLY-TESTED, 🏆 STABLE |
-| [UnorderedMap](#unorderedmap-class) | 🛠 PASSIVE-DEVELOPMENT | ✅ PARTIALLY-TESTED, 🏆 STABLE |
-| [Stack](#stack-library-for-arduino) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
-| [Queue](#queue-library-for-arduino) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
-| [Operators](#operators-class) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
-| [Predicates](#predicates-class) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
+| [Dictionary](lib/Dictionary/README.md) | ✅ DEVELOPMENT-COMPLETE | Pure Virtual (No Concrete Implementation) |
+| [Hashtable](lib/Hashtable/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
+| [SimpleVector](lib/SimpleVector/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
+| [ArrayList](lib/ArrayList/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, ⚠ SEMI-STABLE |
+| [Timer](lib/Timer/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ MOSTLY-TESTED, ⚠ SEMI-STABLE |
+| [LinkedList](lib/LinkedList/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ PARTIALLY-TESTED, 🏆 STABLE |
+| [UnorderedMap](lib/UnorderedMap/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ PARTIALLY-TESTED, 🏆 STABLE |
+| [Stack](lib/Stack/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
+| [Queue](lib/Queue/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
+| [Operators](lib/Operators/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
+| [Predicates](lib/Predicates/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
 
 ---
 
 ### 🔬 **Active Development Libraries** ⚡  
 | Library | Status | Notes |
 |---------|--------|-------|
-| [MyDictionary](#mydictionary-class) | 🔥 ACTIVE-DEVELOPMENT | ⚠ UNTESTED |
-| [SimpleMutex](#simplemutex-class) | 🔥 ACTIVE-DEVELOPMENT | 🚧 IN PROGRESS |
-| [SimpleThreadManager](#simplethreadmanager-class) | 🔥 ACTIVE-DEVELOPMENT | 🚧 IN PROGRESS |
-| [JSON](#json-library) | 🔥 ACTIVE-DEVELOPMENT | 🚧 UNPUBLISHED |
-| [MemoryManager](#memory-manager) | 🔥 ACTIVE-DEVELOPMENT | 🚧 UNPUBLISHED |
-| [Optional](#optional-library) | 🔥 ACTIVE-DEVELOPMENT | ✅ MOSTLY-TESTED |
-| [Variant](#variant-library) | 🔥 ACTIVE-DEVELOPMENT | ✅ MOSTLY-TESTED |
+| [MyDictionary](lib/MyDictionary/README.md) | 🔥 ACTIVE-DEVELOPMENT | ⚠ UNTESTED |
+| [SimpleMutex](lib/SimpleMutex/) | 🔥 ACTIVE-DEVELOPMENT | 🚧 IN PROGRESS |
+| [SimpleThreadManager](lib/SimpleThreadManager/) | 🔥 ACTIVE-DEVELOPMENT | 🚧 IN PROGRESS |
+| [JSON](lib/Json/) | 🔥 ACTIVE-DEVELOPMENT | 🚧 UNPUBLISHED |
+| [MemoryManager](lib/MemoryManager/README.md) | 🔥 ACTIVE-DEVELOPMENT | 🚧 UNPUBLISHED |
+| [Optional](lib/Optional/README.md) | 🔥 ACTIVE-DEVELOPMENT | ✅ MOSTLY-TESTED |
+| [Variant](lib/Variant/README.md) | 🔥 ACTIVE-DEVELOPMENT | ✅ MOSTLY-TESTED |
+| [ExtremeVariant](lib/ExtremeVariant/README.md) | 🔥 ACTIVE-DEVELOPMENT | ✅ MOSTLY-TESTED |
 
 ---
 ## 🧪 **Currently Testing Libraries** 🔍  
 🚧 These libraries are under active testing:  
-1. [MatrixMath](#matrixmath-library-for-arduino)  
-2. [MathLib](#mathlib-for-arduino)  
-3. [JSON]
-4. [Optional]
-5. [Variant]
-6. [ExtremeVariant]
-7. [ArrayList]
-8. [SimpleVector]
+1. [MatrixMath](lib/MatrixMath/README.md)  
+2. [MathLib](lib/MathLib/README.md)  
+3. [JSON](lib/Json/)
+4. [Optional](lib/Optional/README.md)
+5. [Variant](lib/Variant/README.md)
+6. [ExtremeVariant](lib/ExtremeVariant/README.md)
+7. [ArrayList](lib/ArrayList/README.md)
+8. [SimpleVector](lib/SimpleVector/README.md)
 ---
 
 ## 🚧 **Unpublished Libraries (In Development)**  
@@ -116,6 +115,7 @@ Total Libraries: (51)
 | JSON | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
 | STRING | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
 | MemoryManager | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
+| ExtremeVariant | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
 
 ---
 
@@ -160,47 +160,46 @@ Total Libraries: (51)
 
 | Library Name | Position | Downloads MTD | Total Downloads |
 |-------------|----------|---------------|----------------|
-| ArrayList | 1,100 | 26 | 174 |
-| Dictionary | 14,128 | 0 | 16 |
-| SimpleArduinoTimer | 3,947 | 2 | 16 |
-| UnorderedMap | 3,952 | 2 | 46 |
-| SimpleProperties | 3,948 | 2 | 46 |
-| Iterator | 3,949 | 2 | 25 |
-| BasicIO | 1,679 | 12 | 360 |
-| SDList | 3,951 | 2 | 12 |
-| Hashtable | 1,375 | 17 | 183 |
-| SimpleVector | 1,259 | 21 | 247 |
-| MyDictionary | 14,136 | 0 | 3 |
-| Operators | 14,221 | 0 | 15 | 
-| Predicates | 14,222 | 0 | 15 |
-| BasicLinkedList | 2,818 | 4 | 20 |
-| DoubleLinkedList | 3,250 | 3 | 21 |
-| TypeTraits | 3,980 | 2 | 28 |
-| AVLTree | 14,422 | 0 | 4 |
-| BinarySearchTree | 14,423 | 0 | 4 |
-| BinaryTree | 14,424 | 0 | 4 |
-| B+ Tree | 14,425 | 0 | 4 |
-| B Tree | 14,426 | 0 | 4 |
-| ColorManager | 14,427 | 0 | 5 |
-| FenwickTree | 14,428 | 0 | 4 |
-| HeapTree | 14,429 | 0 | 4 |
-| InitializerList | 1,379 | 18 | 217 |
-| IntervalTree | 14,430 | 0 | 4 |
-| KDimensionalTree | 14,431 | 0 | 4 |
-| MathLib | 3,982 | 2 | 21 |
-| Map | 2,726 | 1 | 38 |
-| MatrixMath | 14,444 | 0 | 4 |
-| Numeric_Limits | 3,983 | 2 | 25 |
-| OCTree | 14,432 | 0 | 4 |
-| QuadTree | 14,436 | 0 | 4 |
-| Queue | 14,437 | 0 | 5 |
-| RedBlackTree | 14,438 | 0 | 4 |
-| RTree | 14,439 | 0 | 4 |
-| SegmentTree | 14,440 | 0 | 4 |
-| Stack | 14,441 | 0 | 6 |
-| SuffixTree | 14,442 | 0 | 4 |
-| TrieTree | 14,443 | 0 | 4 | 
-| Optional | [NEW] | 0 | 0 |
-| Variant | [NEW] | 0 | 0 | 
-| ExtremeVariant | [NEW] | 0 | 0 |
-
+| [ArrayList](lib/ArrayList/README.md) | 1,100 | 26 | 174 | 
+| [Dictionary](lib/Dictionary/README.md) | 14,128 | 0 | 16 |
+| [SimpleArduinoTimer](lib/Timer/README.md) | 3,947 | 2 | 16 |
+| [UnorderedMap](lib/UnorderedMap/README.md) | 3,952 | 2 | 46 |
+| [SimpleProperties](lib/Properties/README.md) | 3,948 | 2 | 46 |
+| [Iterator](lib/iterator/README.md) | 3,949 | 2 | 25 |
+| [BasicIO](lib/iostream/README.md) | 1,679 | 12 | 360 |
+| [SDList](lib/SDList/README.md) | 3,951 | 2 | 12 |
+| [Hashtable](lib/Hashtable/README.md) | 1,375 | 17 | 183 |
+| [SimpleVector](lib/SimpleVector/README.md) | 1,259 | 21 | 247 |
+| [MyDictionary](lib/MyDictionary/README.md) | 14,136 | 0 | 3 |
+| [Operators](lib/Operators/README.md) | 14,221 | 0 | 15 | 
+| [Predicates](lib/Predicates/README.md) | 14,222 | 0 | 15 |
+| [BasicLinkedList](lib/LinkedList/README.md) | 2,818 | 4 | 20 |
+| [DoubleLinkedList](lib/DoubleLinkedList/README.md) | 3,250 | 3 | 21 |
+| [TypeTraits](lib/TypeTraits/README.md) | 3,980 | 2 | 28 |
+| [AVLTree](lib/AVLTree/README.md) | 14,422 | 0 | 4 |
+| [BinarySearchTree](lib/BinarySearchTree/README.md) | 14,423 | 0 | 4 |
+| [BinaryTree](lib/BinaryTree/README.md) | 14,424 | 0 | 4 |
+| [B+ Tree](lib/bPlusTree/README.md) | 14,425 | 0 | 4 |
+| [B Tree](lib/bTree/README.md) | 14,426 | 0 | 4 |
+| [ColorManager](lib/ColorManager/README.md) | 14,427 | 0 | 5 |
+| [FenwickTree](lib/FenwickTree/README.md) | 14,428 | 0 | 4 |
+| [HeapTree](lib/HeapTree/README.md) | 14,429 | 0 | 4 |
+| [InitializerList](lib/Initializer_List/README.md) | 1,379 | 18 | 217 |
+| [IntervalTree](lib/IntervalTree/README.md) | 14,430 | 0 | 4 |
+| [KDimensionalTree](lib/kdimensionalTree/README.md) | 14,431 | 0 | 4 |
+| [MathLib](lib/MathLib/README.md) | 3,982 | 2 | 21 |
+| [Map](lib/Map/README.md) | 2,726 | 1 | 38 |
+| [MatrixMath](lib/MatrixMath/README.md) | 14,444 | 0 | 4 |
+| [Numeric_Limits](lib/Numeric_Limits/README.md) | 3,983 | 2 | 25 |
+| [OCTree](lib/OCTree/README.md) | 14,432 | 0 | 4 |
+| [QuadTree](lib/QuadTree/README.md) | 14,436 | 0 | 4 |
+| [Queue](lib/Queue/README.md) | 14,437 | 0 | 5 |
+| [RedBlackTree](lib/RedBlackTree/README.md) | 14,438 | 0 | 4 |
+| [RTree](lib/RTree/README.md) | 14,439 | 0 | 4 |
+| [SegmentTree](lib/SegmentTree/README.md) | 14,440 | 0 | 4 |
+| [Stack](lib/Stack/README.md) | 14,441 | 0 | 6 |
+| [SuffixTree](lib/SuffixTree/README.md) | 14,442 | 0 | 4 |
+| [TrieTree](lib/TrieTree/README.md) | 14,443 | 0 | 4 | 
+| [Optional](lib/Optional/README.md) | [NEW] | 0 | 0 |
+| [Variant](lib/Variant/README.md) | [NEW] | 0 | 0 | 
+| [ExtremeVariant](lib/ExtremeVariant/README.md) | [NEW] | 0 | 0 |
