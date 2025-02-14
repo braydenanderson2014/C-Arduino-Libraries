@@ -14,7 +14,7 @@ The `Hashtable` library provides an efficient way to store key-value pairs in an
 | `Hashtable()` | Constructs a new hashtable with the default size. |
 | `Hashtable(size_t initialCapacity, float loadFactor)` | Constructs a hashtable with a specified size and load factor. |
 | `void put(const K& key, const V& value)` | Inserts a key-value pair into the hashtable. Overwrites if the key exists. |
-| `V* get(const K& key) const` | Retrieves the value associated with a key. Returns `nullptr` if key is not found. |
+| `V* get(const K& key) const` | Retrieves the value associated with a key. Returns `nullptr` if key is not found. [WARNING]: Returns a pointer and not the value itself |
 | `V getElement(const K& key) const` | Retrieves the value associated with a key or returns a default-constructed value if not found. |
 | `bool getElement(const K& key, V* value) const` | Retrieves the value and stores it in `value` if key exists. Returns `true` if found. |
 | `bool exists(const K& key) const` | Checks if a key exists in the hashtable. |
