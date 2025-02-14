@@ -25,9 +25,9 @@ To use the `ArrayList` class, include the library header and instantiate the lis
 
 ```cpp
 #include <ArrayList.h>
-ArrayList<int> myList(ArrayList<int>::DYNAMIC, 10);
-ArrayList<int> myotherlist(ArrayList<int>::DYNAMIC2, 10);
-ArrayList<String> strList(ArrayList<String>::FIXED, 5);
+ArrayList<int> myList(ArrayList<int>::DYNAMIC, 10); //This is a faster resize, but less reliable. Can cause problems.
+ArrayList<int> myotherlist(ArrayList<int>::DYNAMIC2, 10); //This is a slower resize, but more reliable. 
+ArrayList<String> strList(ArrayList<String>::FIXED, 5); //This can never be reized (while in fixed mode)
 ```
 |Function	| Description |
 |-----------|-------------|
