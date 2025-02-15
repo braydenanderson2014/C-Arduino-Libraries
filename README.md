@@ -89,7 +89,7 @@ Total Libraries: (51)
 | Library | Status | Notes |
 |---------|--------|-------|
 | [MyDictionary](lib/MyDictionary/README.md) | 🔥 ACTIVE-DEVELOPMENT | ⚠ UNTESTED |
-| [SimpleMutex](lib/SimpleMutex/) | 🔥 ACTIVE-DEVELOPMENT | 🚧 DEVELOPMENT-PAUSED |
+| [SimpleMutex](lib/SimpleMutex/) | 🚧 DEVELOPMENT-PAUSED | ⚠ UNTESTED |
 | [SimpleThreadManager](lib/SimpleThreadManager/) | 🚧 DEVELOPMENT-PAUSED | ⚠ UNTESTED |
 | [JSON](lib/Json/) | 🔥 ACTIVE-DEVELOPMENT | 🚧 UNPUBLISHED |
 | [MemoryManager](lib/MemoryManager/README.md) | 🔥 ACTIVE-DEVELOPMENT | 🚧 UNPUBLISHED |
