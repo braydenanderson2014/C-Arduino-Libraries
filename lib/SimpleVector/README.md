@@ -88,10 +88,15 @@ Your contributions help keep this project alive and growing! 🚀
 - Added new `clear(size_t newCapacity)` function.
 - On par with PlatformIO Version 1.0.9 - BETA
 
-#### Version 1.0.3: [Current Release]
+#### Version 1.0.3: 
 - RESOLVED ISSUE: Compile fails for Wemos D1 mini clone (Issue #103)
     - This issue stemed from the Initializer list constructor. In order to resolve the issue, Initializer list is no longer supported. Instead template args are now supported (THEY HAVE NOT BEEN TESTED)  ```cpp template<typename... Args> ```
 - In case you haven't noticed, the README.md file (this file) has been rebuilt and stylized.
+
+#### Version 1.0.4: BETA [CURRENT RELEASE]
+- Due to version mismatches in the arduino library manager, progressing forward 1 version to solve issue
+    - Version 1.0.3-BETA was actually the most up to date version, while 1.0.3 was the one before hand. This version is to ensure the latest version is the latest version.
+
 
 ### PlatformIO Registry:
 
