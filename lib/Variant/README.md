@@ -95,5 +95,24 @@ getList() automatically converts a single value into a list if needed.
 The class uses ArrayList<T> or SimpleVector<T> for internal list storage.
 
 Uncomment the #define useSimpleVector to use the SimpleVectorLibrary instead of ArrayList. SimpleVector may use less memory overall but thats because its simpler and not as feature rich.
+
+## 📜 **PlatformIO Changelog**
+### Latest Version:
+- **v1.0.0** [BETA] (2025-02-15)
+             - Initial Release
+
+### Previous Versions:
+
+
+## 📜 **Arduino Changelog**
+### Latest Version:
+- **v1.0.0** [BETA] (2025-02-15) [ON-PAR] -> Platformio v1.0.0 [BETA]
+             - Initial Release
+
+### Previous Versions:
+
+
+
+
 ## License
 This project follows the license specified in the repository.
