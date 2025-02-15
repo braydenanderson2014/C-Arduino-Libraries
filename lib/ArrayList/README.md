@@ -21,6 +21,10 @@ The `ArrayList` class is designed to offer a dynamic and scalable list with the 
 recursion can occur. A work around would be to utilize lazy loading. (turn Arraylist into a pointer *) Another possible workaround
 might be to use Variant instead. 
 
+- **Patreon:** [Support on Patreon](https://www.patreon.com/posts/122298248)
+- **GoFundMe:** [Donate via GoFundMe](https://gofund.me/923e5f10)
+- **GitHub Sponsors:** Click the **"Sponsor"** button on the repository
+
 # 📚 ArrayList API Reference
 
 ## 🛠️ Usage

@@ -1,128 +1,197 @@
-# SimpleVector Class
+# SimpleVector
 
-The `SimpleVector` class is a C++ template class that provides a dynamic array-like data structure. It allows you to create, manage, and manipulate sequences of elements of any data type.
+## Overview
+**SimpleVector** is a lightweight and efficient dynamic array implementation for **Arduino and C++ projects**. It provides **fast and flexible** storage with **easy-to-use methods** for adding, removing, and accessing elements.
 
-## Features
-
-- Dynamic resizing: Automatically grows to accommodate more elements.
-- Adding elements: Easily add elements to the end of the vector.
-- Removing elements: Remove specific elements by value.
-
-## Usage
-
-To use the `SimpleVector` class, follow these steps:
-
-1. Include the necessary header file (`SimpleVector.h`) in your C++ program.
-2. Create an instance of the `SimpleVector` class, specifying the data type of the elements you want to store.
-
+### Key Features:
+✅ Dynamic resizing with memory management
+✅ Supports **bulk addition**, **iterators**, and **sorting**
+✅ STL-like interface for ease of use
+✅ **Optimized for ESP32, ESP8266, and Arduino platforms**
 
 ## Installation
-
-```powershell
-git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/SimpleVector.git"
-
-```
-## Header
-
-If you want to Utilize this Library. Please include the 
-```cpp 
-#include <SimpleVector.h> 
-```
-
-# Arduino Library Manager:
-## Changelog: 
-### Version 1.0.0:
-* Initial Release; On par with Platformio Version 1.0.5
-### Version 1.0.1:
-* Added Support for Range Based for Loops.
-* On par with Platformio Version 1.0.6
-### Version 1.0.2:
-* Removed Uneccessary negative number check in function operator[] since its not possible for unsigned int's to be negative.
-* On par with Platformio Version 1.0.8
-### Version 1.0.3 BETA:
-* Added Assignment Operator (operator=)
-* Added const Assignment Operator (const operator=)
-* Fixed the clear() function to delete internal array, then reinstantiate with the default size.
-* Fixed Destructor to properly check to make sure array is not nullptr.
-* Added new clear function that takes in a parameter to set the size of the array.
-* On par with Platformio Version 1.0.9 - BETA
-
-
-# PlatformIO Registry:
-## ChangeLog:
-### Version 1.0.0:
-* Initial Release 
-### Version 1.0.1:
-* Added Remove Function.
-* Renamed push_back function to add
-* Updated Example.
-### Version 1.0.2:
-* Added Elements Function.
-* Added Iterators to the library
-* Modified the size Function to return size of array and not how many elements are on the array
-### Version 1.0.3:
-* Added [SIMPLE VECTOR]: to the start of the Serial.print() statements to make it easier to debug
-### Version 1.0.4:
-* Modified Constructor to take in a boolean value to determine if the Library should print Debug Messages
-* Added a new function called setDebug() to set the debug value
-* Added a new function called getDebug() to get the debug value"
-### Version 1.0.5:
-* Removed the Serial.print() Statements from the library to save memory. A version of this library that contains these debug statements may be available at some point.
-* Added Function Comments
-### Version 1.0.6: 
-* Added Support for Range Based For loops
-* Added Support for Adding Elements during Construction.
-* Added BulkAdd Function() to add multiple elements at once.
-### Version 1.0.7:- BETA 
-* Added EmplaceBack Function so new libraries can depend on it correctly.
-* Added Compiler Directives to check if a certain board/Platform is being used. This is to ensure proper functionality with initializer lists.
-* Everything is handled Automatically, but if none of the preprocesor directives are met, then the Initializer_Lists will not be included which means you will not be able to bulk add directly into the constructor as that constructor will be removed by the compiler. However, if the compiler directives are met, then that constructor will remain and be available.
-### Version 1.0.8: 
-* Removed Uneccessary negative number check in function operator[] since its not possible for unsigned int's to be negative.
-### Version 1.0.9 - BETA: [CURRENT-RELEASE]
-* Added Assignment Operator (operator=)
-* Added const Assignment Operator (const operator=)
-* Fixed the clear() function to delete internal array, then reinstantiate with the default size.
-* Fixed Destructor to Call releaseMemory() which will delete the structure.
-* Updated releaseMemory() to check array to make sure its not nullptr. It will however set array to nullptr.
-* Added new clear function that takes in a parameter to set the size of the array.
-
-
-Here's an example of how to use the `SimpleVector` class:
-
+To use **SimpleVector**, simply include the header file:
 ```cpp
-#include <Arduino.h>
-#include "SimpleVector.h"
-
-void setup() {
-    Serial.begin(9600);
-    // Create a SimpleVector of integers
-    SimpleVector<int> intVector;
-
-    // Add elements to the vector
-    intVector.add(10);
-    intVector.add(20);
-    intVector.add(30);
-
-    // Access elements using subscript operator
-    int element = intVector[1];
-    Serial.println("Element at index 1: " + element);
-    // Remove an element
-    intVector.remove(20);
-
-    // Get the current size of the vector
-    Serial.println("Vector size: " + intVector.size());
-    // Iterate over the elements using an iterator
-    SimpleVector<int>::SimpleVectorIterator it = intVector.begin();
-    while (it.hasNext()) {
-        int value = it.next();
-        Serial.println("Element: " + value);
-    }
-
-    // Release memory (optional)
-    intVector.releaseMemory();
-
-    return 0;
-}
-
+#include <SimpleVector.h>
 ```
+
+## Sponsor This Project ❤️
+If you find this project useful, consider supporting its development:
+- **Patreon:** [Support on Patreon](https://www.patreon.com/posts/122298248)
+- **GoFundMe:** [Donate via GoFundMe](https://gofund.me/923e5f10)
+- **GitHub Sponsors:** Click the **"Sponsor"** button on the repository
+
+Your contributions help keep this project alive and growing! 🚀
+
+---
+
+## API Reference
+| Function | Description |
+|----------|------------|
+| **Constructors** | |
+| `SimpleVector()` | Creates a new vector with an initial capacity of 4. |
+| `SimpleVector(unsigned int initialCapacity)` | Creates a vector with a custom initial capacity. |
+| `SimpleVector(const SimpleVector& other)` | Copy constructor. |
+| **Destructor** | |
+| `~SimpleVector()` | Destroys the vector and releases memory. |
+| **Adding Elements** | |
+| `void put(const T& item)` | Adds an item to the vector (alias: `push_back`). |
+| `void push_back(const T& item)` | Alias for `put()`. |
+| `void bulkAdd(Args... args)` | Adds multiple elements at once. |
+| `void emplace_back()` | Adds a **default-constructed** element. |
+| `void emplace_back(const T& value)` | Adds an element **by value**. |
+| **Removing Elements** | |
+| `void remove(const T& item)` | Removes an item by value. |
+| `void erase(int index)` | Removes an item by index. |
+| `void clear()` | Clears the vector and resets to default capacity. |
+| `void clear(size_t newCapacity)` | Clears the vector and sets a new capacity. |
+| **Accessing Elements** | |
+| `T& get(unsigned int index)` | Retrieves an element at a given index. |
+| `T* getPtr(unsigned int index)` | Returns a pointer to an element at an index. |
+| `T& back()` | Returns the last element. |
+| `T& operator[](unsigned int index)` | Access element at index using bracket notation. |
+| `const T& operator[](unsigned int index) const` | Read-only access to elements. |
+| **Capacity & Size** | |
+| `unsigned int size() const` | Returns the total capacity. |
+| `unsigned int elements() const` | Returns the number of elements. |
+| `bool isEmpty() const` | Checks if the vector is empty. |
+| `bool shrinkToFit()` | Shrinks capacity to match the element count. |
+| **Searching** | |
+| `int indexOf(const T& element)` | Finds the index of an element. |
+| **Memory Management** | |
+| `void releaseMemory()` | Manually releases allocated memory. |
+| **Iterator Support** | |
+| `SimpleVectorIterator begin()` | Returns an iterator to the first element. |
+| `SimpleVectorIterator end()` | Returns an iterator to the last element. |
+
+
+## Changelog
+
+### Arduino Library Manager:
+
+#### Version 1.0.0:
+- Initial Release; On par with PlatformIO Version 1.0.5
+
+#### Version 1.0.1:
+- Added Support for Range-Based For Loops.
+- On par with PlatformIO Version 1.0.6
+
+#### Version 1.0.2:
+- Removed unnecessary negative number check in `operator[]` since unsigned ints cannot be negative.
+- On par with PlatformIO Version 1.0.8
+
+#### Version 1.0.3 BETA:
+- Added Assignment Operator (`operator=`)
+- Added const Assignment Operator (`const operator=`)
+- Fixed `clear()` function to delete internal array, then reinitialize with the default size.
+- Fixed Destructor to properly check if array is `nullptr`.
+- Added new `clear(size_t newCapacity)` function.
+- On par with PlatformIO Version 1.0.9 - BETA
+
+#### Version 1.0.3: [Current Release]
+- RESOLVED ISSUE: Compile fails for Wemos D1 mini clone (Issue #103)
+    - This issue stemed from the Initializer list constructor. In order to resolve the issue, Initializer list is no longer supported. Instead template args are now supported (THEY HAVE NOT BEEN TESTED)  ```cpp template<typename... Args> ```
+- In case you haven't noticed, the README.md file (this file) has been rebuilt and stylized.
+
+### PlatformIO Registry:
+
+#### Version 1.0.0:
+- Initial Release
+
+#### Version 1.0.1:
+- Added Remove Function.
+- Renamed `push_back` function to `add`.
+- Updated Example.
+
+#### Version 1.0.2:
+- Added `elements()` function.
+- Added Iterators to the library.
+- Modified `size()` to return the total array size instead of the number of elements.
+
+#### Version 1.0.3:
+- Added `[SIMPLE VECTOR]:` prefix to `Serial.print()` statements for better debugging.
+
+#### Version 1.0.4:
+- Modified Constructor to accept a boolean parameter to control debug messages.
+- Added `setDebug()` to enable or disable debug output.
+- Added `getDebug()` to retrieve debug status.
+
+#### Version 1.0.5:
+- Removed `Serial.print()` statements to save memory.
+- Added function comments.
+
+#### Version 1.0.6:
+- Added Support for Range-Based For Loops.
+- Added Support for Adding Elements During Construction.
+- Added `bulkAdd()` function to add multiple elements at once.
+
+#### Version 1.0.7 - BETA:
+- Added `emplace_back()` function for proper dependency support in new libraries.
+- Added Compiler Directives for board/platform detection to ensure correct initializer list behavior.
+- If no compatible directives are found, initializer list support is **automatically disabled**.
+
+#### Version 1.0.8:
+- Removed unnecessary negative number check in `operator[]` since unsigned ints cannot be negative.
+
+#### Version 1.0.9 - BETA: 
+- Added Assignment Operator (`operator=`).
+- Added const Assignment Operator (`const operator=`).
+- Fixed `clear()` function to delete internal array, then reinitialize with the default size.
+- Fixed Destructor to call `releaseMemory()` correctly.
+- Updated `releaseMemory()` to ensure it properly sets array to `nullptr` after deletion.
+- Added new `clear(size_t newCapacity)` function.
+
+#### Version 1.0.9: [CURRENT RELEASE]
+- RESOLVED ISSUE: Compile fails for Wemos D1 mini clone (Issue #103)
+    - This issue stemed from the Initializer list constructor. In order to resolve the issue, Initializer list is no longer supported. Instead template args are now supported (THEY HAVE NOT BEEN TESTED)  ```cpp template<typename... Args> ```
+- In case you haven't noticed, the README.md file (this file) has been rebuilt and stylized.
+
+
+---
+
+## Usage Examples
+
+### **Basic Usage**
+```cpp
+#include <SimpleVector.h>
+SimpleVector<int> numbers;
+numbers.put(10);
+numbers.put(20);
+numbers.put(30);
+Serial.println(numbers.get(1)); // Output: 20
+```
+
+### **Bulk Addition**
+```cpp
+SimpleVector<int> values;
+values.bulkAdd(1, 2, 3, 4, 5);
+```
+
+### **Using Iterators**
+```cpp
+SimpleVector<int> nums;
+nums.put(10);
+nums.put(20);
+nums.put(30);
+for (auto it = nums.begin(); it != nums.end(); ++it) {
+    Serial.println(*it);
+}
+```
+
+### **Memory Management**
+```cpp
+SimpleVector<int> list;
+list.put(100);
+list.put(200);
+list.releaseMemory(); // Frees memory
+```
+
+---
+
+## License
+This project is licensed under the **Apache License**. Feel free to use, modify, and contribute! 🚀
+
+## Contributing
+Pull requests and feature suggestions are welcome! Open an issue or submit improvements to help enhance the library.
+
+**Happy coding! 🎯**

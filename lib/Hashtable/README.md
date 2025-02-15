@@ -79,38 +79,9 @@ for (auto it = hashTable.begin(); it != hashTable.end(); ++it) {
 ---
 ## 📜 **PlatformIO Changelog**
 ### Latest Version:
-- **v1.1.3** (2025-01)
-  - RESOLVED ISSUE: Iterator Iterates out of bounds (Issue #85)
-  - RESOLVED ISSUE: Resizing corrupts data in hashtable (Issue #81)
-  - RESOLVED ISSUE: get() and getElement() returning incorrectly (Issue #82)
-  - Added new operator[] function that allows you to access elements by index in the Hashtable
-  - Added new getBucket() function that returns the bucket at a specific index in the Hashtable
-  - Added new getBucketSize() function that returns the size of a bucket at a specific index in the Hashtable
-  - Added new debugIterator() function that iterates the table and prints out the [key, value] pairs.
-  - Adjusted Iterator operator* function. 
-
-[FROM THIS]
-```cpp
-    KeyValuePair operator*() const {
-        
-        return KeyValuePair{currentEntry->key, currentEntry->value};
-    }
-```
-[TO THIS]
-```cpp
-    KeyValuePair operator*() const {
-        if (!currentEntry) {
-            return KeyValuePair{"", ""}; // Return an empty key-value pair if invalid
-        }
-        return KeyValuePair{currentEntry->key, currentEntry->value};
-    }
-```
-This is to make sure that empty data is printed as empty and not garbage data.
- - Adjusted begin() function to return end() instead of 
-```cpp 
-return Iterator(this, TABLE_SIZE, nullptr);
-```
-which is exactly what end() already has inside. This is just to be neater.
+- **v1.1.4** [BETA] (2025-02)
+             - README.md has been updated
+  
 
 
 ### Previous Versions:
@@ -160,12 +131,7 @@ which is exactly what end() already has inside. This is just to be neater.
              - Added New getValue() Function for Iterator
              - Added New find() Function for Iterator.
 
-
-
----
-## 📜 **Arduino Changelog**
-### Latest Version:
-- **v1.0.3** (2025-01) [ON-PAR] -> Platformio v1.1.3
+- **v1.1.3**
              - RESOLVED ISSUE: Iterator Iterates out of bounds (Issue #85)
              - RESOLVED ISSUE: Resizing corrupts data in hashtable (Issue #81)
              - RESOLVED ISSUE: get() and getElement() returning incorrectly (Issue #82)
@@ -198,14 +164,55 @@ return Iterator(this, TABLE_SIZE, nullptr);
 ```
 which is exactly what end() already has inside. This is just to be neater.
 
+---
+## 📜 **Arduino Changelog**
+### Latest Version:
+- **v1.0.4** [BETA] (2025-02) [ON-PAR] -> Platformio v1.1.4 [BETA]
+             - README.md has been updated
+            
 
 ### Previous Versions:
 - **v1.0.0** - Initial release [ON-PAR] -> Platformio v1.1.2
-- **v1.0.1** [BETA]
+- **v1.0.2** 
              - Added New getKey() Function for Iterator
              - Added New getValue() Function for Iterator
              - Added New find() Function for Iterator.
              - [NOTE]: All 3 functions are not tested and should be used with Caution. 
+
+- **v1.0.3** [ON-PAR] -> Platformio v1.1.3
+              - RESOLVED ISSUE: Iterator Iterates out of bounds (Issue #85)
+              - RESOLVED ISSUE: Resizing corrupts data in hashtable (Issue #81)
+              - RESOLVED ISSUE: get() and getElement() returning incorrectly (Issue #82)
+              - Added new operator[] function that allows you to access elements by index in the Hashtable
+              - Added new getBucket() function that returns the bucket at a specific index in the Hashtable
+              - Added new getBucketSize() function that returns the size of a bucket at a specific index in the Hashtable
+              - Added new debugIterator() function that iterates the table and prints out the [key, value] pairs.
+              - Adjusted Iterator operator* function. 
+
+[FROM THIS]
+```cpp
+    KeyValuePair operator*() const {
+        
+        return KeyValuePair{currentEntry->key, currentEntry->value};
+    }
+```
+[TO THIS]
+```cpp
+    KeyValuePair operator*() const {
+        if (!currentEntry) {
+            return KeyValuePair{"", ""}; // Return an empty key-value pair if invalid
+        }
+        return KeyValuePair{currentEntry->key, currentEntry->value};
+    }
+```
+This is to make sure that empty data is printed as empty and not garbage data.
+ - Adjusted begin() function to return end() instead of 
+```cpp 
+return Iterator(this, TABLE_SIZE, nullptr);
+```
+which is exactly what end() already has inside. This is just to be neater.
+
+
 
 ---
 ## 💖 **Support My Work**  
