@@ -88,7 +88,7 @@ Total Libraries: (51)
 ### 🔬 **Active Development Libraries** ⚡  
 | Library | Status | Notes |
 |---------|--------|-------|
-| [MyDictionary](lib/MyDictionary/README.md) | 🔥 ACTIVE-DEVELOPMENT | ⚠ UNTESTED |
+| [MyDictionary](lib/MyDictionary/README.md) | 🚧 DEVELOPMENT-PAUSED | ⚠ UNTESTED |
 | [SimpleMutex](lib/SimpleMutex/) | 🚧 DEVELOPMENT-PAUSED | ⚠ UNTESTED |
 | [SimpleThreadManager](lib/SimpleThreadManager/) | 🚧 DEVELOPMENT-PAUSED | ⚠ UNTESTED |
 | [JSON](lib/Json/) | 🔥 ACTIVE-DEVELOPMENT | 🚧 UNPUBLISHED |
@@ -102,14 +102,14 @@ Total Libraries: (51)
 ---
 ## 🧪 **Currently Testing Libraries** 🔍  
 🚧 These libraries are under active testing:  
-1. [MatrixMath](lib/MatrixMath/README.md)  
-2. [MathLib](lib/MathLib/README.md)  
-3. [JSON](lib/Json/)
-4. [Optional](lib/Optional/README.md)
-5. [Variant](lib/Variant/README.md)
-6. [ExtremeVariant](lib/ExtremeVariant/README.md)
-7. [ArrayList](lib/ArrayList/README.md)
-8. [SimpleVector](lib/SimpleVector/README.md)
+1. [MatrixMath](lib/MatrixMath/README.md)  🚧 TESTING-PAUSED
+2. [MathLib](lib/MathLib/README.md)  🚧 TESTING-PAUSED
+3. [JSON](lib/Json/) 🔥 ACTIVELY-TESTING
+4. [Optional](lib/Optional/README.md) 🔥 ACTIVELY-TESTING
+5. [Variant](lib/Variant/README.md) 🛠 PASSIVE-TESTING
+6. [ExtremeVariant](lib/ExtremeVariant/README.md) 🔥 ACTIVELY-TESTING
+7. [ArrayList](lib/ArrayList/README.md) 🛠 PASSIVE-TESTING
+8. [SimpleVector](lib/SimpleVector/README.md) 🛠 PASSIVE-TESTING
 ---
 
 ## 🚧 **Unpublished Libraries (In Development)**  
@@ -117,8 +117,8 @@ Total Libraries: (51)
 
 | Library | Status |
 |---------|--------|
-| SimpleMutex | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
-| SimpleThreadManager | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
+| SimpleMutex | 🚧 DEVELOPMENT-PAUSED, ❌ UNPUBLISHED |
+| SimpleThreadManager | 🚧 DEVELOPMENT-PAUSED, ❌ UNPUBLISHED |
 | OrderedMap | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
 | JSON | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
 | STRING | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
@@ -158,9 +158,12 @@ Total Libraries: (51)
 ---
 
 ## 🎯 **Quick Links**  
-🔗 **[GoFundMe - Support My Work](https://gofund.me/923e5f10)**  
-🔗 **[GitHub Repository](#)**  
-🔗 **[Arduino Library Manager](#)**  
+🔗 **[GoFundMe - Support My Work!](https://gofund.me/923e5f10)**
+🔗 **[Patreon - Support My Work!](https://www.patreon.com/posts/support-my-open-122298248?utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=postshare_creator&utm_content=join_link)**  
+🔗 **[Platformio Registry](https://registry.platformio.org/search?q=owner%3Abraydenanderson2014)**  
+🔗 **[GitHub Repository](https://github.com/braydenanderson2014/C-Arduino-Libraries)**  
+🔗 **[Arduino Library Manager](https://docs.arduino.cc/software/ide-v1/tutorials/installing-libraries/#using-the-library-manager)** 
+ 
 
 ## ALL LIBRARIES INCLUDE A README.md ##
 
@@ -168,8 +171,8 @@ Total Libraries: (51)
 📅 **Updated:** *01/29/2025 09:08 PM Mountain Time*  
 
 | Library Name | Position | Downloads MTD | Total Downloads |
-|-------------|----------|---------------|----------------|
-| [ArrayList](lib/ArrayList/README.md) | 1,100 | 26 | 174 | 
+|--------------|----------|---------------|-----------------|
+| [ArrayList](lib/ArrayList/README.md) | 1,186 | 22 | 178 | 
 | [Dictionary](lib/Dictionary/README.md) | 14,128 | 0 | 16 |
 | [SimpleArduinoTimer](lib/Timer/README.md) | 3,947 | 2 | 16 |
 | [UnorderedMap](lib/UnorderedMap/README.md) | 3,952 | 2 | 46 |
@@ -177,7 +180,7 @@ Total Libraries: (51)
 | [Iterator](lib/iterator/README.md) | 3,949 | 2 | 25 |
 | [BasicIO](lib/iostream/README.md) | 1,679 | 12 | 360 |
 | [SDList](lib/SDList/README.md) | 3,951 | 2 | 12 |
-| [Hashtable](lib/Hashtable/README.md) | 1,375 | 17 | 183 |
+| [Hashtable](lib/Hashtable/README.md) | 1,375 | 17 | 189 |
 | [SimpleVector](lib/SimpleVector/README.md) | 1,259 | 21 | 247 |
 | [MyDictionary](lib/MyDictionary/README.md) | 14,136 | 0 | 3 |
 | [Operators](lib/Operators/README.md) | 14,221 | 0 | 15 | 
@@ -226,6 +229,7 @@ Total Libraries: (51)
 | 🔥 [ACTIVE-DEVELOPMENT] 🔥 | Actively working on library. Enhancements, bug fixes, ext. | 
 | 🛠 [PASSIVE-DEVELOPMENT] 🛠 | Resevered for libraries that I have plans for, but am not working on currently |
 | 🚧 [DEVELOPMENT-PAUSED] 🚧 | Development is no longer a priority, and the Development will not be progressed  |
+| 🚧 [TESTING-PAUSED] 🚧 | Testing is no longer a priority, and at this time will not be continued.
 | 🏆 [STABLE] 🏆 | Library should work as intended and shouldnt give any trouble. |
 | [CONSIDERED-STABLE] | Library hasnt been fully tested, but the vast majority of the functions seem to work fine with no issues |
 | ⚠ [SEMI-STABLE] ⚠ | Library has some aspects that are stable, but others that may not be stable |
