@@ -135,7 +135,7 @@ public:
         }
 
         bool resizeNeeded = verifyResizeNeeded(count+1);
-        Serial.println(resizeNeeded);
+        // Serial.println(resizeNeeded);// Debugging
         // Calculate the load factor
         if(resizeNeeded){ //If the load factor is greater than or equal to 0.8, resize the array
             resize();
