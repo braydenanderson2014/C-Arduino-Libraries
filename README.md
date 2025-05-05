@@ -16,7 +16,8 @@ If you find these libraries useful, consider supporting me:
 🔗 **[Donate via GoFundMe](https://gofund.me/923e5f10)**  
 💰 **Click the Sponsor Button** at the top of this repository!  
  - **Patreon:** [Support on Patreon](https://www.patreon.com/posts/122298248)
-
+ - **Kofi:** [Support on Kofi](https://ko-fi.com/joesupercool15673)
+ - **Venmo:** [Support on Venmo](https://venmo.com/Brayden-Anderson-20)
 ---
 ## SPECIAL THANKS FOR THOSE WHO SPONSER MY WORK:
 * Brayden Anderson (Developer)
