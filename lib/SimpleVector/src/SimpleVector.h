@@ -279,6 +279,14 @@ public:
         return *this;
     }
 
+bool operator==(const SimpleVector<T>& other) const {
+    if (count != other.elements()) return false;
+    for (unsigned int i = 0; i < count; i++) {
+        if (array[i] != other[i]) return false;
+    }
+    return true;
+}
+
     /**
      * @brief Get the size of the vector
      * @return The size of the vector
