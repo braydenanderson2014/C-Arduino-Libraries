@@ -97,6 +97,8 @@ Your contributions help keep this project alive and growing! 🚀
 - Due to version mismatches in the arduino library manager, progressing forward 1 version to solve issue
     - Version 1.0.3-BETA was actually the most up to date version, while 1.0.3 was the one before hand. This version is to ensure the latest version is the latest version.
 
+### Version 1.0.4: 
+- RESOLVED ISSUE: Compile may fail on Arduino and some Platformio compilers due to the precense of a const = operator. This was mistakenly put into the code base and due to the way Platformio compiles, It was not found until now.
 
 ### PlatformIO Registry:
 
@@ -146,12 +148,13 @@ Your contributions help keep this project alive and growing! 🚀
 - Updated `releaseMemory()` to ensure it properly sets array to `nullptr` after deletion.
 - Added new `clear(size_t newCapacity)` function.
 
-#### Version 1.0.9: [CURRENT RELEASE]
+#### Version 1.0.9: 
 - RESOLVED ISSUE: Compile fails for Wemos D1 mini clone (Issue #103)
     - This issue stemed from the Initializer list constructor. In order to resolve the issue, Initializer list is no longer supported. Instead template args are now supported (THEY HAVE NOT BEEN TESTED)  ```cpp template<typename... Args> ```
 - In case you haven't noticed, the README.md file (this file) has been rebuilt and stylized.
 
-
+#### Version 1.0.10 - BETA: [CURRENT RELEASE]
+- RESOLVED ISSUE: Compile may fail on Arduino and some Platformio compilers due to the precense of a const = operator. This was mistakenly put into the code base and due to the way Platformio compiles, It was not found until now.
 ---
 
 ## Usage Examples

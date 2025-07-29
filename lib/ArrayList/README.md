@@ -133,7 +133,7 @@ This documentation provides a full API reference with updated function descripti
 ### 🏷 **v1.0.2-BETA**
 - 🐛 **Fixed**: `set()` function was not returning a `boolean` as expected  
 
-### 🏷 **v1.0.2** *(Latest Stable)*
+### 🏷 **v1.0.2** 
 - 🔄 **Refactored** add, insert, and resize logic into **separate functions**  
 - 🛠 Renamed `resize()` → `resize1()` *(to allow for a new `resize()` function)*  
 - ✅ New `resize()` function now properly checks `ArrayList` type before resizing  
@@ -160,6 +160,9 @@ This documentation provides a full API reference with updated function descripti
 🔗 **Resolved Issue:** [#96](https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/96)  
 ✅ **New Feature**: `getSizeType()` and `setSizeType()` *(Available only if `SkinnyArray` is disabled or `OverrideUtilityFunctions` is enabled)*  
 
+**v1.0.3-BETA** *(Latest Stable)*
+- **Resolved Issue** :  ArrayList(const ArrayList<T>& list) was improperly set up causing compiling issues.
+- **Added Import** TypeTraits Library is now packaged. TBH: Not entirely sure why I added that import but there you go  
 ---
 
 ## **🔹 PlatformIO Version**
@@ -199,7 +202,7 @@ This documentation provides a full API reference with updated function descripti
 ### 🏷 **v1.0.5-BETA**
 - 🐛 **Fixed:** `set()` function was incorrectly returning void instead of `boolean`  
 
-### 🏷 **v1.0.5** *(Latest Stable)*
+### 🏷 **v1.0.5** 
 - 🔄 **Refactored** add, insert, and resize logic into **separate functions**  
 - 🛠 Renamed `resize()` → `resize1()` *(to allow for a new `resize()` function)*  
 - ✅ New `resize()` function now properly checks `ArrayList` type before resizing  
@@ -209,6 +212,9 @@ This documentation provides a full API reference with updated function descripti
 🔗 **Resolved Issue:** [#96](https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/96)  
 ✅ **New Feature**: `getSizeType()` and `setSizeType()` *(Available only if `SkinnyArray` is disabled or `OverrideUtilityFunctions` is enabled)*  
 
+### **v1.0.6-BETA** *(Latest Stable)*
+- **Resolved Issue** :  ArrayList(const ArrayList<T>& list) was improperly set up causing compiling issues.
+- **Added Import** TypeTraits Library is now packaged. TBH: Not entirely sure why I added that import but there you go :) 
 ---
 
 🚀 Enjoy using the **Arduino & PlatformIO ArrayList Library!** Let us know if you find any issues! 🎯

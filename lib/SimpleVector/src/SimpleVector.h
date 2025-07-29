@@ -194,14 +194,14 @@ public:
     void emplace_back() {  
         ensureCapacity();
         // Default-construct in place
-        new (elements + size()) T();
+        new (array + count) T();
         count++;
     }
 
     void emplace_back(const T& value) {
         ensureCapacity();
         // Copy-construct in place
-        new (elements + size()) T(value);
+        new (array + count) T(value);
         count++;
     }
 
@@ -250,7 +250,7 @@ public:
      */
     T& operator[](unsigned int index) {
         static T dummy;
-        if (index >= count || index < 0) {
+        if (index >= count) {
             return dummy; // You can handle this error differently if needed
         }
         return array[index];
@@ -267,19 +267,6 @@ public:
     }
 
     SimpleVector& operator=(const SimpleVector& other) {
-        if (this != &other) {
-            delete[] array;
-            array = new T[other.capacity];
-            count = other.count;
-            capacity = other.capacity;
-            for (unsigned int i = 0; i < count; i++) {
-                array[i] = other.array[i];
-            }
-        }
-        return *this;
-    }
-
-    const SimpleVector& operator=(const SimpleVector& other) const {
         if (this != &other) {
             delete[] array;
             array = new T[other.capacity];
