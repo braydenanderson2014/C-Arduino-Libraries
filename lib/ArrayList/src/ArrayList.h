@@ -5,6 +5,7 @@
  * @date 01/29/2025
  */
 #include <Arduino.h>
+#include "../../TypeTraits/src/TypeTraits.h"
 
 //#define IKnowWhatIAmDoing //Uncomment this line if you know what you are doing; USE THE FUNCTIONS UNCOVERED BY THIS DIRECTIVE AT YOUR OWN RISK!!!
 //#define SkinnyArray // Uncomment this line to remove more advanced functions to save memory or define it in your code
@@ -77,35 +78,27 @@ public:
      /**
     * @brief COPY Constructor
     */
-    ArrayList(const ArrayList<T>& list){
-        array = new T[arrayCapacity];
-        this -> sizeType = list.sizeType;
-        this -> arrayCapacity = list.arrayCapacity + this -> arrayCapacity;
-        this -> count = list.count;
-
-        for(int i = 0; i < list.size(); i++){
-            array.add(list.get(i));
+    ArrayList(const ArrayList<T>& list) {
+        this->sizeType = list.sizeType;
+        this->arrayCapacity = list.arrayCapacity;
+        this->count = list.count;
+        this->array = new T[this->arrayCapacity];
+        for (size_t i = 0; i < list.count; ++i) {
+            this->array[i] = list.array[i];
         }
-        list.clear();
-        list.~ArrayList();
-        setInitialSize(this -> arrayCapacity);
     }
     #elif defined(OverrideCopyConstructor) //If OverrideCopyConstructor is defined, define the COPY Constructor
     /**
     * @brief COPY Constructor
     */
-    ArrayList(const ArrayList<T>& list){
-        array = new T[arrayCapacity];
-        this -> sizeType = list.sizeType;
-        this -> arrayCapacity = list.arrayCapacity + this -> arrayCapacity;
-        this -> count = list.count;
-
-        for(int i = 0; i < list.size(); i++){
-            array.add(list.get(i));
+    ArrayList(const ArrayList<T>& list) {
+        this->sizeType = list.sizeType;
+        this->arrayCapacity = list.arrayCapacity;
+        this->count = list.count;
+        this->array = new T[this->arrayCapacity];
+        for (size_t i = 0; i < list.count; ++i) {
+            this->array[i] = list.array[i];
         }
-        list.clear();
-        list.~ArrayList();
-        setInitialSize(this -> arrayCapacity);
     }
 
     #endif
@@ -1911,5 +1904,4 @@ private:
     } 
     #endif
 };
-
 #endif // ARRAYLIST_H
