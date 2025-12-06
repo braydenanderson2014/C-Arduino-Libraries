@@ -93,11 +93,7 @@ class SDList {
                 return;
             } else {
                 File file = SD.open(filename, FILE_WRITE);
-                if (isFileEmpty()) {
-                    file.print(element); // Use print for the first element to avoid leading newline
-                } else {
-                    file.println(element); // Use println for subsequent elements
-                }
+                file.println(element); // Use println for all elements to ensure proper line separation
                 file.close();
             }
         }
@@ -115,6 +111,13 @@ class SDList {
                 String line;
                 while (file.available()) {
                     line = file.readStringUntil('\n');
+                    // Remove carriage return if present (for Windows-style line endings)
+                    if(line.length() > 0 && line.charAt(line.length() - 1) == '\r') {
+                        line.remove(line.length() - 1);
+                    }
+                    if(line == "") {
+                        continue;
+                    }
                     arrayList.add(line);  // Add each line from the file to the arrayList
                 }
                 file.close();
@@ -294,6 +297,10 @@ class SDList {
                     String line;
                     while (file.available()) {
                         line = file.readStringUntil('\n');
+                        // Remove carriage return if present (for Windows-style line endings)
+                        if(line.length() > 0 && line.charAt(line.length() - 1) == '\r') {
+                            line.remove(line.length() - 1);
+                        }
                         if(line == "") {
                             continue;
                         }
@@ -341,13 +348,20 @@ class SDList {
                     String content = "";
                     while (file.available()) {
                         line = file.readStringUntil('\n');
+                        // Remove carriage return if present (for Windows-style line endings)
+                        if(line.length() > 0 && line.charAt(line.length() - 1) == '\r') {
+                            line.remove(line.length() - 1);
+                        }
                         if (i == index) {
                             content += element + "\n";
                         }
-                        content += line + "\n";
+                        if(line != "") {
+                            content += line + "\n";
+                        }
                         i++;
                     }
                     file.close();
+                    SD.remove(filename); // Remove the old file before writing the new content
                     file = SD.open(filename, FILE_WRITE);
                     file.print(content);
                     file.close();
@@ -376,12 +390,17 @@ class SDList {
                     String content = "";
                     while (file.available()) {
                         line = file.readStringUntil('\n');
-                        if (i != index) {
+                        // Remove carriage return if present (for Windows-style line endings)
+                        if(line.length() > 0 && line.charAt(line.length() - 1) == '\r') {
+                            line.remove(line.length() - 1);
+                        }
+                        if (i != index && line != "") {
                             content += line + "\n";
                         }
                         i++;
                     }
                     file.close();
+                    SD.remove(filename); // Remove the old file before writing the new content
                     file = SD.open(filename, FILE_WRITE);
                     file.print(content);
                     file.close();
@@ -409,7 +428,13 @@ class SDList {
                     int i = 0;
                     while (file.available()) {
                         line = file.readStringUntil('\n');
-                        i++;
+                        // Remove carriage return if present (for Windows-style line endings)
+                        if(line.length() > 0 && line.charAt(line.length() - 1) == '\r') {
+                            line.remove(line.length() - 1);
+                        }
+                        if(line != "") {
+                            i++;
+                        }
                     }
                     file.close();
                     return i;
@@ -439,7 +464,13 @@ class SDList {
                     int i = 0;
                     while (file.available()) {
                         line = file.readStringUntil('\n');
-                        i++;
+                        // Remove carriage return if present (for Windows-style line endings)
+                        if(line.length() > 0 && line.charAt(line.length() - 1) == '\r') {
+                            line.remove(line.length() - 1);
+                        }
+                        if(line != "") {
+                            i++;
+                        }
                     }
                     file.close();
                     return i;
