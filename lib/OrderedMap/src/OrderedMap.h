@@ -8,7 +8,6 @@ class OrderedMap {
 private:
     ArrayList<K> internalKeys;
     ArrayList<V> internalValues;
-    JSON json;
 
     // Helper functions for conversions
     String keyToString(const K& key) const {
@@ -90,6 +89,7 @@ public:
 
     // Serialize to JSON
     void serializeToJSON(const String& filename) {
+        JSON json; // Create JSON instance only when needed
         for (size_t i = 0; i < internalKeys.size(); i++) {
             String keyStr = keyToString(internalKeys.get(i));
             const V& value = internalValues.get(i);
@@ -111,6 +111,7 @@ public:
 
     // Deserialize from JSON
     void deserializeFromJSON(const String& filename) {
+        JSON json; // Create JSON instance only when needed
         if (!json.readFromFile(filename)) {
             Serial.println("Failed to read JSON file.");
             return;
