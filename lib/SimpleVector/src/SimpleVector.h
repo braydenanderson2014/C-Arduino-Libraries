@@ -171,7 +171,7 @@ public:
             return; // Index out of bounds
         }
         // Shift elements after the specified index to the left
-        for (unsigned int i = index; i < count - 1; i++) {
+        for (unsigned int i = (unsigned int)index; i < count - 1; i++) {
             array[i] = array[i + 1];
         }
         count--;
