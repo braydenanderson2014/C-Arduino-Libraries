@@ -167,7 +167,7 @@ public:
      * @version Added Version 1.0.7 (PlatformIO) and Version 1.02 (Arduino Library Manager)
      */
     void erase(int index){
-        if (index < 0 || (unsigned int)index >= count) {
+        if (index < 0 || index >= (int)count) {
             return; // Index out of bounds
         }
         // Shift elements after the specified index to the left
