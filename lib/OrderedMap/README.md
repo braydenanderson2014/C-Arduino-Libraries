@@ -16,22 +16,13 @@ This optimization allows Arduino Mega to create many more OrderedMap instances w
 * Testing: So far testing is successful!
 * Memory: Optimized for minimal memory usage - suitable for resource-constrained devices
 
-## PlatformIO Change Log:
-### Version 1.0.1 - ALPHA: [CURRENT]
+## Change Log:
+### Version 1.0.1-ALPHA: [CURRENT]
 * Memory optimization: Removed persistent JSON member variable
 * JSON object now created only during serialization/deserialization operations
 * Significantly reduced memory footprint per OrderedMap instance
 
-### Version 1.0.0 - BETA: [UNRELEASED], [FUTURE-RELEASE]
-* Initial Release
-
-## Arduino Library Manager Change Log:
-### Version 1.0.1 - ALPHA: [CURRENT]
-* Memory optimization: Removed persistent JSON member variable
-* JSON object now created only during serialization/deserialization operations
-* Significantly reduced memory footprint per OrderedMap instance
-
-### Version 1.0.0 - BETA: [UNRELEASED], [FUTURE-RELEASE]
+### Version 1.0.0-BETA: [UNRELEASED], [FUTURE-RELEASE]
 * Initial Release
 
 
