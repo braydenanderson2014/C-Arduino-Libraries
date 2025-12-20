@@ -8,7 +8,6 @@ class OrderedMap {
 private:
     ArrayList<K> internalKeys;
     ArrayList<V> internalValues;
-    JSON json;
 
     // Helper functions for conversions
     String keyToString(const K& key) const {
@@ -89,7 +88,11 @@ public:
     size_t size() const { return internalKeys.size(); }
 
     // Serialize to JSON
+    // Note: JSON object is created locally to minimize memory usage when not serializing.
+    // This is optimal for Arduino where serialization is typically infrequent (startup/shutdown)
+    // and memory is at a premium. The allocation cost is acceptable given the memory savings.
     void serializeToJSON(const String& filename) {
+        JSON json; // Create JSON instance only when needed
         for (size_t i = 0; i < internalKeys.size(); i++) {
             String keyStr = keyToString(internalKeys.get(i));
             const V& value = internalValues.get(i);
@@ -110,7 +113,11 @@ public:
     }
 
     // Deserialize from JSON
+    // Note: JSON object is created locally to minimize memory usage when not deserializing.
+    // This is optimal for Arduino where deserialization is typically infrequent (startup)
+    // and memory is at a premium. The allocation cost is acceptable given the memory savings.
     void deserializeFromJSON(const String& filename) {
+        JSON json; // Create JSON instance only when needed
         if (!json.readFromFile(filename)) {
             Serial.println("Failed to read JSON file.");
             return;
