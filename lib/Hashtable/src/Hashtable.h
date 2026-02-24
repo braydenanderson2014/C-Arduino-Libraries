@@ -459,10 +459,16 @@ public:
      * @brief Returns the element stored with the specified key
      * 
      * @note if a key does not exits, return the Default constructor for the type specified.
+     *
+     * @param key The key to search for
+     *
+     * @patch 02/24/2026
+     * @details Added local index calculation before bucket access to fix undefined index usage.
      * 
      * @return The value associated with the key, or a default constructed object if key not found.
     */
     V getElement(const K& key) const {
+        int index = calculateIndex(key, TABLE_SIZE);
         Entry* entry = table[index];
         while (entry != nullptr) {
             if (entry->key == key) {
@@ -476,6 +482,9 @@ public:
     /**
     * @brief Returns the element stored with the specified key
     * 
+    * @patch 02/24/2026
+    * @details Added local index calculation before bucket access to ensure correct key lookup.
+    * 
     * @param key The key to search for
     * @param value Pointer to a variable where the found value will be stored
     * 
@@ -485,7 +494,7 @@ public:
     *       If the key is not found, the function returns false and does not modify the variable pointed to by the value parameter.
     */
     bool getElement(const K& key, V* value) const{
-        int index = hash(key);
+        int index = calculateIndex(key, TABLE_SIZE);
         Entry* entry = table[index];
         while (entry != nullptr) {
             if (entry->key == key) {
