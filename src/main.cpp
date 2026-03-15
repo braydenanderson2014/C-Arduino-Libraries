@@ -3,6 +3,7 @@
 
 
 #include <Arduino.h>
+#include "kDimensionalTree.h"
 //#include "OrderedMap.h"
 //#include "SDList.h"
 #include "JSON.h"
@@ -18,7 +19,9 @@ String jsonStr = "{\"hello\":\"world\"}";  // Example JSON string
 void setup() {
     Serial.begin(115200);
     while (!Serial) {}  // Ensure Serial is ready
-    JSON json;
+    KDimensionalTree<int> tree(2);
+    /*JSON json;
+
 
     const char* jsonKey = "Number";
     //const char* jsonStr = "{\"hello\":\"world\"}";
@@ -33,7 +36,7 @@ void setup() {
     bool success = json.writeToFile("test.json");
     Serial.println(success ? "Yes" : "No");
 
-    
+  */  
 }
 
 void loop() {
