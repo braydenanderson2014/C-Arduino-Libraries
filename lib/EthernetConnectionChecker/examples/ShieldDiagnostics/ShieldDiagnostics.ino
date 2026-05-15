@@ -15,9 +15,10 @@ void setup() {
         return;
     }
 
-    checker.addEndpoint("Google", "example.com", "/", 80, 200, 399);
+    checker.addGatewayEndpoint("Router", "/", 80, 100, 599);
     checker.addEndpoint("IANA", "iana.org", "/", 80, 200, 399);
-    checker.addEndpoint("Arduino", "www.arduino.cc", "/", 80, 200, 399);
+    checker.addReachabilityEndpoint("Arduino Reachability", "www.arduino.cc", "/", 80);
+    checker.addEndpoint("Example", "example.com", "/", 80, 200, 399);
 
     checker.setCheckInterval(120000UL);
     checker.enableAutoChecks(true);
@@ -26,6 +27,7 @@ void setup() {
 
     Serial.print("Dashboard: http://");
     Serial.println(checker.localIP());
+    Serial.println("API /api/diag and /api/results available on dashboard host");
 }
 
 void loop() {

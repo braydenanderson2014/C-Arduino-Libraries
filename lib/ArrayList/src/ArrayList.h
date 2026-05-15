@@ -66,12 +66,11 @@ public:
      * @param debug A flag indicating whether debug messages should be printed.
     */
     ArrayList(SizeType type = DYNAMIC2, size_t initialSize = 8)
-                : sizeType(type), arrayCapacity(initialSize), count(0) {
+                : arrayCapacity(initialSize), count(0), initialSize(initialSize), sizeType(type) {
         array = new T[arrayCapacity];
         if (!array) {
             Serial.println("[ArrayList] Memory allocation failed");
-        } 
-        setInitialSize(initialSize);
+        }
     }
 
     #ifndef SkinnyArray //If SkinnyArray is not defined, define the COPY Constructor
@@ -127,7 +126,7 @@ public:
             return;
         }
 
-        bool resizeNeeded = verifyResizeNeeded(count+1);
+        bool resizeNeeded = verifyResizeNeeded(1);
         // Serial.println(resizeNeeded);// Debugging
         // Calculate the load factor
         if(resizeNeeded){ //If the load factor is greater than or equal to 0.8, resize the array
@@ -163,7 +162,7 @@ public:
      * @return true if the items were added successfully, false otherwise.
     */
     bool addAll(const ArrayList<T>& other) {
-        bool resizeNeeded = verifyResizeNeeded(count+other.count);
+        bool resizeNeeded = verifyResizeNeeded(other.count);
         if(resizeNeeded){
             resize();
         }
@@ -198,7 +197,7 @@ public:
      * @return true if the items were added successfully, false otherwise.
     */
     bool addAll(const T* other, size_t length) {
-        bool resizeNeeded = verifyResizeNeeded(count+length);
+        bool resizeNeeded = verifyResizeNeeded(length);
         if(resizeNeeded){
             resize();
         }
@@ -232,7 +231,7 @@ public:
      * @return true if the items were added successfully, false otherwise.
     */
     bool addAll(const ArrayList<T>& other) {
-        bool resizeNeeded = verifyResizeNeeded(count+other.count);
+        bool resizeNeeded = verifyResizeNeeded(other.count);
         if(resizeNeeded){
             resize();
         }
@@ -267,7 +266,7 @@ public:
      * @return true if the items were added successfully, false otherwise.
     */
     bool addAll(const T* other, size_t length) {
-        bool resizeNeeded = verifyResizeNeeded(count+length);
+        bool resizeNeeded = verifyResizeNeeded(length);
         if(resizeNeeded){
             resize();
         }
@@ -305,7 +304,7 @@ public:
         if (index > count) {
             return false;
         }
-        bool resizeNeeded = verifyResizeNeeded(count);
+        bool resizeNeeded = verifyResizeNeeded(1);
         if(resizeNeeded){
             resize();
         }
@@ -350,7 +349,7 @@ public:
         this->count = list.count;
     
         // Copy elements
-        for (int i = 0; i < list.count; i++) {
+        for (size_t i = 0; i < list.count; i++) {
             this->array[i] = list.array[i];
         }
     
@@ -386,7 +385,7 @@ public:
         if (index > count) {
             return false;
         }
-        bool resizeNeeded = verifyResizeNeeded(count + other.count);
+        bool resizeNeeded = verifyResizeNeeded(other.count);
         if(resizeNeeded){
             resize();
         }
@@ -427,7 +426,7 @@ public:
         if (index > count) {
             return false;
         }
-        bool resizeNeeded = verifyResizeNeeded(count + length);
+        bool resizeNeeded = verifyResizeNeeded(length);
         if(resizeNeeded){
             resize();
         }
@@ -467,7 +466,7 @@ public:
         if (index > count) {
             return false;
         }
-        bool resizeNeeded = verifyResizeNeeded(count + other.count);
+        bool resizeNeeded = verifyResizeNeeded(other.count);
         if(resizeNeeded){
             resize();
         }
@@ -508,7 +507,7 @@ public:
         if (index > count) {
             return false;
         }
-        bool resizeNeeded = verifyResizeNeeded(count + length);
+        bool resizeNeeded = verifyResizeNeeded(length);
         if(resizeNeeded){
             resize();
         }
@@ -752,6 +751,24 @@ public:
         return T();// Return default value if index is out of bounds
     }
 
+    T& getReference(size_t index) {
+        if (index < count) {
+            return array[index];
+        }
+
+        static T defaultValue = T();
+        return defaultValue;
+    }
+
+    const T& getReference(size_t index) const {
+        if (index < count) {
+            return array[index];
+        }
+
+        static T defaultValue = T();
+        return defaultValue;
+    }
+
     /**
      * @brief Retrieves the item at a specific index in the ArrayList as a String.
      *
@@ -863,10 +880,6 @@ public:
      * @return true if the item was successfully set, false if the item was not set or the index is out of bounds.
      */
     bool set(size_t index, T item) {
-        bool resizeNeeded = verifyResizeNeeded(index + 1);
-        if(resizeNeeded){
-            resize();
-        }
         if (index < count) {
             array[index] = item;
             return array[index] == item;
@@ -1483,6 +1496,28 @@ public:
         }
     }
 
+    /**
+     * @brief Gets the initial size of the ArrayList.
+     *
+     * This function gets the initial size of the ArrayList.
+     *
+     * @return The initial size of the ArrayList.
+     */
+    size_t getInitialSize(){
+        return initialSize;
+    }
+
+    /**
+     * @brief Sets the initial size of the ArrayList.
+     *
+     * This function sets the initial size of the ArrayList.
+     *
+     * @param size The initial size to set.
+     */
+    void setInitialSize(size_t size){
+        initialSize = size;
+    }
+
     #elif defined(OverrideUtilityFunctions) //If OverrideUtility is defined, define the following functions
     
     /**
@@ -1568,13 +1603,11 @@ private:
     size_t arrayCapacity;
     size_t count;
     size_t initialSize;
-    #ifndef SkinnyArray //If SkinnyArray is not defined, define following variables
     SizeType sizeType;
+    #ifndef SkinnyArray //If SkinnyArray is not defined, define following variables
     SortAlgorithm sortAlgorithm;
     #elif defined(OverrideSort) //If OverrideSort is defined, define following variables
     SortAlgorithm sortAlgorithm;
-    #elif defined(OverrideUtilityFunctions) //If OverrideUtility is defined, define following variables
-    SizeType sizeType;
     #endif
     /**
      * @brief Resizes the ArrayList.

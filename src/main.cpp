@@ -7,49 +7,39 @@ EthernetConnectionChecker checker(LED_BUILTIN, 10, 4, 80);
 
 void setup() {
     Serial.begin(115200);
-    delay(200);
+    delay(1200);
+    Serial.println(F("[ECC] Booting..."));
 
     bool ok = checker.begin(eccMac);
     if (!ok) {
-        Serial.println("Ethernet init failed. Check LED flash codes.");
+        Serial.println(F("Ethernet init failed. Check LED flash codes."));
         return;
     }
 
-    checker.addEndpoint("Example", "example.com", "/", 80, 200, 399);
-    checker.addEndpoint("IANA", "iana.org", "/", 80, 200, 399);
-    checker.addEndpoint("Arduino", "www.arduino.cc", "/", 80, 200, 399);
+    Serial.println(F("[ECC] Ethernet initialized."));
+
+    // Keep the startup endpoint set small until the sketch is stable on-device.
+    checker.addEndpoint("Google Connectivity", "connectivitycheck.gstatic.com",
+        "/generate_204", 80, 204, 204);
+    checker.addReachabilityEndpoint("Cloudflare", "1.1.1.1", "/", 80);
+    checker.addGatewayEndpoint("Gateway", "/", 80, 100, 599);
+
+    // Re-enable additional endpoints after startup stability is confirmed:
+    // checker.addEndpoint("IANA", "iana.org", "/", 80, 200, 399);
+    // checker.addEndpoint("Example", "example.com", "/", 80, 200, 399);
+    // checker.addReachabilityEndpoint("Arduino CC", "www.arduino.cc", "/", 80);
+    // checker.addEndpoint("Google", "google.com", "/", 80, 200, 399);
 
     checker.setCheckInterval(120000UL);
     checker.enableAutoChecks(true);
-    checker.runChecks();
 
-    Serial.print("Dashboard: http://");
+    Serial.print(F("Dashboard: http://"));
     Serial.println(checker.localIP());
+    Serial.println(F("Type HELP in Serial Monitor for console commands."));
+    Serial.println(F("Use RUN or /run to start the first check."));
 }
 
 void loop() {
     checker.loop();
 }
-
-/*
-#define MEMORY_POOL_SIZE 2048  // Preallocate 2KB
-char memoryPool[MEMORY_POOL_SIZE];
-
-extern unsigned int __bss_end;
-extern void *__brkval;
-
-int freeMemory() {
-    int free_memory;
-    if ((int)__brkval == 0) {
-        free_memory = ((int)&free_memory) - ((int)&__bss_end);
-    } else {
-        free_memory = ((int)&free_memory) - ((int)__brkval);
-    }
-    return free_memory;
-}
-
-
-
-*/
-//DynamicStorage<String, String> storage(DynamicStorage<String, String>::AUTO);
 
