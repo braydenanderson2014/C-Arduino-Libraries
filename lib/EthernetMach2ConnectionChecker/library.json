@@ -1,0 +1,45 @@
+{
+  "name": "EthernetMach2ConnectionChecker",
+  "version": "0.1.0",
+  "description": "Mega-side Ethernet probe agent that pushes diagnostics to a PC-hosted server dashboard.",
+  "keywords": [
+    "ethernet",
+    "arduino mega",
+    "agent",
+    "diagnostics",
+    "telemetry",
+    "dashboard"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries"
+  },
+  "authors": [
+    {
+      "name": "Brayden Anderson",
+      "email": "braydenanderson2014@gmail.com",
+      "url": "https://github.com/braydenanderson2014"
+    }
+  ],
+  "dependencies": {
+    "Arduino": "*",
+    "ArrayList": "*"
+  },
+  "categories": [
+    "Communication",
+    "Networking"
+  ],
+  "examples": [
+    {
+      "name": "Agent Bootstrap",
+      "base": "examples/AgentBootstrap",
+      "files": [
+        "AgentBootstrap.ino"
+      ]
+    }
+  ],
+  "header": "EthernetMach2ConnectionChecker.h",
+  "headers": [
+    "EthernetMach2ConnectionChecker.h"
+  ]
+}
