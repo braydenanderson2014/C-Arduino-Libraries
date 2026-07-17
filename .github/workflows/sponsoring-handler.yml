@@ -1,0 +1,145 @@
+name: Sponsoring Handler
+
+on:
+  issues:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  handle-sponsoring:
+    runs-on: ubuntu-latest
+    name: Handle Sponsoring Requests
+
+    steps:
+    - name: Handle Sponsoring Label/Comment
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+        script: |
+          const SPONSORING_LABEL = 'sponsor-request';
+          const SPONSORING_KEYWORDS = ['sponsor', 'donate', 'funding', 'support', 'contribute'];
+
+          // Get the event details
+          const issue = context.payload.issue;
+          const comment = context.payload.comment;
+          const isLabelEvent = context.payload.action === 'labeled';
+          const isCommentEvent = context.payload.action === 'created' && comment;
+
+          console.log('🔍 Processing ' + (isLabelEvent ? 'label' : 'comment') + ' event for issue #' + issue.number);
+
+          // Check if this is a sponsoring-related event
+          let shouldRespond = false;
+          let triggerType = '';
+
+          if (isLabelEvent) {
+            // Check if the added label is the sponsoring label
+            const addedLabel = context.payload.label?.name?.toLowerCase();
+            if (addedLabel === SPONSORING_LABEL) {
+              shouldRespond = true;
+              triggerType = 'label';
+              console.log('🏷️ Sponsoring label "' + SPONSORING_LABEL + '" added to issue #' + issue.number);
+            }
+          } else if (isCommentEvent) {
+            // Check if comment contains sponsoring keywords
+            const commentBody = comment.body.toLowerCase();
+            const hasSponsoringKeywords = SPONSORING_KEYWORDS.some(function(keyword) {
+              return commentBody.includes(keyword);
+            });
+
+            if (hasSponsoringKeywords) {
+              shouldRespond = true;
+              triggerType = 'comment';
+              console.log('💬 Sponsoring keywords detected in comment on issue #' + issue.number);
+            }
+          }
+
+          if (!shouldRespond) {
+            console.log('ℹ️ No sponsoring trigger detected for issue #' + issue.number);
+            return;
+          }
+
+          // Check if we've already responded to this issue
+          const existingComments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: issue.number
+          });
+
+          const hasSponsoringResponse = existingComments.data.some(function(comment) {
+            return comment.body.includes('<!-- SPONSORING-RESPONSE-ID: funding-details -->');
+          });
+
+          if (hasSponsoringResponse) {
+            console.log('ℹ️ Already responded to sponsoring request on issue #' + issue.number);
+            return;
+          }
+
+          // Create the sponsoring response message
+          const sponsoringMessage = "## 💝 **Support the Project Development**\n\n" +
+            "Thank you for your interest in supporting this project! Even though PDF Utility is a paid application and the source code is not open source, your sponsorship and donations play a crucial role in its continued development and improvement.\n\n" +
+            "### **Why Your Support Matters:**\n\n" +
+            "**🚀 **Accelerates Development**\n" +
+            "- Funds new features and improvements\n" +
+            "- Enables faster bug fixes and updates\n" +
+            "- Supports ongoing maintenance and optimization\n\n" +
+            "**🛠️ **Enhances Quality**\n" +
+            "- Allows investment in better testing and quality assurance\n" +
+            "- Enables code refactoring and performance improvements\n" +
+            "- Supports security updates and vulnerability fixes\n\n" +
+            "**📚 **Improves Documentation & Support**\n" +
+            "- Creates comprehensive guides and tutorials\n" +
+            "- Provides better user support and assistance\n" +
+            "- Develops educational content and examples\n\n" +
+            "**🌟 **Community Benefits**\n" +
+            "- Helps maintain active development\n" +
+            "- Ensures long-term project sustainability\n" +
+            "- Supports the ecosystem around the tool\n\n" +
+            "### **Funding Options:**\n\n" +
+            "**💰 **Direct Support:**\n" +
+            "- [GitHub Sponsors](https://github.com/sponsors/braydenanderson2014) - Monthly sponsorships\n" +
+            "- [Patreon](https://patreon.com/braydenanderson2014) - Flexible support tiers\n" +
+            "- [Ko-fi](https://ko-fi.com/joesupercool15673) - One-time donations\n" +
+            "- [Venmo](https://venmo.com/Brayden-Anderson-20) - Quick mobile payments\n\n" +
+            "**💡 **How Sponsorship Helps:**\n" +
+            "Your contributions directly fund:\n" +
+            "- Development time for new features\n" +
+            "- Server costs and infrastructure\n" +
+            "- Third-party service integrations\n" +
+            "- Marketing and community outreach\n" +
+            "- Legal and administrative expenses\n\n" +
+            "**🎯 **Impact Examples:**\n" +
+            "- Recent updates and bug fixes\n" +
+            "- New automation features\n" +
+            "- Improved user interface\n" +
+            "- Enhanced performance optimizations\n" +
+            "- Better error handling and reliability\n\n" +
+            "### **Recognition & Perks:**\n" +
+            "- **GitHub Sponsors**: Profile recognition, early access to updates\n" +
+            "- **Patreon Supporters**: Exclusive updates, feature requests priority\n" +
+            "- **Ko-fi Donors**: Special mentions in release notes\n" +
+            "- **Venmo Contributors**: Direct acknowledgment in project communications\n\n" +
+            "**🙏 **Thank You:**\n" +
+            "Every contribution, no matter the size, makes a meaningful difference. Your support enables me to continue developing PDF Utility and provide the best possible experience for all users.\n\n" +
+            "*If you have any questions about sponsorship or would like to discuss specific ways to support the project, feel free to ask!*\n\n" +
+            "<!-- SPONSORING-RESPONSE-ID: funding-details -->\n" +
+            "*This response was automatically generated in response to a sponsoring inquiry.*";
+
+          try {
+            // Post the sponsoring comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: sponsoringMessage
+            });
+
+            console.log('✅ Posted sponsoring information comment on issue #' + issue.number + ' (triggered by ' + triggerType + ')');
+
+          } catch (error) {
+            console.error('❌ Error posting sponsoring comment: ' + error.message);
+          }
