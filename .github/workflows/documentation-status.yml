@@ -1,0 +1,314 @@
+name: Documentation Status Management
+
+on:
+  issues:
+    types: [labeled, unlabeled]
+
+jobs:
+  manage-documentation-status:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+      
+    steps:
+      - name: Handle Documentation Label Changes
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+          script: |
+            const CONFIG = {
+              PROJECT_NUMBER: 4,
+              PROJECT_OWNER: "braydenanderson2014",
+              LABELS: {
+                DOCUMENTATION: "documentation"
+              },
+              FIELDS: {
+                STATUS: "Status",
+                TYPE: "Type"
+              },
+              STATUS_VALUES: {
+                DOCUMENTATION_REQUEST: "Documentation Request",
+                TO_TRIAGE: "Triage",
+                BACKLOG: "Backlog"
+              }
+            };
+            
+            // Get issue details
+            const issue = context.payload.issue;
+            const action = context.payload.action;
+            const label = context.payload.label;
+            
+            console.log(`📚 Processing ${action} action for issue #${issue.number}`);
+            
+            // Check if this is related to the documentation label
+            if (!label || label.name !== CONFIG.LABELS.DOCUMENTATION) {
+              console.log(`ℹ️ Label change not related to documentation label - skipping`);
+              return;
+            }
+            
+            // Function to get project item ID for an issue
+            async function getProjectItemId(issueNumber) {
+              try {
+                const query = `
+                  query($owner: String!, $number: Int!, $projectNumber: Int!) {
+                    user(login: $owner) {
+                      projectV2(number: $projectNumber) {
+                        id
+                        items(first: 100) {
+                          nodes {
+                            id
+                            content {
+                              ... on Issue {
+                                number
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                `;
+                
+                const result = await github.graphql(query, {
+                  owner: CONFIG.PROJECT_OWNER,
+                  number: issueNumber,
+                  projectNumber: CONFIG.PROJECT_NUMBER
+                });
+                
+                const items = result.user.projectV2.items.nodes;
+                const projectItem = items.find(item => 
+                  item.content && item.content.number === issueNumber
+                );
+                
+                return projectItem ? projectItem.id : null;
+              } catch (error) {
+                console.error(`❌ Error getting project item ID: ${error.message}`);
+                return null;
+              }
+            }
+            
+            // Function to get project and field information
+            async function getProjectInfo() {
+              try {
+                const query = `
+                  query($owner: String!, $projectNumber: Int!) {
+                    user(login: $owner) {
+                      projectV2(number: $projectNumber) {
+                        id
+                        fields(first: 20) {
+                          nodes {
+                            ... on ProjectV2Field {
+                              id
+                              name
+                            }
+                            ... on ProjectV2SingleSelectField {
+                              id
+                              name
+                              options {
+                                id
+                                name
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                `;
+                
+                const result = await github.graphql(query, {
+                  owner: CONFIG.PROJECT_OWNER,
+                  projectNumber: CONFIG.PROJECT_NUMBER
+                });
+                
+                return result.user.projectV2;
+              } catch (error) {
+                console.error(`❌ Error getting project info: ${error.message}`);
+                return null;
+              }
+            }
+            
+            // Function to update project status
+            async function updateProjectStatus(projectItemId, newStatus) {
+              try {
+                const projectInfo = await getProjectInfo();
+                if (!projectInfo) {
+                  throw new Error('Could not retrieve project information');
+                }
+                
+                // Find status field
+                const statusField = projectInfo.fields.nodes.find(field => 
+                  field.name === CONFIG.FIELDS.STATUS
+                );
+                
+                if (!statusField) {
+                  throw new Error(`Status field "${CONFIG.FIELDS.STATUS}" not found`);
+                }
+                
+                // Find status option
+                const statusOption = statusField.options?.find(option => 
+                  option.name === newStatus
+                );
+                
+                if (!statusOption) {
+                  throw new Error(`Status option "${newStatus}" not found`);
+                }
+                
+                // Update the project item
+                const mutation = `
+                  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: ProjectV2FieldValue!) {
+                    updateProjectV2ItemFieldValue(input: {
+                      projectId: $projectId
+                      itemId: $itemId
+                      fieldId: $fieldId
+                      value: $value
+                    }) {
+                      projectV2Item {
+                        id
+                      }
+                    }
+                  }
+                `;
+                
+                await github.graphql(mutation, {
+                  projectId: projectInfo.id,
+                  itemId: projectItemId,
+                  fieldId: statusField.id,
+                  value: {
+                    singleSelectOptionId: statusOption.id
+                  }
+                });
+                
+                console.log(`✅ Updated project status to "${newStatus}" for issue #${issue.number}`);
+                return true;
+                
+              } catch (error) {
+                console.error(`❌ Error updating project status: ${error.message}`);
+                return false;
+              }
+            }
+            
+            // Function to add issue to project if not already added
+            async function ensureIssueInProject() {
+              try {
+                // First check if issue is already in project
+                let projectItemId = await getProjectItemId(issue.number);
+                
+                if (projectItemId) {
+                  console.log(`ℹ️ Issue #${issue.number} already in project`);
+                  return projectItemId;
+                }
+                
+                // Add issue to project
+                const projectInfo = await getProjectInfo();
+                if (!projectInfo) {
+                  throw new Error('Could not retrieve project information');
+                }
+                
+                const mutation = `
+                  mutation($projectId: ID!, $contentId: ID!) {
+                    addProjectV2ItemByContentId(input: {
+                      projectId: $projectId
+                      contentId: $contentId
+                    }) {
+                      item {
+                        id
+                      }
+                    }
+                  }
+                `;
+                
+                const result = await github.graphql(mutation, {
+                  projectId: projectInfo.id,
+                  contentId: issue.node_id
+                });
+                
+                projectItemId = result.addProjectV2ItemByContentId.item.id;
+                console.log(`✅ Added issue #${issue.number} to project`);
+                
+                return projectItemId;
+                
+              } catch (error) {
+                console.error(`❌ Error ensuring issue in project: ${error.message}`);
+                return null;
+              }
+            }
+            
+            // Main logic
+            if (action === 'labeled') {
+              console.log(`📚 Documentation label added to issue #${issue.number} - moving to Documentation Request`);
+              
+              // Ensure issue is in project and get project item ID
+              const projectItemId = await ensureIssueInProject();
+              
+              if (projectItemId) {
+                // Update status to Documentation Request
+                const success = await updateProjectStatus(projectItemId, CONFIG.STATUS_VALUES.DOCUMENTATION_REQUEST);
+                
+                if (success) {
+                  // Add a comment to document the status change
+                  try {
+                    await github.rest.issues.createComment({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: issue.number,
+                      body: `📚 **Status Update**: This issue has been categorized as a documentation request and moved to "Documentation Request" status.`
+                    });
+                    
+                    console.log(`✅ Added status update comment to issue #${issue.number}`);
+                  } catch (error) {
+                    console.error(`❌ Error adding comment: ${error.message}`);
+                  }
+                }
+              }
+              
+            } else if (action === 'unlabeled') {
+              console.log(`📚 Documentation label removed from issue #${issue.number}`);
+              
+              // Get current issue labels to determine appropriate status
+              const currentLabels = issue.labels.map(label => label.name.toLowerCase());
+              
+              // Determine appropriate status based on remaining labels
+              let newStatus = CONFIG.STATUS_VALUES.TO_TRIAGE; // Default to triage for re-evaluation
+              
+              // PRIORITY: Check for bug label first (highest priority)
+              if (currentLabels.includes('bug')) {
+                newStatus = CONFIG.STATUS_VALUES.TO_TRIAGE;
+                console.log(`🐛 Bug label detected - routing to triage (priority override)`);
+              } else if (currentLabels.includes('feature-request') || currentLabels.includes('enhancement')) {
+                newStatus = CONFIG.STATUS_VALUES.BACKLOG;
+                console.log(`✨ Feature label detected - routing to backlog`);
+              } else if (currentLabels.includes('question')) {
+                newStatus = "General Question"; // Will be handled by question workflow
+                console.log(`❓ Question label detected - delegating to question workflow`);
+                return; // Let question workflow handle this
+              }
+              
+              // Get project item ID
+              const projectItemId = await getProjectItemId(issue.number);
+              
+              if (projectItemId) {
+                const success = await updateProjectStatus(projectItemId, newStatus);
+                
+                if (success) {
+                  // Add a comment to document the status change
+                  try {
+                    await github.rest.issues.createComment({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: issue.number,
+                      body: `📋 **Status Update**: Documentation label removed - issue moved to "${newStatus}" for re-evaluation.`
+                    });
+                    
+                    console.log(`✅ Added status update comment to issue #${issue.number}`);
+                  } catch (error) {
+                    console.error(`❌ Error adding comment: ${error.message}`);
+                  }
+                }
+              } else {
+                console.log(`ℹ️ Issue #${issue.number} not found in project - no status update needed`);
+              }
+            }
+            
+            console.log(`✅ Documentation label processing complete for issue #${issue.number}`);
