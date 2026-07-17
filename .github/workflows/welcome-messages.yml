@@ -187,6 +187,7 @@ jobs:
           
           // Project management functions
           async function addIssueToProject(issue, status, type, priority = null) {
+            try {
 
               // Add issue to project
               const addItemMutation = `
@@ -400,6 +401,8 @@ jobs:
             projectPriority = CONFIG.PRIORITY_OPTIONS.MEDIUM; // Default medium priority for enhancement
             console.log(`✨ Enhancement label detected (non-templated) - routing to feature queue with medium priority`);
           }
+          // Documentation routing
+          else if (labels.includes(CONFIG.LABELS.DOCUMENTATION.toLowerCase())) {
             messageType = 'documentation';
             messageContent = CONFIG.WELCOME_MESSAGES.DOCUMENTATION;
             projectStatus = 'Documentation Request';
