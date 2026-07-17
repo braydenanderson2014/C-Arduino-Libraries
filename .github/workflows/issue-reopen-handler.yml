@@ -1,0 +1,190 @@
+name: Issue Reopen Handler
+
+on:
+  issues:
+    types: [reopened]
+
+permissions:
+  issues: write
+  contents: read
+  repository-projects: write
+
+jobs:
+  handle-reopen:
+    runs-on: ubuntu-latest
+    name: Handle Issue Reopen
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Handle Issue Reopen
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+        script: |
+          // Configuration
+          const CONFIG = {
+            PROJECT_NUMBER: 4,
+            PROJECT_OWNER: "braydenanderson2014",
+            LABELS: {
+              CHALLENGE: 'challenge',
+              CHALLENGE_UPHELD: 'challenge-upheld',
+              ADMIN_DUPLICATE_NEGATIVE: 'adminduplicatenegative',
+              REOPENED_STATUS: 'REOPENED!!!'
+            }
+          };
+
+          // Get the issue that was reopened
+          const issue = context.payload.issue;
+          console.log(`🔄 Issue #${issue.number} was reopened: ${issue.title}`);
+
+          // Check for labels that should prevent REOPENED!!! status
+          const labels = (issue.labels || []).map(l => l.name.toLowerCase());
+          const ignoreLabels = [
+            CONFIG.LABELS.CHALLENGE.toLowerCase(),
+            CONFIG.LABELS.CHALLENGE_UPHELD.toLowerCase(),
+            CONFIG.LABELS.ADMIN_DUPLICATE_NEGATIVE.toLowerCase()
+          ];
+
+          const shouldIgnore = ignoreLabels.some(ignoreLabel =>
+            labels.includes(ignoreLabel)
+          );
+
+          if (shouldIgnore) {
+            console.log(`🚫 Issue #${issue.number} has ignore labels (${labels.join(', ')}), skipping REOPENED!!! status`);
+            return;
+          }
+
+          // Update project status to REOPENED!!!
+          await updateProjectStatus(issue, CONFIG.LABELS.REOPENED_STATUS);
+
+          // Add reopen comment
+          const reopenComment = [
+            '🔄 **Issue Reopened**',
+            '',
+            'This issue has been reopened and marked with high priority status.',
+            '',
+            '**What this means:**',
+            '- This issue has been flagged for immediate attention',
+            '- The REOPENED!!! status indicates it needs urgent review',
+            '- This contributes to project health monitoring',
+            '',
+            '**Next steps:**',
+            '- Review the reopen reason and any new information',
+            '- Assess priority and assign appropriate labels',
+            '- Update status as work progresses',
+            '',
+            '*This issue was automatically processed upon reopening.*'
+          ].join('\n');
+
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: issue.number,
+            body: reopenComment
+          });
+
+          console.log(`✅ Issue #${issue.number} processed as reopened with high priority status`);
+
+          // Helper function to update project status
+          async function updateProjectStatus(issue, statusName) {
+            try {
+              const projectQuery = `
+                query($login:String!, $number:Int!, $owner:String!, $repo:String!, $issueNumber:Int!) {
+                  user(login: $login) {
+                    projectV2(number: $number) {
+                      id
+                      fields(first: 20) {
+                        nodes {
+                          ... on ProjectV2FieldCommon { id name }
+                          ... on ProjectV2SingleSelectField { id name options { id name } }
+                        }
+                      }
+                    }
+                  }
+                  repository(owner: $owner, name: $repo) {
+                    issue(number: $issueNumber) { id }
+                  }
+                }`;
+
+              const data = await github.graphql(projectQuery, {
+                login: CONFIG.PROJECT_OWNER,
+                number: CONFIG.PROJECT_NUMBER,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issueNumber: issue.number
+              });
+
+              const project = data.user.projectV2;
+              const projectId = project.id;
+              const issueId = data.repository.issue.id;
+
+              // Find status field
+              const statusField = project.fields.nodes.find(f => f.name === 'Status');
+              if (!statusField) {
+                console.log(`Status field not found in project`);
+                return;
+              }
+
+              // Find the status option
+              const statusOption = statusField.options?.find(o => o.name === statusName);
+              if (!statusOption) {
+                console.log(`Status option "${statusName}" not found. Available options:`,
+                  statusField.options?.map(o => o.name).join(', '));
+                return;
+              }
+
+              // Find project item
+              const findItemQuery = `
+                query($projectId:ID!) {
+                  node(id: $projectId) {
+                    ... on ProjectV2 {
+                      items(first: 50) {
+                        nodes {
+                          id
+                          content {
+                            ... on Issue { id }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }`;
+
+              const itemRes = await github.graphql(findItemQuery, { projectId });
+              const projectItem = itemRes.node.items.nodes.find(item =>
+                item.content && item.content.id === issueId
+              );
+
+              if (!projectItem) {
+                console.log(`Issue #${issue.number} not found in project`);
+                return;
+              }
+
+              // Update status
+              const updateMutation = `
+                mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $value:ProjectV2FieldValue!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: $value
+                  }) {
+                    projectV2Item { id }
+                  }
+                }`;
+
+              await github.graphql(updateMutation, {
+                projectId,
+                itemId: projectItem.id,
+                fieldId: statusField.id,
+                value: { singleSelectOptionId: statusOption.id }
+              });
+
+              console.log(`✅ Updated project status to "${statusName}" for issue #${issue.number}`);
+
+            } catch (error) {
+              console.error(`❌ Error updating project status: ${error.message}`);
+            }
+          }
