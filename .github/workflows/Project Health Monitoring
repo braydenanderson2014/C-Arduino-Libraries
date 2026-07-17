@@ -1,0 +1,195 @@
+name: Project Health Monitoring
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # hourly; adjust as needed
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  triage_health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update project status based on triage count
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_PROJECT_TOKEN }}  # PAT with repo + project scopes
+          script: |
+            // ---- CONFIG ----
+            const OWNER = "braydenanderson2014"; // user/org that owns the Project
+            const PROJECT_NUMBER = 4;            // your user Project (v2) number
+            const STATUS_FIELD_NAME = "Status";
+            
+            // Statuses that contribute to project health calculations
+            const HEALTH_STATUSES = [
+              "Triage",
+              "Challenged", 
+              "Wait Room",
+              "(Issue) In progress",
+              "(Feature) In Progress", 
+              "(Documentation) In Progress",
+              "(General) In Progress",
+              "Backlog",
+              "Feature Requests",
+              "Potential Duplicates",
+              "General Question",
+              "Documentation Request",
+              "REOPENED!!!"
+            ];
+            
+            const AT_RISK_MIN = 20;   // >= this => At risk (adjusted for additional statuses)
+            const OFF_TRACK_MIN = 40; // >= this => Off track (adjusted for additional statuses)
+            const NOT_HEALTHY_MIN = 65; // >= this => Not healthy (critical threshold)
+
+            // 1) Fetch project + fields
+            const proj = await github.graphql(`
+              query($login:String!, $num:Int!) {
+                user(login:$login) {
+                  projectV2(number:$num) {
+                    id
+                    fields(first:100) {
+                      nodes {
+                        ... on ProjectV2FieldCommon { id name dataType }
+                        ... on ProjectV2SingleSelectField { id name dataType options { id name } }
+                      }
+                    }
+                  }
+                }
+              }
+            `, { login: OWNER, num: PROJECT_NUMBER });
+
+            const project = proj.user.projectV2;
+            const projectId = project.id;
+
+            const statusField = project.fields.nodes.find(
+              f => f.name === STATUS_FIELD_NAME && f.dataType === "SINGLE_SELECT"
+            );
+            if (!statusField) {
+              core.setFailed(`Project single-select field "${STATUS_FIELD_NAME}" not found.`);
+              return;
+            }
+            
+            // Verify all health status options exist
+            const availableOptions = (statusField.options || []).map(o => o.name);
+            const missingStatuses = HEALTH_STATUSES.filter(status => 
+              !availableOptions.includes(status)
+            );
+            
+            if (missingStatuses.length > 0) {
+              core.warning(`Some health status options not found: ${missingStatuses.join(', ')}`);
+              core.info(`Available options: ${availableOptions.join(', ')}`);
+            }
+
+            // 2) Count items where Status is one of the health statuses and linked Issue is OPEN
+            let totalCount = 0;
+            let statusCounts = {};
+            
+            // Initialize status counts
+            HEALTH_STATUSES.forEach(status => {
+              statusCounts[status] = 0;
+            });
+            let after = null;
+
+            do {
+              const page = await github.graphql(`
+                query($pid:ID!, $after:String) {
+                  node(id:$pid) {
+                    ... on ProjectV2 {
+                      items(first:100, after:$after) {
+                        nodes {
+                          content { __typename ... on Issue { state } }
+                          fieldValues(first:20) {
+                            nodes {
+                              __typename
+                              ... on ProjectV2ItemFieldSingleSelectValue {
+                                name
+                                field { __typename ... on ProjectV2SingleSelectField { name } }
+                              }
+                            }
+                          }
+                        }
+                        pageInfo { hasNextPage endCursor }
+                      }
+                    }
+                  }
+                }
+              `, { pid: projectId, after });
+
+              const items = page.node.items;
+              for (const it of items.nodes) {
+                if (!it.content || it.content.__typename !== "Issue") continue;
+                if (it.content.state !== "OPEN") continue;
+
+                const statusVal = (it.fieldValues.nodes || []).find(n =>
+                  n.__typename === "ProjectV2ItemFieldSingleSelectValue" &&
+                  n.field?.__typename === "ProjectV2SingleSelectField" &&
+                  n.field.name === STATUS_FIELD_NAME
+                );
+
+                // Count if status is one of our health statuses
+                if (statusVal && HEALTH_STATUSES.includes(statusVal.name)) {
+                  totalCount++;
+                  statusCounts[statusVal.name]++;
+                }
+              }
+
+              after = items.pageInfo.hasNextPage ? items.pageInfo.endCursor : null;
+            } while (after);
+
+            core.info(`Total active work items: ${totalCount}`);
+            core.info(`Status breakdown: ${JSON.stringify(statusCounts, null, 2)}`);
+
+            // 3) Decide overall project status based on total active work
+            let statusEnum = "ON_TRACK";
+            let healthDescription = "🟢 On Track";
+            
+            if (totalCount >= NOT_HEALTHY_MIN) {
+              statusEnum = "OFF_TRACK"; // GitHub only supports ON_TRACK, AT_RISK, OFF_TRACK
+              healthDescription = "🔴 Not Healthy";
+            } else if (totalCount >= OFF_TRACK_MIN) {
+              statusEnum = "OFF_TRACK";
+              healthDescription = "🟠 Off Track";
+            } else if (totalCount >= AT_RISK_MIN) {
+              statusEnum = "AT_RISK";
+              healthDescription = "🟡 At Risk";
+            }
+
+            const today = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+            
+            // Create detailed breakdown for the status update
+            const statusBreakdown = HEALTH_STATUSES
+              .filter(status => statusCounts[status] > 0)
+              .map(status => `• ${status}: **${statusCounts[status]}**`)
+              .join('\n');
+            
+            const body = `**Project Health Summary** (as of ${today})\n\n` +
+             `**Overall Status: ${healthDescription}**\n\n` +
+             `**Total Active Work Items: ${totalCount}**\n\n` +
+             `**Status Breakdown:**\n${statusBreakdown || '• No active items found'}\n\n` +
+             `**Health Thresholds:**\n` +
+             `• 🟢 On Track: < ${AT_RISK_MIN}\n` +
+             `• 🟡 At Risk: ${AT_RISK_MIN}-${OFF_TRACK_MIN-1}\n` +
+             `• 🟠 Off Track: ${OFF_TRACK_MIN}-${NOT_HEALTHY_MIN-1}\n` +
+             `• 🔴 Not Healthy: ≥ ${NOT_HEALTHY_MIN}\n\n` +
+             `**Tracked Statuses:** ${HEALTH_STATUSES.join(', ')}`;
+
+            // ✅ Correct types: status uses ProjectV2StatusUpdateStatus, dates use Date
+            const resp = await github.graphql(`
+              mutation($projectId: ID!, $body: String!, $status: ProjectV2StatusUpdateStatus!, $start: Date) {
+                createProjectV2StatusUpdate(input: {
+                  projectId: $projectId,
+                  body: $body,
+                  status: $status,
+                  startDate: $start
+                  # targetDate: $target   // optional: add ($target: Date) var if you want a target date
+                }) {
+                  statusUpdate { id status body }
+                }
+              }
+            `, { projectId, body, status: statusEnum, start: today });
+
+            core.info(`Posted status update: ${resp.createProjectV2StatusUpdate.statusUpdate.status}`);
+            core.info(`Total items contributing to health: ${totalCount}`);
+            core.info(`Project health assessment: ${healthDescription}`);
