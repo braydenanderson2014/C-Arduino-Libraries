@@ -1,0 +1,58 @@
+name: Documentation Request
+description: Suggest fixes, additions, or removals to the documentation.
+title: "[Docs]: "
+labels: ["documentation"]
+projects: ["braydenanderson2014/4"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help us improve the documentation by suggesting changes below.
+
+  - type: dropdown
+    id: request_type
+    attributes:
+      label: Type of request
+      options:
+        - Fix a mistake / typo
+        - Add new documentation
+        - Remove outdated/legacy documentation
+        - Reorganize / restructure
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Documentation location
+      description: Where is this doc? (Link, file path, or section)
+      placeholder: e.g., docs/getting-started.md or https://github.com/.../README.md#install
+    validations:
+      required: false
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested changes
+      description: Describe what should be fixed, added, removed, or reorganized.
+      placeholder: Be as specific as possible. Include before/after examples if helpful.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Program Unique ID
+        - **ID**: []  
+        **Program ID is only for programs with the ability to report issues.**
+
+  - type: input
+    id: program_unique_id
+    attributes:
+      label: Program Unique ID (optional)
+      description: If this was reported from a program that provides an ID, paste it here.
+      placeholder: e.g., PRG-12345
+    validations:
+      required: false
