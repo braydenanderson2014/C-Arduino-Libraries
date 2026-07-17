@@ -63,7 +63,8 @@ def compute_tfidf(documents):
     for tokens in documents:
         df.update(set(tokens))
 
-    # IDF
+    # IDF with +1 smoothing on both numerator and denominator to avoid
+    # division-by-zero and to reduce the weight of very common terms.
     idf = {term: math.log((n + 1) / (freq + 1)) + 1 for term, freq in df.items()}
 
     # TF-IDF vectors
@@ -105,7 +106,7 @@ def detect_duplicates(issues, min_confidence, max_candidates):
     vectors, _ = compute_tfidf(texts)
 
     duplicates = []
-    seen_pairs = set()
+    processed_pairs = set()
     n = len(issues)
     for i in range(n):
         candidates = []
@@ -121,11 +122,14 @@ def detect_duplicates(issues, min_confidence, max_candidates):
             # Avoid adding both (i,j) and (j,i)
             pair_key = (min(issues[i]["number"], issues[j]["number"]),
                         max(issues[i]["number"], issues[j]["number"]))
-            if pair_key not in seen_pairs:
-                seen_pairs.add(pair_key)
+            if pair_key not in processed_pairs:
+                processed_pairs.add(pair_key)
                 duplicates.append({
                     "issue_a": pair_key[0],
                     "issue_b": pair_key[1],
+                    # similarity_score is the raw cosine similarity;
+                    # ai_confidence mirrors it here but could incorporate
+                    # additional signals (e.g. label overlap) in future.
                     "similarity_score": round(sim, 4),
                     "ai_confidence": round(sim, 4),
                 })
