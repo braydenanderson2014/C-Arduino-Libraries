@@ -1,0 +1,161 @@
+name: Extract Program ID to Project
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  extract-and-update-id:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.body, 'PDF-UTIL-') || contains(github.event.issue.body, 'Program Unique ID')
+    
+    steps:
+      - name: Extract Program ID from Issue
+        id: extract_id
+        run: |
+          # Extract Program ID from issue body
+          issue_body='${{ github.event.issue.body }}'
+          
+          # Pattern 1: For bug reports - ### Program Unique ID (optional) followed by ID on next line
+          bug_id=$(echo "$issue_body" | grep -A 1 "### Program Unique ID (optional)" | tail -n 1 | grep -o 'PDF-UTIL-[A-Z0-9-]*' | head -n 1)
+          
+          # Pattern 2: For feature requests - **Program Unique ID**: {id}
+          feature_id=$(echo "$issue_body" | grep -o '\*\*Program Unique ID\*\*:\s*PDF-UTIL-[A-Z0-9-]*' | grep -o 'PDF-UTIL-[A-Z0-9-]*' | head -n 1)
+          
+          # Pattern 3: Any PDF-UTIL- pattern in the body
+          general_id=$(echo "$issue_body" | grep -o 'PDF-UTIL-[A-Z0-9-]*' | head -n 1)
+          
+          # Use the first valid ID found
+          extracted_id=""
+          if [ ! -z "$bug_id" ]; then
+            extracted_id="$bug_id"
+          elif [ ! -z "$feature_id" ]; then
+            extracted_id="$feature_id"
+          elif [ ! -z "$general_id" ]; then
+            extracted_id="$general_id"
+          fi
+          
+          echo "extracted_id=$extracted_id" >> $GITHUB_OUTPUT
+          
+          if [ ! -z "$extracted_id" ]; then
+            echo "✅ Found Program ID: $extracted_id"
+          else
+            echo "❌ No Program ID found in issue body"
+          fi
+
+      - name: Update Project ID Field
+        if: steps.extract_id.outputs.extracted_id != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT_ID: ${{ vars.PROJECT_ID || '4' }}
+          PROJECT_OWNER: ${{ vars.PROJECT_OWNER || 'braydenanderson2014' }}
+        run: |
+          extracted_id='${{ steps.extract_id.outputs.extracted_id }}'
+          issue_number='${{ github.event.issue.number }}'
+          
+          echo "🔄 Updating project ID field for issue #$issue_number with ID: $extracted_id"
+          
+          # GraphQL query to find the project item and update the ID field
+          query='
+          query($owner: String!, $number: Int!, $issue_number: Int!) {
+            user(login: $owner) {
+              projectV2(number: $number) {
+                id
+                fields(first: 20) {
+                  nodes {
+                    ... on ProjectV2Field {
+                      id
+                      name
+                    }
+                  }
+                }
+                items(first: 100) {
+                  nodes {
+                    id
+                    content {
+                      ... on Issue {
+                        number
+                      }
+                    }
+                    fieldValues(first: 10) {
+                      nodes {
+                        ... on ProjectV2ItemFieldTextValue {
+                          field {
+                            ... on ProjectV2Field {
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }'
+          
+          # Execute GraphQL query to get project structure
+          project_data=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d "{\"query\": \"$(echo $query | tr '\n' ' ')\", \"variables\": {\"owner\": \"$PROJECT_OWNER\", \"number\": $PROJECT_ID, \"issue_number\": $issue_number}}" \
+            https://api.github.com/graphql)
+          
+          # Extract project ID, item ID, and field ID
+          project_internal_id=$(echo "$project_data" | jq -r '.data.user.projectV2.id')
+          id_field_id=$(echo "$project_data" | jq -r '.data.user.projectV2.fields.nodes[] | select(.name == "ID") | .id')
+          item_id=$(echo "$project_data" | jq -r --arg issue_num "$issue_number" '.data.user.projectV2.items.nodes[] | select(.content.number == ($issue_num | tonumber)) | .id')
+          
+          echo "🔍 Project Internal ID: $project_internal_id"
+          echo "🔍 ID Field ID: $id_field_id"
+          echo "🔍 Item ID: $item_id"
+          
+          # Update the ID field if we found everything
+          if [ "$project_internal_id" != "null" ] && [ "$id_field_id" != "null" ] && [ "$item_id" != "null" ]; then
+            
+            # GraphQL mutation to update the ID field
+            mutation='
+            mutation($project_id: ID!, $item_id: ID!, $field_id: ID!, $value: String!) {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: $project_id
+                itemId: $item_id
+                fieldId: $field_id
+                value: {
+                  text: $value
+                }
+              }) {
+                projectV2Item {
+                  id
+                }
+              }
+            }'
+            
+            # Execute the mutation
+            curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Content-Type: application/json" \
+              -X POST \
+              -d "{\"query\": \"$(echo $mutation | tr '\n' ' ')\", \"variables\": {\"project_id\": \"$project_internal_id\", \"item_id\": \"$item_id\", \"field_id\": \"$id_field_id\", \"value\": \"$extracted_id\"}}" \
+              https://api.github.com/graphql
+            
+            echo "✅ Successfully updated ID field in project for issue #$issue_number"
+            
+            # Add a comment to the issue confirming the ID was extracted
+            curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Content-Type: application/json" \
+              -X POST \
+              -d "{\"body\": \"🔐 **Program ID Extracted**: \`$extracted_id\`\\n\\nThis ID has been automatically added to the project tracking system for verification purposes.\"}" \
+              "https://api.github.com/repos/${{ github.repository }}/issues/$issue_number/comments"
+            
+          else
+            echo "❌ Could not find project structure - skipping ID update"
+            echo "   Project ID: $project_internal_id"
+            echo "   Field ID: $id_field_id" 
+            echo "   Item ID: $item_id"
+          fi
+
+      - name: Log Results
+        run: |
+          echo "🏁 ID Extraction Workflow Complete"
+          echo "   Issue: #${{ github.event.issue.number }}"
+          echo "   Extracted ID: ${{ steps.extract_id.outputs.extracted_id }}"
+          echo "   Repository: ${{ github.repository }}"
