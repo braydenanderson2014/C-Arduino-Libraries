@@ -1,0 +1,45 @@
+name: General Question
+description: Ask a general question about the project, usage, or behavior.
+title: "[Question]: "
+labels: ["question"]
+projects: ["braydenanderson2014/4"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to ask a question! Please fill out the details below.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Question summary
+      description: Briefly describe your question in one sentence.
+      placeholder: e.g., How do I configure the tool with X?
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Provide more context, examples, or references for your question.
+      placeholder: Full description of what you're trying to understand or do.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Program Unique ID
+        - **ID**: []  
+        **Program ID is only for programs with the ability to report issues.**
+
+  - type: input
+    id: program_unique_id
+    attributes:
+      label: Program Unique ID (optional)
+      description: If this was reported from a program that provides an ID, paste it here.
+      placeholder: e.g., PRG-12345
+    validations:
+      required: false
