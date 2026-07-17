@@ -105,6 +105,7 @@ def detect_duplicates(issues, min_confidence, max_candidates):
     vectors, _ = compute_tfidf(texts)
 
     duplicates = []
+    seen_pairs = set()
     n = len(issues)
     for i in range(n):
         candidates = []
@@ -120,10 +121,8 @@ def detect_duplicates(issues, min_confidence, max_candidates):
             # Avoid adding both (i,j) and (j,i)
             pair_key = (min(issues[i]["number"], issues[j]["number"]),
                         max(issues[i]["number"], issues[j]["number"]))
-            if not any(
-                d["issue_a"] == pair_key[0] and d["issue_b"] == pair_key[1]
-                for d in duplicates
-            ):
+            if pair_key not in seen_pairs:
+                seen_pairs.add(pair_key)
                 duplicates.append({
                     "issue_a": pair_key[0],
                     "issue_b": pair_key[1],
@@ -150,7 +149,7 @@ def main():
     print(f"Fetching issues from {args.repo_owner}/{args.repo_name}...")
     try:
         issues = fetch_issues(args.repo_owner, args.repo_name, args.token)
-    except Exception as exc:  # pylint: disable=broad-except
+    except requests.RequestException as exc:
         print(f"ERROR: Failed to fetch issues: {exc}", file=sys.stderr)
         sys.exit(1)
 
