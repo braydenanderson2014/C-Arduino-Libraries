@@ -1,0 +1,505 @@
+name: Welcome Messages
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  send-welcome-messages:
+    runs-on: ubuntu-latest
+    name: Send Welcome Messages and Add to Project
+    
+    steps:
+    - name: Send Welcome Message and Add to Project
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+        script: |
+          // Configuration
+          const CONFIG = {
+            PROJECT_NUMBER: 4,
+            PROJECT_OWNER: "braydenanderson2014",
+            LABELS: {
+              BUG: 'bug',
+              FEATURE: 'enhancement',
+              FEATURE_REQUEST: 'feature-request',
+              DOCUMENTATION: 'documentation',
+              QUESTION: 'question',
+              AUTO_RESPONSE: 'auto-response'
+            },
+            FIELDS: {
+              Status: "Status",
+              Type: "Type",
+              ReopenedIssue: "Reopened Issue",
+              Priority: "Priority"
+            },
+            PRIORITY_OPTIONS: {
+              HIGH: "High",    // Highest priority
+              MEDIUM: "Medium",
+              LOW: "Low"       // Lowest priority
+            },
+            WELCOME_MESSAGES: {
+              BUG: `🐛 **Thank you for reporting this bug!**
+              
+              Your issue has been automatically processed and labeled. A maintainer will review it soon.
+              
+              **What happens next?**
+              - Our team will investigate the issue
+              - We may ask for additional information if needed
+              - Updates will be posted here as we work on a fix
+              
+              **In the meantime:**
+              - Check if there are any workarounds in our documentation
+              - Subscribe to this issue for updates
+              
+              <!-- AUTO-RESPONSE-ID: bug-welcome -->
+              *This is an automated response. A human maintainer will follow up soon.*
+              Please do not change details about the project in this issue.`,
+              
+              FEATURE: `✨ **Thank you for this feature request!**
+              
+              Your suggestion has been automatically processed and will be reviewed by our team.
+              
+              **What happens next?**
+              - We'll evaluate the request against our roadmap
+              - Community feedback helps us prioritize features
+              - Implementation timeline will be shared if approved
+              
+              **Help us prioritize:**
+              - 👍 React with thumbs up if you want this feature
+              - Add use cases or examples in comments
+              
+              <!-- AUTO-RESPONSE-ID: feature-welcome -->
+              *This is an automated response. A human maintainer will follow up soon.*
+              Please do not change details about the project in this issue.`,
+
+              DOCUMENTATION: `📚 **Thank you for the documentation request!**
+              
+              Your documentation suggestion has been noted and will be reviewed.
+              
+              **What happens next?**
+              - We'll assess what documentation improvements are needed
+              - Documentation updates will be prioritized based on community needs
+              - You'll be notified when changes are made
+              
+              **Want to help?**
+              - Feel free to suggest specific improvements
+              - Consider contributing to our documentation
+              
+              <!-- AUTO-RESPONSE-ID: documentation-welcome -->
+              *This is an automated response. A human maintainer will follow up soon.*
+              Please do not change details about the project in this issue.`,
+
+              QUESTION: `❓ **Thank you for your question!**
+              
+              Your question has been received and will be addressed by our team.
+              
+              **What happens next?**
+              - A maintainer will provide an answer as soon as possible
+              - Similar questions may be added to our FAQ
+              - Consider checking our existing documentation first
+              
+              **Need faster help?**
+              - Check our documentation and README
+              - Search for similar questions in closed issues
+              
+              <!-- AUTO-RESPONSE-ID: question-welcome -->
+              *This is an automated response. A human maintainer will follow up soon.*
+              Please do not change details about the project in this issue.`
+
+            }
+          };
+          
+          // Helper function to analyze issue content for type detection
+          function analyzeIssueContent(issueBody, title) {
+            if (!issueBody && !title) return null;
+            
+            const content = (title + ' ' + (issueBody || '')).toLowerCase();
+            
+            // Question detection (check first since ? is a strong indicator)
+            const questionKeywords = ['how', 'what', 'why', 'when', 'where', 'can', 'could', 'would', 'should'];
+            const hasQuestionKeywords = questionKeywords.some(keyword => content.includes(keyword));
+            if (hasQuestionKeywords && content.includes('?')) {
+              return { type: 'question', confidence: 'high' };
+            }
+            
+            // Documentation keywords (more specific)
+            const docKeywords = ['documentation', 'readme', 'guide', 'tutorial', 'example', 'docs'];
+            const hasDocKeywords = docKeywords.some(keyword => content.includes(keyword));
+            if (hasDocKeywords) {
+              return { type: 'documentation', confidence: 'medium' };
+            }
+            
+            // Bug detection keywords
+            const bugKeywords = ['bug', 'error', 'crash', 'broken', 'fix', 'issue', 'problem', 'fail', 'not working', 'doesn\'t work'];
+            const hasBugKeywords = bugKeywords.some(keyword => content.includes(keyword));
+            
+            // Feature request detection keywords
+            const featureKeywords = ['feature', 'enhancement', 'add', 'implement', 'new', 'request', 'suggest'];
+            const hasFeatureKeywords = featureKeywords.some(keyword => content.includes(keyword));
+            
+            // Determine type based on keyword analysis
+            if (hasBugKeywords && !hasFeatureKeywords) {
+              return { type: 'bug', confidence: 'high' };
+            } else if (hasFeatureKeywords && !hasBugKeywords) {
+              return { type: 'feature', confidence: 'high' };
+            } else if (hasBugKeywords && hasFeatureKeywords) {
+              // Mixed keywords - check title for stronger signal
+              const titleLower = title.toLowerCase();
+              if (bugKeywords.some(k => titleLower.includes(k))) {
+                return { type: 'bug', confidence: 'medium' };
+              } else if (featureKeywords.some(k => titleLower.includes(k))) {
+                return { type: 'feature', confidence: 'medium' };
+              }
+            }
+            
+            return null; // Cannot determine type
+          }
+          
+          // Helper function to extract priority from feature request template
+          function extractFeaturePriority(issueBody) {
+            if (!issueBody) return null;
+
+            // Look for priority selection in the issue body
+            // The template uses: **Priority (Feature Requests Only)** followed by the selection
+            const priorityRegex = /\*\*Priority \(Feature Requests Only\)\*\*[\s\S]*?(Low - Nice to have|Medium - Would improve workflow|High - Critical for my use case)/i;
+            const match = issueBody.match(priorityRegex);
+
+            if (!match) return null;
+
+            const priorityText = match[1].toLowerCase();
+
+            // Map template priorities to project priorities
+            if (priorityText.includes('high')) {
+              return CONFIG.PRIORITY_OPTIONS.HIGH; // Highest priority
+            } else if (priorityText.includes('medium')) {
+              return CONFIG.PRIORITY_OPTIONS.MEDIUM; // Medium priority
+            } else if (priorityText.includes('low')) {
+              return CONFIG.PRIORITY_OPTIONS.LOW; // Lowest priority
+            }
+
+            return null;
+          }
+          
+          // Project management functions
+          async function addIssueToProject(issue, status, type, priority = null) {
+
+              // Add issue to project
+              const addItemMutation = `
+                mutation($projectId:ID!, $contentId:ID!) {
+                  addProjectV2ItemById(input: {projectId:$projectId, contentId:$contentId}) {
+                    item { id }
+                  }
+                }`;
+              
+              let itemId = null;
+              try {
+                const addRes = await github.graphql(addItemMutation, { projectId: projectId, contentId: issueNodeId });
+                itemId = addRes.addProjectV2ItemById.item.id;
+                console.log(`✅ Added issue #${issue.number} to project`);
+              } catch (e) {
+                // Issue might already be in project, get existing item ID
+                const findItemQuery = `
+                  query($projectId:ID!, $issueId:ID!) {
+                    node(id:$projectId) {
+                      ... on ProjectV2 {
+                        items(first:50, query:\"${issue.number}\") {
+                          nodes { id content { ... on Issue { id number } } }
+                        }
+                      }
+                    }
+                  }`;
+                const findRes = await github.graphql(findItemQuery, { projectId, issueId: issueNodeId });
+                const node = (findRes.node.items.nodes || []).find(n => n.content && n.content.id === issueNodeId);
+                if (node) {
+                  itemId = node.id;
+                  console.log(`✅ Found existing project item for issue #${issue.number}`);
+                } else {
+                  console.error(`❌ Could not add or find issue #${issue.number} in project`);
+                  return;
+                }
+              }
+
+              // Update project fields
+              const updates = [];
+              const statusField = fieldByName(CONFIG.FIELDS.Status);
+              const typeField = fieldByName(CONFIG.FIELDS.Type);
+              const reopenedField = fieldByName(CONFIG.FIELDS.ReopenedIssue);
+
+              if (statusField && status) {
+                const opt = optionId(statusField, status);
+                if (opt) updates.push({ fieldId: statusField.id, value: { singleSelectOptionId: opt } });
+              }
+
+              if (typeField && type) {
+                const opt = optionId(typeField, type);
+                if (opt) updates.push({ fieldId: typeField.id, value: { singleSelectOptionId: opt } });
+              }
+
+              if (reopenedField) {
+                // Set "Reopened Issue" to "No" for new issues
+                const opt = optionId(reopenedField, "No");
+                if (opt) updates.push({ fieldId: reopenedField.id, value: { singleSelectOptionId: opt } });
+              }
+
+              if (priority) {
+                const priorityField = fieldByName(CONFIG.FIELDS.Priority);
+                if (priorityField) {
+                  const opt = optionId(priorityField, priority);
+                  if (opt) updates.push({ fieldId: priorityField.id, value: { singleSelectOptionId: opt } });
+                }
+              }
+
+              // Apply updates
+              const updateMutation = `
+                mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $value:ProjectV2FieldValue!) {
+                  updateProjectV2ItemFieldValue(input:{
+                    projectId:$projectId, itemId:$itemId, fieldId:$fieldId, value:$value
+                  }) { projectV2Item { id } }
+                }`;
+
+              for (const update of updates) {
+                await github.graphql(updateMutation, {
+                  projectId, itemId, fieldId: update.fieldId, value: update.value
+                });
+              }
+
+              console.log(`✅ Updated project fields for issue #${issue.number}: Status=${status}, Type=${type}, Priority=${priority || 'unset'}`);
+              
+            } catch (error) {
+              console.error(`❌ Error adding issue to project: ${error.message}`);
+            }
+          }
+          
+          // Get issue information
+          const issue = context.payload.issue;
+          if (!issue) {
+            console.log('No issue context found');
+            return;
+          }
+          
+          console.log(`🔍 Processing new issue #${issue.number}: ${issue.title}`);
+          
+          // Get current labels (should be minimal for new issues)
+          const labels = (issue.labels || []).map(l => l.name.toLowerCase());
+          console.log(`📋 Initial labels: ${labels.join(', ')}`);
+          
+          // Check for combined template and auto-label based on issue type selection
+          if (issue.body) {
+            const issueBody = issue.body.toLowerCase();
+            
+            // Check if this is from the combined template
+            if (issueBody.includes('issue type') || issueBody.includes('bug report & feature request')) {
+              let needsLabeling = false;
+              let newLabels = [];
+              
+              // Detect bug report selection
+              if (issueBody.includes('bug report') && !issueBody.includes('feature request')) {
+                if (!labels.includes('bug')) {
+                  newLabels.push('bug', 'user-reported');
+                  needsLabeling = true;
+                  console.log('🏷️ Detected bug report from combined template - adding bug labels');
+                }
+              }
+              // Detect feature request selection
+              else if (issueBody.includes('feature request') && !issueBody.includes('bug report')) {
+                if (!labels.includes('feature-request')) {
+                  newLabels.push('enhancement', 'feature-request');
+                  needsLabeling = true;
+                  console.log('🏷️ Detected feature request from combined template - adding feature labels');
+                }
+              }
+              
+              // Apply the labels if needed
+              if (needsLabeling && newLabels.length > 0) {
+                try {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    labels: newLabels
+                  });
+                  
+                  // Update our local labels array for the rest of the processing
+                  labels.push(...newLabels.map(l => l.toLowerCase()));
+                  console.log(`✅ Applied labels: ${newLabels.join(', ')}`);
+                  
+                } catch (error) {
+                  console.error(`❌ Error applying auto-labels: ${error.message}`);
+                }
+              }
+            }
+          }
+          
+          // Check if already has auto-response
+          const hasAutoResponse = labels.includes(CONFIG.LABELS.AUTO_RESPONSE.toLowerCase());
+          if (hasAutoResponse) {
+            console.log('Issue already has auto-response label, skipping welcome message');
+            return;
+          }
+          
+          // Check if already processed by duplicate-detection
+          const hasAutoProcessed = labels.includes('auto-processed');
+          if (hasAutoProcessed) {
+            console.log('Issue already processed by duplicate-detection - project assignment handled by duplicate workflow');
+            return; // Duplicate-detection workflow handles project assignment
+          }
+          
+          // Determine message type and project fields based on labels
+          let messageType = null;
+          let messageContent = null;
+          let projectStatus = null;
+          let projectType = null;
+          let projectPriority = null;
+          
+          // CRITICAL: If issue has 'bug' label, ALWAYS route to triage (highest priority)
+          if (labels.includes(CONFIG.LABELS.BUG.toLowerCase())) {
+            messageType = 'bug';
+            messageContent = CONFIG.WELCOME_MESSAGES.BUG;
+            projectStatus = 'Triage';
+            projectType = 'Bug';
+            console.log(`🐛 Bug label detected - ALWAYS routing to triage (priority override)`);
+          } 
+          // Parent issues should generally stay in triage for review
+          else if (labels.includes('parent')) {
+            messageType = 'parent';
+            projectStatus = 'Triage';
+            projectType = 'Bug'; // Default to bug type for parent issues
+            console.log(`👨‍👩‍👧‍👦 Parent issue detected - routing to triage for review`);
+          }
+          // Only check for feature labels if NO bug label is present
+          else if (labels.includes(CONFIG.LABELS.FEATURE.toLowerCase()) || labels.includes(CONFIG.LABELS.FEATURE_REQUEST.toLowerCase())) {
+            messageType = 'feature';
+            messageContent = CONFIG.WELCOME_MESSAGES.FEATURE;
+            projectStatus = 'Feature Requests';
+            projectType = 'Feature Request';
+
+            // Extract priority from feature request template
+            const extractedPriority = extractFeaturePriority(issue.body);
+            if (extractedPriority) {
+              projectPriority = extractedPriority;
+              console.log(`🎯 Extracted priority "${extractedPriority}" from feature request template`);
+            } else {
+              // Fall back to default priority for non-templated enhancement issues
+              projectPriority = CONFIG.PRIORITY_OPTIONS.MEDIUM; // Default medium priority
+              console.log(`ℹ️ No priority found in template, using default medium priority for enhancement`);
+            }
+
+            console.log(`✨ Feature/enhancement labels detected (no bug/parent label) - routing to feature queue`);
+          } 
+          // Check for enhancement label (fallback for non-templated feature requests)
+          else if (labels.includes('enhancement')) {
+            messageType = 'feature';
+            messageContent = CONFIG.WELCOME_MESSAGES.FEATURE;
+            projectStatus = 'Feature Requests';
+            projectType = 'Feature Request';
+            projectPriority = CONFIG.PRIORITY_OPTIONS.MEDIUM; // Default medium priority for enhancement
+            console.log(`✨ Enhancement label detected (non-templated) - routing to feature queue with medium priority`);
+          }
+            messageType = 'documentation';
+            messageContent = CONFIG.WELCOME_MESSAGES.DOCUMENTATION;
+            projectStatus = 'Documentation Request';
+            projectType = 'Documentation';
+            console.log(`📚 Documentation label detected - routing to docs queue`);
+          } 
+          // Question routing
+          else if (labels.includes(CONFIG.LABELS.QUESTION.toLowerCase())) {
+            messageType = 'question';
+            messageContent = CONFIG.WELCOME_MESSAGES.QUESTION;
+            projectStatus = 'General Question';
+            projectType = 'Question';
+            console.log(`❓ Question label detected - routing to Q&A queue`);
+          } 
+          // Default for unlabeled issues - try content analysis first
+          else {
+            console.log(`ℹ️ Issue #${issue.number} has no recognized type labels - attempting content analysis`);
+            
+            // Try to analyze issue content for type detection
+            const contentAnalysis = analyzeIssueContent(issue.body, issue.title);
+            
+            if (contentAnalysis) {
+              console.log(`🔍 Content analysis detected: ${contentAnalysis.type} (confidence: ${contentAnalysis.confidence})`);
+              
+              switch (contentAnalysis.type) {
+                case 'bug':
+                  messageType = 'bug';
+                  messageContent = CONFIG.WELCOME_MESSAGES.BUG;
+                  projectStatus = 'Triage';
+                  projectType = 'Bug';
+                  console.log(`🐛 Content analysis: Bug detected - routing to triage`);
+                  break;
+                  
+                case 'feature':
+                  messageType = 'feature';
+                  messageContent = CONFIG.WELCOME_MESSAGES.FEATURE;
+                  projectStatus = 'Feature Requests';
+                  projectType = 'Feature Request';
+                  projectPriority = CONFIG.PRIORITY_OPTIONS.MEDIUM; // Default priority for content-detected features
+                  console.log(`✨ Content analysis: Feature detected - routing to feature queue`);
+                  break;
+                  
+                case 'documentation':
+                  messageType = 'documentation';
+                  messageContent = CONFIG.WELCOME_MESSAGES.DOCUMENTATION;
+                  projectStatus = 'Documentation Request';
+                  projectType = 'Documentation';
+                  console.log(`📚 Content analysis: Documentation request detected - routing to docs queue`);
+                  break;
+                  
+                case 'question':
+                  messageType = 'question';
+                  messageContent = CONFIG.WELCOME_MESSAGES.QUESTION;
+                  projectStatus = 'General Question';
+                  projectType = 'Question';
+                  console.log(`❓ Content analysis: Question detected - routing to Q&A queue`);
+                  break;
+              }
+            } else {
+              // Content analysis failed - default to bug triage
+              messageType = 'unlabeled';
+              projectStatus = 'Triage';
+              projectType = 'Bug';
+              console.log(`❓ Content analysis inconclusive - defaulting to bug triage`);
+              console.log(`   Current labels: ${labels.join(', ')}`);
+              console.log(`   Title: "${issue.title}"`);
+            }
+          }
+          
+          // Add to project regardless of whether we send a welcome message
+          if (projectStatus && projectType) {
+            await addIssueToProject(issue, projectStatus, projectType, projectPriority);
+          }
+          
+          // Send welcome message if applicable (only for labeled issues)
+          if (messageContent && messageType !== 'unlabeled') {
+            console.log(`📨 Sending ${messageType} welcome message for issue #${issue.number}`);
+            
+            try {
+              // Post welcome comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: messageContent
+              });
+              
+              // Add auto-response label
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: [CONFIG.LABELS.AUTO_RESPONSE]
+              });
+              
+              console.log(`✅ Welcome message sent and auto-response label added to issue #${issue.number}`);
+              
+            } catch (error) {
+              console.error(`❌ Error sending welcome message: ${error.message}`);
+            }
+          } else {
+            console.log(`ℹ️ No welcome message sent - issue added to project for triage`);
+          }
