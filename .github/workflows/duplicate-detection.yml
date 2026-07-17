@@ -1,0 +1,1371 @@
+name: Duplicate Detection
+
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+  schedule:
+    # Re-train AI model weekly
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+    inputs:
+      retrain_ai:
+        description: 'Force re-training of AI model'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  issues: write
+  contents: read
+  pull-requests: read
+  repository-projects: write
+
+jobs:
+  detect-duplicates:
+    runs-on: ubuntu-latest
+    name: Detect Duplicate Issues
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests scikit-learn numpy nltk
+        
+    - name: Install Node.js dependencies
+      run: |
+        npm install
+        
+    - name: Run AI Duplicate Detection
+      run: |
+        cd scripts
+        python ai_duplicate_detector.py \
+          --repo-owner ${{ github.repository_owner }} \
+          --repo-name ${{ github.event.repository.name }} \
+          --token ${{ secrets.GH_PROJECT_TOKEN }} \
+          --min-confidence 0.8 \
+          --max-candidates 10 \
+          --output ai_duplicates.json
+          
+    - name: Detect Duplicates
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+        script: |
+          const fs = require('fs');
+          
+          // Load AI results
+          let aiResults = { duplicates: [] };
+          try {
+            const aiData = fs.readFileSync('scripts/ai_duplicates.json', 'utf8');
+            aiResults = JSON.parse(aiData);
+            console.log(`🤖 AI found ${aiResults.duplicates.length} potential duplicates`);
+          } catch (error) {
+            console.log(`⚠️ Could not load AI results: ${error.message}`);
+          }
+          const natural = require('natural');
+          const similarity = require('similarity');
+          
+          // Configuration
+          const CONFIG = {
+            PROJECT_NUMBER: 4,
+            PROJECT_OWNER: "braydenanderson2014",
+            SIMILARITY_THRESHOLD: 0.85,
+            HIGH_SIMILARITY_THRESHOLD: 0.95,
+            LABELS: {
+              DUPLICATE: 'duplicate',
+              AUTO_POTENTIAL_DUPLICATE: 'auto-potential-duplicate',
+              POTENTIAL_DUPLICATE: 'potential-duplicate',
+              ADMIN_DUPLICATE: 'adminduplicate',
+              ADMIN_DUPLICATE_NEGATIVE: 'adminduplicatenegative',
+              PARENT: 'parent',
+              CHILD: 'child',
+              CHALLENGE_UPHELD: 'challenge-upheld',
+              AUTO_PROCESSED: 'auto-processed',
+              AI_TRAINING: 'ai-training',
+              AI_DATA: 'ai-data',
+              AI_VERIFIED: 'ai-verified',
+              TRAINING_DATA: 'training-data'
+            },
+            RESPONSES: {
+              DUPLICATE_FOUND: "🔄 **Potential Duplicate Detected** ({confidence}% confidence)\n\nThis issue appears to be similar to existing issue(s). Please review:\n\n**Similar Issues:**\n{duplicateLinks}\n\n**Next Steps:**\n• If this is indeed a duplicate, it may be automatically reclassified\n• If this is a unique issue, please add more specific details about your case\n• Explain how it differs from the linked issues above\n\n**Note:** Potential duplicates cannot be challenged yet. Wait for admin review or provide additional details to clarify uniqueness.\n\n<!-- AUTO-RESPONSE-ID: duplicate-found -->\n*This is an automated analysis. Human review will follow.*",
+
+              AUTO_CLOSED_DUPLICATE: "🤖 **Closed as Duplicate** ({similarity}% confidence)\n\nThis issue has been automatically closed because it's very similar to:\n\n**Parent Issue:**\n{parentLink}\n\n**Additional Context:**\nAny unique information from this issue has been copied to the parent issue.\n\n**If you disagree with this closure:**\n• Add the \"challenge\" label to request human review\n• Provide detailed explanation of how your issue differs\n• A maintainer will review your challenge within 2-3 business days\n\n**Challenge System:** Confirmed duplicates can be challenged if you believe the AI made an error.\n\n<!-- AUTO-RESPONSE-ID: auto-closed -->\n*This issue was closed by automated duplicate detection.*",
+              EXTRA_INFO: "• Provide additional details that make this issue unique\n\n<!-- AUTO-RESPONSE-ID: auto-closed-duplicate -->\n*This action was performed automatically based on content similarity.*"
+            }
+          };
+          
+          // Extract actual content from issue templates, ignoring boilerplate
+          function extractTemplateContent(body) {
+            if (!body) return '';
+            
+            const content = body.toLowerCase();
+            
+            // Check if this looks like a template-based issue (GitHub issue templates)
+            const hasTemplateHeaders = content.includes('**description**') || 
+                                     content.includes('**steps to reproduce**') ||
+                                     content.includes('**expected behavior**') ||
+                                     content.includes('**actual behavior**') ||
+                                     content.includes('**related problem**') ||
+                                     content.includes('**proposed solution**') ||
+                                     content.includes('**question summary**') ||
+                                     content.includes('**details**') ||
+                                     content.includes('**type of request**') ||
+                                     content.includes('**suggested changes**') ||
+                                     content.includes('**alternatives considered**') ||
+                                     content.includes('**use case**') ||
+                                     content.includes('## description') || 
+                                     content.includes('## steps to reproduce') ||
+                                     content.includes('## expected behavior') ||
+                                     content.includes('## is your feature request related');
+            
+            if (!hasTemplateHeaders) {
+              // Not a template, return as-is
+              return body.toLowerCase().trim();
+            }
+            
+            // Handle GitHub issue template format (rendered as **Header**)
+            if (content.includes('**description**') || content.includes('**steps to reproduce**')) {
+              // Split by bold headers and extract user content
+              const sections = body.split(/\*\*([^*]+)\*\*/g);
+              const extractedContent = [];
+              
+              for (let i = 0; i < sections.length; i += 2) {
+                const header = sections[i].toLowerCase().trim();
+                const sectionContent = sections[i + 1] || '';
+                
+                // Skip template headers, get user content
+                // Skip system/environment information sections entirely as they tend to be similar across issues
+                if (!header.includes('description') && 
+                    !header.includes('steps to reproduce') &&
+                    !header.includes('expected behavior') &&
+                    !header.includes('actual behavior') &&
+                    !header.includes('related problem') &&
+                    !header.includes('proposed solution') &&
+                    !header.includes('question summary') &&
+                    !header.includes('details') &&
+                    !header.includes('type of request') &&
+                    !header.includes('suggested changes') &&
+                    !header.includes('alternatives considered') &&
+                    !header.includes('use case')) {
+                  continue;
+                }
+                
+                // Skip system/environment related sections entirely
+                if (header.includes('system') || 
+                    header.includes('environment') || 
+                    header.includes('version') ||
+                    header.includes('os') ||
+                    header.includes('platform') ||
+                    header.includes('runtime') ||
+                    header.includes('browser') ||
+                    header.includes('device') ||
+                    header.includes('program unique id') ||
+                    header.includes('context') ||
+                    header.includes('additional context') ||
+                    header.includes('program id')) {
+                  console.log(`⏭️ Skipping system/environment section: ${header}`);
+                  continue;
+                }
+                
+                // Extract meaningful content from this section
+                const lines = sectionContent.split('\n').filter(line => {
+                  const trimmed = line.trim();
+                  // Skip empty lines, template placeholders, and boilerplate
+                  return trimmed && 
+                         !trimmed.startsWith('[') && 
+                         !trimmed.startsWith('clear, concise') &&
+                         !trimmed.startsWith('what happened?') &&
+                         !trimmed.startsWith('how can we reproduce') &&
+                         !trimmed.startsWith('1)') &&
+                         !trimmed.startsWith('what did you expect') &&
+                         !trimmed.startsWith('what actually happened') &&
+                         !trimmed.startsWith('is your feature request related') &&
+                         !trimmed.startsWith('describe the solution') &&
+                         !trimmed.startsWith('describe alternative solutions') &&
+                         !trimmed.startsWith('how would this feature be used') &&
+                         !trimmed.startsWith('briefly describe your question') &&
+                         !trimmed.startsWith('provide more context') &&
+                         !trimmed.startsWith('where is this doc') &&
+                         !trimmed.startsWith('describe what should be') &&
+                         !trimmed.startsWith('e.g.,') &&
+                         !trimmed.includes('placeholder') &&
+                         !trimmed.includes('...') &&
+                         trimmed !== '- fix a mistake / typo' &&
+                         trimmed !== '- add new documentation' &&
+                         trimmed !== '- remove outdated/legacy documentation' &&
+                         trimmed !== '- reorganize / restructure' &&
+                         trimmed !== '- other';
+                });
+                
+                if (lines.length > 0) {
+                  extractedContent.push(lines.join(' ').trim());
+                }
+              }
+              
+              const result = extractedContent.join(' ').toLowerCase().trim();
+              if (result) {
+                return result;
+              }
+            }
+            
+            // Fallback to old ## header format
+            // Split by headers and extract user content
+            const sections = body.split(/^## /m);
+            const extractedContent = [];
+            
+            for (const section of sections) {
+              if (!section.trim()) continue;
+              
+              // Split section into header and content
+              const lines = section.split('\n');
+              const header = lines[0].toLowerCase().trim();
+              
+              // Skip template headers, get user content
+              const contentLines = [];
+              for (const line of lines.slice(1)) {
+                const trimmed = line.trim();
+                // Skip empty lines, template placeholders, and boilerplate
+                if (!trimmed || trimmed.startsWith('[')) continue;
+                
+                // Skip exact template boilerplate phrases (case-insensitive)
+                const lowerTrimmed = trimmed.toLowerCase();
+                const templatePhrases = [
+                  'a clear and concise description of what the bug is.',
+                  'a clear and concise description of what the feature is.',
+                  'steps to reproduce the behavior:',
+                  'describe the bug',
+                  'describe the feature',
+                  'add any other context about the problem here.',
+                  'if applicable, add screenshots to help explain your problem.',
+                  'if applicable, attach log files to help explain your problem.',
+                  'how important is this feature to you?',
+                  'program id is only for programs with the ability to report issues.',
+                  'low - nice to have',
+                  'medium - would improve workflow',
+                  'high - critical for my use case',
+                  '...'
+                ];
+                
+                if (templatePhrases.includes(lowerTrimmed)) continue;
+                if (lowerTrimmed.match(/^e\.g\./i)) continue;
+                
+                contentLines.push(trimmed);
+              }
+              
+              if (contentLines.length > 0) {
+                extractedContent.push(contentLines.join(' ').trim());
+              }
+            }
+            
+            return extractedContent.join(' ').toLowerCase().trim();
+          }
+          
+          // Check if this is a manual duplicate detection command
+          function isManualDuplicateCommand(comment) {
+            if (!comment) return false;
+            const body = comment.body.toLowerCase();
+            return (body.includes('@dependabot') || body.includes('@github-actions')) &&
+                   (body.includes('test duplicate') || body.includes('check duplicate') || body.includes('scan duplicate'));
+          }
+          
+          // Check if this is a manual refresh command
+          function isManualRefreshCommand(comment) {
+            if (!comment) return false;
+            const body = comment.body.toLowerCase();
+            return (body.includes('@dependabot') || body.includes('@github-actions')) &&
+                   (body.includes('refresh duplicates') || body.includes('update duplicates') || body.includes('rebuild duplicates'));
+          }
+          
+          // Main duplicate detection logic
+          async function checkForDuplicates(issue) {
+            try {
+              console.log(`🔍 Checking for duplicates of issue #${issue.number}: ${issue.title}`);
+              
+              // Check for admin override labels first
+              const labels = (issue.labels || []).map(l => l.name.toLowerCase());
+              
+              if (labels.includes(CONFIG.LABELS.ADMIN_DUPLICATE.toLowerCase())) {
+                console.log(`🎯 Admin confirmed duplicate detected on issue #${issue.number}`);
+                await handleAdminConfirmedDuplicate(issue);
+                return;
+              }
+
+              if (labels.includes(CONFIG.LABELS.ADMIN_DUPLICATE_NEGATIVE.toLowerCase())) {
+                console.log(`🚫 Admin override: Issue #${issue.number} marked as NOT duplicate`);
+                await removeAutoDuplicateLabels(issue);
+                return;
+              }
+
+              if (labels.includes(CONFIG.LABELS.CHALLENGE_UPHELD.toLowerCase())) {
+                console.log(`✅ Challenge upheld: Issue #${issue.number} will be ignored by duplicate detection`);
+                return;
+              }
+
+              // First, check AI-detected duplicates
+              const aiDuplicates = aiResults.duplicates.filter(d => 
+                d.issue_a === issue.number || d.issue_b === issue.number
+              );
+              
+              if (aiDuplicates.length > 0) {
+                console.log(`🤖 AI found ${aiDuplicates.length} potential duplicates for issue #${issue.number}`);
+                
+                // Process AI-detected duplicates
+                for (const aiDup of aiDuplicates) {
+                  const otherIssueNum = aiDup.issue_a === issue.number ? aiDup.issue_b : aiDup.issue_a;
+                  
+                  // Get the other issue details
+                  try {
+                    const { data: otherIssue } = await github.rest.issues.get({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: otherIssueNum
+                    });
+                    
+                    // Skip if the other issue is closed or has challenge-upheld
+                    if (otherIssue.state === 'closed' || 
+                        otherIssue.labels.some(l => l.name.toLowerCase() === CONFIG.LABELS.CHALLENGE_UPHELD.toLowerCase())) {
+                      continue;
+                    }
+                    
+                    // Create duplicate link
+                    const duplicateLinks = `[#${otherIssueNum}](${otherIssue.html_url}) - ${otherIssue.title}`;
+                    
+                    // Add AI-verified label and comment
+                    await github.rest.issues.addLabels({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: issue.number,
+                      labels: [CONFIG.LABELS.AI_VERIFIED, CONFIG.LABELS.AUTO_POTENTIAL_DUPLICATE]
+                    });
+                    
+                    const aiComment = CONFIG.RESPONSES.DUPLICATE_FOUND
+                      .replace('{duplicateLinks}', duplicateLinks) +
+                      `\n\n🤖 **AI Confidence:** ${Math.round(aiDup.ai_confidence * 100)}%` +
+                      `\n📊 **Similarity Score:** ${Math.round(aiDup.similarity_score * 100)}%` +
+                      `\n\n<!-- AUTO-RESPONSE-ID: ai-detected-duplicate -->`;
+                      
+                    await github.rest.issues.createComment({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: issue.number,
+                      body: aiComment
+                    });
+                    
+                    console.log(`✅ AI-detected duplicate: #${issue.number} ↔ #${otherIssueNum}`);
+                    return; // Stop after finding first AI-detected duplicate
+                    
+                  } catch (error) {
+                    console.log(`⚠️ Could not fetch issue #${otherIssueNum}: ${error.message}`);
+                  }
+                }
+              }
+
+              // Fallback to traditional duplicate detection if AI found nothing
+              console.log(`🔄 AI found no duplicates, falling back to traditional detection...`);
+              
+              // Get all open issues
+              const { data: allIssues } = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                per_page: 100
+              });
+              
+              let duplicates = [];
+              
+              for (const existingIssue of allIssues) {
+                // Skip self and parent issues
+                if (existingIssue.number === issue.number) continue;
+                if (existingIssue.labels.some(label => label.name.toLowerCase() === CONFIG.LABELS.PARENT.toLowerCase())) {
+                  continue;
+                }
+                
+                // Calculate similarity
+                const titleSim = similarity(issue.title.toLowerCase(), existingIssue.title.toLowerCase());
+                const bodySim = similarity(
+                  extractTemplateContent(issue.body || ''),
+                  extractTemplateContent(existingIssue.body || '')
+                );
+                
+                const avgSimilarity = (titleSim + bodySim) / 2;
+                
+                if (avgSimilarity >= CONFIG.SIMILARITY_THRESHOLD) {
+                  duplicates.push({
+                    issue: existingIssue,
+                    similarity: avgSimilarity
+                  });
+                }
+              }
+              
+              console.log(`📊 Found ${duplicates.length} potential duplicates for issue #${issue.number}`);
+              
+              if (duplicates.length > 0) {
+                await handleDuplicates(issue, duplicates);
+              } else {
+                // No duplicates found - mark as parent for future duplicate detection
+                console.log(`🏷️ No duplicates found for issue #${issue.number} - marking as parent`);
+                await markAsParent(issue);
+              }
+              
+            } catch (error) {
+              console.error(`❌ Error checking duplicates: ${error.message}`);
+            }
+          }
+          
+          // Handle found duplicates
+          async function handleDuplicates(issue, duplicates) {
+            // Sort by similarity and date (prefer older issues as parent)
+            duplicates.sort((a, b) => {
+              if (Math.abs(a.similarity - b.similarity) > 0.05) {
+                return b.similarity - a.similarity;
+              }
+              return new Date(a.issue.created_at) - new Date(b.issue.created_at);
+            });
+            
+            const topDuplicate = duplicates[0];
+            const isVeryHighSimilarity = topDuplicate.similarity >= CONFIG.HIGH_SIMILARITY_THRESHOLD;
+            
+            // Create links to similar issues
+            const duplicateLinks = duplicates
+              .slice(0, 3)
+              .map(dup => `- #${dup.issue.number}: ${dup.issue.title} (${Math.round(dup.similarity * 100)}% similar)`)
+              .join('\n');
+            
+            if (isVeryHighSimilarity) {
+              console.log(`🎯 Very high similarity (${Math.round(topDuplicate.similarity * 100)}%) - auto-closing as duplicate`);
+              await autoCloseDuplicate(issue, topDuplicate.issue, topDuplicate.similarity);
+            } else {
+              console.log(`⚠️ Potential duplicate detected (${Math.round(topDuplicate.similarity * 100)}%) - marking for review`);
+              await markPotentialDuplicate(issue, duplicateLinks, topDuplicate.similarity);
+            }
+          }
+          
+          // Auto-close very similar duplicates
+          async function autoCloseDuplicate(newIssue, parentIssue, similarity) {
+            try {
+              // Add child label and AI training for high confidence duplicates
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: newIssue.number,
+                labels: [
+                  CONFIG.LABELS.CHILD, 
+                  CONFIG.LABELS.AUTO_PROCESSED,
+                  CONFIG.LABELS.AI_TRAINING  // High confidence auto-detection for training
+                ]
+              });
+              
+              // Ensure parent has parent label
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: parentIssue.number,
+                labels: [CONFIG.LABELS.PARENT]
+              });
+              
+              // Link to parent issue in issue body
+              await addParentLinkToIssue(newIssue, parentIssue);
+              
+              // Close the duplicate
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: newIssue.number,
+                state: 'closed'
+              });
+              
+              // Add closure comment with parent link
+              const closeComment = CONFIG.RESPONSES.AUTO_CLOSED_DUPLICATE
+                .replace('{similarity}', Math.round(similarity * 100))
+                .replace('{parentLink}', `#${parentIssue.number}: ${parentIssue.title}`);
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: newIssue.number,
+                body: closeComment
+              });
+              
+              // Add child reference to parent issue
+              await addChildReferenceToParent(parentIssue, newIssue);
+              
+              console.log(`✅ Auto-closed issue #${newIssue.number} as duplicate of #${parentIssue.number} with AI training`);
+              
+            } catch (error) {
+              console.error(`❌ Error auto-closing duplicate: ${error.message}`);
+            }
+          }
+          
+          // Mark issue as parent when no duplicates found
+          async function markAsParent(issue) {
+            try {
+              // Check if already has parent label
+              const currentLabels = (issue.labels || []).map(l => l.name.toLowerCase());
+              if (currentLabels.includes(CONFIG.LABELS.PARENT.toLowerCase())) {
+                console.log(`ℹ️ Issue #${issue.number} already marked as parent`);
+                return;
+              }
+              
+              // Add parent label
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: [CONFIG.LABELS.PARENT, CONFIG.LABELS.AUTO_PROCESSED]
+              });
+              
+              console.log(`🏷️ Marked issue #${issue.number} as parent`);
+              
+              // Add to project with triage status for parent issues
+              await addToProjectWithTriageStatus(issue);
+              
+            } catch (error) {
+              console.error(`❌ Error marking issue as parent: ${error.message}`);
+            }
+          }
+          
+          // Add issue to project with triage status
+          async function addToProjectWithTriageStatus(issue) {
+            try {
+              console.log(`📋 Adding parent issue #${issue.number} to project with triage status`);
+              
+              // Check if issue is already in project first
+              const checkQuery = `
+                query($login:String!, $number:Int!, $owner:String!, $repo:String!, $issue:Int!) {
+                  user(login: $login) {
+                    projectV2(number: $number) {
+                      id
+                      fields(first: 50) {
+                        nodes {
+                          ... on ProjectV2FieldCommon { id name }
+                          ... on ProjectV2SingleSelectField { id name options { id name } }
+                        }
+                      }
+                      items(first: 100) {
+                        nodes {
+                          id
+                          content {
+                            ... on Issue { id number }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  repository(owner:$owner, name:$repo) {
+                    issue(number:$issue) { id }
+                  }
+                }`;
+
+              const data = await github.graphql(checkQuery, {
+                login: CONFIG.PROJECT_OWNER,
+                number: CONFIG.PROJECT_NUMBER,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue: issue.number
+              });
+
+              const project = data.user.projectV2;
+              const projectId = project.id;
+              const issueNodeId = data.repository.issue.id;
+
+              // Check if issue is already in project
+              const existingItem = project.items.nodes.find(item => 
+                item.content && item.content.number === issue.number
+              );
+
+              let itemId;
+              if (existingItem) {
+                console.log(`ℹ️ Issue #${issue.number} already in project, updating status`);
+                itemId = existingItem.id;
+              } else {
+                console.log(`➕ Adding issue #${issue.number} to project`);
+                // Add issue to project
+                const addMutation = `
+                  mutation($projectId:ID!, $issueId:ID!) {
+                    addProjectV2ItemByContentId(input:{
+                      projectId:$projectId, contentId:$issueId
+                    }) { item { id } }
+                  }`;
+
+                const result = await github.graphql(addMutation, { projectId, issueId: issueNodeId });
+                itemId = result.addProjectV2ItemByContentId.item.id;
+                console.log(`✅ Added issue #${issue.number} to project with item ID: ${itemId}`);
+              }
+
+              // Find Status and Type fields
+              const statusField = project.fields.nodes.find(f => f.name === "Status");
+              const typeField = project.fields.nodes.find(f => f.name === "Type");
+
+              console.log(`🔍 Available fields: ${project.fields.nodes.map(f => f.name).join(', ')}`);
+              
+              if (!statusField) {
+                console.error(`❌ Status field not found in project`);
+                return;
+              }
+              
+              if (!typeField) {
+                console.error(`❌ Type field not found in project`);
+                return;
+              }
+
+              // Find "Triage" status option
+              const triageOption = statusField?.options?.find(o => o.name === "Triage");
+              const bugTypeOption = typeField?.options?.find(o => o.name === "Bug");
+
+              console.log(`🔍 Status options: ${statusField.options?.map(o => o.name).join(', ')}`);
+              console.log(`🔍 Type options: ${typeField.options?.map(o => o.name).join(', ')}`);
+
+              if (!triageOption) {
+                console.error(`❌ "Triage" status option not found`);
+                return;
+              }
+
+              // Update Status field
+              const updateMutation = `
+                mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $value:ProjectV2FieldValue!) {
+                  updateProjectV2ItemFieldValue(input:{
+                    projectId:$projectId, itemId:$itemId, fieldId:$fieldId, value:$value
+                  }) { projectV2Item { id } }
+                }`;
+
+              console.log(`🔄 Updating status to "Triage" for issue #${issue.number}`);
+              await github.graphql(updateMutation, {
+                projectId, 
+                itemId, 
+                fieldId: statusField.id, 
+                value: { singleSelectOptionId: triageOption.id }
+              });
+
+              // Update Type field if available
+              if (bugTypeOption) {
+                console.log(`🔄 Updating type to "Bug" for issue #${issue.number}`);
+                await github.graphql(updateMutation, {
+                  projectId, 
+                  itemId, 
+                  fieldId: typeField.id, 
+                  value: { singleSelectOptionId: bugTypeOption.id }
+                });
+              }
+
+              console.log(`✅ Successfully updated project status for issue #${issue.number} to "Triage"`);
+              
+            } catch (error) {
+              console.error(`❌ Error adding issue to project: ${error.message}`);
+              console.error(`Full error:`, error);
+            }
+          }
+          
+          // Helper function to update project status for any issue
+          async function updateProjectStatus(issue, statusName) {
+            try {
+              const projectQuery = `
+                query($login:String!, $number:Int!, $owner:String!, $repo:String!, $issueNumber:Int!) {
+                  user(login: $login) {
+                    projectV2(number: $number) {
+                      id
+                      fields(first: 20) {
+                        nodes {
+                          ... on ProjectV2FieldCommon { id name }
+                          ... on ProjectV2SingleSelectField { id name options { id name } }
+                        }
+                      }
+                    }
+                  }
+                  repository(owner: $owner, name: $repo) {
+                    issue(number: $issueNumber) { id }
+                  }
+                }`;
+
+              const data = await github.graphql(projectQuery, {
+                login: CONFIG.PROJECT_OWNER,
+                number: CONFIG.PROJECT_NUMBER,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issueNumber: issue.number
+              });
+
+              const project = data.user.projectV2;
+              const projectId = project.id;
+              const issueId = data.repository.issue.id;
+
+              // Find status field
+              const statusField = project.fields.nodes.find(f => f.name === 'Status');
+              if (!statusField) {
+                console.log(`Status field not found in project`);
+                return;
+              }
+
+              // Find the status option
+              const statusOption = statusField.options?.find(o => o.name === statusName);
+              if (!statusOption) {
+                console.log(`Status option "${statusName}" not found`);
+                return;
+              }
+
+              // Find project item
+              const findItemQuery = `
+                query($projectId:ID!) {
+                  node(id: $projectId) {
+                    ... on ProjectV2 {
+                      items(first: 50) {
+                        nodes {
+                          id
+                          content {
+                            ... on Issue { id }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }`;
+
+              const itemRes = await github.graphql(findItemQuery, { projectId });
+              const projectItem = itemRes.node.items.nodes.find(item => 
+                item.content && item.content.id === issueId
+              );
+
+              if (!projectItem) {
+                console.log(`Issue #${issue.number} not found in project`);
+                return;
+              }
+
+              // Update status
+              const updateMutation = `
+                mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $value:ProjectV2FieldValue!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: $value
+                  }) {
+                    projectV2Item { id }
+                  }
+                }`;
+
+              await github.graphql(updateMutation, {
+                projectId,
+                itemId: projectItem.id,
+                fieldId: statusField.id,
+                value: { singleSelectOptionId: statusOption.id }
+              });
+
+              console.log(`✅ Updated project status to "${statusName}" for issue #${issue.number}`);
+
+            } catch (error) {
+              console.error(`❌ Error updating project status: ${error.message}`);
+            }
+          }
+          
+          // Mark potential duplicate for human review
+          async function markPotentialDuplicate(issue, duplicateLinks, confidence) {
+            try {
+              // Add potential duplicate label
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: [CONFIG.LABELS.AUTO_POTENTIAL_DUPLICATE, CONFIG.LABELS.AUTO_PROCESSED]
+              });
+              
+              // Update project status to "Potential Duplicates"
+              await updateProjectStatus(issue, "Potential Duplicates");
+              
+              // Add comment with similar issues and confidence
+              const confidencePercent = Math.round(confidence * 100);
+              const comment = CONFIG.RESPONSES.DUPLICATE_FOUND
+                .replace('{duplicateLinks}', duplicateLinks)
+                .replace('{confidence}', confidencePercent);
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: comment
+              });
+              
+              console.log(`✅ Marked issue #${issue.number} as potential duplicate`);
+              
+            } catch (error) {
+              console.error(`❌ Error marking potential duplicate: ${error.message}`);
+            }
+          }
+          
+          // Handle admin confirmed duplicates
+          async function handleAdminConfirmedDuplicate(issue) {
+            try {
+              console.log(`🎯 Processing admin-confirmed duplicate: #${issue.number}`);
+              
+              // First, remove any existing parent relationships
+              const removedParents = await removeExistingParentRelationships(issue);
+              if (removedParents.length > 0) {
+                console.log(`🧹 Removed existing parent relationships: ${removedParents.join(', ')}`);
+              }
+              
+              // Add labels including AI training
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: [
+                  CONFIG.LABELS.DUPLICATE, 
+                  CONFIG.LABELS.CHILD, 
+                  CONFIG.LABELS.AI_TRAINING,
+                  CONFIG.LABELS.TRAINING_DATA
+                ]
+              });
+              
+              // Update project status to "Confirmed Duplicate"
+              await updateProjectStatus(issue, "Confirmed Duplicate");
+              
+              // Use AI to find the best parent issue
+              const bestParent = await findBestParentWithAI(issue);
+              
+              let parentInfo = '';
+              if (bestParent) {
+                // Link to the AI-suggested parent
+                await addParentLinkToIssue(issue, bestParent);
+                await addChildReferenceToParent(bestParent, issue);
+                
+                // Ensure parent has parent label
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: bestParent.number,
+                  labels: [CONFIG.LABELS.PARENT]
+                });
+                
+                parentInfo = `\n\n**🤖 AI-Suggested Parent Issue:** #${bestParent.number} - "${bestParent.title}"`;
+                console.log(`🔗 AI linked issue #${issue.number} to parent #${bestParent.number}`);
+              } else {
+                // Fallback to traditional similarity-based linking
+                await linkToParentIssue(issue);
+                console.log(`🔗 Used traditional similarity linking for issue #${issue.number}`);
+              }
+              
+              // Add admin confirmation comment with parent information
+              const adminComment = [
+                '🔒 **Admin Confirmed Duplicate**',
+                '',
+                'This issue has been confirmed as a duplicate by an administrator and will be closed.',
+                parentInfo,
+                '',
+                '**If you disagree with this determination:**',
+                '- Add the "challenge" label to request a review',
+                '- Provide detailed explanation of how your issue differs',
+                '- A maintainer will review your challenge within 2-3 business days',
+                '',
+                '**Challenge System:** All confirmed duplicates can be challenged if you believe an error was made.',
+                '',
+                '*This issue was closed by administrative review.*'
+              ].join('\n');
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: adminComment
+              });
+              
+              // Close the issue as duplicate
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed'
+              });
+              
+              // Add archive bucket field update
+              await updateArchiveBucket(issue, "Duplicate");
+              
+              console.log(`✅ Admin confirmed duplicate processed for issue #${issue.number}`);
+              
+            } catch (error) {
+              console.error(`❌ Error handling admin confirmed duplicate: ${error.message}`);
+            }
+          }
+          
+          // Helper function to update archive bucket
+          async function updateArchiveBucket(issue, bucketValue) {
+            try {
+              const projectQuery = `
+                query($login:String!, $number:Int!, $owner:String!, $repo:String!, $issueNumber:Int!) {
+                  user(login: $login) {
+                    projectV2(number: $number) {
+                      id
+                      fields(first: 20) {
+                        nodes {
+                          ... on ProjectV2FieldCommon { id name }
+                          ... on ProjectV2SingleSelectField { id name options { id name } }
+                        }
+                      }
+                    }
+                  }
+                  repository(owner: $owner, name: $repo) {
+                    issue(number: $issueNumber) { id }
+                  }
+                }`;
+
+              const data = await github.graphql(projectQuery, {
+                login: CONFIG.PROJECT_OWNER,
+                number: CONFIG.PROJECT_NUMBER,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issueNumber: issue.number
+              });
+
+              const project = data.user.projectV2;
+              const projectId = project.id;
+              const issueId = data.repository.issue.id;
+
+              // Find Archive Bucket field
+              const archiveField = project.fields.nodes.find(f => f.name === 'Archive Bucket');
+              if (!archiveField) {
+                console.log(`Archive Bucket field not found in project`);
+                return;
+              }
+
+              // Find the bucket option
+              const bucketOption = archiveField.options?.find(o => o.name === bucketValue);
+              if (!bucketOption) {
+                console.log(`Archive Bucket option "${bucketValue}" not found`);
+                return;
+              }
+
+              // Find project item
+              const findItemQuery = `
+                query($projectId:ID!) {
+                  node(id: $projectId) {
+                    ... on ProjectV2 {
+                      items(first: 50) {
+                        nodes {
+                          id
+                          content {
+                            ... on Issue { id }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }`;
+
+              const itemRes = await github.graphql(findItemQuery, { projectId });
+              const projectItem = itemRes.node.items.nodes.find(item => 
+                item.content && item.content.id === issueId
+              );
+
+              if (!projectItem) {
+                console.log(`Issue #${issue.number} not found in project`);
+                return;
+              }
+
+              // Update archive bucket
+              const updateMutation = `
+                mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $value:ProjectV2FieldValue!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: $value
+                  }) {
+                    projectV2Item { id }
+                  }
+                }`;
+
+              await github.graphql(updateMutation, {
+                projectId,
+                itemId: projectItem.id,
+                fieldId: archiveField.id,
+                value: { singleSelectOptionId: bucketOption.id }
+              });
+
+              console.log(`✅ Updated Archive Bucket to "${bucketValue}" for issue #${issue.number}`);
+
+            } catch (error) {
+              console.error(`❌ Error updating archive bucket: ${error.message}`);
+            }
+          }
+          
+          // Remove auto duplicate labels and add AI training for negative cases
+          async function removeAutoDuplicateLabels(issue) {
+            try {
+              const labelsToRemove = [
+                CONFIG.LABELS.AUTO_POTENTIAL_DUPLICATE,
+                CONFIG.LABELS.POTENTIAL_DUPLICATE
+              ];
+              
+              for (const label of labelsToRemove) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    name: label
+                  });
+                } catch (e) {
+                  // Label might not exist, continue
+                }
+              }
+              
+              // Add AI training labels for admin negative override (teaches AI what's NOT a duplicate)
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: [
+                  CONFIG.LABELS.AI_TRAINING,
+                  CONFIG.LABELS.TRAINING_DATA
+                ]
+              });
+              
+              console.log(`✅ Removed auto duplicate labels and added AI training for admin override on issue #${issue.number}`);
+              
+            } catch (error) {
+              console.error(`❌ Error removing auto duplicate labels: ${error.message}`);
+            }
+          }
+          
+          // Link child issue to parent issue
+          async function linkToParentIssue(childIssue) {
+            try {
+              // Find the most likely parent based on similarity
+              const { data: allIssues } = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'all',
+                per_page: 100
+              });
+              
+              let bestParent = null;
+              let highestSimilarity = 0;
+              
+              for (const potentialParent of allIssues) {
+                if (potentialParent.number === childIssue.number) continue;
+                if (potentialParent.labels.some(l => l.name.toLowerCase() === CONFIG.LABELS.CHILD.toLowerCase())) continue;
+                
+                // Calculate similarity
+                const titleSim = similarity(childIssue.title.toLowerCase(), potentialParent.title.toLowerCase());
+                const bodySim = similarity(
+                  extractTemplateContent(childIssue.body || ''),
+                  extractTemplateContent(potentialParent.body || '')
+                );
+                const avgSimilarity = (titleSim + bodySim) / 2;
+                
+                if (avgSimilarity > highestSimilarity && avgSimilarity >= CONFIG.SIMILARITY_THRESHOLD) {
+                  highestSimilarity = avgSimilarity;
+                  bestParent = potentialParent;
+                }
+              }
+              
+              if (bestParent) {
+                await addParentLinkToIssue(childIssue, bestParent);
+                await addChildReferenceToParent(bestParent, childIssue);
+                
+                // Ensure parent has parent label
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: bestParent.number,
+                  labels: [CONFIG.LABELS.PARENT]
+                });
+                
+                console.log(`🔗 Linked issue #${childIssue.number} to parent #${bestParent.number} (${Math.round(highestSimilarity * 100)}% similarity)`);
+              }
+            } catch (error) {
+              console.error(`❌ Error linking to parent issue: ${error.message}`);
+            }
+          }
+          
+          // Add parent link to child issue body
+          async function addParentLinkToIssue(childIssue, parentIssue) {
+            try {
+              const parentSection = `\n\n---\n**🔗 Duplicate of:** #${parentIssue.number}\n*This issue has been identified as a duplicate and linked to the parent issue above.*`;
+              
+              // Check if link already exists
+              if (childIssue.body && childIssue.body.includes(`Duplicate of:** #${parentIssue.number}`)) {
+                console.log(`Parent link already exists in issue #${childIssue.number}`);
+                return;
+              }
+              
+              const updatedBody = (childIssue.body || '') + parentSection;
+              
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: childIssue.number,
+                body: updatedBody
+              });
+              
+              console.log(`✅ Added parent link to issue #${childIssue.number}`);
+            } catch (error) {
+              console.error(`❌ Error adding parent link: ${error.message}`);
+            }
+          }
+          
+          // Add child reference to parent issue and maintain comprehensive duplicate list
+          async function addChildReferenceToParent(parentIssue, childIssue) {
+            try {
+              // Get fresh parent issue data to ensure we have latest body
+              const { data: freshParent } = await github.rest.issues.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: parentIssue.number
+              });
+              
+              let updatedBody = freshParent.body || '';
+              
+              // Find all existing duplicates for this parent to build comprehensive list
+              const allDuplicates = await findAllDuplicatesForParent(parentIssue.number);
+              
+              // Add the new child to the list if not already there
+              if (!allDuplicates.some(dup => dup.number === childIssue.number)) {
+                allDuplicates.push({
+                  number: childIssue.number,
+                  title: childIssue.title,
+                  state: childIssue.state || 'open'
+                });
+              }
+              
+              // Sort duplicates by issue number for consistent ordering
+              allDuplicates.sort((a, b) => a.number - b.number);
+              
+              // Remove existing duplicates section if it exists
+              updatedBody = updatedBody.replace(/\n\n---\n\*\*📋 Duplicates:\*\*[\s\S]*?(?=\n\n---|\n\n##|$)/g, '');
+              updatedBody = updatedBody.replace(/\n\n---\n\*\*📋 Duplicates:\*\*[\s\S]*$/g, '');
+              
+              // Build new comprehensive duplicates section
+              if (allDuplicates.length > 0) {
+                let duplicatesSection = '\n\n---\n**📋 Duplicates:**\n';
+                duplicatesSection += `*This issue has ${allDuplicates.length} duplicate(s). All related issues are listed below:*\n\n`;
+                
+                for (const duplicate of allDuplicates) {
+                  const statusIcon = duplicate.state === 'closed' ? '🔒' : '🔓';
+                  duplicatesSection += `- ${statusIcon} #${duplicate.number}: ${duplicate.title}\n`;
+                }
+                
+                duplicatesSection += `\n*Last updated: ${new Date().toISOString().split('T')[0]} - Total duplicates: ${allDuplicates.length}*`;
+                updatedBody += duplicatesSection;
+              }
+              
+              // Update the parent issue
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: parentIssue.number,
+                body: updatedBody
+              });
+              
+              console.log(`✅ Updated comprehensive duplicate list on parent issue #${parentIssue.number} (${allDuplicates.length} total duplicates)`);
+              
+            } catch (error) {
+              console.error(`❌ Error updating comprehensive duplicate list: ${error.message}`);
+            }
+          }
+          
+          // Find all duplicates for a given parent issue
+          async function findAllDuplicatesForParent(parentNumber) {
+            try {
+              const { data: allIssues } = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'all',
+                per_page: 100,
+                labels: CONFIG.LABELS.CHILD
+              });
+              
+              const duplicates = [];
+              
+              for (const issue of allIssues) {
+                // Check if this issue links to our parent
+                if (issue.body && (
+                  issue.body.includes(`Duplicate of:** #${parentNumber}`) ||
+                  issue.body.includes(`duplicate of #${parentNumber}`) ||
+                  issue.body.includes(`duplicate of: #${parentNumber}`)
+                )) {
+                  duplicates.push({
+                    number: issue.number,
+                    title: issue.title,
+                    state: issue.state
+                  });
+                }
+                
+                // Also check if issue has high similarity to parent (backup method)
+                else if (issue.labels.some(l => l.name.toLowerCase() === CONFIG.LABELS.CHILD.toLowerCase())) {
+                  // This is a child issue, check if it should be linked to our parent
+                  // by finding references in comments or by similarity
+                  const parentIssue = await github.rest.issues.get({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: parentNumber
+                  });
+                  
+                  const titleSim = similarity(issue.title.toLowerCase(), parentIssue.data.title.toLowerCase());
+                  const bodySim = similarity(
+                    extractTemplateContent(issue.body || ''),
+                    extractTemplateContent(parentIssue.data.body || '')
+                  );
+                  const avgSimilarity = (titleSim + bodySim) / 2;
+                  
+                  if (avgSimilarity >= CONFIG.SIMILARITY_THRESHOLD) {
+                    duplicates.push({
+                      number: issue.number,
+                      title: issue.title,
+                      state: issue.state
+                    });
+                  }
+                }
+              }
+              
+              return duplicates;
+            } catch (error) {
+              console.error(`❌ Error finding all duplicates for parent: ${error.message}`);
+              return [];
+            }
+          }
+          
+          // Refresh duplicate lists for all parent issues (useful for maintenance)
+          async function refreshAllDuplicateLists() {
+            try {
+              console.log('🔄 Refreshing all duplicate lists...');
+              
+              const { data: parentIssues } = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'all',
+                per_page: 100,
+                labels: CONFIG.LABELS.PARENT
+              });
+              
+              let refreshedCount = 0;
+              for (const parentIssue of parentIssues) {
+                try {
+                  // Get fresh parent issue data
+                  const { data: freshParent } = await github.rest.issues.get({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: parentIssue.number
+                  });
+                  
+                  let updatedBody = freshParent.body || '';
+                  
+                  // Find all existing duplicates for this parent
+                  const allDuplicates = await findAllDuplicatesForParent(parentIssue.number);
+                  
+                  // Remove existing duplicates section if it exists
+                  updatedBody = updatedBody.replace(/\n\n---\n\*\*📋 Duplicates:\*\*[\s\S]*?(?=\n\n---|\n\n##|$)/g, '');
+                  updatedBody = updatedBody.replace(/\n\n---\n\*\*📋 Duplicates:\*\*[\s\S]*$/g, '');
+                  
+                  // Build new comprehensive duplicates section
+                  if (allDuplicates.length > 0) {
+                    let duplicatesSection = '\n\n---\n**📋 Duplicates:**\n';
+                    duplicatesSection += `*This issue has ${allDuplicates.length} duplicate(s). All related issues are listed below:*\n\n`;
+                    
+                    for (const duplicate of allDuplicates) {
+                      const statusIcon = duplicate.state === 'closed' ? '🔒' : '🔓';
+                      duplicatesSection += `- ${statusIcon} #${duplicate.number}: ${duplicate.title}\n`;
+                    }
+                    
+                    duplicatesSection += `\n*Last updated: ${new Date().toISOString().split('T')[0]} - Total duplicates: ${allDuplicates.length}*`;
+                    updatedBody += duplicatesSection;
+                  }
+                  
+                  // Update the parent issue
+                  await github.rest.issues.update({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: parentIssue.number,
+                    body: updatedBody
+                  });
+                  
+                  refreshedCount++;
+                  console.log(`✅ Refreshed duplicate list for parent #${parentIssue.number} (${allDuplicates.length} duplicates)`);
+                  
+                  // Small delay to avoid rate limiting
+                  await new Promise(resolve => setTimeout(resolve, 500));
+                } catch (error) {
+                  console.error(`❌ Error refreshing duplicate list for parent #${parentIssue.number}: ${error.message}`);
+                }
+              }
+              
+              console.log(`✅ Refreshed duplicate lists for ${refreshedCount} parent issues`);
+            } catch (error) {
+              console.error(`❌ Error refreshing all duplicate lists: ${error.message}`);
+            }
+          }
+          
+          // Main workflow logic
+          const issue = context.payload.issue;
+          const comment = context.payload.comment;
+          
+          if (comment && isManualRefreshCommand(comment)) {
+            console.log('🔄 Manual refresh duplicates command detected');
+            await refreshAllDuplicateLists();
+          } else if (comment && isManualDuplicateCommand(comment)) {
+            console.log('🔧 Manual duplicate check command detected');
+            if (issue) {
+              await checkForDuplicates(issue);
+            }
+          } else if (issue && context.payload.action === 'opened') {
+            console.log('📋 New issue opened - checking for duplicates');
+            await checkForDuplicates(issue);
+          } else if (issue && context.payload.action === 'labeled') {
+            const label = context.payload.label;
+            if (label && (label.name.toLowerCase() === CONFIG.LABELS.ADMIN_DUPLICATE.toLowerCase() ||
+                         label.name.toLowerCase() === CONFIG.LABELS.ADMIN_DUPLICATE_NEGATIVE.toLowerCase())) {
+              console.log(`🏷️ Admin duplicate label added - processing issue #${issue.number}`);
+              await checkForDuplicates(issue);
+              
+              // Trigger AI training with new admin-labeled data
+              console.log(`🤖 Training AI model with new admin-labeled issue #${issue.number}`);
+              try {
+                // Re-run AI analysis to learn from the new training data
+                const { execSync } = require('child_process');
+                execSync(`python ai_duplicate_detector.py --repo-owner ${context.repo.owner} --repo-name ${context.repo.repo} --token ${github.token} --min-confidence 0.8 --max-candidates 5`, {
+                  cwd: './scripts',
+                  stdio: 'inherit',
+                  env: { ...process.env, GITHUB_TOKEN: github.token }
+                });
+                console.log(`✅ AI model updated with new training data`);
+              } catch (error) {
+                console.log(`⚠️ AI training failed: ${error.message}`);
+                console.log(`📝 Training will be attempted on next scheduled run`);
+              }
+            }
+          } else if (context.eventName === 'schedule' || (context.eventName === 'workflow_dispatch' && context.payload.inputs?.retrain_ai)) {
+            console.log('🤖 Scheduled AI model re-training');
+            try {
+              const { execSync } = require('child_process');
+              execSync(`python ai_duplicate_detector.py --repo-owner ${context.repo.owner} --repo-name ${context.repo.repo} --token ${github.token} --min-confidence 0.8 --max-candidates 5`, {
+                cwd: './scripts',
+                stdio: 'inherit',
+                env: { ...process.env, GITHUB_TOKEN: github.token }
+              });
+              console.log(`✅ AI model re-trained successfully`);
+            } catch (error) {
+              console.log(`⚠️ AI re-training failed: ${error.message}`);
+            }
+          } else {
+            console.log('ℹ️ No action needed for this event');
+          }
