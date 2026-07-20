@@ -8,7 +8,6 @@ class OrderedMap {
 private:
     ArrayList<K> internalKeys;
     ArrayList<V> internalValues;
-    JSON json;
 
     // Helper functions for conversions
     String keyToString(const K& key) const {
@@ -89,29 +88,38 @@ public:
     size_t size() const { return internalKeys.size(); }
 
     // Serialize to JSON
+    // Note: JSON object is created locally to minimize memory usage when not serializing.
+    // This is optimal for Arduino where serialization is typically infrequent (startup/shutdown)
+    // and memory is at a premium. The allocation cost is acceptable given the memory savings.
     void serializeToJSON(const String& filename) {
+        JSON json; // Create JSON instance only when needed
         for (size_t i = 0; i < internalKeys.size(); i++) {
             String keyStr = keyToString(internalKeys.get(i));
+            const char* keyPtr = keyStr.c_str();
             const V& value = internalValues.get(i);
 
             if constexpr (is_same<V, String>::value || is_same<V, const char*>::value) {
-                json.setString(keyStr, valueToString(value));
+                json.setString(keyPtr, valueToString(value));
             } else if constexpr (is_Integral<V>::value || is_floating_point<V>::value) {
-                json.setNumber(keyStr, static_cast<double>(value));
+                json.setNumber(keyPtr, static_cast<double>(value));
             } else if constexpr (is_Bool<V>::value) {
-                json.setBool(keyStr, value);
+                json.setBool(keyPtr, value);
             } else {
-                json.setString(keyStr, valueToString(value));
+                json.setString(keyPtr, valueToString(value));
             }
         }
         Serial.println("Writing to file...");
-        json.writeToFile(filename);
+        json.writeToFile(filename.c_str());
         Serial.println("Done.");
     }
 
     // Deserialize from JSON
+    // Note: JSON object is created locally to minimize memory usage when not deserializing.
+    // This is optimal for Arduino where deserialization is typically infrequent (startup)
+    // and memory is at a premium. The allocation cost is acceptable given the memory savings.
     void deserializeFromJSON(const String& filename) {
-        if (!json.readFromFile(filename)) {
+        JSON json; // Create JSON instance only when needed
+        if (!json.readFromFile(filename.c_str())) {
             Serial.println("Failed to read JSON file.");
             return;
         }
