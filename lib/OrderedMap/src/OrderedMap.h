@@ -118,7 +118,7 @@ public:
     // and memory is at a premium. The allocation cost is acceptable given the memory savings.
     void deserializeFromJSON(const String& filename) {
         JSON json; // Create JSON instance only when needed
-        if (!json.readFromFile(filename)) {
+        if (!json.readFromFile(filename.c_str())) {
             Serial.println("Failed to read JSON file.");
             return;
         }
