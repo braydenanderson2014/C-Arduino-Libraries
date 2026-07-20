@@ -77,7 +77,8 @@ jobs:
 
             async function ensurePullRequestLabel() {
               const currentLabels = (pullRequest.labels || []).map(label => label.name.toLowerCase());
-              if (currentLabels.includes(CONFIG.LABELS.PULL_REQUEST)) {
+              const pullRequestLabel = CONFIG.LABELS.PULL_REQUEST.toLowerCase();
+              if (currentLabels.includes(pullRequestLabel)) {
                 console.log(`ℹ️ Pull request #${issueNumber} already has "${CONFIG.LABELS.PULL_REQUEST}" label`);
                 return;
               }
@@ -190,14 +191,11 @@ jobs:
 
               async function findExistingProjectItemId(projectId, contentId) {
                 let cursor = null;
-                let pageCount = 0;
                 const maxPages = 100;
 
-                while (true) {
-                  pageCount += 1;
-                  if (pageCount > maxPages) {
+                for (let pageCount = 1; pageCount <= maxPages; pageCount += 1) {
+                  if (pageCount === maxPages && cursor) {
                     console.log(`ℹ️ Reached pagination safety limit while searching project items for pull request #${issueNumber}`);
-                    return null;
                   }
 
                   const itemQuery = `
@@ -244,6 +242,8 @@ jobs:
 
                   cursor = pageInfo.endCursor;
                 }
+
+                return null;
               }
 
               let itemId = await findExistingProjectItemId(project.id, pullRequestNodeId);
