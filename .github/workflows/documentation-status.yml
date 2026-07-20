@@ -15,7 +15,7 @@ jobs:
       - name: Handle Documentation Label Changes
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
           script: |
             const CONFIG = {
               PROJECT_NUMBER: 4,

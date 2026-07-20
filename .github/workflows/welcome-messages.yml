@@ -17,7 +17,7 @@ jobs:
     - name: Send Welcome Message and Add to Project
       uses: actions/github-script@v7
       with:
-        github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+        github-token: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
         script: |
           // Configuration
           const CONFIG = {
@@ -205,6 +205,49 @@ jobs:
           // Project management functions
           async function addIssueToProject(issue, status, type, priority = null) {
             try {
+              // Fetch project node ID and fields
+              const projectQuery = `
+                query($owner: String!, $projectNumber: Int!) {
+                  user(login: $owner) {
+                    projectV2(number: $projectNumber) {
+                      id
+                      fields(first: 20) {
+                        nodes {
+                          ... on ProjectV2Field {
+                            id
+                            name
+                          }
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            name
+                            options {
+                              id
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }`;
+
+              const projectData = await github.graphql(projectQuery, {
+                owner: CONFIG.PROJECT_OWNER,
+                projectNumber: CONFIG.PROJECT_NUMBER
+              });
+
+              const project = projectData.user.projectV2;
+              const projectId = project.id;
+              const issueNodeId = issue.node_id;
+
+              // Helper functions for field lookup
+              function fieldByName(name) {
+                return project.fields.nodes.find(f => f.name === name) || null;
+              }
+
+              function optionId(field, optionName) {
+                return field.options?.find(o => o.name === optionName)?.id || null;
+              }
 
               // Add issue to project
               const addItemMutation = `
@@ -216,22 +259,22 @@ jobs:
               
               let itemId = null;
               try {
-                const addRes = await github.graphql(addItemMutation, { projectId: projectId, contentId: issueNodeId });
+                const addRes = await github.graphql(addItemMutation, { projectId, contentId: issueNodeId });
                 itemId = addRes.addProjectV2ItemById.item.id;
                 console.log(`✅ Added issue #${issue.number} to project`);
               } catch (e) {
                 // Issue might already be in project, get existing item ID
                 const findItemQuery = `
-                  query($projectId:ID!, $issueId:ID!) {
+                  query($projectId:ID!) {
                     node(id:$projectId) {
                       ... on ProjectV2 {
-                        items(first:50, query:\"${issue.number}\") {
-                          nodes { id content { ... on Issue { id number } } }
+                        items(first:100) {
+                          nodes { id content { ... on Issue { id } } }
                         }
                       }
                     }
                   }`;
-                const findRes = await github.graphql(findItemQuery, { projectId, issueId: issueNodeId });
+                const findRes = await github.graphql(findItemQuery, { projectId });
                 const node = (findRes.node.items.nodes || []).find(n => n.content && n.content.id === issueNodeId);
                 if (node) {
                   itemId = node.id;

@@ -19,7 +19,7 @@ jobs:
     - name: Handle Challenge Labels and Commands
       uses: actions/github-script@v7
       with:
-        github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+        github-token: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
         script: |
           (async () => {
           // Configuration
