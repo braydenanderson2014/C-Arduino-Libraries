@@ -24,70 +24,70 @@ body:
       required: true
  
   - type: dropdown
-      id: library   # unique id (alphanumeric, -, _)
-      attributes:
-        label: Repository / Library
-        description: Select the particular repository or library of code this bug relates to.
-        multiple: false          # set to true if users should be able to pick more than one
-        options:
-          - AVLTree
-          - Arraylist
-          - BinarySearchTree
-          - BinaryTree
-          - bPlusTree
-          - bTree
-          - ColorManager
-          - Dictionary
-          - DoubleLinkedList
-          - DynamicStorageLibrary
-          - EthernetConnectionChecker
-          - EthernetMach2ConnectionChecker
-          - ExtremeVariant
-          - FenwickTree
-          - Hashtable
-          - HeapTree
-          - iostream
-          - Initializer_List
-          - IntervalTree
-          - iterator
-          - Json
-          - kdimensionalTree
-          - LinkedList
-          - Map
-          - MathLib
-          - MatrixMath
-          - MbedLittleFSWrapper/src
-          - MemoryManager
-          - MyDictionary
-          - NewArrayList (TEMP)
-          - Numeric_Limits
-          - OCTree
-          - Operators
-          - Optional
-          - OrderedMap
-          - Predicates
-          - Properties
-          - QuadTree
-          - Queue
-          - RTree
-          - RedBlackTree
-          - SDList
-          - SegmentTree
-          - SimpleMutex
-          - SimpleThreadManager
-          - SimpleVector
-          - Stack
-          - String
-          - SuffixTree
-          - Timer
-          - TrieTree
-          - TypeTraits
-          - UnorderedMap
-          - Variant
-          - Other                 # optional catch-all
-      # default: 0             # optional: 0-based index of the pre-selected option
-      validations:
-        required: true           # optional but recommended
+    id: library   # unique id (alphanumeric, -, _)
+    attributes:
+      label: Repository / Library
+      description: Select the particular repository or library of code this bug relates to.
+      multiple: false          # set to true if users should be able to pick more than one
+      options:
+        - AVLTree
+        - Arraylist
+        - BinarySearchTree
+        - BinaryTree
+        - bPlusTree
+        - bTree
+        - ColorManager
+        - Dictionary
+        - DoubleLinkedList
+        - DynamicStorageLibrary
+        - EthernetConnectionChecker
+        - EthernetMach2ConnectionChecker
+        - ExtremeVariant
+        - FenwickTree
+        - Hashtable
+        - HeapTree
+        - iostream
+        - Initializer_List
+        - IntervalTree
+        - iterator
+        - Json
+        - kdimensionalTree
+        - LinkedList
+        - Map
+        - MathLib
+        - MatrixMath
+        - MbedLittleFSWrapper/src
+        - MemoryManager
+        - MyDictionary
+        - NewArrayList (TEMP)
+        - Numeric_Limits
+        - OCTree
+        - Operators
+        - Optional
+        - OrderedMap
+        - Predicates
+        - Properties
+        - QuadTree
+        - Queue
+        - RTree
+        - RedBlackTree
+        - SDList
+        - SegmentTree
+        - SimpleMutex
+        - SimpleThreadManager
+        - SimpleVector
+        - Stack
+        - String
+        - SuffixTree
+        - Timer
+        - TrieTree
+        - TypeTraits
+        - UnorderedMap
+        - Variant
+        - Other                 # optional catch-all
+    # default: 0             # optional: 0-based index of the pre-selected option
+    validations:
+      required: true           # optional but recommended
  
   - type: input
     id: location
