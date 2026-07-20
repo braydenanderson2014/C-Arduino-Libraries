@@ -2,7 +2,13 @@ name: Welcome Messages
 
 on:
   issues:
-    types: [opened]
+    types: [opened, labeled]
+  # NOTE: GitHub Actions does not support label-name filtering at the trigger level.
+  # The workflow job runs for every label event, but the script exits early at the
+  # top of its execution if the added label is not 'send-welcome'. This is the
+  # standard pattern for label-triggered workflows.
+  issue_comment:
+    types: [created]
 
 permissions:
   issues: write
@@ -29,7 +35,8 @@ jobs:
               FEATURE_REQUEST: 'feature-request',
               DOCUMENTATION: 'documentation',
               QUESTION: 'question',
-              AUTO_RESPONSE: 'auto-response'
+              AUTO_RESPONSE: 'auto-response',
+              SEND_WELCOME: 'send-welcome'
             },
             FIELDS: {
               Status: "Status",
@@ -130,6 +137,61 @@ jobs:
 
             }
           };
+          
+          // ── Event routing ──────────────────────────────────────────────────────────
+          // Determine which event triggered this run and get the issue object early so
+          // we can do a single early-exit check before any further processing.
+          const eventName = context.eventName; // 'issues' or 'issue_comment'
+          
+          let triggerIssue = null;      // the issue we will process
+          let isRetroactive = false;    // true when triggered by label/comment (not 'opened')
+          let sendWelcomeActualName = null; // set to original-case label name only when triggered by the 'send-welcome' label event
+          
+          if (eventName === 'issue_comment') {
+            // Only respond to the /welcome command, and only on issues (not PRs).
+            // Trailing whitespace is allowed; any other text after '/welcome' is rejected
+            // to avoid accidental triggers from comments that merely contain the word.
+            const commentBody = (context.payload.comment.body || '').trim();
+            if (!/^\/welcome\s*$/i.test(commentBody)) {
+              console.log('Comment is not a /welcome command — skipping.');
+              return;
+            }
+            if (context.payload.issue.pull_request) {
+              console.log('/welcome comment on a PR — skipping.');
+              return;
+            }
+            triggerIssue = context.payload.issue;
+            isRetroactive = true;
+            console.log(`📨 /welcome command received on issue #${triggerIssue.number}`);
+          } else if (eventName === 'issues') {
+            if (context.payload.action === 'labeled') {
+              // Only act when the 'send-welcome' label was just applied.
+              const addedLabel = (context.payload.label || {}).name || '';
+              // Lowercase comparison so we catch any casing of the label (e.g. 'Send-Welcome').
+              // We preserve the original casing in sendWelcomeActualName below so the
+              // GitHub API removal call matches the exact label name on the issue.
+              if (addedLabel.toLowerCase() !== CONFIG.LABELS.SEND_WELCOME) {
+                console.log(`Label '${addedLabel}' added — not 'send-welcome', skipping.`);
+                return;
+              }
+              triggerIssue = context.payload.issue;
+              isRetroactive = true;
+              // Preserve the actual casing of the label as it exists on GitHub,
+              // so we can remove it precisely without a case mismatch.
+              // addedLabel already uses the same defensive access pattern from line 165.
+              sendWelcomeActualName = addedLabel;
+              console.log(`🏷️ 'send-welcome' label applied to issue #${triggerIssue.number} — triggering retroactive welcome`);
+            } else {
+              // 'opened' event — normal path
+              triggerIssue = context.payload.issue;
+            }
+          }
+          
+          if (!triggerIssue) {
+            console.log('Could not resolve issue from event context — skipping.');
+            return;
+          }
+          // ──────────────────────────────────────────────────────────────────────────
           
           // Helper function to analyze issue content for type detection
           function analyzeIssueContent(issueBody, title) {
@@ -294,17 +356,33 @@ jobs:
           }
           
           // Get issue information
-          const issue = context.payload.issue;
+          const issue = triggerIssue;
           if (!issue) {
             console.log('No issue context found');
             return;
           }
           
-          console.log(`🔍 Processing new issue #${issue.number}: ${issue.title}`);
+          console.log(`🔍 Processing ${isRetroactive ? 'existing' : 'new'} issue #${issue.number}: ${issue.title}`);
           
-          // Get current labels (should be minimal for new issues)
-          const labels = (issue.labels || []).map(l => l.name.toLowerCase());
-          console.log(`📋 Initial labels: ${labels.join(', ')}`);
+          // Get current labels — for retroactive triggers fetch fresh data from the API
+          // so we always have the up-to-date label set (event payload may be stale).
+          let labels;
+          if (isRetroactive) {
+            try {
+              const freshIssue = await github.rest.issues.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number
+              });
+              labels = (freshIssue.data.labels || []).map(l => l.name.toLowerCase());
+            } catch (fetchError) {
+              console.error(`❌ Failed to fetch fresh issue data for #${issue.number}: ${fetchError.message}. Welcome message will not be sent.`);
+              return;
+            }
+          } else {
+            labels = (issue.labels || []).map(l => l.name.toLowerCase());
+          }
+          console.log(`📋 Current labels: ${labels.join(', ')}`);
           
           // Check for combined template and auto-label based on issue type selection
           if (issue.body) {
@@ -517,6 +595,26 @@ jobs:
               });
               
               console.log(`✅ Welcome message sent and auto-response label added to issue #${issue.number}`);
+              
+              // Remove 'send-welcome' label if this run was triggered by that label being
+              // applied (sendWelcomeActualName is only set in that path). This keeps the
+              // issue clean and makes the label reusable.
+              if (sendWelcomeActualName !== null) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    name: sendWelcomeActualName
+                  });
+                  console.log(`🏷️ Removed '${sendWelcomeActualName}' label from issue #${issue.number}`);
+                } catch (removeError) {
+                  // Non-fatal — this is often a benign race condition where another
+                  // actor removed the label before we could. The welcome message was
+                  // still sent successfully.
+                  console.warn(`⚠️ Could not remove '${sendWelcomeActualName}' label: ${removeError.message}`);
+                }
+              }
               
             } catch (error) {
               console.error(`❌ Error sending welcome message: ${error.message}`);
