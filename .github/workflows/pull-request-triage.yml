@@ -93,14 +93,17 @@ jobs:
             }
 
             async function ensureWelcomeComment() {
-              const existingComments = await github.rest.issues.listComments({
-                owner,
-                repo,
-                issue_number: issueNumber,
-                per_page: 100
-              });
+              const existingComments = await github.paginate(
+                github.rest.issues.listComments,
+                {
+                  owner,
+                  repo,
+                  issue_number: issueNumber,
+                  per_page: 100
+                }
+              );
 
-              const alreadyWelcomed = existingComments.data.some(comment =>
+              const alreadyWelcomed = existingComments.some(comment =>
                 (comment.body || "").includes(CONFIG.COMMENT_MARKER)
               );
 
@@ -134,7 +137,7 @@ jobs:
 
             async function ensureProjectTriageStatus() {
               const query = `
-                query($login: String!, $projectNumber: Int!, $owner: String!, $repo: String!, $pullNumber: Int!, $search: String!) {
+                query($login: String!, $projectNumber: Int!, $owner: String!, $repo: String!, $pullNumber: Int!) {
                   user(login: $login) {
                     projectV2(number: $projectNumber) {
                       id
@@ -154,17 +157,6 @@ jobs:
                           }
                         }
                       }
-                      items(first: 20, query: $search) {
-                        nodes {
-                          id
-                          content {
-                            ... on PullRequest {
-                              id
-                              number
-                            }
-                          }
-                        }
-                      }
                     }
                   }
                   repository(owner: $owner, name: $repo) {
@@ -180,8 +172,7 @@ jobs:
                 projectNumber: CONFIG.PROJECT_NUMBER,
                 owner,
                 repo,
-                pullNumber: issueNumber,
-                search: String(issueNumber)
+                pullNumber: issueNumber
               });
 
               const project = data.user?.projectV2;
@@ -197,9 +188,57 @@ jobs:
                 return;
               }
 
-              let itemId = project.items.nodes.find(item =>
-                item.content && item.content.id === pullRequestNodeId
-              )?.id;
+              async function findExistingProjectItemId(projectId, contentId) {
+                let cursor = null;
+
+                while (true) {
+                  const itemQuery = `
+                    query($projectId: ID!, $cursor: String) {
+                      node(id: $projectId) {
+                        ... on ProjectV2 {
+                          items(first: 100, after: $cursor) {
+                            nodes {
+                              id
+                              content {
+                                ... on PullRequest {
+                                  id
+                                }
+                              }
+                            }
+                            pageInfo {
+                              hasNextPage
+                              endCursor
+                            }
+                          }
+                        }
+                      }
+                    }
+                  `;
+
+                  const itemResult = await github.graphql(itemQuery, {
+                    projectId,
+                    cursor
+                  });
+
+                  const items = itemResult.node?.items?.nodes || [];
+                  const existingItem = items.find(item =>
+                    item.content && item.content.id === contentId
+                  );
+
+                  if (existingItem) {
+                    return existingItem.id;
+                  }
+
+                  const pageInfo = itemResult.node?.items?.pageInfo;
+                  if (!pageInfo?.hasNextPage) {
+                    return null;
+                  }
+
+                  cursor = pageInfo.endCursor;
+                }
+              }
+
+              let itemId = await findExistingProjectItemId(project.id, pullRequestNodeId);
 
               if (!itemId) {
                 const addMutation = `
