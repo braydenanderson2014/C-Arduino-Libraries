@@ -1,0 +1,317 @@
+name: Pull Request Triage
+
+on:
+  pull_request_target:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  triage-pull-request:
+    runs-on: ubuntu-latest
+    name: Label, Welcome, and Add PR to Project
+
+    steps:
+      - name: Process Pull Request
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+          script: |
+            const CONFIG = {
+              PROJECT_OWNER: "braydenanderson2014",
+              PROJECT_NUMBER: 4,
+              LABELS: {
+                PULL_REQUEST: "pull-request"
+              },
+              FIELDS: {
+                STATUS: "Status"
+              },
+              STATUS_VALUES: {
+                TRIAGE: "Triage"
+              },
+              LABEL_CONFIG: {
+                color: "5319e7",
+                description: "Marks pull requests that have been automatically triaged."
+              },
+              COMMENT_MARKER: "<!-- AUTO-RESPONSE-ID: pr-welcome -->"
+            };
+
+            const pullRequest = context.payload.pull_request;
+            if (!pullRequest) {
+              console.log("ℹ️ No pull request payload found - skipping.");
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issueNumber = pullRequest.number;
+
+            async function ensureLabelExists(labelName) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner,
+                  repo,
+                  name: labelName
+                });
+
+                console.log(`🏷️ Label "${labelName}" already exists`);
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+
+                await github.rest.issues.createLabel({
+                  owner,
+                  repo,
+                  name: labelName,
+                  color: CONFIG.LABEL_CONFIG.color,
+                  description: CONFIG.LABEL_CONFIG.description
+                });
+
+                console.log(`✅ Created missing label "${labelName}"`);
+              }
+            }
+
+            async function ensurePullRequestLabel() {
+              const currentLabels = (pullRequest.labels || []).map(label => label.name.toLowerCase());
+              const pullRequestLabel = CONFIG.LABELS.PULL_REQUEST.toLowerCase();
+              if (currentLabels.includes(pullRequestLabel)) {
+                console.log(`ℹ️ Pull request #${issueNumber} already has "${CONFIG.LABELS.PULL_REQUEST}" label`);
+                return;
+              }
+
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                labels: [CONFIG.LABELS.PULL_REQUEST]
+              });
+
+              console.log(`✅ Added "${CONFIG.LABELS.PULL_REQUEST}" label to pull request #${issueNumber}`);
+            }
+
+            async function ensureWelcomeComment() {
+              const existingComments = await github.paginate(
+                github.rest.issues.listComments,
+                {
+                  owner,
+                  repo,
+                  issue_number: issueNumber,
+                  per_page: 100
+                }
+              );
+
+              const alreadyWelcomed = existingComments.some(comment =>
+                (comment.body || "").includes(CONFIG.COMMENT_MARKER)
+              );
+
+              if (alreadyWelcomed) {
+                console.log(`ℹ️ Pull request #${issueNumber} already has the automated welcome comment`);
+                return;
+              }
+
+              const welcomeMessage =
+                "👋 **Thank you for opening this pull request!**\n\n" +
+                "Your contribution has been automatically labeled and added to the project triage queue for review.\n\n" +
+                "**What happens next?**\n" +
+                "- A maintainer will review the proposed changes\n" +
+                "- Feedback or requested updates will be posted here\n" +
+                "- Once everything looks good, the PR can move forward for merge consideration\n\n" +
+                "**While you wait:**\n" +
+                "- Make sure any linked issue or context is included in the description\n" +
+                "- Keep an eye on review comments and CI results\n\n" +
+                `${CONFIG.COMMENT_MARKER}\n` +
+                "*This is an automated response. A human maintainer will follow up soon.*";
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                body: welcomeMessage
+              });
+
+              console.log(`✅ Added automated welcome comment to pull request #${issueNumber}`);
+            }
+
+            async function ensureProjectTriageStatus() {
+              const query = `
+                query($login: String!, $projectNumber: Int!, $owner: String!, $repo: String!, $pullNumber: Int!) {
+                  user(login: $login) {
+                    projectV2(number: $projectNumber) {
+                      id
+                      fields(first: 50) {
+                        nodes {
+                          ... on ProjectV2FieldCommon {
+                            id
+                            name
+                          }
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            name
+                            options {
+                              id
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  repository(owner: $owner, name: $repo) {
+                    pullRequest(number: $pullNumber) {
+                      id
+                    }
+                  }
+                }
+              `;
+
+              const data = await github.graphql(query, {
+                login: CONFIG.PROJECT_OWNER,
+                projectNumber: CONFIG.PROJECT_NUMBER,
+                owner,
+                repo,
+                pullNumber: issueNumber
+              });
+
+              const project = data.user?.projectV2;
+              const pullRequestNodeId = data.repository?.pullRequest?.id;
+
+              if (!project) {
+                console.log(`ℹ️ Project ${CONFIG.PROJECT_NUMBER} was not found for ${CONFIG.PROJECT_OWNER}`);
+                return;
+              }
+
+              if (!pullRequestNodeId) {
+                console.log(`ℹ️ Could not resolve a node ID for pull request #${issueNumber}`);
+                return;
+              }
+
+              async function findExistingProjectItemId(projectId, contentId) {
+                let cursor = null;
+                const maxPages = 100;
+
+                for (let pageCount = 0; pageCount < maxPages; pageCount += 1) {
+                  const itemQuery = `
+                    query($projectId: ID!, $cursor: String) {
+                      node(id: $projectId) {
+                        ... on ProjectV2 {
+                          items(first: 100, after: $cursor) {
+                            nodes {
+                              id
+                              content {
+                                ... on PullRequest {
+                                  id
+                                }
+                              }
+                            }
+                            pageInfo {
+                              hasNextPage
+                              endCursor
+                            }
+                          }
+                        }
+                      }
+                    }
+                  `;
+
+                  const itemResult = await github.graphql(itemQuery, {
+                    projectId,
+                    cursor
+                  });
+
+                  const items = itemResult.node?.items?.nodes || [];
+                  const existingItem = items.find(item =>
+                    item.content && item.content.id === contentId
+                  );
+
+                  if (existingItem) {
+                    return existingItem.id;
+                  }
+
+                  const pageInfo = itemResult.node?.items?.pageInfo;
+                  if (!pageInfo?.hasNextPage) {
+                    return null;
+                  }
+
+                  cursor = pageInfo.endCursor;
+                }
+
+                console.log(`ℹ️ Reached pagination safety limit while searching project items for pull request #${issueNumber}`);
+                return null;
+              }
+
+              let itemId = await findExistingProjectItemId(project.id, pullRequestNodeId);
+
+              if (!itemId) {
+                const addMutation = `
+                  mutation($projectId: ID!, $contentId: ID!) {
+                    addProjectV2ItemByContentId(input: {
+                      projectId: $projectId
+                      contentId: $contentId
+                    }) {
+                      item {
+                        id
+                      }
+                    }
+                  }
+                `;
+
+                const addResult = await github.graphql(addMutation, {
+                  projectId: project.id,
+                  contentId: pullRequestNodeId
+                });
+
+                itemId = addResult.addProjectV2ItemByContentId.item.id;
+                console.log(`✅ Added pull request #${issueNumber} to project`);
+              } else {
+                console.log(`ℹ️ Pull request #${issueNumber} is already in the project`);
+              }
+
+              const statusField = project.fields.nodes.find(field => field.name === CONFIG.FIELDS.STATUS);
+              if (!statusField) {
+                console.log(`ℹ️ Project field "${CONFIG.FIELDS.STATUS}" was not found`);
+                return;
+              }
+
+              const triageOption = statusField.options?.find(option => option.name === CONFIG.STATUS_VALUES.TRIAGE);
+              if (!triageOption) {
+                console.log(`ℹ️ Project option "${CONFIG.STATUS_VALUES.TRIAGE}" was not found in "${CONFIG.FIELDS.STATUS}"`);
+                return;
+              }
+
+              const updateMutation = `
+                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: ProjectV2FieldValue!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: $value
+                  }) {
+                    projectV2Item {
+                      id
+                    }
+                  }
+                }
+              `;
+
+              await github.graphql(updateMutation, {
+                projectId: project.id,
+                itemId,
+                fieldId: statusField.id,
+                value: {
+                  singleSelectOptionId: triageOption.id
+                }
+              });
+
+              console.log(`✅ Set project status to "${CONFIG.STATUS_VALUES.TRIAGE}" for pull request #${issueNumber}`);
+            }
+
+            await ensureLabelExists(CONFIG.LABELS.PULL_REQUEST);
+            await ensurePullRequestLabel();
+            await ensureWelcomeComment();
+            await ensureProjectTriageStatus();
+
+            console.log(`✅ Finished processing pull request #${issueNumber}`);

@@ -5,3 +5,7 @@
 - name: "auto-response"
   color: "e4e669"
   description: "Indicates an automated welcome message has already been sent for this issue. Prevents duplicate messages."
+
+- name: "pull-request"
+  color: "5319e7"
+  description: "Marks pull requests that have been automatically triaged."
