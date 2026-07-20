@@ -461,12 +461,18 @@ jobs:
               // Set archive bucket to "Failed Challenges"
               await updateProjectField(issue, CONFIG.FIELDS.ArchiveBucket, "Failed Challenges");
               
-              // Close the issue
+              // Close the issue; use 'not_planned' when original labels indicate a duplicate
+              const isDuplicate = originalLabels.some(label =>
+                label.toLowerCase().includes('duplicate') ||
+                label.toLowerCase() === 'potential-duplicate' ||
+                label.toLowerCase() === 'auto-potential-duplicate'
+              );
               await github.rest.issues.update({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issue.number,
-                state: 'closed'
+                state: 'closed',
+                state_reason: isDuplicate ? 'not_planned' : 'completed'
               });
               
               // Retrieve the admin-provided reason (stored during the comment event)
