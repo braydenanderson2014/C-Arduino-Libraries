@@ -109,6 +109,23 @@ jobs:
               
               <!-- AUTO-RESPONSE-ID: question-welcome -->
               *This is an automated response. A human maintainer will follow up soon.*
+              Please do not change details about the project in this issue.`,
+
+              DEFAULT: `👋 **Thank you for opening this issue!**
+              
+              Your issue has been received and will be reviewed by a maintainer.
+              
+              **What happens next?**
+              - A maintainer will review and label your issue
+              - We may ask for additional information if needed
+              - Updates will be posted here as we work on it
+              
+              **Tips for faster resolution:**
+              - Make sure to include all relevant details
+              - Search for similar issues in case this has been reported before
+              
+              <!-- AUTO-RESPONSE-ID: default-welcome -->
+              *This is an automated response. A human maintainer will follow up soon.*
               Please do not change details about the project in this issue.`
 
             }
@@ -462,11 +479,12 @@ jobs:
                   break;
               }
             } else {
-              // Content analysis failed - default to bug triage
-              messageType = 'unlabeled';
+              // Content analysis failed - use default welcome message and triage
+              messageType = 'default';
+              messageContent = CONFIG.WELCOME_MESSAGES.DEFAULT;
               projectStatus = 'Triage';
               projectType = 'Bug';
-              console.log(`❓ Content analysis inconclusive - defaulting to bug triage`);
+              console.log(`❓ Content analysis inconclusive - sending default welcome and routing to triage`);
               console.log(`   Current labels: ${labels.join(', ')}`);
               console.log(`   Title: "${issue.title}"`);
             }
@@ -477,8 +495,8 @@ jobs:
             await addIssueToProject(issue, projectStatus, projectType, projectPriority);
           }
           
-          // Send welcome message if applicable (only for labeled issues)
-          if (messageContent && messageType !== 'unlabeled') {
+          // Send welcome message for all issues
+          if (messageContent) {
             console.log(`📨 Sending ${messageType} welcome message for issue #${issue.number}`);
             
             try {

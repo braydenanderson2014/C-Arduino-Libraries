@@ -397,9 +397,9 @@ jobs:
               let duplicates = [];
               
               for (const existingIssue of allIssues) {
-                // Skip self and parent issues
+                // Skip self and already-confirmed child/duplicate issues
                 if (existingIssue.number === issue.number) continue;
-                if (existingIssue.labels.some(label => label.name.toLowerCase() === CONFIG.LABELS.PARENT.toLowerCase())) {
+                if (existingIssue.labels.some(label => label.name.toLowerCase() === CONFIG.LABELS.CHILD.toLowerCase())) {
                   continue;
                 }
                 
