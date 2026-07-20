@@ -193,11 +193,7 @@ jobs:
                 let cursor = null;
                 const maxPages = 100;
 
-                for (let pageCount = 1; pageCount <= maxPages; pageCount += 1) {
-                  if (pageCount === maxPages && cursor) {
-                    console.log(`ℹ️ Reached pagination safety limit while searching project items for pull request #${issueNumber}`);
-                  }
-
+                for (let pageCount = 0; pageCount < maxPages; pageCount += 1) {
                   const itemQuery = `
                     query($projectId: ID!, $cursor: String) {
                       node(id: $projectId) {
@@ -243,6 +239,7 @@ jobs:
                   cursor = pageInfo.endCursor;
                 }
 
+                console.log(`ℹ️ Reached pagination safety limit while searching project items for pull request #${issueNumber}`);
                 return null;
               }
 
