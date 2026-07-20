@@ -69,12 +69,12 @@ jobs:
               <!-- AUTO-RESPONSE-ID: challenge-upheld -->
               *Challenge review completed by maintainer.*`,
               
-              CHALLENGE_FAILED: `❌ **Challenge Failed**
+              CHALLENGE_FAILED: (reason) => `❌ **Challenge Failed**
               
               After review, your challenge has been rejected. The original decision stands.
               
               **Reason:**
-              The issue was correctly identified as a duplicate/invalid based on our review criteria.
+              ${reason || 'The issue was correctly identified as a duplicate/invalid based on our review criteria.'}
               
               **Next steps:**
               - This issue will remain closed
@@ -89,6 +89,8 @@ jobs:
           // For now, we'll store in issue body as a comment
           const ORIGINAL_LABELS_PREFIX = '<!-- ORIGINAL_LABELS:';
           const ORIGINAL_LABELS_SUFFIX = '-->';
+          const FAILED_REASON_PREFIX = '<!-- FAILED_REASON:';
+          const FAILED_REASON_SUFFIX = '-->';
           
           // Helper function to store original labels
           async function storeOriginalLabels(issue, labels) {
@@ -131,6 +133,46 @@ jobs:
               console.error(`❌ Error retrieving original labels: ${error.message}`);
             }
             return [];
+          }
+          
+          // Helper function to store the admin-provided failed reason
+          async function storeFailedReason(issue, reason) {
+            const marker = `${FAILED_REASON_PREFIX}${reason}${FAILED_REASON_SUFFIX}`;
+            try {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: marker
+              });
+              console.log(`💾 Stored failed reason for issue #${issue.number}`);
+            } catch (error) {
+              console.error(`❌ Error storing failed reason: ${error.message}`);
+            }
+          }
+          
+          // Helper function to retrieve the stored failed reason
+          async function getFailedReason(issue) {
+            try {
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number
+              });
+              
+              for (const comment of comments.data.reverse()) {
+                if (comment.body.includes(FAILED_REASON_PREFIX)) {
+                  const start = comment.body.indexOf(FAILED_REASON_PREFIX) + FAILED_REASON_PREFIX.length;
+                  const end = comment.body.indexOf(FAILED_REASON_SUFFIX, start);
+                  if (end > start) {
+                    return comment.body.substring(start, end).trim();
+                  }
+                }
+              }
+            } catch (error) {
+              console.error(`❌ Error retrieving failed reason: ${error.message}`);
+            }
+            return null;
           }
           
           // Helper function to update project field
@@ -427,12 +469,20 @@ jobs:
                 state: 'closed'
               });
               
-              // Post failed message
+              // Retrieve the admin-provided reason (stored during the comment event)
+              const reason = await getFailedReason(issue);
+              if (reason) {
+                console.log(`📝 Using admin-provided reason: ${reason}`);
+              } else {
+                console.log(`ℹ️ No admin reason found, using default message`);
+              }
+              
+              // Post failed message with the reason embedded
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issue.number,
-                body: CONFIG.RESPONSES.CHALLENGE_FAILED
+                body: CONFIG.RESPONSES.CHALLENGE_FAILED(reason)
               });
               
               console.log(`✅ Challenge failed processed for issue #${issue.number}`);
@@ -453,11 +503,44 @@ jobs:
             if (body.includes('challenge failed') || body.includes('/challenge-failed')) {
               return 'failed';
             }
-            if (body.includes('start challenge') || body.includes('/challenge')) {
+            // Support "@dependabot challenge", "@bot-name challenge", etc.
+            // \s+ makes the required space between mention and "challenge" explicit.
+            // body is already lowercased, but /i is added for clarity.
+            if (/@[\w-]+\s+challenge\b/i.test(body) || body.includes('start challenge') || body.includes('/challenge')) {
               return 'start';
             }
             
             return null;
+          }
+          
+          // Extract the admin-provided reason from a challenge-failed comment.
+          // Accepts formats like:
+          //   "Challenge Failed: <reason>"
+          //   "Challenge Failed - <reason>"  (hyphen, en-dash –, or em-dash —)
+          //   "Challenge Failed\n<reason>"
+          //   "/challenge-failed <reason>"
+          // Note: searches in the lowercased copy to find the command position, then
+          // slices from the same offset in the original body (lengths are equal after
+          // toLowerCase) so the extracted reason preserves the original casing.
+          function extractFailedReason(commentBody) {
+            const lower = commentBody.toLowerCase();
+            
+            // Find where the command ends (search in lowercase)
+            let cmdEnd = -1;
+            const patterns = ['challenge failed', '/challenge-failed'];
+            for (const pat of patterns) {
+              const idx = lower.indexOf(pat);
+              if (idx !== -1) {
+                cmdEnd = idx + pat.length;
+                break;
+              }
+            }
+            if (cmdEnd === -1) return null;
+            
+            // Slice from the original body (same length as lower) to preserve casing.
+            // Strip leading separators: whitespace, newlines, colon, hyphen, en-dash, em-dash.
+            const remainder = commentBody.slice(cmdEnd).replace(/^[-\s:–—]+/, '').trim();
+            return remainder || null;
           }
           
           // Main workflow logic
@@ -483,64 +566,44 @@ jobs:
           if (context.eventName === 'issue_comment' && comment && issue) {
             const challengeCommand = isChallengeCommand(comment);
             
+            // Only add the label here. The resulting issues:labeled event will
+            // trigger this workflow again and call the appropriate handler exactly
+            // once. Calling the handler directly here as well would cause it to
+            // run twice (once now, once from the label-triggered rerun).
             if (challengeCommand === 'start') {
-              // Add challenge label
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issue.number,
                 labels: [CONFIG.LABELS.CHALLENGE]
               });
-              await handleChallengeAdded(issue);
             } else if (challengeCommand === 'upheld') {
-              // Add challenge-upheld label
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issue.number,
                 labels: [CONFIG.LABELS.CHALLENGE_UPHELD]
               });
-              await handleChallengeUpheld(issue);
             } else if (challengeCommand === 'failed') {
-              // Add challenge-failed label
+              // Extract and persist any reason the admin provided so that the
+              // subsequent issues:labeled run can include it in the response.
+              const reason = extractFailedReason(comment.body);
+              if (reason) {
+                await storeFailedReason(issue, reason);
+                console.log(`📝 Stored admin reason: ${reason}`);
+              }
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issue.number,
                 labels: [CONFIG.LABELS.CHALLENGE_FAILED]
               });
-              await handleChallengeFailed(issue);
             }
           }
           
           if (!issue) {
             console.log('ℹ️ No issue context found');
             return;
-          }
-          
-          // Main execution logic
-          if (context.eventName === 'issues' && context.payload.action === 'labeled') {
-            // Check if challenge label was added
-            const addedLabel = context.payload.label?.name;
-            if (addedLabel === CONFIG.LABELS.CHALLENGE) {
-              console.log(`🏆 Challenge label "${addedLabel}" added to issue #${issue.number}`);
-              await handleChallengeAdded(issue);
-            }
-          } else if (context.eventName === 'issue_comment' && context.payload.action === 'created') {
-            const comment = context.payload.comment;
-            const commentBody = comment.body.toLowerCase().trim();
-            
-            // Check for challenge commands in comments
-            if (commentBody.includes('/challenge')) {
-              console.log(`💬 Challenge command detected in comment by ${comment.user.login}`);
-              
-              // Parse challenge command
-              if (commentBody.includes('upheld') || commentBody.includes('approved')) {
-                await handleChallengeCommand(issue, 'upheld');
-              } else if (commentBody.includes('failed') || commentBody.includes('rejected')) {
-                await handleChallengeCommand(issue, 'failed');
-              }
-            }
           }
           
           })();
