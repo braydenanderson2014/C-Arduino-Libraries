@@ -190,8 +190,16 @@ jobs:
 
               async function findExistingProjectItemId(projectId, contentId) {
                 let cursor = null;
+                let pageCount = 0;
+                const maxPages = 100;
 
                 while (true) {
+                  pageCount += 1;
+                  if (pageCount > maxPages) {
+                    console.log(`ℹ️ Reached pagination safety limit while searching project items for pull request #${issueNumber}`);
+                    return null;
+                  }
+
                   const itemQuery = `
                     query($projectId: ID!, $cursor: String) {
                       node(id: $projectId) {
@@ -266,10 +274,14 @@ jobs:
               }
 
               const statusField = project.fields.nodes.find(field => field.name === CONFIG.FIELDS.STATUS);
-              const triageOption = statusField?.options?.find(option => option.name === CONFIG.STATUS_VALUES.TRIAGE);
+              if (!statusField) {
+                console.log(`ℹ️ Project field "${CONFIG.FIELDS.STATUS}" was not found`);
+                return;
+              }
 
-              if (!statusField || !triageOption) {
-                console.log(`ℹ️ Could not find "${CONFIG.FIELDS.STATUS}" / "${CONFIG.STATUS_VALUES.TRIAGE}" in the project`);
+              const triageOption = statusField.options?.find(option => option.name === CONFIG.STATUS_VALUES.TRIAGE);
+              if (!triageOption) {
+                console.log(`ℹ️ Project option "${CONFIG.STATUS_VALUES.TRIAGE}" was not found in "${CONFIG.FIELDS.STATUS}"`);
                 return;
               }
 
