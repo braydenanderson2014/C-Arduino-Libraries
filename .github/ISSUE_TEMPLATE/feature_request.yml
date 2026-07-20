@@ -1,0 +1,84 @@
+name: Feature request
+description: Suggest an idea for this project
+title: "[FEATURE] "
+labels: ["enhancement", "feature-request"]
+projects: ["braydenanderson2014/4"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please fill out the form below.
+
+  - type: textarea
+    id: related_problem
+    attributes:
+      label: Related Problem
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+    validations:
+      required: false
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like.
+      placeholder: A clear and concise description of what you want to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe alternative solutions or features you've considered.
+      placeholder: Other ideas that might solve the same problem.
+    validations:
+      required: false
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case
+      description: How would this feature be used? Who benefits from it?
+      placeholder: Explain how this feature would fit into real-world workflows.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Add any other context or screenshots about the feature request.
+      placeholder: Extra notes, mockups, or related issues.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would improve workflow
+        - High - Critical for my use case
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Program Unique ID
+        - **ID**: []  
+        **Program ID is only for programs with the ability to report issues.**
+
+  - type: input
+    id: program_unique_id
+    attributes:
+      label: Program Unique ID (optional)
+      description: If this was reported from a program that provides an ID, paste it here.
+      placeholder: e.g., PRG-12345
+    validations:
+      required: false

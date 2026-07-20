@@ -1,0 +1,10 @@
+{
+  "name": "c-arduino-libraries-workflows",
+  "version": "1.0.0",
+  "description": "Node.js dependencies for GitHub Actions workflows",
+  "private": true,
+  "dependencies": {
+    "natural": "^8.1.1",
+    "similarity": "^1.2.1"
+  }
+}

@@ -93,12 +93,16 @@ Your contributions help keep this project alive and growing! 🚀
     - This issue stemed from the Initializer list constructor. In order to resolve the issue, Initializer list is no longer supported. Instead template args are now supported (THEY HAVE NOT BEEN TESTED)  ```cpp template<typename... Args> ```
 - In case you haven't noticed, the README.md file (this file) has been rebuilt and stylized.
 
-#### Version 1.0.4: BETA [CURRENT RELEASE]
+#### Version 1.0.4: BETA 
 - Due to version mismatches in the arduino library manager, progressing forward 1 version to solve issue
     - Version 1.0.3-BETA was actually the most up to date version, while 1.0.3 was the one before hand. This version is to ensure the latest version is the latest version.
 
 ### Version 1.0.4: 
 - RESOLVED ISSUE: Compile may fail on Arduino and some Platformio compilers due to the precense of a const = operator. This was mistakenly put into the code base and due to the way Platformio compiles, It was not found until now.
+
+### Version 1.0.5: [CURRENT RELEASE]
+- RESOLVED ISSUE: erase(int index) can erase multiple objects in the vector. [#126](https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/126)
+ 
 
 ### PlatformIO Registry:
 
@@ -155,6 +159,10 @@ Your contributions help keep this project alive and growing! 🚀
 
 #### Version 1.0.10 - BETA: [CURRENT RELEASE]
 - RESOLVED ISSUE: Compile may fail on Arduino and some Platformio compilers due to the precense of a const = operator. This was mistakenly put into the code base and due to the way Platformio compiles, It was not found until now.
+
+### Version 1.0.11: [CURRENT RELEASE]
+- RESOLVED ISSUE: erase(int index) can erase multiple objects in the vector. [#126](https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/126)
+- 
 ---
 
 ## Usage Examples

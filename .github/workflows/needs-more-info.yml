@@ -1,0 +1,208 @@
+name: Needs More Info Management
+
+on:
+  issues:
+    types: [labeled, unlabeled]
+
+jobs:
+  manage-needs-more-info:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+      
+    steps:
+      - name: Handle Needs More Info Label Changes
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const CONFIG = {
+              LABELS: {
+                NEEDS_MORE_INFO: "needs-more-info",
+                AUTO_RESPONSE: "auto-response"
+              },
+              MESSAGES: {
+                REQUEST_INFO: `
+                  🔍 **We Need More Information**
+
+                  Thank you for your submission! To help us better understand and address your issue, we need some additional information.
+
+                  **Please provide:**
+
+                  For **Bug Reports**:
+                  - Clear steps to reproduce the issue
+                  - Expected vs actual behavior
+                  - Your system information (OS, Python version, app version)
+                  - Any error messages or logs
+                  - Screenshots if applicable
+
+                  For **Feature Requests**:
+                  - Detailed description of the proposed feature
+                  - Use case explaining why this feature would be valuable
+                  - Any alternative solutions you've considered
+
+                  For **Questions**:
+                  - More context about what you're trying to achieve
+                  - What you've already tried
+                  - Specific error messages if any
+
+                  **Important Notes:**
+                  - Please update your original issue description rather than adding comments
+                  - This helps keep all information organized in one place
+                  - We'll remove this label once sufficient information is provided
+
+                  **Need help?** Check our documentation or ask questions in discussions.
+
+                  ---
+                  *This is an automated response. A human maintainer will review once you've provided the requested information.*`,
+                INFO_PROVIDED: `
+                  ✅ **Thank You for the Additional Information!**
+
+                  We've received the additional details and removed the "needs-more-info" label. A maintainer will review your updated issue soon.
+
+                  **Next Steps:**
+                  - Your issue is now back in our review queue
+                  - We'll investigate and respond as soon as possible
+                  - You'll receive notifications for any updates
+
+                  Thank you for helping us better understand your request!
+
+                  ---
+                  *This is an automated response confirming receipt of your additional information.*`
+              }
+            };
+            
+            // Get issue details
+            const issue = context.payload.issue;
+            const action = context.payload.action;
+            const label = context.payload.label;
+            
+            console.log(`📋 Processing ${action} action for issue #${issue.number}`);
+            
+            // Check if this is related to the needs-more-info label
+            if (!label || label.name !== CONFIG.LABELS.NEEDS_MORE_INFO) {
+              console.log(`ℹ️ Label change not related to needs-more-info label - skipping`);
+              return;
+            }
+            
+            // Function to check if issue already has our automated comment
+            async function hasExistingInfoRequest(issueNumber) {
+              try {
+                const comments = await github.rest.issues.listComments({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber
+                });
+                
+                return comments.data.some(comment => 
+                  comment.body.includes('We Need More Information') || 
+                  comment.body.includes('🔍 **We Need More Information**')
+                );
+              } catch (error) {
+                console.error(`❌ Error checking existing comments: ${error.message}`);
+                return false;
+              }
+            }
+            
+            // Function to get the last comment time for rate limiting
+            async function getLastCommentTime(issueNumber) {
+              try {
+                const comments = await github.rest.issues.listComments({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  per_page: 1,
+                  sort: 'created',
+                  direction: 'desc'
+                });
+                
+                if (comments.data.length > 0) {
+                  return new Date(comments.data[0].created_at);
+                }
+                return null;
+              } catch (error) {
+                console.error(`❌ Error getting last comment time: ${error.message}`);
+                return null;
+              }
+            }
+            
+            // Main logic
+            if (action === 'labeled') {
+              console.log(`🔍 Needs-more-info label added to issue #${issue.number}`);
+              
+              // Check if we already sent an info request
+              const hasExistingRequest = await hasExistingInfoRequest(issue.number);
+              
+              if (hasExistingRequest) {
+                console.log(`ℹ️ Issue #${issue.number} already has an info request comment - skipping`);
+                return;
+              }
+              
+              // Rate limiting: Don't spam if comments were added recently
+              const lastCommentTime = await getLastCommentTime(issue.number);
+              if (lastCommentTime) {
+                const timeSinceLastComment = Date.now() - lastCommentTime.getTime();
+                const minInterval = 5 * 60 * 1000; // 5 minutes
+                
+                if (timeSinceLastComment < minInterval) {
+                  console.log(`⏱️ Rate limiting: Last comment was ${Math.round(timeSinceLastComment / 1000)}s ago - waiting`);
+                  return;
+                }
+              }
+              
+              try {
+                // Post the info request comment
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: CONFIG.MESSAGES.REQUEST_INFO
+                });
+                
+                // Add auto-response label if not already present
+                const currentLabels = issue.labels.map(l => l.name.toLowerCase());
+                if (!currentLabels.includes(CONFIG.LABELS.AUTO_RESPONSE.toLowerCase())) {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    labels: [CONFIG.LABELS.AUTO_RESPONSE]
+                  });
+                }
+                
+                console.log(`✅ Posted info request comment and added auto-response label to issue #${issue.number}`);
+                
+              } catch (error) {
+                console.error(`❌ Error posting info request comment: ${error.message}`);
+              }
+              
+            } else if (action === 'unlabeled') {
+              console.log(`🔍 Needs-more-info label removed from issue #${issue.number}`);
+              
+              // Check if the issue was updated recently (indicating user provided info)
+              const issueUpdatedTime = new Date(issue.updated_at);
+              const timeSinceUpdate = Date.now() - issueUpdatedTime.getTime();
+              const recentUpdateThreshold = 10 * 60 * 1000; // 10 minutes
+              
+              if (timeSinceUpdate < recentUpdateThreshold) {
+                try {
+                  // Post confirmation comment
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    body: CONFIG.MESSAGES.INFO_PROVIDED
+                  });
+                  
+                  console.log(`✅ Posted info received confirmation comment to issue #${issue.number}`);
+                  
+                } catch (error) {
+                  console.error(`❌ Error posting confirmation comment: ${error.message}`);
+                }
+              } else {
+                console.log(`ℹ️ Label removed but issue wasn't recently updated - skipping confirmation comment`);
+              }
+            }
+            
+            console.log(`✅ Needs-more-info processing complete for issue #${issue.number}`);

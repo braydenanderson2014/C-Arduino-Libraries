@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ethernet Mach 2 Control Room</title>
+    <style>
+        :root {
+            --bg: #09141c;
+            --bg-elevated: rgba(12, 27, 38, 0.86);
+            --panel: rgba(18, 35, 49, 0.82);
+            --panel-strong: rgba(24, 46, 62, 0.96);
+            --line: rgba(130, 183, 201, 0.22);
+            --text: #eef6f3;
+            --muted: #9bb8c6;
+            --accent: #ff8c42;
+            --accent-soft: rgba(255, 140, 66, 0.2);
+            --ok: #3fd4a6;
+            --warn: #ffb347;
+            --stale: #ff6b6b;
+            --registered: #80a7bb;
+            --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+            --radius: 22px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Trebuchet MS", "Gill Sans", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(255, 140, 66, 0.22), transparent 32%),
+                radial-gradient(circle at top right, rgba(63, 212, 166, 0.18), transparent 28%),
+                linear-gradient(135deg, #061019 0%, #09141c 42%, #0e2230 100%);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 24px 24px;
+            mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 92%);
+            pointer-events: none;
+        }
+
+        .shell {
+            width: min(1440px, calc(100vw - 28px));
+            margin: 18px auto 28px;
+            display: grid;
+            gap: 18px;
+            animation: fade-in 420ms ease-out;
+        }
+
+        .hero,
+        .panel,
+        .stat,
+        .flash {
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--line);
+        }
+
+        .hero {
+            background: linear-gradient(145deg, rgba(14, 30, 42, 0.9), rgba(10, 20, 28, 0.84));
+            border-radius: 28px;
+            padding: 26px 26px 22px;
+            display: grid;
+            gap: 16px;
+        }
+
+        .hero-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .eyebrow {
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            font-size: 0.78rem;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2.1rem, 4vw, 3.55rem);
+            line-height: 0.96;
+            max-width: 12ch;
+        }
+
+        .hero-copy {
+            max-width: 62ch;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .hero-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .badge,
+        .status-pill,
+        .mini-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 0.88rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .badge strong,
+        .status-pill strong {
+            color: var(--text);
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: end;
+        }
+
+        button,
+        input,
+        textarea {
+            font: inherit;
+        }
+
+        .button {
+            border: 0;
+            border-radius: 14px;
+            padding: 12px 16px;
+            color: var(--text);
+            cursor: pointer;
+            transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+        }
+
+        .button:hover {
+            transform: translateY(-1px);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #ff8c42, #f26f2d);
+            box-shadow: 0 12px 28px rgba(242, 111, 45, 0.25);
+        }
+
+        .button-secondary {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .stat {
+            background: var(--bg-elevated);
+            border-radius: var(--radius);
+            padding: 18px;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 0.84rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .stat-value {
+            margin-top: 10px;
+            font-size: clamp(1.8rem, 3vw, 2.5rem);
+            font-weight: 700;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+            gap: 18px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        .panel-head {
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            border-bottom: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .panel-subtitle {
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .device-list {
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+            max-height: 72vh;
+            overflow: auto;
+        }
+
+        .device-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid transparent;
+            border-radius: 18px;
+            padding: 14px;
+            cursor: pointer;
+            transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+        }
+
+        .device-card:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255, 140, 66, 0.28);
+        }
+
+        .device-card.active {
+            background: rgba(255, 140, 66, 0.12);
+            border-color: rgba(255, 140, 66, 0.52);
+        }
+
+        .device-card-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .device-id {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0;
+            word-break: break-word;
+        }
+
+        .device-meta,
+        .muted {
+            color: var(--muted);
+        }
+
+        .device-grid,
+        .summary-grid,
+        .result-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .device-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-top: 14px;
+        }
+
+        .detail-body {
+            padding: 18px;
+            display: grid;
+            gap: 16px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--panel-strong);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 16px;
+        }
+
+        .card h3 {
+            margin: 0 0 12px;
+            font-size: 0.95rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .summary-item {
+            padding: 12px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .summary-label {
+            font-size: 0.78rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 8px;
+        }
+
+        .summary-value {
+            font-size: 1rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.94rem;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .results-table th {
+            color: var(--muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .status-pill.ok {
+            background: rgba(63, 212, 166, 0.16);
+            color: var(--ok);
+        }
+
+        .status-pill.warn {
+            background: rgba(255, 179, 71, 0.16);
+            color: var(--warn);
+        }
+
+        .status-pill.stale {
+            background: rgba(255, 107, 107, 0.16);
+            color: var(--stale);
+        }
+
+        .status-pill.registered {
+            background: rgba(128, 167, 187, 0.16);
+            color: var(--registered);
+        }
+
+        .mini-pill {
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        .stack {
+            display: grid;
+            gap: 12px;
+        }
+
+        .history-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .history-row:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .config-form {
+            display: grid;
+            gap: 14px;
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .field {
+            display: grid;
+            gap: 8px;
+        }
+
+        .field label {
+            font-size: 0.78rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            background: rgba(5, 12, 17, 0.72);
+            color: var(--text);
+            padding: 12px 14px;
+        }
+
+        .field textarea {
+            min-height: 190px;
+            resize: vertical;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.92rem;
+        }
+
+        .flash {
+            display: none;
+            border-radius: 18px;
+            padding: 14px 16px;
+            background: rgba(255, 140, 66, 0.14);
+        }
+
+        .flash.visible {
+            display: block;
+        }
+
+        .flash.error {
+            background: rgba(255, 107, 107, 0.16);
+        }
+
+        .empty-state {
+            padding: 36px 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .mono {
+            font-family: Consolas, "Courier New", monospace;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1040px) {
+            .stats,
+            .detail-grid,
+            .field-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+
+            .device-list {
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .shell {
+                width: min(100vw - 16px, 100%);
+                margin: 8px auto 22px;
+            }
+
+            .hero,
+            .panel,
+            .stat {
+                border-radius: 20px;
+            }
+
+            .hero-top,
+            .panel-head,
+            .device-card-top,
+            .history-row {
+                flex-direction: column;
+                align-items: start;
+            }
+
+            .stats,
+            .detail-grid,
+            .summary-grid,
+            .field-grid,
+            .device-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <section class="hero">
+            <div class="hero-top">
+                <div>
+                    <div class="eyebrow">EthernetMach2ConnectionChecker</div>
+                    <h1>Mach 2 Control Room</h1>
+                    <p class="hero-copy">
+                        Persistent device registration, heartbeat intake, result storage, and config editing for Mega-based network agents.
+                    </p>
+                </div>
+                <div class="hero-actions">
+                    <button id="refreshButton" class="button button-primary" type="button">Refresh Overview</button>
+                    <button id="copyApiButton" class="button button-secondary" type="button">Copy API Base</button>
+                </div>
+            </div>
+            <div class="hero-meta">
+                <span class="badge"><strong>Server Time</strong> <span id="serverTime">Waiting...</span></span>
+                <span class="badge"><strong>Data Store</strong> <span id="databasePath" class="mono">Pending</span></span>
+                <span class="badge"><strong>Selected Device</strong> <span id="selectedDeviceLabel">None</span></span>
+            </div>
+        </section>
+
+        <div id="flash" class="flash"></div>
+
+        <section id="stats" class="stats"></section>
+
+        <section class="workspace">
+            <aside class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h2 class="panel-title">Agent Roster</h2>
+                        <div class="panel-subtitle">Live view of registered Mega agents and their latest health state.</div>
+                    </div>
+                    <span id="deviceCountPill" class="mini-pill">0 devices</span>
+                </div>
+                <div id="deviceList" class="device-list">
+                    <div class="empty-state">Loading devices...</div>
+                </div>
+            </aside>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h2 class="panel-title">Device Detail</h2>
+                        <div class="panel-subtitle">Inspect latest results and push configuration back to the agent.</div>
+                    </div>
+                    <span id="detailStatus" class="status-pill registered">No device selected</span>
+                </div>
+                <div id="detailBody" class="detail-body">
+                    <div class="empty-state">Select an agent from the roster to inspect it.</div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script>
+        const state = {
+            overview: null,
+            selectedDeviceId: null,
+            refreshTimer: null,
+        };
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#39;");
+        }
+
+        function statusLabel(raw) {
+            const label = String(raw || "registered");
+            return label.charAt(0).toUpperCase() + label.slice(1);
+        }
+
+        function formatDate(value) {
+            if (!value) {
+                return "n/a";
+            }
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return String(value);
+            }
+            return date.toLocaleString();
+        }
+
+        function formatAge(seconds) {
+            if (seconds === null || seconds === undefined) {
+                return "n/a";
+            }
+            if (seconds < 60) {
+                return `${seconds}s ago`;
+            }
+            const minutes = Math.floor(seconds / 60);
+            const remainder = seconds % 60;
+            return `${minutes}m ${remainder}s ago`;
+        }
+
+        function setFlash(message, type = "info") {
+            const flash = document.getElementById("flash");
+            flash.textContent = message;
+            flash.className = `flash visible${type === "error" ? " error" : ""}`;
+        }
+
+        function clearFlash() {
+            const flash = document.getElementById("flash");
+            flash.textContent = "";
+            flash.className = "flash";
+        }
+
+        async function fetchJson(url, options = undefined) {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                const body = await response.text();
+                throw new Error(`${response.status} ${response.statusText}: ${body}`);
+            }
+            return response.json();
+        }
+
+        function renderStats(overview) {
+            const cards = [
+                ["Devices", overview.stats.deviceCount],
+                ["Online", overview.stats.onlineCount],
+                ["Warnings", overview.stats.warnCount],
+                ["Result Batches", overview.stats.resultHistoryCount],
+                ["Snapshot Batches", overview.stats.snapshotHistoryCount],
+                ["Queued Commands", overview.stats.queuedCommandCount],
+            ];
+            document.getElementById("stats").innerHTML = cards.map(([label, value]) => `
+                <article class="stat">
+                    <div class="stat-label">${escapeHtml(label)}</div>
+                    <div class="stat-value">${escapeHtml(value)}</div>
+                </article>
+            `).join("");
+            document.getElementById("serverTime").textContent = formatDate(overview.serverTime);
+            document.getElementById("databasePath").textContent = overview.databasePath;
+            document.getElementById("deviceCountPill").textContent = `${overview.stats.deviceCount} device${overview.stats.deviceCount === 1 ? "" : "s"}`;
+        }
+
+        function renderDeviceList() {
+            const list = document.getElementById("deviceList");
+            const devices = state.overview?.devices ?? [];
+            if (!devices.length) {
+                list.innerHTML = '<div class="empty-state">No agents have registered yet. Start a Mega agent and it will appear here.</div>';
+                return;
+            }
+
+            list.innerHTML = devices.map((device) => {
+                const isActive = device.deviceId === state.selectedDeviceId;
+                const status = device.status?.label ?? "registered";
+                return `
+                    <button type="button" class="device-card${isActive ? " active" : ""}" data-device-id="${escapeHtml(device.deviceId)}">
+                        <div class="device-card-top">
+                            <div>
+                                <p class="device-id">${escapeHtml(device.deviceId)}</p>
+                                <div class="device-meta">${escapeHtml(device.agentName || "Unknown Agent")}</div>
+                            </div>
+                            <span class="status-pill ${escapeHtml(status)}">${escapeHtml(statusLabel(status))}</span>
+                        </div>
+                        <div class="device-grid">
+                            <div>
+                                <div class="summary-label">IP</div>
+                                <div class="summary-value mono">${escapeHtml(device.ip || "n/a")}</div>
+                            </div>
+                            <div>
+                                <div class="summary-label">Last Seen</div>
+                                <div class="summary-value">${escapeHtml(formatAge(device.status?.ageSeconds))}</div>
+                            </div>
+                            <div>
+                                <div class="summary-label">Results</div>
+                                <div class="summary-value">${escapeHtml(device.latestResultsSummary.totalCount)} checks</div>
+                            </div>
+                            <div>
+                                <div class="summary-label">Failures</div>
+                                <div class="summary-value">${escapeHtml(device.latestResultsSummary.failedCount)}</div>
+                            </div>
+                            <div>
+                                <div class="summary-label">Queued</div>
+                                <div class="summary-value">${escapeHtml(device.pendingCommandCount ?? 0)}</div>
+                            </div>
+                            <div>
+                                <div class="summary-label">Speed</div>
+                                <div class="summary-value">${escapeHtml(device.networkSnapshotSummary?.speedBps ?? 0)} B/s</div>
+                            </div>
+                        </div>
+                    </button>
+                `;
+            }).join("");
+
+            for (const button of list.querySelectorAll(".device-card")) {
+                button.addEventListener("click", () => {
+                    selectDevice(button.dataset.deviceId).catch((error) => {
+                        setFlash(error.message, "error");
+                    });
+                });
+            }
+        }
+
+        function renderDetail(detail) {
+            const device = detail.device;
+            const latestResults = detail.latestResults?.results ?? [];
+            const networkSnapshot = detail.networkSnapshot?.value ?? {};
+            const discoveredDevices = Array.isArray(networkSnapshot.devices) ? networkSnapshot.devices : [];
+            const pathTrace = Array.isArray(networkSnapshot.pathTrace) ? networkSnapshot.pathTrace : [];
+            const speedTest = networkSnapshot.speedTest ?? {};
+            const commands = detail.commands ?? [];
+            const config = detail.config?.value ?? { checkIntervalMs: 60000, heartbeatIntervalMs: 30000, probes: [] };
+            document.getElementById("selectedDeviceLabel").textContent = device.deviceId;
+            document.getElementById("detailStatus").className = `status-pill ${device.status.label}`;
+            document.getElementById("detailStatus").textContent = statusLabel(device.status.label);
+
+            document.getElementById("detailBody").innerHTML = `
+                <div class="detail-grid">
+                    <section class="card">
+                        <h3>Signal Snapshot</h3>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-label">Device ID</div>
+                                <div class="summary-value mono">${escapeHtml(device.deviceId)}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">IP Address</div>
+                                <div class="summary-value mono">${escapeHtml(device.ip || "n/a")}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Agent Name</div>
+                                <div class="summary-value">${escapeHtml(device.agentName || "Unknown Agent")}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Firmware</div>
+                                <div class="summary-value">${escapeHtml(device.firmware || "n/a")}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Registered</div>
+                                <div class="summary-value">${escapeHtml(formatDate(device.registeredAt))}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Last Seen</div>
+                                <div class="summary-value">${escapeHtml(formatDate(device.lastSeenAt))}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Heartbeat Packet</div>
+                                <div class="summary-value">${escapeHtml(detail.heartbeat ? formatDate(detail.heartbeat.received_at) : "n/a")}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Latest Result Batch</div>
+                                <div class="summary-value">${escapeHtml(detail.latestResults.receivedAt ? formatDate(detail.latestResults.receivedAt) : "n/a")}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Snapshot Received</div>
+                                <div class="summary-value">${escapeHtml(detail.networkSnapshot?.receivedAt ? formatDate(detail.networkSnapshot.receivedAt) : "n/a")}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Queued Commands</div>
+                                <div class="summary-value">${escapeHtml(commands.filter((command) => command.status === "queued" || command.status === "issued").length)}</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <h3>Result Health</h3>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-label">Checks</div>
+                                <div class="summary-value">${escapeHtml(detail.latestResults.summary.totalCount)}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Accepted</div>
+                                <div class="summary-value">${escapeHtml(detail.latestResults.summary.acceptedCount)}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Failed</div>
+                                <div class="summary-value">${escapeHtml(detail.latestResults.summary.failedCount)}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Agent Check Ticks</div>
+                                <div class="summary-value mono">${escapeHtml(detail.latestResults.checkedAtMs)}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Link</div>
+                                <div class="summary-value">${escapeHtml(networkSnapshot.link || "n/a")}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Hardware</div>
+                                <div class="summary-value">${escapeHtml(networkSnapshot.hardware || "n/a")}</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="detail-grid">
+                    <section class="card">
+                        <h3>Latest Probe Results</h3>
+                        ${latestResults.length ? `
+                            <table class="results-table">
+                                <thead>
+                                    <tr>
+                                        <th>Probe</th>
+                                        <th>Target</th>
+                                        <th>Status</th>
+                                        <th>Latency</th>
+                                        <th>Note</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${latestResults.map((result) => `
+                                        <tr>
+                                            <td>${escapeHtml(result.name)}</td>
+                                            <td class="mono">${escapeHtml(result.host)}${escapeHtml(result.path)}</td>
+                                            <td>
+                                                <span class="status-pill ${result.accepted ? "ok" : "warn"}">
+                                                    ${escapeHtml(result.status)}
+                                                </span>
+                                            </td>
+                                            <td>${escapeHtml(result.latencyMs)} ms</td>
+                                            <td>${escapeHtml(result.note || "")}</td>
+                                        </tr>
+                                    `).join("")}
+                                </tbody>
+                            </table>
+                        ` : '<div class="empty-state">No probe results stored yet for this device.</div>'}
+                    </section>
+
+                    <section class="card">
+                        <h3>Recent Batch History</h3>
+                        <div class="stack">
+                            ${detail.history.length ? detail.history.map((entry) => `
+                                <div class="history-row">
+                                    <div>
+                                        <div>${escapeHtml(formatDate(entry.receivedAt))}</div>
+                                        <div class="muted">Agent ticks: <span class="mono">${escapeHtml(entry.checkedAtMs)}</span></div>
+                                    </div>
+                                    <div class="muted">
+                                        ${escapeHtml(entry.summary.acceptedCount)} accepted / ${escapeHtml(entry.summary.failedCount)} failed
+                                    </div>
+                                </div>
+                            `).join("") : '<div class="empty-state">No historical batches recorded yet.</div>'}
+                        </div>
+                    </section>
+                </div>
+
+                <div class="detail-grid">
+                    <section class="card">
+                        <h3>Network Snapshot</h3>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-label">Gateway</div>
+                                <div class="summary-value mono">${escapeHtml(networkSnapshot.gateway || "n/a")}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">DNS</div>
+                                <div class="summary-value mono">${escapeHtml(networkSnapshot.dns || "n/a")}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Subnet</div>
+                                <div class="summary-value mono">${escapeHtml(networkSnapshot.subnet || "n/a")}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Server</div>
+                                <div class="summary-value mono">${escapeHtml(networkSnapshot.serverHost || "n/a")}:${escapeHtml(networkSnapshot.serverPort ?? "")}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Speed Test</div>
+                                <div class="summary-value">${escapeHtml(speedTest.success ? `${speedTest.downloadBps} B/s` : "not run")}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Discovered Devices</div>
+                                <div class="summary-value">${escapeHtml(discoveredDevices.length)}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Path Trace Hops</div>
+                                <div class="summary-value">${escapeHtml(pathTrace.length)}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Last Check Ticks</div>
+                                <div class="summary-value mono">${escapeHtml(networkSnapshot.lastCheckAtMs ?? 0)}</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <h3>Guided Control</h3>
+                        <form id="commandForm" class="config-form">
+                            <div class="field-grid">
+                                <div class="field">
+                                    <label for="commandAction">Action</label>
+                                    <select id="commandAction" name="commandAction">
+                                        <option value="run_checks">Run Checks</option>
+                                        <option value="run_speed_test">Run Speed Test</option>
+                                        <option value="scan_subnet">Scan Subnet</option>
+                                        <option value="run_path_trace">Run Path Trace</option>
+                                        <option value="send_snapshot">Send Snapshot</option>
+                                        <option value="send_heartbeat">Send Heartbeat</option>
+                                        <option value="run_full_survey">Run Full Survey</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label for="commandHost">Host Override</label>
+                                    <input id="commandHost" name="commandHost" type="text" value="${escapeHtml(speedTest.host || "speed.cloudflare.com")}" />
+                                </div>
+                                <div class="field">
+                                    <label for="commandPath">Path Override</label>
+                                    <input id="commandPath" name="commandPath" type="text" value="${escapeHtml(speedTest.path || "/__down?bytes=51200")}" />
+                                </div>
+                                <div class="field">
+                                    <label for="commandPort">Port</label>
+                                    <input id="commandPort" name="commandPort" type="number" min="0" value="${escapeHtml(speedTest.port || 80)}" />
+                                </div>
+                                <div class="field">
+                                    <label for="startOctet">Scan Start Octet</label>
+                                    <input id="startOctet" name="startOctet" type="number" min="1" max="254" value="1" />
+                                </div>
+                                <div class="field">
+                                    <label for="endOctet">Scan End Octet</label>
+                                    <input id="endOctet" name="endOctet" type="number" min="1" max="254" value="30" />
+                                </div>
+                            </div>
+                            <div class="hero-actions">
+                                <span class="mini-pill">Queue actions for the Mega to pick up on its next control poll.</span>
+                                <button class="button button-primary" type="submit">Queue Command</button>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+
+                <div class="detail-grid">
+                    <section class="card">
+                        <h3>Discovered Network Devices</h3>
+                        ${discoveredDevices.length ? `
+                            <table class="results-table">
+                                <thead>
+                                    <tr>
+                                        <th>Host</th>
+                                        <th>Port</th>
+                                        <th>Status</th>
+                                        <th>Latency</th>
+                                        <th>Last Seen</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${discoveredDevices.map((entry) => `
+                                        <tr>
+                                            <td class="mono">${escapeHtml(entry.host)}</td>
+                                            <td>${escapeHtml(entry.port)}</td>
+                                            <td><span class="status-pill ${entry.isUp ? "ok" : "stale"}">${escapeHtml(entry.isUp ? "UP" : "DOWN")}</span></td>
+                                            <td>${escapeHtml(entry.latencyMs)} ms</td>
+                                            <td class="mono">${escapeHtml(entry.lastSeenMs)}</td>
+                                        </tr>
+                                    `).join("")}
+                                </tbody>
+                            </table>
+                        ` : '<div class="empty-state">No subnet scan has been uploaded yet.</div>'}
+                    </section>
+
+                    <section class="card">
+                        <h3>Path Trace</h3>
+                        ${pathTrace.length ? `
+                            <table class="results-table">
+                                <thead>
+                                    <tr>
+                                        <th>Hop</th>
+                                        <th>Target</th>
+                                        <th>Status</th>
+                                        <th>Latency</th>
+                                        <th>Note</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${pathTrace.map((hop) => `
+                                        <tr>
+                                            <td>${escapeHtml(hop.label)}</td>
+                                            <td class="mono">${escapeHtml(hop.target)}:${escapeHtml(hop.port)}</td>
+                                            <td><span class="status-pill ${hop.accepted ? "ok" : "warn"}">${escapeHtml(hop.status)}</span></td>
+                                            <td>${escapeHtml(hop.latencyMs)} ms</td>
+                                            <td>${escapeHtml(hop.note || "")}</td>
+                                        </tr>
+                                    `).join("")}
+                                </tbody>
+                            </table>
+                        ` : '<div class="empty-state">No path trace has been uploaded yet.</div>'}
+                    </section>
+                </div>
+
+                <section class="card">
+                    <h3>Command History</h3>
+                    <div class="stack">
+                        ${commands.length ? commands.map((command) => `
+                            <div class="history-row">
+                                <div>
+                                    <div>${escapeHtml(command.action)} <span class="muted">#${escapeHtml(command.commandId)}</span></div>
+                                    <div class="muted">${escapeHtml(formatDate(command.createdAt))} -> ${escapeHtml(formatDate(command.updatedAt))}</div>
+                                </div>
+                                <div>
+                                    <div><span class="status-pill ${command.status === "completed" ? "ok" : command.status === "failed" ? "stale" : "warn"}">${escapeHtml(command.status)}</span></div>
+                                    <div class="muted">${escapeHtml(command.summary || "")}</div>
+                                </div>
+                            </div>
+                        `).join("") : '<div class="empty-state">No server commands have been queued for this device yet.</div>'}
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h3>Agent Configuration</h3>
+                    <form id="configForm" class="config-form">
+                        <div class="field-grid">
+                            <div class="field">
+                                <label for="checkIntervalMs">Check Interval (ms)</label>
+                                <input id="checkIntervalMs" name="checkIntervalMs" type="number" min="0" value="${escapeHtml(config.checkIntervalMs)}" />
+                            </div>
+                            <div class="field">
+                                <label for="heartbeatIntervalMs">Heartbeat Interval (ms)</label>
+                                <input id="heartbeatIntervalMs" name="heartbeatIntervalMs" type="number" min="0" value="${escapeHtml(config.heartbeatIntervalMs)}" />
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="probes">Probes JSON</label>
+                            <textarea id="probes" name="probes">${escapeHtml(JSON.stringify(config.probes ?? [], null, 2))}</textarea>
+                        </div>
+                        <div class="hero-actions">
+                            <span class="mini-pill">Updated ${escapeHtml(formatDate(detail.config.updatedAt))}</span>
+                            <button class="button button-primary" type="submit">Save Configuration</button>
+                        </div>
+                    </form>
+                </section>
+            `;
+
+            const form = document.getElementById("configForm");
+            form.addEventListener("submit", async (event) => {
+                event.preventDefault();
+                const checkIntervalMs = Number(document.getElementById("checkIntervalMs").value);
+                const heartbeatIntervalMs = Number(document.getElementById("heartbeatIntervalMs").value);
+                let probes;
+                try {
+                    probes = JSON.parse(document.getElementById("probes").value);
+                } catch (error) {
+                    setFlash(`Probe JSON is invalid: ${error.message}`, "error");
+                    return;
+                }
+
+                const payload = {
+                    checkIntervalMs,
+                    heartbeatIntervalMs,
+                    probes,
+                };
+
+                try {
+                    await fetchJson(`/api/v1/config/${encodeURIComponent(device.deviceId)}`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(payload),
+                    });
+                    setFlash(`Saved configuration for ${device.deviceId}.`);
+                    await loadOverview(true);
+                    await selectDevice(device.deviceId, true);
+                } catch (error) {
+                    setFlash(error.message, "error");
+                }
+            });
+
+            const commandForm = document.getElementById("commandForm");
+            commandForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+                const payload = {
+                    action: document.getElementById("commandAction").value,
+                    host: document.getElementById("commandHost").value.trim(),
+                    path: document.getElementById("commandPath").value.trim(),
+                    port: Number(document.getElementById("commandPort").value || 0),
+                    startOctet: Number(document.getElementById("startOctet").value || 1),
+                    endOctet: Number(document.getElementById("endOctet").value || 30),
+                };
+
+                try {
+                    await fetchJson(`/api/v1/commands/${encodeURIComponent(device.deviceId)}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(payload),
+                    });
+                    setFlash(`Queued ${payload.action} for ${device.deviceId}.`);
+                    await loadOverview(true);
+                    await selectDevice(device.deviceId, true);
+                } catch (error) {
+                    setFlash(error.message, "error");
+                }
+            });
+        }
+
+        async function selectDevice(deviceId, skipOverviewRefresh = false) {
+            state.selectedDeviceId = deviceId;
+            renderDeviceList();
+            document.getElementById("selectedDeviceLabel").textContent = deviceId;
+            const detail = await fetchJson(`/api/v1/device/${encodeURIComponent(deviceId)}`);
+            renderDetail(detail);
+            if (!skipOverviewRefresh) {
+                clearFlash();
+            }
+        }
+
+        async function loadOverview(preserveSelection = true) {
+            const overview = await fetchJson("/api/v1/overview");
+            state.overview = overview;
+            renderStats(overview);
+            const devices = overview.devices ?? [];
+            if (!devices.length) {
+                state.selectedDeviceId = null;
+                document.getElementById("selectedDeviceLabel").textContent = "None";
+                document.getElementById("detailStatus").className = "status-pill registered";
+                document.getElementById("detailStatus").textContent = "No device selected";
+                document.getElementById("detailBody").innerHTML = '<div class="empty-state">No agent data yet. Start the Arduino agent and it will register here.</div>';
+                renderDeviceList();
+                return;
+            }
+
+            const stillExists = preserveSelection && devices.some((device) => device.deviceId === state.selectedDeviceId);
+            if (!stillExists) {
+                state.selectedDeviceId = devices[0].deviceId;
+            }
+            renderDeviceList();
+            await selectDevice(state.selectedDeviceId, true);
+        }
+
+        async function refreshNow() {
+            try {
+                await loadOverview(true);
+                clearFlash();
+            } catch (error) {
+                setFlash(error.message, "error");
+            }
+        }
+
+        function startAutoRefresh() {
+            if (state.refreshTimer !== null) {
+                clearInterval(state.refreshTimer);
+            }
+            state.refreshTimer = window.setInterval(() => {
+                refreshNow();
+            }, 5000);
+        }
+
+        async function copyApiBase() {
+            const apiBase = `${window.location.origin}/api/v1`;
+            try {
+                await navigator.clipboard.writeText(apiBase);
+                setFlash(`Copied ${apiBase}`);
+            } catch (error) {
+                setFlash(`Copy failed: ${error.message}`, "error");
+            }
+        }
+
+        document.getElementById("refreshButton").addEventListener("click", refreshNow);
+        document.getElementById("copyApiButton").addEventListener("click", copyApiBase);
+
+        refreshNow();
+        startAutoRefresh();
+    </script>
+</body>
+</html>

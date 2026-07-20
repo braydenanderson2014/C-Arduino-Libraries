@@ -1,0 +1,7 @@
+- name: "send-welcome"
+  color: "0075ca"
+  description: "Add this label to retroactively send a welcome message to a pre-existing issue. Removed automatically after the message is posted."
+
+- name: "auto-response"
+  color: "e4e669"
+  description: "Indicates an automated welcome message has already been sent for this issue. Prevents duplicate messages."

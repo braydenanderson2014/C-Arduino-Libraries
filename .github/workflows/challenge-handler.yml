@@ -1,0 +1,609 @@
+name: Challenge Handler
+
+on:
+  issues:
+    types: [labeled, unlabeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  handle-challenges:
+    runs-on: ubuntu-latest
+    name: Handle Challenge System
+    
+    steps:
+    - name: Handle Challenge Labels and Commands
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+        script: |
+          (async () => {
+          // Configuration
+          const CONFIG = {
+            PROJECT_NUMBER: 4,
+            PROJECT_OWNER: "braydenanderson2014",
+            LABELS: {
+              CHALLENGE: 'challenge',
+              CHALLENGE_FAILED: 'challenge-failed',
+              CHALLENGE_UPHELD: 'challenge-upheld',
+              CHALLENGE_COMPLETE: 'challenge-complete',
+              DUPLICATE: 'duplicate',
+              POTENTIAL_DUPLICATE: 'potential-duplicate',
+              AUTO_POTENTIAL_DUPLICATE: 'auto-potential-duplicate'
+            },
+            FIELDS: {
+              Status: "Status",
+              ArchiveBucket: "Archive bucket",
+              Reopened: "Reopened Issue"
+            },
+            RESPONSES: {
+              CHALLENGE_STARTED: `🏆 **Challenge Initiated**
+              
+              Your challenge has been registered and this issue has been moved to "Challenged" status.
+              
+              **What happens next?**
+              - A maintainer will review the challenge within 48 hours
+              - The original decision will be re-evaluated
+              - You'll be notified of the outcome
+              
+              **Challenge Process:**
+              - ✅ **Upheld**: Challenge accepted, issue reopened for review
+              - ❌ **Failed**: Challenge rejected, original decision stands
+              
+              <!-- AUTO-RESPONSE-ID: challenge-started -->
+              *This is an automated response. A human maintainer will review your challenge.*`,
+              
+              CHALLENGE_UPHELD: `✅ **Challenge Upheld**
+              
+              Your challenge has been accepted by a maintainer. The original decision has been overturned.
+              
+              **What this means:**
+              - This issue is now back in triage for proper review
+              - The previous duplicate/closure decision was incorrect
+              - Normal issue processing will resume
+              
+              <!-- AUTO-RESPONSE-ID: challenge-upheld -->
+              *Challenge review completed by maintainer.*`,
+              
+              CHALLENGE_FAILED: (reason) => `❌ **Challenge Failed**
+              
+              After review, your challenge has been rejected. The original decision stands.
+              
+              **Reason:**
+              ${reason || 'The issue was correctly identified as a duplicate/invalid based on our review criteria.'}
+              
+              **Next steps:**
+              - This issue will remain closed
+              - Consider providing additional unique information if you believe this decision is still incorrect
+              
+              <!-- AUTO-RESPONSE-ID: challenge-failed -->
+              *Challenge review completed by maintainer.*`
+            }
+          };
+          
+          // Global storage for original labels (in a real implementation, you'd use a database)
+          // For now, we'll store in issue body as a comment
+          const ORIGINAL_LABELS_PREFIX = '<!-- ORIGINAL_LABELS:';
+          const ORIGINAL_LABELS_SUFFIX = '-->';
+          const FAILED_REASON_PREFIX = '<!-- FAILED_REASON:';
+          const FAILED_REASON_SUFFIX = '-->';
+          
+          // Helper function to store original labels
+          async function storeOriginalLabels(issue, labels) {
+            const labelString = labels.join(',');
+            const marker = `${ORIGINAL_LABELS_PREFIX}${labelString}${ORIGINAL_LABELS_SUFFIX}`;
+            
+            try {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: marker
+              });
+              console.log(`💾 Stored original labels for issue #${issue.number}: ${labels.join(', ')}`);
+            } catch (error) {
+              console.error(`❌ Error storing original labels: ${error.message}`);
+            }
+          }
+          
+          // Helper function to retrieve original labels
+          async function getOriginalLabels(issue) {
+            try {
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number
+              });
+              
+              for (const comment of comments.data.reverse()) {
+                if (comment.body.includes(ORIGINAL_LABELS_PREFIX)) {
+                  const start = comment.body.indexOf(ORIGINAL_LABELS_PREFIX) + ORIGINAL_LABELS_PREFIX.length;
+                  const end = comment.body.indexOf(ORIGINAL_LABELS_SUFFIX, start);
+                  if (end > start) {
+                    const labelString = comment.body.substring(start, end);
+                    return labelString.split(',').filter(label => label.trim());
+                  }
+                }
+              }
+            } catch (error) {
+              console.error(`❌ Error retrieving original labels: ${error.message}`);
+            }
+            return [];
+          }
+          
+          // Helper function to store the admin-provided failed reason
+          async function storeFailedReason(issue, reason) {
+            const marker = `${FAILED_REASON_PREFIX}${reason}${FAILED_REASON_SUFFIX}`;
+            try {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: marker
+              });
+              console.log(`💾 Stored failed reason for issue #${issue.number}`);
+            } catch (error) {
+              console.error(`❌ Error storing failed reason: ${error.message}`);
+            }
+          }
+          
+          // Helper function to retrieve the stored failed reason
+          async function getFailedReason(issue) {
+            try {
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number
+              });
+              
+              for (const comment of comments.data.reverse()) {
+                if (comment.body.includes(FAILED_REASON_PREFIX)) {
+                  const start = comment.body.indexOf(FAILED_REASON_PREFIX) + FAILED_REASON_PREFIX.length;
+                  const end = comment.body.indexOf(FAILED_REASON_SUFFIX, start);
+                  if (end > start) {
+                    return comment.body.substring(start, end).trim();
+                  }
+                }
+              }
+            } catch (error) {
+              console.error(`❌ Error retrieving failed reason: ${error.message}`);
+            }
+            return null;
+          }
+          
+          // Helper function to update project field
+          async function updateProjectField(issue, fieldName, fieldValue) {
+            try {
+              // Get project and field information
+              const projectQuery = `
+                query($login:String!, $number:Int!, $owner:String!, $repo:String!, $issue:Int!) {
+                  user(login: $login) {
+                    projectV2(number: $number) {
+                      id
+                      fields(first: 50) {
+                        nodes {
+                          ... on ProjectV2FieldCommon { id name }
+                          ... on ProjectV2SingleSelectField { id name options { id name } }
+                        }
+                      }
+                    }
+                  }
+                  repository(owner:$owner, name:$repo) {
+                    issue(number:$issue) { id }
+                  }
+                }`;
+
+              const data = await github.graphql(projectQuery, {
+                login: CONFIG.PROJECT_OWNER,
+                number: CONFIG.PROJECT_NUMBER,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue: issue.number
+              });
+
+              const project = data.user.projectV2;
+              const projectId = project.id;
+              const issueNodeId = data.repository.issue.id;
+
+              // Find the field
+              const field = project.fields.nodes.find(f => f.name === fieldName);
+              if (!field) {
+                console.log(`Field "${fieldName}" not found in project`);
+                return;
+              }
+
+              // Find field value option
+              const option = field.options ? field.options.find(o => o.name === fieldValue) : null;
+              if (!option && field.options) {
+                console.log(`Option "${fieldValue}" not found for field "${fieldName}"`);
+                return;
+              }
+
+              // Get project item ID
+              const findItemQuery = `
+                query($projectId:ID!, $issueId:ID!) {
+                  node(id:$projectId) {
+                    ... on ProjectV2 {
+                      items(first:50, query:\"${issue.number}\") {
+                        nodes { id content { ... on Issue { id number } } }
+                      }
+                    }
+                  }
+                }`;
+
+              const findRes = await github.graphql(findItemQuery, { projectId, issueId: issueNodeId });
+              const node = (findRes.node.items.nodes || []).find(n => n.content && n.content.id === issueNodeId);
+              
+              if (!node) {
+                console.log(`Issue #${issue.number} not found in project`);
+                return;
+              }
+
+              // Update field
+              const updateMutation = `
+                mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $value:ProjectV2FieldValue!) {
+                  updateProjectV2ItemFieldValue(input:{
+                    projectId:$projectId, itemId:$itemId, fieldId:$fieldId, value:$value
+                  }) { projectV2Item { id } }
+                }`;
+
+              await github.graphql(updateMutation, {
+                projectId,
+                itemId: node.id,
+                fieldId: field.id,
+                value: option ? { singleSelectOptionId: option.id } : { text: fieldValue }
+              });
+
+              console.log(`✅ Updated ${fieldName} to "${fieldValue}" for issue #${issue.number}`);
+
+            } catch (error) {
+              console.error(`❌ Error updating project field: ${error.message}`);
+            }
+          }
+          
+          // Handle challenge label added
+          async function handleChallengeAdded(issue) {
+            console.log(`🏆 Processing challenge for issue #${issue.number}`);
+            
+            try {
+              // Get current labels
+              const currentLabels = issue.labels.map(label => label.name);
+              console.log(`🏷️ Current labels: ${currentLabels.join(', ')}`);
+              
+              // Identify duplicate-related labels to remove
+              const duplicateLabels = currentLabels.filter(label => 
+                label.toLowerCase().includes('duplicate') || 
+                label.toLowerCase() === 'potential-duplicate' ||
+                label.toLowerCase() === 'auto-potential-duplicate'
+              );
+              
+              // Store original labels for potential restoration
+              if (duplicateLabels.length > 0) {
+                await storeOriginalLabels(issue, duplicateLabels);
+              }
+              
+              // Remove duplicate labels
+              for (const label of duplicateLabels) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    name: label
+                  });
+                  console.log(`🗑️ Removed duplicate label: ${label}`);
+                } catch (error) {
+                  console.error(`❌ Error removing label ${label}: ${error.message}`);
+                }
+              }
+              
+              // Comment about removed labels
+              if (duplicateLabels.length > 0) {
+                const removedLabelsComment = `🏷️ **Challenge Initiated - Labels Removed**\n\nThe following duplicate-related labels have been temporarily removed for challenge review:\n${duplicateLabels.map(label => `- \`${label}\``).join('\n')}\n\nThese labels will be restored if the challenge fails, or permanently removed if the challenge succeeds.`;
+                
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: removedLabelsComment
+                });
+                console.log(`💬 Posted comment about removed labels`);
+              }
+              
+              // Assign braydenanderson2014 to the issue
+              try {
+                await github.rest.issues.addAssignees({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  assignees: ['braydenanderson2014']
+                });
+                console.log(`👤 Assigned braydenanderson2014 to issue #${issue.number}`);
+              } catch (error) {
+                console.error(`❌ Error assigning user: ${error.message}`);
+              }
+              
+              // Reopen issue if closed
+              if (issue.state === 'closed') {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: 'open'
+                });
+                console.log(`🔓 Reopened issue #${issue.number} for challenge review`);
+              }
+              
+              // Update project status to "Challenged"
+              await updateProjectField(issue, CONFIG.FIELDS.Status, "Challenged");
+              
+              // Post challenge started message
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: CONFIG.RESPONSES.CHALLENGE_STARTED
+              });
+              
+              console.log(`✅ Challenge initiated for issue #${issue.number}`);
+              
+            } catch (error) {
+              console.error(`❌ Error handling challenge: ${error.message}`);
+            }
+          }
+          
+          // Handle challenge upheld
+          async function handleChallengeUpheld(issue) {
+            console.log(`✅ Processing challenge upheld for issue #${issue.number}`);
+            
+            try {
+              // Update project status back to "Triage"
+              await updateProjectField(issue, CONFIG.FIELDS.Status, "Triage");
+              
+              // Set Reopened field to "Challenge Upheld"
+              await updateProjectField(issue, CONFIG.FIELDS.Reopened, "Challenge Upheld");
+              
+              // Remove challenge-related labels
+              const challengeLabelsToRemove = [
+                CONFIG.LABELS.CHALLENGE,
+                CONFIG.LABELS.CHALLENGE_FAILED,
+                CONFIG.LABELS.CHALLENGE_COMPLETE
+              ];
+              
+              for (const label of challengeLabelsToRemove) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    name: label
+                  });
+                } catch (e) {
+                  // Label might not exist
+                }
+              }
+              
+              // Add challenge complete label
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: [CONFIG.LABELS.CHALLENGE_COMPLETE]
+              });
+              
+              // Post upheld message
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: CONFIG.RESPONSES.CHALLENGE_UPHELD
+              });
+              
+              console.log(`✅ Challenge upheld processed for issue #${issue.number}`);
+              
+            } catch (error) {
+              console.error(`❌ Error handling challenge upheld: ${error.message}`);
+            }
+          }
+          
+          // Handle challenge failed
+          async function handleChallengeFailed(issue) {
+            console.log(`❌ Processing challenge failed for issue #${issue.number}`);
+            
+            try {
+              // Get original labels that were removed
+              const originalLabels = await getOriginalLabels(issue);
+              console.log(`🔄 Original labels to restore: ${originalLabels.join(', ')}`);
+              
+              // Restore original duplicate labels
+              if (originalLabels.length > 0) {
+                try {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    labels: originalLabels
+                  });
+                  console.log(`✅ Restored original labels: ${originalLabels.join(', ')}`);
+                } catch (error) {
+                  console.error(`❌ Error restoring original labels: ${error.message}`);
+                }
+              }
+              
+              // Remove challenge-related labels, keep only challenge-failed
+              const labelsToRemove = [
+                CONFIG.LABELS.CHALLENGE,
+                CONFIG.LABELS.CHALLENGE_UPHELD,
+                CONFIG.LABELS.CHALLENGE_COMPLETE
+              ];
+              
+              for (const label of labelsToRemove) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    name: label
+                  });
+                  console.log(`🗑️ Removed challenge label: ${label}`);
+                } catch (e) {
+                  // Label might not exist, continue
+                }
+              }
+              
+              // Update project status to "Done"
+              await updateProjectField(issue, CONFIG.FIELDS.Status, "Done");
+              
+              // Set archive bucket to "Failed Challenges"
+              await updateProjectField(issue, CONFIG.FIELDS.ArchiveBucket, "Failed Challenges");
+              
+              // Close the issue
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed'
+              });
+              
+              // Retrieve the admin-provided reason (stored during the comment event)
+              const reason = await getFailedReason(issue);
+              if (reason) {
+                console.log(`📝 Using admin-provided reason: ${reason}`);
+              } else {
+                console.log(`ℹ️ No admin reason found, using default message`);
+              }
+              
+              // Post failed message with the reason embedded
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: CONFIG.RESPONSES.CHALLENGE_FAILED(reason)
+              });
+              
+              console.log(`✅ Challenge failed processed for issue #${issue.number}`);
+              
+            } catch (error) {
+              console.error(`❌ Error handling challenge failed: ${error.message}`);
+            }
+          }
+          
+          // Check for challenge commands in comments
+          function isChallengeCommand(comment) {
+            if (!comment) return null;
+            const body = comment.body.toLowerCase();
+            
+            if (body.includes('challenge upheld') || body.includes('/challenge-upheld')) {
+              return 'upheld';
+            }
+            if (body.includes('challenge failed') || body.includes('/challenge-failed')) {
+              return 'failed';
+            }
+            // Support "@dependabot challenge", "@bot-name challenge", etc.
+            // \s+ makes the required space between mention and "challenge" explicit.
+            // body is already lowercased, but /i is added for clarity.
+            if (/@[\w-]+\s+challenge\b/i.test(body) || body.includes('start challenge') || body.includes('/challenge')) {
+              return 'start';
+            }
+            
+            return null;
+          }
+          
+          // Extract the admin-provided reason from a challenge-failed comment.
+          // Accepts formats like:
+          //   "Challenge Failed: <reason>"
+          //   "Challenge Failed - <reason>"  (hyphen, en-dash –, or em-dash —)
+          //   "Challenge Failed\n<reason>"
+          //   "/challenge-failed <reason>"
+          // Note: searches in the lowercased copy to find the command position, then
+          // slices from the same offset in the original body (lengths are equal after
+          // toLowerCase) so the extracted reason preserves the original casing.
+          function extractFailedReason(commentBody) {
+            const lower = commentBody.toLowerCase();
+            
+            // Find where the command ends (search in lowercase)
+            let cmdEnd = -1;
+            const patterns = ['challenge failed', '/challenge-failed'];
+            for (const pat of patterns) {
+              const idx = lower.indexOf(pat);
+              if (idx !== -1) {
+                cmdEnd = idx + pat.length;
+                break;
+              }
+            }
+            if (cmdEnd === -1) return null;
+            
+            // Slice from the original body (same length as lower) to preserve casing.
+            // Strip leading separators: whitespace, newlines, colon, hyphen, en-dash, em-dash.
+            const remainder = commentBody.slice(cmdEnd).replace(/^[-\s:–—]+/, '').trim();
+            return remainder || null;
+          }
+          
+          // Main workflow logic
+          const issue = context.payload.issue;
+          const label = context.payload.label;
+          const comment = context.payload.comment;
+          const action = context.payload.action;
+          
+          console.log(`🔍 Challenge handler triggered - Event: ${context.eventName}, Action: ${action}`);
+          
+          if (context.eventName === 'issues' && action === 'labeled' && label) {
+            const labelName = label.name.toLowerCase();
+            
+            if (labelName === CONFIG.LABELS.CHALLENGE.toLowerCase()) {
+              await handleChallengeAdded(issue);
+            } else if (labelName === CONFIG.LABELS.CHALLENGE_UPHELD.toLowerCase()) {
+              await handleChallengeUpheld(issue);
+            } else if (labelName === CONFIG.LABELS.CHALLENGE_FAILED.toLowerCase()) {
+              await handleChallengeFailed(issue);
+            }
+          }
+          
+          if (context.eventName === 'issue_comment' && comment && issue) {
+            const challengeCommand = isChallengeCommand(comment);
+            
+            // Only add the label here. The resulting issues:labeled event will
+            // trigger this workflow again and call the appropriate handler exactly
+            // once. Calling the handler directly here as well would cause it to
+            // run twice (once now, once from the label-triggered rerun).
+            if (challengeCommand === 'start') {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: [CONFIG.LABELS.CHALLENGE]
+              });
+            } else if (challengeCommand === 'upheld') {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: [CONFIG.LABELS.CHALLENGE_UPHELD]
+              });
+            } else if (challengeCommand === 'failed') {
+              // Extract and persist any reason the admin provided so that the
+              // subsequent issues:labeled run can include it in the response.
+              const reason = extractFailedReason(comment.body);
+              if (reason) {
+                await storeFailedReason(issue, reason);
+                console.log(`📝 Stored admin reason: ${reason}`);
+              }
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: [CONFIG.LABELS.CHALLENGE_FAILED]
+              });
+            }
+          }
+          
+          if (!issue) {
+            console.log('ℹ️ No issue context found');
+            return;
+          }
+          
+          })();

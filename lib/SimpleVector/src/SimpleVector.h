@@ -167,7 +167,14 @@ public:
      * @version Added Version 1.0.7 (PlatformIO) and Version 1.02 (Arduino Library Manager)
      */
     void erase(int index){
-        remove(get(index));
+        if (index < 0 || index >= (int)count) {
+            return; // Index out of bounds
+        }
+        // Shift elements after the specified index to the left
+        for (unsigned int i = (unsigned int)index; i < count - 1; i++) {
+            array[i] = array[i + 1];
+        }
+        count--;
     }
 
 //Changed to put() for better naming conventions.
@@ -278,6 +285,14 @@ public:
         }
         return *this;
     }
+
+bool operator==(const SimpleVector<T>& other) const {
+    if (count != other.elements()) return false;
+    for (unsigned int i = 0; i < count; i++) {
+        if (array[i] != other[i]) return false;
+    }
+    return true;
+}
 
     /**
      * @brief Get the size of the vector

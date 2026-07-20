@@ -1,0 +1,249 @@
+name: Handle User-Closed Issues
+
+on:
+  issues:
+    types: [closed, labeled]
+
+jobs:
+  update-archive-bucket:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'user-closed')
+    
+    steps:
+      - name: Check if issue has user-closed label
+        id: check_label
+        run: |
+          # Check if the issue has the user-closed label
+          labels='${{ toJson(github.event.issue.labels.*.name) }}'
+          echo "Issue labels: $labels"
+          
+          if echo "$labels" | grep -q "user-closed"; then
+            echo "has_user_closed=true" >> $GITHUB_OUTPUT
+            echo "✅ Issue has user-closed label"
+          else
+            echo "has_user_closed=false" >> $GITHUB_OUTPUT
+            echo "❌ Issue does not have user-closed label"
+          fi
+
+      - name: Update Archive Bucket to User-Closed
+        if: steps.check_label.outputs.has_user_closed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          issue_number='${{ github.event.issue.number }}'
+          PROJECT_ID='4'
+          PROJECT_OWNER='braydenanderson2014'
+          
+          echo "🔄 Updating Archive Bucket for user-closed issue #$issue_number"
+          
+          # GraphQL query to find the project item and get field IDs
+          query='
+          query($owner: String!, $number: Int!, $issue_number: Int!) {
+            user(login: $owner) {
+              projectV2(number: $number) {
+                id
+                fields(first: 20) {
+                  nodes {
+                    ... on ProjectV2SingleSelectField {
+                      id
+                      name
+                      options {
+                        id
+                        name
+                      }
+                    }
+                  }
+                }
+                items(first: 100) {
+                  nodes {
+                    id
+                    content {
+                      ... on Issue {
+                        number
+                        title
+                        state
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }'
+          
+          # Execute GraphQL query to get project structure
+          echo "🔍 Querying project structure..."
+          project_data=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d "{\"query\": \"$(echo $query | tr '\n' ' ')\", \"variables\": {\"owner\": \"$PROJECT_OWNER\", \"number\": $PROJECT_ID, \"issue_number\": $issue_number}}" \
+            https://api.github.com/graphql)
+          
+          # Extract project ID and item ID
+          project_internal_id=$(echo "$project_data" | jq -r '.data.user.projectV2.id')
+          item_id=$(echo "$project_data" | jq -r --arg issue_num "$issue_number" '.data.user.projectV2.items.nodes[] | select(.content.number == ($issue_num | tonumber)) | .id')
+          
+          # Find Archive Bucket field and User-Closed option
+          archive_field_id=$(echo "$project_data" | jq -r '.data.user.projectV2.fields.nodes[] | select(.name == "Archive Bucket") | .id')
+          user_closed_option_id=$(echo "$project_data" | jq -r '.data.user.projectV2.fields.nodes[] | select(.name == "Archive Bucket") | .options[] | select(.name == "User-Closed") | .id')
+          
+          echo "🔍 Project Internal ID: $project_internal_id"
+          echo "🔍 Item ID: $item_id"
+          echo "🔍 Archive Bucket Field ID: $archive_field_id"
+          echo "🔍 User-Closed Option ID: $user_closed_option_id"
+          
+          # Check if we found all required IDs
+          if [ "$project_internal_id" != "null" ] && [ "$item_id" != "null" ] && [ "$archive_field_id" != "null" ] && [ "$user_closed_option_id" != "null" ]; then
+            
+            echo "✅ All IDs found - updating Archive Bucket field..."
+            
+            # GraphQL mutation to update the Archive Bucket field
+            mutation='
+            mutation($project_id: ID!, $item_id: ID!, $field_id: ID!, $option_id: String!) {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: $project_id
+                itemId: $item_id
+                fieldId: $field_id
+                value: {
+                  singleSelectOptionId: $option_id
+                }
+              }) {
+                projectV2Item {
+                  id
+                }
+              }
+            }'
+            
+            # Execute the mutation
+            update_result=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Content-Type: application/json" \
+              -X POST \
+              -d "{\"query\": \"$(echo $mutation | tr '\n' ' ')\", \"variables\": {\"project_id\": \"$project_internal_id\", \"item_id\": \"$item_id\", \"field_id\": \"$archive_field_id\", \"option_id\": \"$user_closed_option_id\"}}" \
+              https://api.github.com/graphql)
+            
+            # Check for errors in the mutation
+            if echo "$update_result" | jq -e '.errors' > /dev/null; then
+              echo "❌ Error updating Archive Bucket:"
+              echo "$update_result" | jq '.errors'
+            else
+              echo "✅ Successfully updated Archive Bucket to 'User-Closed' for issue #$issue_number"
+              
+              # Add a comment to the issue confirming the update
+              curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+                -H "Content-Type: application/json" \
+                -X POST \
+                -d "{\"body\": \"🗃️ **Archive Bucket Updated**: This issue has been moved to the 'User-Closed' archive bucket in the project tracking system.\"}" \
+                "https://api.github.com/repos/${{ github.repository }}/issues/$issue_number/comments"
+            fi
+            
+          elif [ "$user_closed_option_id" == "null" ]; then
+            echo "❌ 'User-Closed' option not found in Archive Bucket field"
+            echo "   Available options in Archive Bucket field:"
+            echo "$project_data" | jq -r '.data.user.projectV2.fields.nodes[] | select(.name == "Archive Bucket") | .options[] | "   - " + .name'
+            
+            # Suggest creating the option
+            curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Content-Type: application/json" \
+              -X POST \
+              -d "{\"body\": \"⚠️ **Archive Bucket Update Failed**: The 'User-Closed' option was not found in the Archive Bucket field. Please add this option to the project field configuration.\"}" \
+              "https://api.github.com/repos/${{ github.repository }}/issues/$issue_number/comments"
+              
+          else
+            echo "❌ Could not find required project structure"
+            echo "   Project ID: $project_internal_id"
+            echo "   Item ID: $item_id"
+            echo "   Archive Field ID: $archive_field_id"
+            echo "   User-Closed Option ID: $user_closed_option_id"
+          fi
+
+      - name: Update Issue Status in Project
+        if: steps.check_label.outputs.has_user_closed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          issue_number='${{ github.event.issue.number }}'
+          PROJECT_ID='4'
+          PROJECT_OWNER='braydenanderson2014'
+          
+          echo "🔄 Updating Status field to 'Done' for user-closed issue #$issue_number"
+          
+          # Similar GraphQL query but for Status field
+          query='
+          query($owner: String!, $number: Int!, $issue_number: Int!) {
+            user(login: $owner) {
+              projectV2(number: $number) {
+                id
+                fields(first: 20) {
+                  nodes {
+                    ... on ProjectV2SingleSelectField {
+                      id
+                      name
+                      options {
+                        id
+                        name
+                      }
+                    }
+                  }
+                }
+                items(first: 100) {
+                  nodes {
+                    id
+                    content {
+                      ... on Issue {
+                        number
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }'
+          
+          # Execute GraphQL query
+          project_data=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d "{\"query\": \"$(echo $query | tr '\n' ' ')\", \"variables\": {\"owner\": \"$PROJECT_OWNER\", \"number\": $PROJECT_ID, \"issue_number\": $issue_number}}" \
+            https://api.github.com/graphql)
+          
+          # Extract IDs for Status field
+          project_internal_id=$(echo "$project_data" | jq -r '.data.user.projectV2.id')
+          item_id=$(echo "$project_data" | jq -r --arg issue_num "$issue_number" '.data.user.projectV2.items.nodes[] | select(.content.number == ($issue_num | tonumber)) | .id')
+          status_field_id=$(echo "$project_data" | jq -r '.data.user.projectV2.fields.nodes[] | select(.name == "Status") | .id')
+          done_option_id=$(echo "$project_data" | jq -r '.data.user.projectV2.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "Done") | .id')
+          
+          # Update Status to Done if all IDs are found
+          if [ "$project_internal_id" != "null" ] && [ "$item_id" != "null" ] && [ "$status_field_id" != "null" ] && [ "$done_option_id" != "null" ]; then
+            
+            mutation='
+            mutation($project_id: ID!, $item_id: ID!, $field_id: ID!, $option_id: String!) {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: $project_id
+                itemId: $item_id
+                fieldId: $field_id
+                value: {
+                  singleSelectOptionId: $option_id
+                }
+              }) {
+                projectV2Item {
+                  id
+                }
+              }
+            }'
+            
+            curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Content-Type: application/json" \
+              -X POST \
+              -d "{\"query\": \"$(echo $mutation | tr '\n' ' ')\", \"variables\": {\"project_id\": \"$project_internal_id\", \"item_id\": \"$item_id\", \"field_id\": \"$status_field_id\", \"option_id\": \"$done_option_id\"}}" \
+              https://api.github.com/graphql
+            
+            echo "✅ Status field updated to 'Done'"
+          else
+            echo "⚠️ Could not update Status field (some IDs not found)"
+          fi
+
+      - name: Log Results
+        run: |
+          echo "🏁 User-Closed Handler Workflow Complete"
+          echo "   Issue: #${{ github.event.issue.number }}"
+          echo "   Repository: ${{ github.repository }}"
+          echo "   Has user-closed label: ${{ steps.check_label.outputs.has_user_closed }}"
