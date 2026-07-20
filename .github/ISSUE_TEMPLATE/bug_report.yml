@@ -74,7 +74,7 @@ body:
         - Other                 # optional catch-all
     # default: 0             # optional: 0-based index of the pre-selected option
     validations:
-    required: true           # optional but recommended
+      required: true           # optional but recommended
     
   - type: textarea
     id: description
