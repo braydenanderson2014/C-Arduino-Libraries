@@ -22,6 +22,7 @@ body:
         - Other
     validations:
       required: true
+ 
   - type: dropdown
       id: library   # unique id (alphanumeric, -, _)
       attributes:
@@ -87,6 +88,7 @@ body:
       # default: 0             # optional: 0-based index of the pre-selected option
       validations:
         required: true           # optional but recommended
+ 
   - type: input
     id: location
     attributes:
