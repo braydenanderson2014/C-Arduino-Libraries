@@ -302,7 +302,7 @@ jobs:
 
             await ensureLabelExists(CONFIG.LABELS.PULL_REQUEST);
             await ensurePullRequestLabel();
-            await ensureProjectTriageStatus();
             await ensureWelcomeComment();
+            await ensureProjectTriageStatus();
 
             console.log(`✅ Finished processing pull request #${issueNumber}`);
