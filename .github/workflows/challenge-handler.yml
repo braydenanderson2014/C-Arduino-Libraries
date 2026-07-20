@@ -175,6 +175,29 @@ jobs:
             return null;
           }
           
+          // Helper function to extract the parent issue number embedded by the duplicate-detection
+          // workflow. It looks for the pattern "Duplicate of:** #<N>" in the issue body.
+          async function getParentIssueNumber(issue) {
+            try {
+              // Fetch fresh issue data so we have the latest body
+              const { data: freshIssue } = await github.rest.issues.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number
+              });
+              const body = freshIssue.body || '';
+              const match = body.match(/\*\*🔗\s*Duplicate of:\s*\*\*\s*#(\d+)/i);
+              if (match) {
+                const num = parseInt(match[1], 10);
+                console.log(`🔗 Found parent issue number: #${num} for issue #${issue.number}`);
+                return num;
+              }
+            } catch (error) {
+              console.error(`❌ Error extracting parent issue number: ${error.message}`);
+            }
+            return null;
+          }
+          
           // Helper function to update project field
           async function updateProjectField(issue, fieldName, fieldValue) {
             try {
@@ -461,19 +484,29 @@ jobs:
               // Set archive bucket to "Failed Challenges"
               await updateProjectField(issue, CONFIG.FIELDS.ArchiveBucket, "Failed Challenges");
               
-              // Close the issue; use 'not_planned' when original labels indicate a duplicate
-              const isDuplicate = originalLabels.some(label =>
-                label.toLowerCase().includes('duplicate') ||
-                label.toLowerCase() === 'potential-duplicate' ||
-                label.toLowerCase() === 'auto-potential-duplicate'
-              );
-              await github.rest.issues.update({
+              // Close the issue; use 'duplicate' state_reason (with parent link) when original
+              // labels indicate a duplicate, otherwise 'completed'.
+              const duplicateLabelNames = new Set([
+                CONFIG.LABELS.DUPLICATE.toLowerCase(),
+                CONFIG.LABELS.POTENTIAL_DUPLICATE.toLowerCase(),
+                CONFIG.LABELS.AUTO_POTENTIAL_DUPLICATE.toLowerCase()
+              ]);
+              const isDuplicate = originalLabels.some(label => duplicateLabelNames.has(label.toLowerCase()));
+              const closeParams = {
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issue.number,
                 state: 'closed',
                 state_reason: isDuplicate ? 'duplicate' : 'completed'
-              });
+              };
+              if (isDuplicate) {
+                const parentNumber = await getParentIssueNumber(issue);
+                if (parentNumber) {
+                  closeParams.duplicate_of = parentNumber;
+                  console.log(`🔗 Closing issue #${issue.number} as duplicate of #${parentNumber}`);
+                }
+              }
+              await github.rest.issues.update(closeParams);
               
               // Retrieve the admin-provided reason (stored during the comment event)
               const reason = await getFailedReason(issue);
