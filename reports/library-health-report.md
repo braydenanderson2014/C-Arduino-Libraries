@@ -1,6 +1,6 @@
 # Library Health Report
 
-Generated: 2026-07-21T23:35:48.448Z
+Generated: 2026-07-21T23:37:29.443Z
 Source repo: braydenanderson2014/C-Arduino-Libraries
 Analyzer repo: braydenanderson2014/SystemCommands
 Confirmed labels: confirmed
@@ -10,7 +10,8 @@ Confirmed labels: confirmed
 - Libraries analyzed: 53
 - Potentially Unhealthy: 2
 - Stable: 16
-- Unsure: 35
+- Unstable: 3
+- Unsure: 32
 
 ## Results
 
@@ -25,7 +26,7 @@ Confirmed labels: confirmed
 | Color Manager | 0 | 0 | Watch | Unsure | #24 |
 | Dictionary | 0 | 0 | Watch | Stable | #21 |
 | Double Linked List | 0 | 0 | Likely Unhealthy | Potentially Unhealthy | #25 |
-| Dynamic Storage Library | 0 | 0 | Unknown | Unsure | #24 |
+| Dynamic Storage Library | 0 | 0 | Unknown | Unstable | #20 |
 | Ethernet Connection Checker | 0 | 0 | Unknown | Stable | #21 |
 | Ethernet Mach2 Connection Checker | 0 | 0 | Unknown | Stable | #21 |
 | Extreme Variant | 0 | 0 | Unknown | Stable | #21 |
@@ -36,7 +37,7 @@ Confirmed labels: confirmed
 | Interval Tree | 0 | 0 | Watch | Unsure | #24 |
 | Iostream | 0 | 0 | Unknown | Unsure | #24 |
 | Iterator | 0 | 0 | Likely Healthy | Stable | #21 |
-| Json | 0 | 0 | Unknown | Unsure | #24 |
+| Json | 0 | 0 | Unknown | Unstable | #20 |
 | K Dimensional Tree | 0 | 0 | Unknown | Unsure | #24 |
 | Linked List | 0 | 0 | Unknown | Unsure | #24 |
 | Map | 0 | 0 | Likely Healthy | Stable | #21 |
@@ -56,7 +57,7 @@ Confirmed labels: confirmed
 | Queue | 0 | 0 | Unknown | Unsure | #24 |
 | R Tree | 0 | 0 | Watch | Unsure | #24 |
 | Red Black Tree | 0 | 0 | Watch | Unsure | #24 |
-| SD List | 0 | 0 | Watch | Unsure | #24 |
+| SD List | 0 | 0 | Watch | Unstable | #20 |
 | Segment Tree | 0 | 0 | Watch | Unsure | #24 |
 | Simple Mutex | 0 | 0 | Unknown | Unsure | #24 |
 | Simple Thread Manager | 0 | 0 | Unknown | Unsure | #24 |
@@ -209,9 +210,9 @@ Confirmed labels: confirmed
 
 ### Dynamic Storage Library
 
-- Routed bucket: Unsure (#24)
+- Routed bucket: Unstable (#20)
 - Computed bucket before override: Unsure
-- Manual category override applied: No
+- Manual category override applied: Yes
 - Manual issue count override applied: No
 - Confirmed issue lock active: No
 - Open unconfirmed issues: 0
@@ -363,9 +364,9 @@ Confirmed labels: confirmed
 
 ### Json
 
-- Routed bucket: Unsure (#24)
+- Routed bucket: Unstable (#20)
 - Computed bucket before override: Unsure
-- Manual category override applied: No
+- Manual category override applied: Yes
 - Manual issue count override applied: No
 - Confirmed issue lock active: No
 - Open unconfirmed issues: 0
@@ -643,9 +644,9 @@ Confirmed labels: confirmed
 
 ### SD List
 
-- Routed bucket: Unsure (#24)
+- Routed bucket: Unstable (#20)
 - Computed bucket before override: Unsure
-- Manual category override applied: No
+- Manual category override applied: Yes
 - Manual issue count override applied: No
 - Confirmed issue lock active: No
 - Open unconfirmed issues: 0
