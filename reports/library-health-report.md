@@ -1,86 +1,122 @@
 # Library Health Report
 
-Generated: 2026-07-21T22:37:27.904Z
+Generated: 2026-07-21T22:41:58.905Z
 Source repo: braydenanderson2014/C-Arduino-Libraries
 Analyzer repo: braydenanderson2014/SystemCommands
 Confirmed labels: confirmed
 
 ## Summary
 
-- Libraries analyzed: 18
-- Unknown: 18
+- Libraries analyzed: 23
+- Potentially Unhealthy: 13
+- Stable: 10
 
 ## Results
 
-| Library Label | Confirmed Issues | Private Matches | Private Signal | PlatformIO Signal | Final Status |
-|---|---:|---:|---|---|---|
-| auto-processed | 1 | 0 | No Data | Unknown | Unknown |
-| auto-response | 4 | 0 | No Data | Unknown | Unknown |
-| Beta | 5 | 0 | No Data | Unknown | Unknown |
-| closed | 1 | 0 | No Data | Unknown | Unknown |
-| Completed | 11 | 0 | No Data | Unknown | Unknown |
-| dependencies | 1 | 0 | No Data | Unknown | Unknown |
-| needs-more-info | 2 | 0 | No Data | Unknown | Unknown |
-| Non-Issue | 2 | 0 | No Data | Unknown | Unknown |
-| parent | 5 | 0 | No Data | Unknown | Unknown |
-| priority: high | 1 | 0 | No Data | Unknown | Unknown |
-| Release | 3 | 0 | No Data | Unknown | Unknown |
-| Researching | 12 | 0 | No Data | Unknown | Unknown |
-| Scheduled | 9 | 0 | No Data | Unknown | Unknown |
-| Semantics | 1 | 0 | No Data | Unknown | Unknown |
-| sponsor-request | 3 | 0 | No Data | Unknown | Unknown |
-| Testing | 10 | 0 | No Data | Unknown | Unknown |
-| user-reported | 1 | 0 | No Data | Unknown | Unknown |
-| Working | 16 | 0 | No Data | Unknown | Unknown |
+| Library Label | Confirmed Issues | Open Unconfirmed Issues | PlatformIO Signal | Routed Bucket | Bucket Issue |
+|---|---:|---:|---|---|---:|
+| Alpha | 0 | 1 | Unknown | Potentially Unhealthy | #25 |
+| auto-processed | 1 | 1 | Unknown | Potentially Unhealthy | #25 |
+| auto-response | 4 | 4 | Unknown | Potentially Unhealthy | #25 |
+| Beta | 5 | 0 | Unknown | Stable | #21 |
+| child | 0 | 1 | Unknown | Potentially Unhealthy | #25 |
+| closed | 1 | 0 | Unknown | Stable | #21 |
+| Completed | 11 | 0 | Unknown | Stable | #21 |
+| dependencies | 1 | 0 | Unknown | Stable | #21 |
+| feature-request | 0 | 3 | Unknown | Potentially Unhealthy | #25 |
+| needs-more-info | 2 | 1 | Unknown | Potentially Unhealthy | #25 |
+| Non-Issue | 2 | 0 | Unknown | Stable | #21 |
+| parent | 5 | 5 | Unknown | Potentially Unhealthy | #25 |
+| priority: high | 1 | 0 | Unknown | Stable | #21 |
+| Release | 3 | 0 | Unknown | Stable | #21 |
+| Researching | 12 | 2 | Unknown | Potentially Unhealthy | #25 |
+| Scheduled | 9 | 0 | Unknown | Stable | #21 |
+| Semantics | 1 | 0 | Unknown | Stable | #21 |
+| send-welcome | 0 | 1 | Unknown | Potentially Unhealthy | #25 |
+| sponsor-request | 3 | 3 | Unknown | Potentially Unhealthy | #25 |
+| Testing | 10 | 0 | Unknown | Stable | #21 |
+| Unconfirmed | 0 | 2 | Unknown | Potentially Unhealthy | #25 |
+| user-reported | 1 | 3 | Unknown | Potentially Unhealthy | #25 |
+| Working | 16 | 2 | Unknown | Potentially Unhealthy | #25 |
 
 ## Notes
 
-- Private Signal is derived from issue labels in the private repository.
+- Libraries are routed to private-repo status bucket issues by applying/removing library labels.
+- Open unconfirmed source issues take precedence and route a library to Potentially Unhealthy.
 - PlatformIO Signal is derived from rank and download trend in PLATFORMIO_METRICS.md.
-- Final Status combines both signals and prioritizes explicit unhealthy labels.
 
 ## Confirmed Issue Links By Library
 
+### Alpha
+
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 1
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+- Open unconfirmed source issues:
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
+
 ### auto-processed
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 1
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/152
+- Open unconfirmed source issues:
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/150
 
 ### auto-response
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 4
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/152
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/118
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/98
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/97
+- Open unconfirmed source issues:
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/150
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/134
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/117
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
 
 ### Beta
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Stable (#21)
+- Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/91
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/85
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/83
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/81
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/82
 
+### child
+
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 1
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+- Open unconfirmed source issues:
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
+
 ### closed
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Stable (#21)
+- Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/98
 
 ### Completed
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Stable (#21)
+- Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/114
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/103
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/96
@@ -95,59 +131,85 @@ Confirmed labels: confirmed
 
 ### dependencies
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Stable (#21)
+- Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/79
+
+### feature-request
+
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 3
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+- Open unconfirmed source issues:
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/138
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/117
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
 
 ### needs-more-info
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 1
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/98
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/97
+- Open unconfirmed source issues:
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/117
 
 ### Non-Issue
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Stable (#21)
+- Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/114
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/84
 
 ### parent
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 5
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/152
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/118
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/102
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/98
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/97
+- Open unconfirmed source issues:
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/150
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/138
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/134
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/117
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
 
 ### priority: high
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Stable (#21)
+- Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/102
 
 ### Release
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Stable (#21)
+- Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/83
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/81
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/82
 
 ### Researching
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 2
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/103
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/102
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/101
@@ -160,12 +222,16 @@ Confirmed labels: confirmed
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/81
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/82
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/76
+- Open unconfirmed source issues:
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/138
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
 
 ### Scheduled
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Stable (#21)
+- Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/103
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/96
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/94
@@ -178,25 +244,41 @@ Confirmed labels: confirmed
 
 ### Semantics
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Stable (#21)
+- Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/114
+
+### send-welcome
+
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 1
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+- Open unconfirmed source issues:
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/138
 
 ### sponsor-request
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 3
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/152
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/118
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/98
+- Open unconfirmed source issues:
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/150
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/138
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
 
 ### Testing
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Stable (#21)
+- Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/103
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/102
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/101
@@ -208,18 +290,34 @@ Confirmed labels: confirmed
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/81
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/76
 
+### Unconfirmed
+
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 2
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+- Open unconfirmed source issues:
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/150
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/134
+
 ### user-reported
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 3
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/152
+- Open unconfirmed source issues:
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/150
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/134
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
 
 ### Working
 
-- Final: Unknown
-- Private signal: No Data
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 2
 - PlatformIO: Unknown (No PlatformIO entry matched.)
+- Confirmed source issues:
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/118
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/114
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/103
@@ -236,4 +334,7 @@ Confirmed labels: confirmed
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/82
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/77
 - https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/76
+- Open unconfirmed source issues:
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/138
+- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
 
