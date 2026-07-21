@@ -1,6 +1,6 @@
 # Library Health Report
 
-Generated: 2026-07-21T23:25:13.812Z
+Generated: 2026-07-21T23:28:33.946Z
 Source repo: braydenanderson2014/C-Arduino-Libraries
 Analyzer repo: braydenanderson2014/SystemCommands
 Confirmed labels: confirmed
@@ -16,7 +16,7 @@ Confirmed labels: confirmed
 
 | Library Label | Confirmed Issues | Open Unconfirmed Issues | PlatformIO Signal | Routed Bucket | Bucket Issue |
 |---|---:|---:|---|---|---:|
-| Array List | 0 | 0 | Likely Healthy | Stable | #21 |
+| Array List | 1 | 0 | Likely Healthy | Stable | #21 |
 | AVL Tree | 0 | 0 | Watch | Unsure | #24 |
 | B Plus Tree | 0 | 0 | Watch | Unsure | #24 |
 | B Tree | 0 | 0 | Watch | Unsure | #24 |
@@ -85,11 +85,11 @@ Confirmed labels: confirmed
 - Routed bucket: Stable (#21)
 - Computed bucket before override: Stable
 - Manual category override applied: No
-- Manual issue count override applied: No
+- Manual issue count override applied: Yes
 - Unstable lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
-- Confirmed issues: 0
+- Confirmed issues: 1
 - Raw confirmed issues: 0
 - PlatformIO: Likely Healthy (Rank 3828 (top 8000).)
 - No confirmed source issues linked.
