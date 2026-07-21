@@ -230,6 +230,12 @@ Core workflow behaviors in `.github/workflows/`:
 		- challenge failed (with optional admin reason)
 	- Updates project fields like `Status`, `Archive Bucket`, and `Reopened Issue`
 
+- `restricted-label-watchdog.yml`:
+	- Protects restricted labels on both issues and pull requests
+	- Automatically removes restricted labels if added by unauthorized users
+	- Automatically restores restricted labels if unauthorized users remove them
+	- Allows trusted system actors (for example `github-actions[bot]`) and maintainers/admins
+
 - `issue-reopen-handler.yml`:
 	- On issue reopen, sets `Status = REOPENED!!!` unless challenge-override labels are present
 
