@@ -55,9 +55,12 @@ jobs:
             const TARGET_OWNER = "braydenanderson2014";
             const TARGET_REPO = "C-Arduino-Libraries";
             const TARGET_PROJECTS = ["braydenanderson2014/4"];
+            const MIRRORED_ISSUE_LABELS = ["bug"];
             const TRANSFER_FIELD_NAME = "Needs Transfer";
             const TRANSFER_STATUS_PENDING = "Yes";
             const TRANSFER_STATUS_COMPLETE = "Completed Transfer";
+            const PROJECT_STATUS_FIELD_NAME = "Status";
+            const PROJECT_STATUS_TRIAGE = "Triage";
             const parseBool = (value, fallback) => {
               const normalized = String(value ?? "").trim().toLowerCase();
               if (!normalized) return fallback;
@@ -154,18 +157,18 @@ jobs:
               return null;
             };
 
-            const setProjectTransferStatus = async (projectId, itemId, fields, value) => {
-              const transferField = (fields || []).find((f) => f && f.name === TRANSFER_FIELD_NAME);
-              if (!transferField) {
-                core.warning(`Project field '${TRANSFER_FIELD_NAME}' was not found.`);
+            const setProjectSingleSelectField = async (projectId, itemId, fields, fieldName, value) => {
+              const targetField = (fields || []).find((f) => f && f.name === fieldName);
+              if (!targetField) {
+                core.warning(`Project field '${fieldName}' was not found.`);
                 return;
               }
 
-              const options = transferField.options || [];
+              const options = targetField.options || [];
               if (options.length > 0) {
                 const option = options.find((o) => o.name && o.name.toLowerCase() === value.toLowerCase());
                 if (!option) {
-                  core.warning(`Could not find option '${value}' in field '${TRANSFER_FIELD_NAME}'.`);
+                  core.warning(`Could not find option '${value}' in field '${fieldName}'.`);
                   return;
                 }
 
@@ -189,7 +192,7 @@ jobs:
                   {
                     projectId,
                     itemId,
-                    fieldId: transferField.id,
+                    fieldId: targetField.id,
                     optionId: option.id
                   }
                 );
@@ -198,8 +201,12 @@ jobs:
               }
 
               core.warning(
-                `Field '${TRANSFER_FIELD_NAME}' is not a single-select field. Add matching options or update workflow logic.`
+                `Field '${fieldName}' is not a single-select field. Add matching options or update workflow logic.`
               );
+            };
+
+            const setProjectTransferStatus = async (projectId, itemId, fields, value) => {
+              await setProjectSingleSelectField(projectId, itemId, fields, TRANSFER_FIELD_NAME, value);
             };
 
             const getResolvedProject = async (projectRef) => {
@@ -493,6 +500,19 @@ jobs:
               const targetIssueUrl = created.data.html_url;
               const targetIssueNodeId = created.data.node_id;
 
+              if (MIRRORED_ISSUE_LABELS.length > 0) {
+                try {
+                  await github.rest.issues.addLabels({
+                    owner: TARGET_OWNER,
+                    repo: TARGET_REPO,
+                    issue_number: targetIssueNumber,
+                    labels: MIRRORED_ISSUE_LABELS
+                  });
+                } catch (error) {
+                  core.warning(`Could not apply labels '${MIRRORED_ISSUE_LABELS.join(", ")}' to mirrored issue #${targetIssueNumber}: ${error.message}`);
+                }
+              }
+
               for (const projectRef of TARGET_PROJECTS) {
                 const project = await getResolvedProject(projectRef);
                 if (!project) {
@@ -522,6 +542,13 @@ jobs:
                 }
 
                 await setProjectTransferStatus(project.id, itemId, project.fields?.nodes || [], TRANSFER_STATUS_PENDING);
+                await setProjectSingleSelectField(
+                  project.id,
+                  itemId,
+                  project.fields?.nodes || [],
+                  PROJECT_STATUS_FIELD_NAME,
+                  PROJECT_STATUS_TRIAGE
+                );
                 trackedProjectItems.push({
                   projectId: project.id,
                   itemId,
