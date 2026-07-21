@@ -1,0 +1,41 @@
+name: Update PlatformIO Metrics
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-metrics:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate PlatformIO metrics report
+        run: |
+          python scripts/update_platformio_metrics.py \
+            --owner braydenanderson2014 \
+            --output PLATFORMIO_METRICS.md
+
+      - name: Commit report if changed
+        run: |
+          if git diff --quiet -- PLATFORMIO_METRICS.md; then
+            echo "No metrics changes detected"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add PLATFORMIO_METRICS.md
+          git commit -m "chore: update PlatformIO metrics report"
+          git push

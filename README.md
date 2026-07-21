@@ -1,6 +1,30 @@
 # **C-Arduino-Libraries**  
 🚀 **A collection of optimized C++ libraries for Arduino and embedded systems**  
 
+## 📑 **Table of Contents**
+
+- [Project Structure](#-project-structure)
+- [Support My Work](#-support-my-work)
+- [Special Thanks](#-special-thanks-for-those-who-sponser-my-work)
+- [Library Testing & Stability](#-library-testing--stability)
+- [Available Libraries](#-available-libraries)
+- [Stable & Tested Libraries](#-stable--tested-libraries-)
+- [Active Development Libraries](#-active-development-libraries-)
+- [Currently Testing Libraries](#-currently-testing-libraries-)
+- [Unpublished Libraries (In Development)](#-unpublished-libraries-in-development)
+- [Libraries Published on Arduino Library Manager](#-libraries-published-on-arduino-library-manager)
+- [Contributing & Issues](#-contributing--issues)
+- [Automation, Templates, and Cross-Repo Intake](#-automation-templates-and-cross-repo-intake)
+- [Automation: What Gets Copied Here From Other Library Repositories](#-what-gets-copied-here-from-other-library-repositories)
+- [Automation: Issue Templates In This Repository](#-issue-templates-in-this-repository)
+- [Automation: Main Issue/PR Automation Workflows](#-main-issuepr-automation-workflows)
+- [Automation: If Automation Does Something You Do Not Understand](#-if-automation-does-something-you-do-not-understand)
+- [Final Notes](#-final-notes)
+- [Quick Links](#-quick-links)
+- [All Libraries Include A README.md](#-all-libraries-include-a-readmemd-)
+- [PlatformIO Leaderboard for These Libraries](#-platformio-leaderboard-for-these-libraries)
+- [Information About This Document](#-information-about-this-document-)
+
 ## 📁 **Project Structure**  
 All libraries are located under the `lib` folder. For best results, open the **parent folder** containing this `README.md` to access the full project.  
 
@@ -147,6 +171,113 @@ Total Libraries: (51)
 🛠 Found a bug? Have a question? **Open an issue** on GitHub!  
 
 💡 Want to contribute? Fork the repository and submit a **pull request** with your changes.  
+
+---
+
+## 🤖 **Automation, Templates, and Cross-Repo Intake**
+
+This repository is the **main tracker** for issues and pull-request intake across related library repositories.
+
+### ✅ What Gets Copied Here From Other Library Repositories
+
+The workflow `.github/workflows/forward-issues-to-main.yml` is designed to run in **separate library repositories** (not this main repo).
+
+- When a new **issue** is opened in a library repo, it is mirrored as an issue in `braydenanderson2014/C-Arduino-Libraries`.
+- When a new **pull request** is opened in a library repo, it is also mirrored here as an issue so discussion can stay centralized.
+- The mirrored issue is added to project `braydenanderson2014/4` and set to `Status = Triage`.
+- The mirrored issue gets `Needs Transfer = Yes`, and after forwarding completes it is set to `Needs Transfer = Completed Transfer`.
+- By default, the source library-repo issue/PR is then closed after mirroring (configurable through workflow_dispatch inputs).
+
+Important behavior:
+- The forwarding workflow **self-disables in this main repo** (`C-Arduino-Libraries`) to prevent loops.
+- This means each library repo should have its own copy of that workflow file, with token/permission setup.
+
+### 🧩 Issue Templates In This Repository
+
+Templates in `.github/ISSUE_TEMPLATE/` standardize intake and labels:
+
+- `bug_report.yml`: applies `bug` + `user-reported`
+- `feature_request.yml`: applies `enhancement` + `feature-request`
+- `documentation-request.yml`: applies `documentation`
+- `general-question.yml`: applies `question`
+- `config.yml`: disables blank issues (`blank_issues_enabled: false`)
+
+Each template also includes a **Repository / Library** selector so reports can still be routed correctly in one central tracker.
+
+### 🗂️ Main Issue/PR Automation Workflows
+
+Core workflow behaviors in `.github/workflows/`:
+
+- `welcome-messages.yml`:
+	- Sends automated first response
+	- Adds issue to project board and sets fields like `Status`, `Type`, and (feature) `Priority`
+	- Supports retroactive welcome with `/welcome` comment or `send-welcome` label
+
+- `duplicate-detection.yml`:
+	- Runs AI + similarity duplicate detection on issue open
+	- Uses `scripts/ai_duplicate_detector.py` for ML-assisted candidate generation
+	- Labels potential duplicates (`auto-potential-duplicate`) or auto-closes very high-confidence duplicates
+	- Supports admin override labels:
+		- `adminduplicate` = confirm duplicate and close
+		- `adminduplicatenegative` = mark as not duplicate and remove auto-duplicate labels
+	- Maintains parent/child links and duplicate rollups in parent issue body
+
+- `challenge-handler.yml`:
+	- Handles duplicate challenge flow via labels or commands
+	- Commands/labels can trigger:
+		- challenge started
+		- challenge upheld
+		- challenge failed (with optional admin reason)
+	- Updates project fields like `Status`, `Archive Bucket`, and `Reopened Issue`
+
+- `issue-reopen-handler.yml`:
+	- On issue reopen, sets `Status = REOPENED!!!` unless challenge-override labels are present
+
+- `working-status.yml`, `question-status.yml`, `documentation-status.yml`:
+	- Keep project `Status` synchronized when labels are added/removed
+	- Examples: move between `Triage`, `Backlog`, `General Question`, `Documentation Request`, and in-progress states
+
+- `needs-more-info.yml`:
+	- Posts an info-request message when `needs-more-info` is added
+	- Posts follow-up confirmation when that label is removed after updates
+
+- `pull-request-triage.yml`:
+	- Auto-labels PRs with `pull-request`
+	- Adds welcome comment
+	- Adds PR to project board and sets `Status = Triage`
+
+- `user-closed-handler.yml`:
+	- If `user-closed` label exists, updates project fields (`Archive Bucket = User-Closed`, `Status = Done`)
+
+- `extract-program-id.yml`:
+	- Extracts Program ID patterns from issue body and writes to project `ID` field
+
+- `Project Health Monitoring`:
+	- Contains scheduled Project V2 health-summary logic based on active work-item counts
+	- Note: the file is currently named without `.yml`/`.yaml`; GitHub Actions only executes workflow files with a workflow extension
+
+### 🆘 If Automation Does Something You Do Not Understand
+
+When a label/comment action is confusing (for example duplicate detection):
+
+1. Check labels on the issue first (`duplicate`, `parent`, `child`, `auto-potential-duplicate`, `challenge-*`, `adminduplicate*`, `needs-more-info`, `working`).
+2. Read bot comments in order; automation writes reason/context comments for most actions.
+3. If duplicate handling looks wrong:
+	 - Add details showing why the issue is unique.
+	 - Add `challenge` label (or comment command for challenge flow).
+	 - Maintainer can mark `challenge-upheld` or `challenge-failed`.
+4. If AI marked a false duplicate:
+	 - Use the `challenge` mechanism (this is the correct path for non-maintainers).
+	 - Add specific details showing how your case differs from the parent/linked issue.
+5. If a true duplicate was missed:
+	 - Maintainer/admin can use `adminduplicate` to force confirmed-duplicate flow.
+6. If the issue was auto-closed but should be active:
+	 - Reopen and explain what is new.
+	 - Apply `challenge` when closure reason was duplicate-related.
+7. Maintainer-only: if a library-repo issue/PR did not mirror here:
+	 - Verify `GH_PROJECT_TOKEN` exists in that source repo.
+	 - Verify the source repo has `forward-issues-to-main.yml`.
+	 - Verify project fields/options still match expected names (for example `Needs Transfer`, `Status`, `Triage`).
 
 ---
 
