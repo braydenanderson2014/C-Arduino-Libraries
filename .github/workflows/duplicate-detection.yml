@@ -74,7 +74,7 @@ jobs:
           --output ai_duplicates.json
           
     - name: Detect Duplicates
-      uses: actions/github-script@v7
+      uses: actions/github-script@v9
       with:
         github-token: ${{ secrets.GH_PROJECT_TOKEN }}
         script: |

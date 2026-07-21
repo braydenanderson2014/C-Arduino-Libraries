@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Guard Restricted Labels
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GH_PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
