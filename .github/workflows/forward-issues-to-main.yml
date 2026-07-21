@@ -1,0 +1,425 @@
+name: Forward Issues To Main Repository
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: "Optional: process only this pull request number"
+        required: false
+        type: string
+      close_source_pull_requests:
+        description: "Close source pull requests after mirroring"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  issues: write
+  pull-requests: write
+  repository-projects: write
+  contents: read
+
+jobs:
+  forward-issue:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Mirror issue and pull request activity to main repository
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+          script: |
+            const SOURCE_OWNER = context.repo.owner;
+            const SOURCE_REPO = context.repo.repo;
+
+            // Change this if your canonical repository ever changes.
+            const TARGET_OWNER = "braydenanderson2014";
+            const TARGET_REPO = "C-Arduino-Libraries";
+            const TARGET_PROJECTS = ["braydenanderson2014/4"];
+            const TRANSFER_FIELD_NAME = "Needs Transfer";
+            const TRANSFER_STATUS_PENDING = "Yes";
+            const TRANSFER_STATUS_COMPLETE = "Completed Transfer";
+            const CLOSE_SOURCE_PULL_REQUEST = String(core.getInput("close_source_pull_requests") || "true").toLowerCase() !== "false";
+
+            const getProjectNode = async (owner, projectNumber) => {
+              const query = `
+                query($owner: String!, $number: Int!) {
+                  user(login: $owner) {
+                    projectV2(number: $number) {
+                      id
+                      fields(first: 100) {
+                        nodes {
+                          ... on ProjectV2FieldCommon {
+                            id
+                            name
+                          }
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            name
+                            options {
+                              id
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  organization(login: $owner) {
+                    projectV2(number: $number) {
+                      id
+                      fields(first: 100) {
+                        nodes {
+                          ... on ProjectV2FieldCommon {
+                            id
+                            name
+                          }
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            name
+                            options {
+                              id
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              `;
+
+              const response = await github.graphql(query, {
+                owner,
+                number: projectNumber
+              });
+
+              return response.user?.projectV2 || response.organization?.projectV2 || null;
+            };
+
+            const setProjectTransferStatus = async (projectId, itemId, fields, value) => {
+              const transferField = (fields || []).find((f) => f && f.name === TRANSFER_FIELD_NAME);
+              if (!transferField) {
+                core.warning(`Project field '${TRANSFER_FIELD_NAME}' was not found.`);
+                return;
+              }
+
+              const options = transferField.options || [];
+              if (options.length > 0) {
+                const option = options.find((o) => o.name && o.name.toLowerCase() === value.toLowerCase());
+                if (!option) {
+                  core.warning(`Could not find option '${value}' in field '${TRANSFER_FIELD_NAME}'.`);
+                  return;
+                }
+
+                await github.graphql(
+                  `
+                  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                    updateProjectV2ItemFieldValue(
+                      input: {
+                        projectId: $projectId
+                        itemId: $itemId
+                        fieldId: $fieldId
+                        value: { singleSelectOptionId: $optionId }
+                      }
+                    ) {
+                      projectV2Item {
+                        id
+                      }
+                    }
+                  }
+                  `,
+                  {
+                    projectId,
+                    itemId,
+                    fieldId: transferField.id,
+                    optionId: option.id
+                  }
+                );
+
+                return;
+              }
+
+              core.warning(
+                `Field '${TRANSFER_FIELD_NAME}' is not a single-select field. Add matching options or update workflow logic.`
+              );
+            };
+
+            const isIssueEvent = context.eventName === "issues";
+            const isPullRequestEvent = context.eventName === "pull_request";
+            const isManualDispatch = context.eventName === "workflow_dispatch";
+
+            // Safety: do nothing if this workflow is installed in the target repo.
+            if (SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO) {
+              core.info("This is the main repository. Skipping forward operation.");
+              return;
+            }
+
+            if (!isIssueEvent && !isPullRequestEvent && !isManualDispatch) {
+              core.info(`Unsupported event '${context.eventName}'. Skipping.`);
+              return;
+            }
+
+            const workItems = [];
+
+            if (isIssueEvent) {
+              const issue = context.payload.issue;
+              // Guard against converted edge cases on issue events.
+              if (issue?.pull_request) {
+                core.info("Issue payload references a pull request. Skipping issue-flow forwarding.");
+                return;
+              }
+
+              workItems.push({
+                sourceTypeLabel: "issue",
+                isIssueFlow: true,
+                isPullRequestFlow: false,
+                sourceNumber: issue.number,
+                sourceTitle: issue.title,
+                sourceBody: issue.body,
+                sourceUrl: issue.html_url,
+                sourceUser: issue.user?.login,
+                sourceLabels: (issue.labels || []).map((l) => l.name).filter(Boolean),
+                sourceContextLines: [
+                  `Original issue: ${issue.html_url}`,
+                  `Opened by: @${issue.user?.login || "unknown"}`
+                ]
+              });
+            }
+
+            if (isPullRequestEvent) {
+              const pullRequest = context.payload.pull_request;
+              workItems.push({
+                sourceTypeLabel: "pull request",
+                isIssueFlow: false,
+                isPullRequestFlow: true,
+                sourceNumber: pullRequest.number,
+                sourceTitle: pullRequest.title,
+                sourceBody: pullRequest.body,
+                sourceUrl: pullRequest.html_url,
+                sourceUser: pullRequest.user?.login,
+                sourceLabels: (pullRequest.labels || []).map((l) => l.name).filter(Boolean),
+                sourceContextLines: [
+                  `Original pull request: ${pullRequest.html_url}`,
+                  `Opened by: @${pullRequest.user?.login || "unknown"}`,
+                  `Base branch: ${pullRequest.base?.ref || "unknown"}`,
+                  `Head branch: ${pullRequest.head?.label || "unknown"}`,
+                  `Draft: ${pullRequest.draft ? "yes" : "no"}`
+                ]
+              });
+            }
+
+            if (isManualDispatch) {
+              const requestedPrNumberRaw = (core.getInput("pull_request_number") || "").trim();
+              if (requestedPrNumberRaw) {
+                const requestedPrNumber = Number.parseInt(requestedPrNumberRaw, 10);
+                if (Number.isNaN(requestedPrNumber)) {
+                  core.setFailed(`Invalid pull_request_number input: '${requestedPrNumberRaw}'`);
+                  return;
+                }
+
+                const prResponse = await github.rest.pulls.get({
+                  owner: SOURCE_OWNER,
+                  repo: SOURCE_REPO,
+                  pull_number: requestedPrNumber
+                });
+
+                const pullRequest = prResponse.data;
+                if (pullRequest.state !== "open") {
+                  core.info(`Pull request #${requestedPrNumber} is not open (state=${pullRequest.state}). Skipping.`);
+                  return;
+                }
+
+                workItems.push({
+                  sourceTypeLabel: "pull request",
+                  isIssueFlow: false,
+                  isPullRequestFlow: true,
+                  sourceNumber: pullRequest.number,
+                  sourceTitle: pullRequest.title,
+                  sourceBody: pullRequest.body,
+                  sourceUrl: pullRequest.html_url,
+                  sourceUser: pullRequest.user?.login,
+                  sourceLabels: (pullRequest.labels || []).map((l) => l.name).filter(Boolean),
+                  sourceContextLines: [
+                    `Original pull request: ${pullRequest.html_url}`,
+                    `Opened by: @${pullRequest.user?.login || "unknown"}`,
+                    `Base branch: ${pullRequest.base?.ref || "unknown"}`,
+                    `Head branch: ${pullRequest.head?.label || "unknown"}`,
+                    `Draft: ${pullRequest.draft ? "yes" : "no"}`
+                  ]
+                });
+              } else {
+                const openPullRequests = await github.paginate(github.rest.pulls.list, {
+                  owner: SOURCE_OWNER,
+                  repo: SOURCE_REPO,
+                  state: "open",
+                  per_page: 100
+                });
+
+                for (const pullRequest of openPullRequests) {
+                  workItems.push({
+                    sourceTypeLabel: "pull request",
+                    isIssueFlow: false,
+                    isPullRequestFlow: true,
+                    sourceNumber: pullRequest.number,
+                    sourceTitle: pullRequest.title,
+                    sourceBody: pullRequest.body,
+                    sourceUrl: pullRequest.html_url,
+                    sourceUser: pullRequest.user?.login,
+                    sourceLabels: (pullRequest.labels || []).map((l) => l.name).filter(Boolean),
+                    sourceContextLines: [
+                      `Original pull request: ${pullRequest.html_url}`,
+                      `Opened by: @${pullRequest.user?.login || "unknown"}`,
+                      `Base branch: ${pullRequest.base?.ref || "unknown"}`,
+                      `Head branch: ${pullRequest.head?.label || "unknown"}`,
+                      `Draft: ${pullRequest.draft ? "yes" : "no"}`
+                    ]
+                  });
+                }
+              }
+            }
+
+            if (workItems.length === 0) {
+              core.info("No eligible items to process.");
+              return;
+            }
+
+            core.info(`Processing ${workItems.length} item(s).`);
+
+            for (const item of workItems) {
+              const trackedProjectItems = [];
+              const labelsText = item.sourceLabels.length ? item.sourceLabels.map((l) => `- ${l}`).join("\n") : "- (none)";
+              const sourceIssueRef = `${SOURCE_OWNER}/${SOURCE_REPO}#${item.sourceNumber}`;
+
+              const mirroredTitle = item.isPullRequestFlow
+                ? `[${SOURCE_REPO} PR] ${item.sourceTitle}`
+                : `[${SOURCE_REPO}] ${item.sourceTitle}`;
+              const mirroredBody = [
+                `This issue was forwarded from a ${item.sourceTypeLabel}: ${sourceIssueRef}.`,
+                "",
+                ...item.sourceContextLines,
+                "",
+                "### Source labels",
+                labelsText,
+                "",
+                "---",
+                "",
+                "### Original content",
+                item.sourceBody && item.sourceBody.trim() ? item.sourceBody : "(No body provided.)"
+              ].join("\n");
+
+              const created = await github.rest.issues.create({
+                owner: TARGET_OWNER,
+                repo: TARGET_REPO,
+                title: mirroredTitle,
+                body: mirroredBody
+              });
+
+              const targetIssueNumber = created.data.number;
+              const targetIssueUrl = created.data.html_url;
+              const targetIssueNodeId = created.data.node_id;
+
+              for (const projectRef of TARGET_PROJECTS) {
+                const [projectOwner, projectNumberText] = projectRef.split("/");
+                const projectNumber = Number.parseInt(projectNumberText, 10);
+
+                if (!projectOwner || Number.isNaN(projectNumber)) {
+                  core.warning(`Skipping invalid project reference: ${projectRef}`);
+                  continue;
+                }
+
+                const project = await getProjectNode(projectOwner, projectNumber);
+                if (!project) {
+                  core.warning(`Could not resolve project: ${projectRef}`);
+                  continue;
+                }
+
+                const addResult = await github.graphql(
+                  `
+                  mutation($projectId: ID!, $contentId: ID!) {
+                    addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+                      item {
+                        id
+                      }
+                    }
+                  }
+                  `,
+                  {
+                    projectId: project.id,
+                    contentId: targetIssueNodeId
+                  }
+                );
+
+                const itemId = addResult.addProjectV2ItemById?.item?.id;
+                if (!itemId) {
+                  core.warning(`Issue was created but could not be added to project: ${projectRef}`);
+                  continue;
+                }
+
+                await setProjectTransferStatus(project.id, itemId, project.fields?.nodes || [], TRANSFER_STATUS_PENDING);
+                trackedProjectItems.push({
+                  projectId: project.id,
+                  itemId,
+                  fields: project.fields?.nodes || []
+                });
+              }
+
+              await github.rest.issues.createComment({
+                owner: TARGET_OWNER,
+                repo: TARGET_REPO,
+                issue_number: targetIssueNumber,
+                body: [
+                  `Backlink: mirrored from ${sourceIssueRef}.`,
+                  `Original URL: ${item.sourceUrl}`
+                ].join("\n")
+              });
+
+              await github.rest.issues.createComment({
+                owner: SOURCE_OWNER,
+                repo: SOURCE_REPO,
+                issue_number: item.sourceNumber,
+                body: [
+                  item.isPullRequestFlow ? "Thanks for opening this pull request." : "Thanks for opening this issue.",
+                  "",
+                  `This repository forwards issues to our main tracker: ${TARGET_OWNER}/${TARGET_REPO}.`,
+                  `Your ${item.sourceTypeLabel} has been mirrored to: ${targetIssueUrl}`,
+                  "",
+                  "Please continue discussion on the mirrored issue so maintainers can track everything in one place.",
+                  item.isPullRequestFlow ? "If code changes are still needed, please open the pull request against the main repository after discussion." : ""
+                ].filter(Boolean).join("\n")
+              });
+
+              if (item.isIssueFlow) {
+                await github.rest.issues.update({
+                  owner: SOURCE_OWNER,
+                  repo: SOURCE_REPO,
+                  issue_number: item.sourceNumber,
+                  state: "closed",
+                  state_reason: "completed"
+                });
+              }
+
+              if (item.isPullRequestFlow && CLOSE_SOURCE_PULL_REQUEST) {
+                await github.rest.pulls.update({
+                  owner: SOURCE_OWNER,
+                  repo: SOURCE_REPO,
+                  pull_number: item.sourceNumber,
+                  state: "closed"
+                });
+              }
+
+              for (const tracked of trackedProjectItems) {
+                await setProjectTransferStatus(
+                  tracked.projectId,
+                  tracked.itemId,
+                  tracked.fields,
+                  TRANSFER_STATUS_COMPLETE
+                );
+              }
+
+              core.info(`Forwarded ${item.sourceTypeLabel} ${sourceIssueRef} to ${TARGET_OWNER}/${TARGET_REPO}#${targetIssueNumber}`);
+            }

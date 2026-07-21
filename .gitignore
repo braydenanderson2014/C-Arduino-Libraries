@@ -5,3 +5,5 @@
 .vscode/ipch
 node_modules/
 package-lock.json
+*.ps1
+.vscode/c_cpp_properties.json
