@@ -30,6 +30,10 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Delay For Restricted Label Watchdog
+      if: ${{ github.event_name == 'issues' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') }}
+      run: sleep 15
       
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -1318,6 +1322,56 @@ jobs:
           // Main workflow logic
           const issue = context.payload.issue;
           const comment = context.payload.comment;
+
+          async function shouldSkipRestrictedLabelAction() {
+            if (context.eventName !== 'issues' || context.payload.action !== 'labeled') {
+              return false;
+            }
+
+            const label = context.payload.label;
+            const sender = context.payload.sender;
+            if (!label || !sender) {
+              return false;
+            }
+
+            const restrictedLabels = new Set([
+              CONFIG.LABELS.ADMIN_DUPLICATE.toLowerCase(),
+              CONFIG.LABELS.ADMIN_DUPLICATE_NEGATIVE.toLowerCase()
+            ]);
+
+            if (!restrictedLabels.has(label.name.toLowerCase())) {
+              return false;
+            }
+
+            if (sender.type === 'Bot' || sender.login.toLowerCase().endsWith('[bot]')) {
+              return false;
+            }
+
+            try {
+              const permissionResponse = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: sender.login
+              });
+
+              const permission = (permissionResponse.data.permission || '').toLowerCase();
+              const allowed = permission === 'admin' || permission === 'maintain';
+
+              if (!allowed) {
+                console.log(`🚫 Ignoring restricted label action by ${sender.login} (permission: ${permission || 'unknown'})`);
+                return true;
+              }
+            } catch (error) {
+              console.log(`⚠️ Could not verify permission for ${sender.login}: ${error.message}`);
+              return true;
+            }
+
+            return false;
+          }
+
+          if (await shouldSkipRestrictedLabelAction()) {
+            return;
+          }
           
           if (comment && isManualRefreshCommand(comment)) {
             console.log('🔄 Manual refresh duplicates command detected');

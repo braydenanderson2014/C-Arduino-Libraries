@@ -1,0 +1,120 @@
+name: Restricted Label Watchdog
+
+on:
+  issues:
+    types: [labeled, unlabeled]
+  pull_request_target:
+    types: [labeled, unlabeled]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  enforce-restricted-label-policy:
+    runs-on: ubuntu-latest
+    name: Enforce Restricted Label Policy
+    env:
+      RESTRICTED_LABELS: adminduplicate,adminduplicatenegative,challenge-upheld,challenge-failed,challenge-complete,parent,child,ai-training,ai-data,ai-verified,training-data,auto-processed
+      TRUSTED_SYSTEM_ACTORS: github-actions[bot],dependabot[bot]
+
+    steps:
+      - name: Guard Restricted Labels
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
+          script: |
+            const action = context.payload.action;
+            const label = context.payload.label;
+            const sender = context.payload.sender;
+
+            if (!label || (action !== 'labeled' && action !== 'unlabeled')) {
+              console.log('ℹ️ No relevant label action to process');
+              return;
+            }
+
+            const restrictedLabels = (process.env.RESTRICTED_LABELS || '')
+              .split(',')
+              .map((value) => value.trim().toLowerCase())
+              .filter(Boolean);
+
+            const trustedSystemActors = (process.env.TRUSTED_SYSTEM_ACTORS || '')
+              .split(',')
+              .map((value) => value.trim().toLowerCase())
+              .filter(Boolean);
+
+            const labelName = label.name.toLowerCase();
+            if (!restrictedLabels.includes(labelName)) {
+              console.log(`ℹ️ Label "${label.name}" is not restricted - skipping`);
+              return;
+            }
+
+            const actorLogin = (sender?.login || '').toLowerCase();
+            const actorType = (sender?.type || '').toLowerCase();
+            const isSystemActor = actorType === 'bot' || trustedSystemActors.includes(actorLogin);
+
+            let isMaintainer = false;
+            let actorPermission = 'unknown';
+
+            if (!isSystemActor && actorLogin) {
+              try {
+                const permissionResponse = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  username: sender.login
+                });
+
+                actorPermission = (permissionResponse.data.permission || '').toLowerCase();
+                isMaintainer = actorPermission === 'admin' || actorPermission === 'maintain';
+              } catch (error) {
+                console.log(`⚠️ Could not read permission for ${sender.login}: ${error.message}`);
+                isMaintainer = false;
+              }
+            }
+
+            if (isSystemActor || isMaintainer) {
+              console.log(`✅ Actor ${sender?.login} is trusted (${isSystemActor ? 'system' : actorPermission})`);
+              return;
+            }
+
+            const issueNumber = context.payload.issue?.number || context.payload.pull_request?.number;
+            if (!issueNumber) {
+              console.log('⚠️ No issue or pull request number found in payload');
+              return;
+            }
+
+            if (action === 'labeled') {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name: label.name
+                });
+                console.log(`🛡️ Removed restricted label "${label.name}" added by unauthorized actor ${sender?.login}`);
+              } catch (error) {
+                if (error.status === 404) {
+                  console.log(`ℹ️ Label "${label.name}" already removed`);
+                  return;
+                }
+                throw error;
+              }
+            }
+
+            if (action === 'unlabeled') {
+              const currentLabels = (context.payload.issue?.labels || context.payload.pull_request?.labels || [])
+                .map((item) => item.name.toLowerCase());
+
+              if (!currentLabels.includes(labelName)) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  labels: [label.name]
+                });
+                console.log(`🛡️ Restored restricted label "${label.name}" after unauthorized removal by ${sender?.login}`);
+              } else {
+                console.log(`ℹ️ Restricted label "${label.name}" already present`);
+              }
+            }

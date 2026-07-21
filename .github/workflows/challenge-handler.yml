@@ -16,6 +16,10 @@ jobs:
     name: Handle Challenge System
     
     steps:
+    - name: Delay For Restricted Label Watchdog
+      if: ${{ github.event_name == 'issues' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') }}
+      run: sleep 15
+
     - name: Handle Challenge Labels and Commands
       uses: actions/github-script@v7
       with:
@@ -587,6 +591,56 @@ jobs:
           const label = context.payload.label;
           const comment = context.payload.comment;
           const action = context.payload.action;
+
+          async function shouldSkipRestrictedLabelAction() {
+            if (context.eventName !== 'issues' || action !== 'labeled' || !label) {
+              return false;
+            }
+
+            const restrictedLabels = new Set([
+              CONFIG.LABELS.CHALLENGE_UPHELD.toLowerCase(),
+              CONFIG.LABELS.CHALLENGE_FAILED.toLowerCase(),
+              CONFIG.LABELS.CHALLENGE_COMPLETE.toLowerCase()
+            ]);
+
+            if (!restrictedLabels.has(label.name.toLowerCase())) {
+              return false;
+            }
+
+            const sender = context.payload.sender;
+            if (!sender) {
+              return true;
+            }
+
+            if (sender.type === 'Bot' || sender.login.toLowerCase().endsWith('[bot]')) {
+              return false;
+            }
+
+            try {
+              const permissionResponse = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: sender.login
+              });
+
+              const permission = (permissionResponse.data.permission || '').toLowerCase();
+              const allowed = permission === 'admin' || permission === 'maintain';
+
+              if (!allowed) {
+                console.log(`🚫 Ignoring restricted challenge label action by ${sender.login} (permission: ${permission || 'unknown'})`);
+                return true;
+              }
+            } catch (error) {
+              console.log(`⚠️ Could not verify permission for ${sender.login}: ${error.message}`);
+              return true;
+            }
+
+            return false;
+          }
+
+          if (await shouldSkipRestrictedLabelAction()) {
+            return;
+          }
           
           console.log(`🔍 Challenge handler triggered - Event: ${context.eventName}, Action: ${action}`);
           
