@@ -1,6 +1,6 @@
 # Library Health Report
 
-Generated: 2026-07-21T22:48:54.526Z
+Generated: 2026-07-21T22:56:21.139Z
 Source repo: braydenanderson2014/C-Arduino-Libraries
 Analyzer repo: braydenanderson2014/SystemCommands
 Confirmed labels: confirmed
@@ -8,14 +8,14 @@ Confirmed labels: confirmed
 ## Summary
 
 - Libraries analyzed: 53
-- Potentially Unhealthy: 5
-- Unsure: 48
+- Potentially Unhealthy: 1
+- Unsure: 52
 
 ## Results
 
 | Library Label | Confirmed Issues | Open Unconfirmed Issues | PlatformIO Signal | Routed Bucket | Bucket Issue |
 |---|---:|---:|---|---|---:|
-| Array List | 0 | 0 | Likely Unhealthy | Potentially Unhealthy | #25 |
+| Array List | 0 | 0 | Likely Healthy | Unsure | #24 |
 | AVL Tree | 0 | 0 | Watch | Unsure | #24 |
 | B Plus Tree | 0 | 0 | Watch | Unsure | #24 |
 | B Tree | 0 | 0 | Watch | Unsure | #24 |
@@ -29,9 +29,9 @@ Confirmed labels: confirmed
 | Ethernet Mach2 Connection Checker | 0 | 0 | Unknown | Unsure | #24 |
 | Extreme Variant | 0 | 0 | Unknown | Unsure | #24 |
 | Fenwick Tree | 0 | 0 | Watch | Unsure | #24 |
-| Hashtable | 0 | 0 | Likely Unhealthy | Potentially Unhealthy | #25 |
+| Hashtable | 0 | 0 | Likely Healthy | Unsure | #24 |
 | Heap Tree | 0 | 0 | Watch | Unsure | #24 |
-| Initializer List | 0 | 0 | Likely Unhealthy | Potentially Unhealthy | #25 |
+| Initializer List | 0 | 0 | Likely Healthy | Unsure | #24 |
 | Interval Tree | 0 | 0 | Watch | Unsure | #24 |
 | Iostream | 0 | 0 | Unknown | Unsure | #24 |
 | Iterator | 0 | 0 | Likely Healthy | Unsure | #24 |
@@ -47,7 +47,7 @@ Confirmed labels: confirmed
 | Numeric Limits | 0 | 0 | Likely Healthy | Unsure | #24 |
 | OC Tree | 0 | 0 | Watch | Unsure | #24 |
 | Operators | 0 | 0 | Watch | Unsure | #24 |
-| Optional | 0 | 0 | Watch | Unsure | #24 |
+| Optional | 0 | 0 | Likely Healthy | Unsure | #24 |
 | Ordered Map | 0 | 0 | Unknown | Unsure | #24 |
 | Predicates | 0 | 0 | Watch | Unsure | #24 |
 | Properties | 0 | 0 | Unknown | Unsure | #24 |
@@ -59,7 +59,7 @@ Confirmed labels: confirmed
 | Segment Tree | 0 | 0 | Watch | Unsure | #24 |
 | Simple Mutex | 0 | 0 | Unknown | Unsure | #24 |
 | Simple Thread Manager | 0 | 0 | Unknown | Unsure | #24 |
-| Simple Vector | 0 | 0 | Likely Unhealthy | Potentially Unhealthy | #25 |
+| Simple Vector | 0 | 0 | Likely Healthy | Unsure | #24 |
 | Stack | 0 | 0 | Unknown | Unsure | #24 |
 | String | 0 | 0 | Unknown | Unsure | #24 |
 | Suffix Tree | 0 | 0 | Watch | Unsure | #24 |
@@ -79,9 +79,9 @@ Confirmed labels: confirmed
 
 ### Array List
 
-- Routed bucket: Potentially Unhealthy (#25)
+- Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Likely Unhealthy (Download trend -13, rank trend -6.)
+- PlatformIO: Likely Healthy (Rank 3828 (top 8000).)
 - No confirmed source issues linked.
 
 ### AVL Tree
@@ -177,9 +177,9 @@ Confirmed labels: confirmed
 
 ### Hashtable
 
-- Routed bucket: Potentially Unhealthy (#25)
+- Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Likely Unhealthy (Download trend -14, rank trend -14.)
+- PlatformIO: Likely Healthy (Rank 2308 (top 8000).)
 - No confirmed source issues linked.
 
 ### Heap Tree
@@ -191,9 +191,9 @@ Confirmed labels: confirmed
 
 ### Initializer List
 
-- Routed bucket: Potentially Unhealthy (#25)
+- Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Likely Unhealthy (Download trend -7, rank trend -8.)
+- PlatformIO: Likely Healthy (Rank 1985 (top 8000).)
 - No confirmed source issues linked.
 
 ### Interval Tree
@@ -214,7 +214,7 @@ Confirmed labels: confirmed
 
 - Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 4696, trends -11/2.)
+- PlatformIO: Likely Healthy (Rank 4696 (top 8000).)
 - No confirmed source issues linked.
 
 ### Json
@@ -242,14 +242,14 @@ Confirmed labels: confirmed
 
 - Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 3322, trends -364/-1.)
+- PlatformIO: Likely Healthy (Rank 3322 (top 8000).)
 - No confirmed source issues linked.
 
 ### Math Lib
 
 - Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 4734, trends -9/0.)
+- PlatformIO: Likely Healthy (Rank 4734 (top 8000).)
 - No confirmed source issues linked.
 
 ### Matrix Math
@@ -284,7 +284,7 @@ Confirmed labels: confirmed
 
 - Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 4735, trends -9/1.)
+- PlatformIO: Likely Healthy (Rank 4735 (top 8000).)
 - No confirmed source issues linked.
 
 ### OC Tree
@@ -305,7 +305,7 @@ Confirmed labels: confirmed
 
 - Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Watch (Rank 6880, trends -9/0.)
+- PlatformIO: Likely Healthy (Rank 6880 (top 8000).)
 - No confirmed source issues linked.
 
 ### Ordered Map
@@ -387,9 +387,9 @@ Confirmed labels: confirmed
 
 ### Simple Vector
 
-- Routed bucket: Potentially Unhealthy (#25)
+- Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Likely Unhealthy (Download trend -19, rank trend -10.)
+- PlatformIO: Likely Healthy (Rank 2068 (top 8000).)
 - No confirmed source issues linked.
 
 ### Stack
@@ -431,14 +431,14 @@ Confirmed labels: confirmed
 
 - Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 4732, trends -9/1.)
+- PlatformIO: Likely Healthy (Rank 4732 (top 8000).)
 - No confirmed source issues linked.
 
 ### Unordered Map
 
 - Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 3303, trends 2/-4.)
+- PlatformIO: Likely Healthy (Rank 3303 (top 8000).)
 - No confirmed source issues linked.
 
 ### Variant
