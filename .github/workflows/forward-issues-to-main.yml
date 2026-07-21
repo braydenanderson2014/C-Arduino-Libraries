@@ -11,11 +11,26 @@ on:
         description: "Optional: process only this pull request number"
         required: false
         type: string
+      close_source_issues:
+        description: "Close source issues after mirroring"
+        required: false
+        default: true
+        type: boolean
       close_source_pull_requests:
         description: "Close source pull requests after mirroring"
         required: false
         default: true
         type: boolean
+      enforce_transfer_status_gate:
+        description: "Only forward when source project field matches required_transfer_status"
+        required: false
+        default: false
+        type: boolean
+      required_transfer_status:
+        description: "Expected value of the source project field before forwarding"
+        required: false
+        default: "Yes"
+        type: string
 
 permissions:
   issues: write
@@ -43,10 +58,22 @@ jobs:
             const TRANSFER_FIELD_NAME = "Needs Transfer";
             const TRANSFER_STATUS_PENDING = "Yes";
             const TRANSFER_STATUS_COMPLETE = "Completed Transfer";
-            const CLOSE_SOURCE_PULL_REQUEST = String(core.getInput("close_source_pull_requests") || "true").toLowerCase() !== "false";
+            const parseBool = (value, fallback) => {
+              const normalized = String(value ?? "").trim().toLowerCase();
+              if (!normalized) return fallback;
+              if (["true", "1", "yes", "y", "on"].includes(normalized)) return true;
+              if (["false", "0", "no", "n", "off"].includes(normalized)) return false;
+              return fallback;
+            };
+
+            const CLOSE_SOURCE_ISSUE = parseBool(core.getInput("close_source_issues"), true);
+            const CLOSE_SOURCE_PULL_REQUEST = parseBool(core.getInput("close_source_pull_requests"), true);
+            const ENFORCE_TRANSFER_STATUS_GATE = parseBool(core.getInput("enforce_transfer_status_gate"), false);
+            const REQUIRED_TRANSFER_STATUS = (core.getInput("required_transfer_status") || TRANSFER_STATUS_PENDING).trim() || TRANSFER_STATUS_PENDING;
+            const projectCache = new Map();
 
             const getProjectNode = async (owner, projectNumber) => {
-              const query = `
+              const userQuery = `
                 query($owner: String!, $number: Int!) {
                   user(login: $owner) {
                     projectV2(number: $number) {
@@ -69,6 +96,24 @@ jobs:
                       }
                     }
                   }
+                }
+              `;
+
+              try {
+                const userResponse = await github.graphql(userQuery, {
+                  owner,
+                  number: projectNumber
+                });
+
+                if (userResponse.user?.projectV2) {
+                  return userResponse.user.projectV2;
+                }
+              } catch (error) {
+                core.info(`User project lookup failed for ${owner}/${projectNumber}: ${error.message}`);
+              }
+
+              const orgQuery = `
+                query($owner: String!, $number: Int!) {
                   organization(login: $owner) {
                     projectV2(number: $number) {
                       id
@@ -93,12 +138,20 @@ jobs:
                 }
               `;
 
-              const response = await github.graphql(query, {
-                owner,
-                number: projectNumber
-              });
+              try {
+                const orgResponse = await github.graphql(orgQuery, {
+                  owner,
+                  number: projectNumber
+                });
 
-              return response.user?.projectV2 || response.organization?.projectV2 || null;
+                if (orgResponse.organization?.projectV2) {
+                  return orgResponse.organization.projectV2;
+                }
+              } catch (error) {
+                core.info(`Organization project lookup failed for ${owner}/${projectNumber}: ${error.message}`);
+              }
+
+              return null;
             };
 
             const setProjectTransferStatus = async (projectId, itemId, fields, value) => {
@@ -149,6 +202,91 @@ jobs:
               );
             };
 
+            const getResolvedProject = async (projectRef) => {
+              if (projectCache.has(projectRef)) {
+                return projectCache.get(projectRef);
+              }
+
+              const [projectOwner, projectNumberText] = projectRef.split("/");
+              const projectNumber = Number.parseInt(projectNumberText, 10);
+
+              if (!projectOwner || Number.isNaN(projectNumber)) {
+                core.warning(`Skipping invalid project reference: ${projectRef}`);
+                projectCache.set(projectRef, null);
+                return null;
+              }
+
+              const project = await getProjectNode(projectOwner, projectNumber);
+              if (!project) {
+                core.warning(`Could not resolve project: ${projectRef}`);
+                projectCache.set(projectRef, null);
+                return null;
+              }
+
+              projectCache.set(projectRef, project);
+              return project;
+            };
+
+            const getSourceTransferStatusForProject = async (projectId, sourceNodeId) => {
+              if (!sourceNodeId) {
+                return null;
+              }
+
+              let cursor = null;
+              while (true) {
+                const response = await github.graphql(
+                  `
+                  query($projectId: ID!, $cursor: String, $fieldName: String!) {
+                    node(id: $projectId) {
+                      ... on ProjectV2 {
+                        items(first: 100, after: $cursor) {
+                          nodes {
+                            content {
+                              ... on Issue { id }
+                              ... on PullRequest { id }
+                            }
+                            fieldValueByName(name: $fieldName) {
+                              ... on ProjectV2ItemFieldSingleSelectValue {
+                                name
+                              }
+                              ... on ProjectV2ItemFieldTextValue {
+                                text
+                              }
+                            }
+                          }
+                          pageInfo {
+                            hasNextPage
+                            endCursor
+                          }
+                        }
+                      }
+                    }
+                  }
+                  `,
+                  {
+                    projectId,
+                    cursor,
+                    fieldName: TRANSFER_FIELD_NAME
+                  }
+                );
+
+                const items = response.node?.items?.nodes || [];
+                const match = items.find((n) => n?.content?.id === sourceNodeId);
+                if (match) {
+                  return match.fieldValueByName?.name || match.fieldValueByName?.text || null;
+                }
+
+                const pageInfo = response.node?.items?.pageInfo;
+                if (!pageInfo?.hasNextPage) {
+                  break;
+                }
+
+                cursor = pageInfo.endCursor;
+              }
+
+              return null;
+            };
+
             const isIssueEvent = context.eventName === "issues";
             const isPullRequestEvent = context.eventName === "pull_request";
             const isManualDispatch = context.eventName === "workflow_dispatch";
@@ -179,6 +317,7 @@ jobs:
                 isIssueFlow: true,
                 isPullRequestFlow: false,
                 sourceNumber: issue.number,
+                sourceNodeId: issue.node_id,
                 sourceTitle: issue.title,
                 sourceBody: issue.body,
                 sourceUrl: issue.html_url,
@@ -198,6 +337,7 @@ jobs:
                 isIssueFlow: false,
                 isPullRequestFlow: true,
                 sourceNumber: pullRequest.number,
+                sourceNodeId: pullRequest.node_id,
                 sourceTitle: pullRequest.title,
                 sourceBody: pullRequest.body,
                 sourceUrl: pullRequest.html_url,
@@ -239,6 +379,7 @@ jobs:
                   isIssueFlow: false,
                   isPullRequestFlow: true,
                   sourceNumber: pullRequest.number,
+                  sourceNodeId: pullRequest.node_id,
                   sourceTitle: pullRequest.title,
                   sourceBody: pullRequest.body,
                   sourceUrl: pullRequest.html_url,
@@ -266,6 +407,7 @@ jobs:
                     isIssueFlow: false,
                     isPullRequestFlow: true,
                     sourceNumber: pullRequest.number,
+                    sourceNodeId: pullRequest.node_id,
                     sourceTitle: pullRequest.title,
                     sourceBody: pullRequest.body,
                     sourceUrl: pullRequest.html_url,
@@ -294,6 +436,34 @@ jobs:
               const trackedProjectItems = [];
               const labelsText = item.sourceLabels.length ? item.sourceLabels.map((l) => `- ${l}`).join("\n") : "- (none)";
               const sourceIssueRef = `${SOURCE_OWNER}/${SOURCE_REPO}#${item.sourceNumber}`;
+
+              if (ENFORCE_TRANSFER_STATUS_GATE) {
+                let gatePassed = false;
+
+                for (const projectRef of TARGET_PROJECTS) {
+                  const project = await getResolvedProject(projectRef);
+                  if (!project) {
+                    continue;
+                  }
+
+                  const currentStatus = await getSourceTransferStatusForProject(project.id, item.sourceNodeId);
+                  if (!currentStatus) {
+                    continue;
+                  }
+
+                  if (currentStatus.toLowerCase() === REQUIRED_TRANSFER_STATUS.toLowerCase()) {
+                    gatePassed = true;
+                    break;
+                  }
+                }
+
+                if (!gatePassed) {
+                  core.info(
+                    `Skipping ${sourceIssueRef}: '${TRANSFER_FIELD_NAME}' did not match required value '${REQUIRED_TRANSFER_STATUS}'.`
+                  );
+                  continue;
+                }
+              }
 
               const mirroredTitle = item.isPullRequestFlow
                 ? `[${SOURCE_REPO} PR] ${item.sourceTitle}`
@@ -324,17 +494,8 @@ jobs:
               const targetIssueNodeId = created.data.node_id;
 
               for (const projectRef of TARGET_PROJECTS) {
-                const [projectOwner, projectNumberText] = projectRef.split("/");
-                const projectNumber = Number.parseInt(projectNumberText, 10);
-
-                if (!projectOwner || Number.isNaN(projectNumber)) {
-                  core.warning(`Skipping invalid project reference: ${projectRef}`);
-                  continue;
-                }
-
-                const project = await getProjectNode(projectOwner, projectNumber);
+                const project = await getResolvedProject(projectRef);
                 if (!project) {
-                  core.warning(`Could not resolve project: ${projectRef}`);
                   continue;
                 }
 
@@ -393,7 +554,7 @@ jobs:
                 ].filter(Boolean).join("\n")
               });
 
-              if (item.isIssueFlow) {
+              if (item.isIssueFlow && CLOSE_SOURCE_ISSUE) {
                 await github.rest.issues.update({
                   owner: SOURCE_OWNER,
                   repo: SOURCE_REPO,
