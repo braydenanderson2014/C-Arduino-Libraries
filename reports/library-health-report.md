@@ -1,6 +1,6 @@
 # Library Health Report
 
-Generated: 2026-07-21T23:28:33.946Z
+Generated: 2026-07-21T23:31:28.204Z
 Source repo: braydenanderson2014/C-Arduino-Libraries
 Analyzer repo: braydenanderson2014/SystemCommands
 Confirmed labels: confirmed
@@ -8,15 +8,15 @@ Confirmed labels: confirmed
 ## Summary
 
 - Libraries analyzed: 53
-- Potentially Unhealthy: 1
-- Stable: 11
+- Potentially Unhealthy: 2
+- Stable: 10
 - Unsure: 41
 
 ## Results
 
 | Library Label | Confirmed Issues | Open Unconfirmed Issues | PlatformIO Signal | Routed Bucket | Bucket Issue |
 |---|---:|---:|---|---|---:|
-| Array List | 1 | 0 | Likely Healthy | Stable | #21 |
+| Array List | 1 | 0 | Likely Healthy | Potentially Unhealthy | #25 |
 | AVL Tree | 0 | 0 | Watch | Unsure | #24 |
 | B Plus Tree | 0 | 0 | Watch | Unsure | #24 |
 | B Tree | 0 | 0 | Watch | Unsure | #24 |
@@ -74,19 +74,20 @@ Confirmed labels: confirmed
 
 - Libraries are routed to private-repo status bucket issues by applying/removing library labels.
 - Open unconfirmed source issues take precedence and route a library to Potentially Unhealthy.
+- Any confirmed issue routes a library to Potentially Unhealthy (not Stable).
 - PlatformIO Signal is derived from rank and download trend in PLATFORMIO_METRICS.md.
 - Overrides are loaded from private repo path: override.md.
-- Manual category overrides are ignored when source issues plus PlatformIO produce an unstable lock.
+- Manual category overrides are ignored when confirmed issue lock is active.
 
 ## Confirmed Issue Links By Library
 
 ### Array List
 
-- Routed bucket: Stable (#21)
-- Computed bucket before override: Stable
+- Routed bucket: Potentially Unhealthy (#25)
+- Computed bucket before override: Potentially Unhealthy
 - Manual category override applied: No
 - Manual issue count override applied: Yes
-- Unstable lock active: No
+- Confirmed issue lock active: Yes
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 1
@@ -100,7 +101,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -114,7 +115,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -128,7 +129,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -142,7 +143,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -156,7 +157,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -170,7 +171,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -184,7 +185,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -198,7 +199,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Potentially Unhealthy
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -212,7 +213,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -226,7 +227,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -240,7 +241,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -254,7 +255,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -268,7 +269,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -282,7 +283,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Stable
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -296,7 +297,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -310,7 +311,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Stable
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -324,7 +325,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -338,7 +339,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -352,7 +353,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Stable
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -366,7 +367,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -380,7 +381,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -394,7 +395,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -408,7 +409,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Stable
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -422,7 +423,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Stable
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -436,7 +437,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -450,7 +451,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -464,7 +465,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -478,7 +479,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -492,7 +493,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Stable
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -506,7 +507,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -520,7 +521,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -534,7 +535,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Stable
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -548,7 +549,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -562,7 +563,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -576,7 +577,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -590,7 +591,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -604,7 +605,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -618,7 +619,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -632,7 +633,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -646,7 +647,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -660,7 +661,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -674,7 +675,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -688,7 +689,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -702,7 +703,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Stable
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -716,7 +717,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -730,7 +731,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -744,7 +745,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -758,7 +759,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -772,7 +773,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -786,7 +787,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Stable
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -800,7 +801,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Stable
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
@@ -814,7 +815,7 @@ Confirmed labels: confirmed
 - Computed bucket before override: Unsure
 - Manual category override applied: No
 - Manual issue count override applied: No
-- Unstable lock active: No
+- Confirmed issue lock active: No
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
