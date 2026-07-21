@@ -58,6 +58,15 @@ Most libraries are **[PARTIALLY-TESTED]** or **[MOSTLY-TESTED]**. Even **[STABLE
 📌 **[Development Branch]:** Libraries here are in **active development** and may not compile. Use **main** branch versions for stable releases.
 
 ---
+<!-- HEALTH_BADGES_START -->
+## Library Health Badges
+
+Auto-generated from workflow status results.
+
+No libraries are currently in a healthy status bucket.
+<!-- HEALTH_BADGES_END -->
+
+---
 ## 📚 **Available Libraries**  
 * [Dictionary](lib/Dictionary/README.md) [DEVELOPMENT-COMPLETE] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING-NOT-NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
 * [Hashtable](lib/Hashtable/README.md) [PASSIVE-DEVELOPMENT], [TESTED], [STABLE]
