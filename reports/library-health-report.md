@@ -1,43 +1,73 @@
 # Library Health Report
 
-Generated: 2026-07-21T22:41:58.905Z
+Generated: 2026-07-21T22:48:54.526Z
 Source repo: braydenanderson2014/C-Arduino-Libraries
 Analyzer repo: braydenanderson2014/SystemCommands
 Confirmed labels: confirmed
 
 ## Summary
 
-- Libraries analyzed: 23
-- Potentially Unhealthy: 13
-- Stable: 10
+- Libraries analyzed: 53
+- Potentially Unhealthy: 5
+- Unsure: 48
 
 ## Results
 
 | Library Label | Confirmed Issues | Open Unconfirmed Issues | PlatformIO Signal | Routed Bucket | Bucket Issue |
 |---|---:|---:|---|---|---:|
-| Alpha | 0 | 1 | Unknown | Potentially Unhealthy | #25 |
-| auto-processed | 1 | 1 | Unknown | Potentially Unhealthy | #25 |
-| auto-response | 4 | 4 | Unknown | Potentially Unhealthy | #25 |
-| Beta | 5 | 0 | Unknown | Stable | #21 |
-| child | 0 | 1 | Unknown | Potentially Unhealthy | #25 |
-| closed | 1 | 0 | Unknown | Stable | #21 |
-| Completed | 11 | 0 | Unknown | Stable | #21 |
-| dependencies | 1 | 0 | Unknown | Stable | #21 |
-| feature-request | 0 | 3 | Unknown | Potentially Unhealthy | #25 |
-| needs-more-info | 2 | 1 | Unknown | Potentially Unhealthy | #25 |
-| Non-Issue | 2 | 0 | Unknown | Stable | #21 |
-| parent | 5 | 5 | Unknown | Potentially Unhealthy | #25 |
-| priority: high | 1 | 0 | Unknown | Stable | #21 |
-| Release | 3 | 0 | Unknown | Stable | #21 |
-| Researching | 12 | 2 | Unknown | Potentially Unhealthy | #25 |
-| Scheduled | 9 | 0 | Unknown | Stable | #21 |
-| Semantics | 1 | 0 | Unknown | Stable | #21 |
-| send-welcome | 0 | 1 | Unknown | Potentially Unhealthy | #25 |
-| sponsor-request | 3 | 3 | Unknown | Potentially Unhealthy | #25 |
-| Testing | 10 | 0 | Unknown | Stable | #21 |
-| Unconfirmed | 0 | 2 | Unknown | Potentially Unhealthy | #25 |
-| user-reported | 1 | 3 | Unknown | Potentially Unhealthy | #25 |
-| Working | 16 | 2 | Unknown | Potentially Unhealthy | #25 |
+| Array List | 0 | 0 | Likely Unhealthy | Potentially Unhealthy | #25 |
+| AVL Tree | 0 | 0 | Watch | Unsure | #24 |
+| B Plus Tree | 0 | 0 | Watch | Unsure | #24 |
+| B Tree | 0 | 0 | Watch | Unsure | #24 |
+| Binary Search Tree | 0 | 0 | Watch | Unsure | #24 |
+| Binary Tree | 0 | 0 | Watch | Unsure | #24 |
+| Color Manager | 0 | 0 | Watch | Unsure | #24 |
+| Dictionary | 0 | 0 | Watch | Unsure | #24 |
+| Double Linked List | 0 | 0 | Likely Unhealthy | Potentially Unhealthy | #25 |
+| Dynamic Storage Library | 0 | 0 | Unknown | Unsure | #24 |
+| Ethernet Connection Checker | 0 | 0 | Unknown | Unsure | #24 |
+| Ethernet Mach2 Connection Checker | 0 | 0 | Unknown | Unsure | #24 |
+| Extreme Variant | 0 | 0 | Unknown | Unsure | #24 |
+| Fenwick Tree | 0 | 0 | Watch | Unsure | #24 |
+| Hashtable | 0 | 0 | Likely Unhealthy | Potentially Unhealthy | #25 |
+| Heap Tree | 0 | 0 | Watch | Unsure | #24 |
+| Initializer List | 0 | 0 | Likely Unhealthy | Potentially Unhealthy | #25 |
+| Interval Tree | 0 | 0 | Watch | Unsure | #24 |
+| Iostream | 0 | 0 | Unknown | Unsure | #24 |
+| Iterator | 0 | 0 | Likely Healthy | Unsure | #24 |
+| Json | 0 | 0 | Unknown | Unsure | #24 |
+| K Dimensional Tree | 0 | 0 | Unknown | Unsure | #24 |
+| Linked List | 0 | 0 | Unknown | Unsure | #24 |
+| Map | 0 | 0 | Likely Healthy | Unsure | #24 |
+| Math Lib | 0 | 0 | Likely Healthy | Unsure | #24 |
+| Matrix Math | 0 | 0 | Watch | Unsure | #24 |
+| Memory Manager | 0 | 0 | Unknown | Unsure | #24 |
+| My Dictionary | 0 | 0 | Watch | Unsure | #24 |
+| New Array List (TEMP) | 0 | 0 | Unknown | Unsure | #24 |
+| Numeric Limits | 0 | 0 | Likely Healthy | Unsure | #24 |
+| OC Tree | 0 | 0 | Watch | Unsure | #24 |
+| Operators | 0 | 0 | Watch | Unsure | #24 |
+| Optional | 0 | 0 | Watch | Unsure | #24 |
+| Ordered Map | 0 | 0 | Unknown | Unsure | #24 |
+| Predicates | 0 | 0 | Watch | Unsure | #24 |
+| Properties | 0 | 0 | Unknown | Unsure | #24 |
+| Quad Tree | 0 | 0 | Watch | Unsure | #24 |
+| Queue | 0 | 0 | Unknown | Unsure | #24 |
+| R Tree | 0 | 0 | Watch | Unsure | #24 |
+| Red Black Tree | 0 | 0 | Watch | Unsure | #24 |
+| SD List | 0 | 0 | Watch | Unsure | #24 |
+| Segment Tree | 0 | 0 | Watch | Unsure | #24 |
+| Simple Mutex | 0 | 0 | Unknown | Unsure | #24 |
+| Simple Thread Manager | 0 | 0 | Unknown | Unsure | #24 |
+| Simple Vector | 0 | 0 | Likely Unhealthy | Potentially Unhealthy | #25 |
+| Stack | 0 | 0 | Unknown | Unsure | #24 |
+| String | 0 | 0 | Unknown | Unsure | #24 |
+| Suffix Tree | 0 | 0 | Watch | Unsure | #24 |
+| Timer | 0 | 0 | Unknown | Unsure | #24 |
+| Trie Tree | 0 | 0 | Watch | Unsure | #24 |
+| Type Traits | 0 | 0 | Likely Healthy | Unsure | #24 |
+| Unordered Map | 0 | 0 | Likely Healthy | Unsure | #24 |
+| Variant | 0 | 0 | Watch | Unsure | #24 |
 
 ## Notes
 
@@ -47,294 +77,374 @@ Confirmed labels: confirmed
 
 ## Confirmed Issue Links By Library
 
-### Alpha
+### Array List
 
 - Routed bucket: Potentially Unhealthy (#25)
-- Open unconfirmed issues: 1
+- Open unconfirmed issues: 0
+- PlatformIO: Likely Unhealthy (Download trend -13, rank trend -6.)
+- No confirmed source issues linked.
+
+### AVL Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15878, trends -11/-1.)
+- No confirmed source issues linked.
+
+### B Plus Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15881, trends -11/-1.)
+- No confirmed source issues linked.
+
+### B Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15882, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Binary Search Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15879, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Binary Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15880, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Color Manager
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15883, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Dictionary
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15584, trends -13/0.)
+- No confirmed source issues linked.
+
+### Double Linked List
+
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 0
+- PlatformIO: Likely Unhealthy (Download trend -6, rank trend -12.)
+- No confirmed source issues linked.
+
+### Dynamic Storage Library
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
 - No confirmed source issues linked.
-- Open unconfirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
 
-### auto-processed
+### Ethernet Connection Checker
 
-- Routed bucket: Potentially Unhealthy (#25)
-- Open unconfirmed issues: 1
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/152
-- Open unconfirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/150
-
-### auto-response
-
-- Routed bucket: Potentially Unhealthy (#25)
-- Open unconfirmed issues: 4
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/152
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/118
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/98
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/97
-- Open unconfirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/150
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/134
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/117
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
-
-### Beta
-
-- Routed bucket: Stable (#21)
+- Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/91
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/85
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/83
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/81
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/82
-
-### child
-
-- Routed bucket: Potentially Unhealthy (#25)
-- Open unconfirmed issues: 1
 - PlatformIO: Unknown (No PlatformIO entry matched.)
 - No confirmed source issues linked.
-- Open unconfirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
 
-### closed
+### Ethernet Mach2 Connection Checker
 
-- Routed bucket: Stable (#21)
+- Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/98
-
-### Completed
-
-- Routed bucket: Stable (#21)
-- Open unconfirmed issues: 0
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/114
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/103
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/96
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/94
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/91
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/89
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/85
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/84
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/83
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/81
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/82
-
-### dependencies
-
-- Routed bucket: Stable (#21)
-- Open unconfirmed issues: 0
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/79
-
-### feature-request
-
-- Routed bucket: Potentially Unhealthy (#25)
-- Open unconfirmed issues: 3
 - PlatformIO: Unknown (No PlatformIO entry matched.)
 - No confirmed source issues linked.
-- Open unconfirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/138
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/117
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
 
-### needs-more-info
+### Extreme Variant
 
-- Routed bucket: Potentially Unhealthy (#25)
-- Open unconfirmed issues: 1
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/98
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/97
-- Open unconfirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/117
-
-### Non-Issue
-
-- Routed bucket: Stable (#21)
+- Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/114
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/84
-
-### parent
-
-- Routed bucket: Potentially Unhealthy (#25)
-- Open unconfirmed issues: 5
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/152
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/118
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/102
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/98
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/97
-- Open unconfirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/150
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/138
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/134
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/117
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
-
-### priority: high
-
-- Routed bucket: Stable (#21)
-- Open unconfirmed issues: 0
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/102
-
-### Release
-
-- Routed bucket: Stable (#21)
-- Open unconfirmed issues: 0
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/83
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/81
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/82
-
-### Researching
-
-- Routed bucket: Potentially Unhealthy (#25)
-- Open unconfirmed issues: 2
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/103
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/102
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/101
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/97
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/96
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/94
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/93
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/85
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/83
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/81
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/82
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/76
-- Open unconfirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/138
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
-
-### Scheduled
-
-- Routed bucket: Stable (#21)
-- Open unconfirmed issues: 0
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/103
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/96
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/94
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/91
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/89
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/85
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/84
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/81
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/82
-
-### Semantics
-
-- Routed bucket: Stable (#21)
-- Open unconfirmed issues: 0
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/114
-
-### send-welcome
-
-- Routed bucket: Potentially Unhealthy (#25)
-- Open unconfirmed issues: 1
 - PlatformIO: Unknown (No PlatformIO entry matched.)
 - No confirmed source issues linked.
-- Open unconfirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/138
 
-### sponsor-request
+### Fenwick Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15884, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Hashtable
 
 - Routed bucket: Potentially Unhealthy (#25)
-- Open unconfirmed issues: 3
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/152
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/118
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/98
-- Open unconfirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/150
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/138
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
+- Open unconfirmed issues: 0
+- PlatformIO: Likely Unhealthy (Download trend -14, rank trend -14.)
+- No confirmed source issues linked.
 
-### Testing
+### Heap Tree
 
-- Routed bucket: Stable (#21)
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15885, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Initializer List
+
+- Routed bucket: Potentially Unhealthy (#25)
+- Open unconfirmed issues: 0
+- PlatformIO: Likely Unhealthy (Download trend -7, rank trend -8.)
+- No confirmed source issues linked.
+
+### Interval Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15886, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Iostream
+
+- Routed bucket: Unsure (#24)
 - Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/103
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/102
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/101
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/97
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/96
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/93
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/91
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/83
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/81
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/76
+- No confirmed source issues linked.
 
-### Unconfirmed
+### Iterator
 
-- Routed bucket: Potentially Unhealthy (#25)
-- Open unconfirmed issues: 2
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Likely Healthy (Rank 4696, trends -11/2.)
+- No confirmed source issues linked.
+
+### Json
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
 - No confirmed source issues linked.
-- Open unconfirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/150
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/134
 
-### user-reported
+### K Dimensional Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+
+### Linked List
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+
+### Map
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Likely Healthy (Rank 3322, trends -364/-1.)
+- No confirmed source issues linked.
+
+### Math Lib
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Likely Healthy (Rank 4734, trends -9/0.)
+- No confirmed source issues linked.
+
+### Matrix Math
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15900, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Memory Manager
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+
+### My Dictionary
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15593, trends -13/-4.)
+- No confirmed source issues linked.
+
+### New Array List (TEMP)
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+
+### Numeric Limits
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Likely Healthy (Rank 4735, trends -9/1.)
+- No confirmed source issues linked.
+
+### OC Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15888, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Operators
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15691, trends -11/-2.)
+- No confirmed source issues linked.
+
+### Optional
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 6880, trends -9/0.)
+- No confirmed source issues linked.
+
+### Ordered Map
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+
+### Predicates
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15692, trends -11/-3.)
+- No confirmed source issues linked.
+
+### Properties
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+
+### Quad Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15892, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Queue
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+
+### R Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15895, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Red Black Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15894, trends -11/-1.)
+- No confirmed source issues linked.
+
+### SD List
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15591, trends -13/-4.)
+- No confirmed source issues linked.
+
+### Segment Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15896, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Simple Mutex
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+
+### Simple Thread Manager
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+
+### Simple Vector
 
 - Routed bucket: Potentially Unhealthy (#25)
-- Open unconfirmed issues: 3
-- PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/152
-- Open unconfirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/150
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/134
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
+- Open unconfirmed issues: 0
+- PlatformIO: Likely Unhealthy (Download trend -19, rank trend -10.)
+- No confirmed source issues linked.
 
-### Working
+### Stack
 
-- Routed bucket: Potentially Unhealthy (#25)
-- Open unconfirmed issues: 2
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
 - PlatformIO: Unknown (No PlatformIO entry matched.)
-- Confirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/118
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/114
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/103
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/102
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/101
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/97
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/96
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/94
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/93
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/85
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/84
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/83
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/81
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/82
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/77
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/76
-- Open unconfirmed source issues:
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/138
-- https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/60
+- No confirmed source issues linked.
+
+### String
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+
+### Suffix Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15898, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Timer
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Unknown (No PlatformIO entry matched.)
+- No confirmed source issues linked.
+
+### Trie Tree
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 15899, trends -11/-1.)
+- No confirmed source issues linked.
+
+### Type Traits
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Likely Healthy (Rank 4732, trends -9/1.)
+- No confirmed source issues linked.
+
+### Unordered Map
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Likely Healthy (Rank 3303, trends 2/-4.)
+- No confirmed source issues linked.
+
+### Variant
+
+- Routed bucket: Unsure (#24)
+- Open unconfirmed issues: 0
+- PlatformIO: Watch (Rank 16668, trends -8/-3.)
+- No confirmed source issues linked.
 
