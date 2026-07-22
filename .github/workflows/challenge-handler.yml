@@ -21,7 +21,7 @@ jobs:
       run: sleep 15
 
     - name: Handle Challenge Labels and Commands
-      uses: actions/github-script@v7
+      uses: actions/github-script@v9
       with:
         github-token: ${{ secrets.GH_PROJECT_TOKEN }}
         script: |
