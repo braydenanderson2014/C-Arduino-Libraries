@@ -1,0 +1,109 @@
+name: Sync Library Labels
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or update library labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = [
+              "AVL Tree",
+              "Array List",
+              "Binary Search Tree",
+              "Binary Tree",
+              "Color Manager",
+              "Dictionary",
+              "Double Linked List",
+              "Dynamic Storage Library",
+              "Ethernet Connection Checker",
+              "Ethernet Mach2 Connection Checker",
+              "Extreme Variant",
+              "Fenwick Tree",
+              "Hashtable",
+              "Heap Tree",
+              "Initializer List",
+              "Interval Tree",
+              "Json",
+              "Linked List",
+              "Map",
+              "Math Lib",
+              "Matrix Math",
+              "Mbed Little FS Wrapper",
+              "Memory Manager",
+              "My Dictionary",
+              "New Array List (TEMP)",
+              "Numeric Limits",
+              "OC Tree",
+              "Operators",
+              "Optional",
+              "Ordered Map",
+              "Predicates",
+              "Properties",
+              "Quad Tree",
+              "Queue",
+              "R Tree",
+              "Red Black Tree",
+              "SD List",
+              "Segment Tree",
+              "Simple Mutex",
+              "Simple Thread Manager",
+              "Simple Vector",
+              "Stack",
+              "String",
+              "Suffix Tree",
+              "Timer",
+              "Trie Tree",
+              "Type Traits",
+              "Unordered Map",
+              "Variant",
+              "B Plus Tree",
+              "B Tree",
+              "Iostream",
+              "Iterator",
+              "K Dimensional Tree",
+            ];
+
+            const color = "1D76DB";
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            for (const name of labels) {
+              const labelData = {
+                owner,
+                repo,
+                name,
+                color,
+                description: `Library: ${name}`
+              };
+
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+                await github.rest.issues.updateLabel({
+                  owner,
+                  repo,
+                  name,
+                  new_name: name,
+                  color,
+                  description: `Library: ${name}`
+                });
+                core.info(`Updated label: ${name}`);
+              } catch (error) {
+                if (error.status === 404) {
+                  await github.rest.issues.createLabel(labelData);
+                  core.info(`Created label: ${name}`);
+                } else {
+                  throw error;
+                }
+              }
+            }
+
+            core.info(`Processed ${labels.length} labels.`);

@@ -1,0 +1,876 @@
+name: Generate Cross-Repo Library Health Report
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_repo:
+        description: Source repository to analyze for confirmed issues (owner/repo)
+        required: true
+        default: braydenanderson2014/C-Arduino-Libraries
+      output_path:
+        description: Report path in source repository
+        required: true
+        default: library-health-report.md
+      confirmed_labels:
+        description: Comma-separated labels that mark confirmed issues
+        required: true
+        default: Confirmed
+      stable_issue_number:
+        description: Private repo issue number used as Stable bucket
+        required: true
+        default: "21"
+      unstable_issue_number:
+        description: Private repo issue number used as Unstable bucket
+        required: true
+        default: "20"
+      tested_issue_number:
+        description: Private repo issue number used as Tested bucket
+        required: true
+        default: "22"
+      not_tested_issue_number:
+        description: Private repo issue number used as Not Tested bucket
+        required: true
+        default: "23"
+      unsure_issue_number:
+        description: Private repo issue number used as Unsure bucket
+        required: true
+        default: "24"
+      potentially_unhealthy_issue_number:
+        description: Private repo issue number used as Potentially Unhealthy bucket
+        required: true
+        default: "25"
+      override_path:
+        description: Path to override markdown in private repository
+        required: true
+        default: override.md
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  analyze-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Analyze issues and publish report
+        uses: actions/github-script@v7
+        env:
+          GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
+          SOURCE_REPO: ${{ github.event.inputs.source_repo }}
+          OUTPUT_PATH: ${{ github.event.inputs.output_path }}
+          CONFIRMED_LABELS: ${{ github.event.inputs.confirmed_labels }}
+          STABLE_ISSUE_NUMBER: ${{ github.event.inputs.stable_issue_number }}
+          UNSTABLE_ISSUE_NUMBER: ${{ github.event.inputs.unstable_issue_number }}
+          TESTED_ISSUE_NUMBER: ${{ github.event.inputs.tested_issue_number }}
+          NOT_TESTED_ISSUE_NUMBER: ${{ github.event.inputs.not_tested_issue_number }}
+          UNSURE_ISSUE_NUMBER: ${{ github.event.inputs.unsure_issue_number }}
+          POTENTIALLY_UNHEALTHY_ISSUE_NUMBER: ${{ github.event.inputs.potentially_unhealthy_issue_number }}
+          OVERRIDE_PATH: ${{ github.event.inputs.override_path }}
+        with:
+          script: |
+            const sourceRepoInput = process.env.SOURCE_REPO;
+            const outputPath = process.env.OUTPUT_PATH;
+            const confirmedLabelCsv = process.env.CONFIRMED_LABELS || 'Confirmed';
+            const overridePath = process.env.OVERRIDE_PATH || 'override.md';
+
+            function parseIssueNumber(name, raw) {
+              const num = Number.parseInt(raw, 10);
+              if (!Number.isInteger(num) || num <= 0) {
+                throw new Error(`Invalid ${name}: ${raw}`);
+              }
+              return num;
+            }
+
+            const bucketIssueNumbers = {
+              stable: parseIssueNumber('stable_issue_number', process.env.STABLE_ISSUE_NUMBER),
+              unstable: parseIssueNumber('unstable_issue_number', process.env.UNSTABLE_ISSUE_NUMBER),
+              tested: parseIssueNumber('tested_issue_number', process.env.TESTED_ISSUE_NUMBER),
+              not_tested: parseIssueNumber('not_tested_issue_number', process.env.NOT_TESTED_ISSUE_NUMBER),
+              unsure: parseIssueNumber('unsure_issue_number', process.env.UNSURE_ISSUE_NUMBER),
+              potentially_unhealthy: parseIssueNumber('potentially_unhealthy_issue_number', process.env.POTENTIALLY_UNHEALTHY_ISSUE_NUMBER)
+            };
+
+            if (!sourceRepoInput || !sourceRepoInput.includes('/')) {
+              core.setFailed('SOURCE_REPO must be in owner/repo format.');
+              return;
+            }
+
+            const [sourceOwner, sourceRepo] = sourceRepoInput.split('/');
+            const privateOwner = context.repo.owner;
+            const privateRepo = context.repo.repo;
+
+            const sourceToken = process.env.GH_PROJECT_TOKEN || process.env.GITHUB_TOKEN;
+            if (!sourceToken) {
+              core.setFailed('Missing GH_PROJECT_TOKEN (or GITHUB_TOKEN fallback) for cross-repo read/write.');
+              return;
+            }
+
+            const privateGh = github;
+
+            async function sourceApiRequest(method, path, body) {
+              const response = await fetch(`https://api.github.com${path}`, {
+                method,
+                headers: {
+                  Authorization: `Bearer ${sourceToken}`,
+                  Accept: 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28'
+                },
+                body: body ? JSON.stringify(body) : undefined
+              });
+
+              if (response.status === 404) {
+                const error = new Error(`GitHub API 404 for ${method} ${path}`);
+                error.status = 404;
+                throw error;
+              }
+
+              if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`GitHub API ${response.status} for ${method} ${path}: ${text}`);
+              }
+
+              if (response.status === 204) return null;
+              return response.json();
+            }
+
+            const sourceRepoMeta = await sourceApiRequest('GET', `/repos/${sourceOwner}/${sourceRepo}`);
+            const sourceDefaultBranch = sourceRepoMeta.default_branch;
+
+            const toSet = (csv) => new Set(
+              csv
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
+                .map((s) => s.toLowerCase())
+            );
+
+            const confirmedLabels = toSet(confirmedLabelCsv);
+
+            const libraryTemplateSourcePath = '.github/ISSUE_TEMPLATE/bug_report.yml';
+
+            const normalize = (value) => (value || '')
+              .toLowerCase()
+              .replace(/fs/g, 'filesystem')
+              .replace(/[^a-z0-9]/g, '');
+
+            async function listAllIssues(client, owner, repo) {
+              const items = [];
+              let page = 1;
+              while (true) {
+                const { data } = await client.rest.issues.listForRepo({
+                  owner,
+                  repo,
+                  state: 'all',
+                  per_page: 100,
+                  page
+                });
+
+                if (!data.length) break;
+
+                for (const item of data) {
+                  if (!item.pull_request) items.push(item);
+                }
+
+                if (data.length < 100) break;
+                page += 1;
+              }
+              return items;
+            }
+
+            async function listAllRepoLabels(client, owner, repo) {
+              const items = [];
+              let page = 1;
+              while (true) {
+                const { data } = await client.rest.issues.listLabelsForRepo({
+                  owner,
+                  repo,
+                  per_page: 100,
+                  page
+                });
+
+                if (!data.length) break;
+                items.push(...data);
+                if (data.length < 100) break;
+                page += 1;
+              }
+              return items;
+            }
+
+            async function listAllSourceIssues(owner, repo) {
+              const items = [];
+              let page = 1;
+
+              while (true) {
+                const data = await sourceApiRequest(
+                  'GET',
+                  `/repos/${owner}/${repo}/issues?state=all&per_page=100&page=${page}`
+                );
+
+                if (!data.length) break;
+
+                for (const item of data) {
+                  if (!item.pull_request) items.push(item);
+                }
+
+                if (data.length < 100) break;
+                page += 1;
+              }
+
+              return items;
+            }
+
+            async function readSourceFile(path) {
+              const data = await sourceApiRequest(
+                'GET',
+                `/repos/${sourceOwner}/${sourceRepo}/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}`
+              );
+
+              if (Array.isArray(data)) {
+                throw new Error(`Expected file but found directory at ${path}`);
+              }
+
+              return Buffer.from(data.content, 'base64').toString('utf8');
+            }
+
+            async function readPrivateFileIfExists(path) {
+              try {
+                const { data } = await privateGh.rest.repos.getContent({
+                  owner: privateOwner,
+                  repo: privateRepo,
+                  path
+                });
+
+                if (Array.isArray(data)) {
+                  return null;
+                }
+
+                return Buffer.from(data.content, 'base64').toString('utf8');
+              } catch (error) {
+                if (error.status === 404) return null;
+                throw error;
+              }
+            }
+
+            function parseOverrideMarkdown(text, configuredLabels) {
+              const bucketSectionMap = {
+                stable: 'stable',
+                unstable: 'unstable',
+                tested: 'tested',
+                'not tested': 'not_tested',
+                unsure: 'unsure',
+                'potentially unhealthy': 'potentially_unhealthy'
+              };
+
+              const configuredByLower = new Map();
+              const configuredByNormalized = new Map();
+              for (const name of configuredLabels) {
+                configuredByLower.set(name.toLowerCase(), name);
+                configuredByNormalized.set(normalize(name), name);
+              }
+
+              function resolveConfiguredLabel(rawLabel) {
+                const direct = configuredByLower.get(rawLabel.toLowerCase());
+                if (direct) return direct;
+                return configuredByNormalized.get(normalize(rawLabel)) || null;
+              }
+
+              const categoryOverride = new Map();
+              const issueCountOverride = new Map();
+
+              const lines = text.split('\n');
+              let currentSection = null;
+
+              for (const rawLine of lines) {
+                const line = rawLine.trim();
+                const headerMatch = line.match(/^##\s+(.+)$/i);
+                if (headerMatch) {
+                  const sectionName = headerMatch[1].trim().toLowerCase();
+                  currentSection = bucketSectionMap[sectionName] || null;
+                  continue;
+                }
+
+                if (currentSection) {
+                  const bulletMatch = line.match(/^-\s+(.+)$/);
+                  if (bulletMatch) {
+                    const rawLabel = bulletMatch[1].trim();
+                    const canonical = resolveConfiguredLabel(rawLabel);
+                    if (canonical) {
+                      categoryOverride.set(canonical, currentSection);
+                    }
+                  }
+                }
+
+                const countMatch = line.match(/^\|\s*([^|]+?)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*$/);
+                if (countMatch) {
+                  const rawLabel = countMatch[1].trim();
+                  const canonical = resolveConfiguredLabel(rawLabel);
+                  if (canonical) {
+                    issueCountOverride.set(canonical, {
+                      confirmedCount: Number.parseInt(countMatch[2], 10),
+                      unconfirmedOpenCount: Number.parseInt(countMatch[3], 10)
+                    });
+                  }
+                }
+              }
+
+              return { categoryOverride, issueCountOverride };
+            }
+
+            function parseLibraryLabelsFromIssueTemplate(text) {
+              const lines = text.split('\n');
+              const labels = [];
+              let inLibraryDropdown = false;
+              let inOptions = false;
+
+              for (const raw of lines) {
+                const line = raw.replace(/\r$/, '');
+
+                if (line.trim().startsWith('id: library')) {
+                  inLibraryDropdown = true;
+                  inOptions = false;
+                  continue;
+                }
+
+                if (!inLibraryDropdown) continue;
+
+                if (!inOptions && line.trim() === 'options:') {
+                  inOptions = true;
+                  continue;
+                }
+
+                if (inOptions) {
+                  const match = line.match(/^\s*-\s+(.*?)\s*(#.*)?$/);
+                  if (match) {
+                    const value = match[1].trim();
+                    if (value && value.toLowerCase() !== 'other') {
+                      labels.push(value);
+                    }
+                    continue;
+                  }
+
+                  if (/^\s*validations:\s*$/.test(line) || /^\s*-\s+type:\s+/.test(line)) {
+                    break;
+                  }
+                }
+              }
+
+              return labels;
+            }
+
+            function parsePlatformIOMetrics(markdown) {
+              const lines = markdown.split('\n');
+              const rows = [];
+              let inTable = false;
+
+              for (const rawLine of lines) {
+                const line = rawLine.trim();
+                if (!inTable && line.startsWith('| Library |')) {
+                  inTable = true;
+                  continue;
+                }
+
+                if (!inTable) continue;
+                if (line.startsWith('|---')) continue;
+                if (!line.startsWith('|')) {
+                  if (rows.length > 0) break;
+                  continue;
+                }
+
+                const cells = line
+                  .split('|')
+                  .map((c) => c.trim())
+                  .filter((_, idx, arr) => !(idx === 0 || idx === arr.length - 1));
+
+                if (cells.length < 8) continue;
+
+                const [library, version, popularityRank, rankTrend, downloadTrend, dependents, stars, lastUpdated] = cells;
+
+                rows.push({
+                  library,
+                  version,
+                  popularityRank: Number.parseInt(popularityRank, 10) || null,
+                  rankTrend: Number.parseInt(rankTrend.replace('+', ''), 10) || 0,
+                  downloadTrend: Number.parseInt(downloadTrend.replace('+', ''), 10) || 0,
+                  dependents: Number.parseInt(dependents, 10) || 0,
+                  stars: Number.parseInt(stars, 10) || 0,
+                  lastUpdated
+                });
+              }
+
+              const byKey = new Map();
+              for (const row of rows) {
+                byKey.set(normalize(row.library), row);
+              }
+
+              return byKey;
+            }
+
+            function metricSignal(metric) {
+              if (!metric) return { verdict: 'Unknown', reason: 'No PlatformIO entry matched.' };
+
+              const badTrend = metric.downloadTrend <= -6 && metric.rankTrend <= -6;
+              const goodTrend = metric.downloadTrend >= 1 || metric.rankTrend >= 1;
+              const rankGood = metric.popularityRank !== null && metric.popularityRank <= 8000;
+
+              if (rankGood) {
+                return { verdict: 'Likely Healthy', reason: `Rank ${metric.popularityRank} (top 8000).` };
+              }
+
+              if (badTrend) {
+                return { verdict: 'Likely Unhealthy', reason: `Download trend ${metric.downloadTrend}, rank trend ${metric.rankTrend}.` };
+              }
+
+              if (goodTrend || rankGood) {
+                return { verdict: 'Likely Healthy', reason: `Rank ${metric.popularityRank ?? 'N/A'}, trends ${metric.rankTrend}/${metric.downloadTrend}.` };
+              }
+
+              return { verdict: 'Watch', reason: `Rank ${metric.popularityRank ?? 'N/A'}, trends ${metric.rankTrend}/${metric.downloadTrend}.` };
+            }
+
+            function extractLibraryLabelsFromIssue(issue) {
+              const labels = issue.labels.map((l) => (typeof l === 'string' ? l : l.name || ''));
+              const found = new Set();
+              for (const name of labels) {
+                const canonical = configuredLibraryLabelsByLower.get(name.toLowerCase());
+                if (canonical) {
+                  found.add(canonical);
+                }
+              }
+              return Array.from(found);
+            }
+
+            function hasConfirmedLabel(issue) {
+              const labels = issue.labels.map((l) => (typeof l === 'string' ? l : l.name || '').toLowerCase());
+              return labels.some((name) => confirmedLabels.has(name));
+            }
+
+            function chooseBucket(confirmedCount, unconfirmedOpenCount, platformVerdict) {
+              if (unconfirmedOpenCount > 0) return 'potentially_unhealthy';
+              if (confirmedCount > 0) return 'potentially_unhealthy';
+              if (platformVerdict === 'Likely Healthy') return 'stable';
+              if (platformVerdict === 'Likely Unhealthy') return 'potentially_unhealthy';
+              return 'unsure';
+            }
+
+            function bucketDisplay(bucketKey) {
+              const names = {
+                stable: 'Stable',
+                unstable: 'Unstable',
+                tested: 'Tested',
+                not_tested: 'Not Tested',
+                unsure: 'Unsure',
+                potentially_unhealthy: 'Potentially Unhealthy'
+              };
+              return names[bucketKey] || bucketKey;
+            }
+
+            function isHealthyBucket(bucketKey) {
+              return bucketKey === 'stable' || bucketKey === 'tested';
+            }
+
+            function buildHealthyBadge(name) {
+              return `![${name}](https://img.shields.io/badge/${encodeURIComponent(name)}-Healthy-2ea44f)`;
+            }
+
+            core.info(`Reading library list from ${libraryTemplateSourcePath}...`);
+            const issueTemplateContent = await readSourceFile(libraryTemplateSourcePath);
+            const templateLibraryLabels = parseLibraryLabelsFromIssueTemplate(issueTemplateContent);
+            if (!templateLibraryLabels.length) {
+              throw new Error(`No library labels found in ${libraryTemplateSourcePath}.`);
+            }
+
+            core.info('Loading private repository labels for canonical library name mapping...');
+            const privateRepoLabels = await listAllRepoLabels(privateGh, privateOwner, privateRepo);
+
+            const configuredLibraryLabels = [];
+            const unresolvedTemplateLabels = [];
+            for (const templateName of templateLibraryLabels) {
+              const normalizedTemplate = normalize(templateName);
+              let resolved = null;
+
+              for (const lbl of privateRepoLabels) {
+                const privateLabelName = lbl.name || '';
+                if (normalize(privateLabelName) === normalizedTemplate) {
+                  resolved = privateLabelName;
+                  break;
+                }
+              }
+
+              if (resolved) {
+                configuredLibraryLabels.push(resolved);
+              } else {
+                unresolvedTemplateLabels.push(templateName);
+              }
+            }
+
+            if (unresolvedTemplateLabels.length) {
+              core.warning(`Skipping template libraries with no matching existing private label: ${unresolvedTemplateLabels.join(', ')}`);
+            }
+
+            const uniqueConfiguredLibraryLabels = Array.from(new Set(configuredLibraryLabels));
+            if (!uniqueConfiguredLibraryLabels.length) {
+              throw new Error('No template libraries resolved to existing private repository labels.');
+            }
+
+            core.info(`Loading overrides from private repository path ${overridePath}...`);
+            const overrideContent = await readPrivateFileIfExists(overridePath);
+            const overrides = overrideContent
+              ? parseOverrideMarkdown(overrideContent, uniqueConfiguredLibraryLabels)
+              : { categoryOverride: new Map(), issueCountOverride: new Map() };
+
+            const configuredLibraryLabelsByLower = new Map();
+            for (const name of uniqueConfiguredLibraryLabels) {
+              configuredLibraryLabelsByLower.set(name.toLowerCase(), name);
+            }
+
+            core.info(`Collecting confirmed issues from ${sourceOwner}/${sourceRepo}...`);
+            const sourceIssues = await listAllSourceIssues(sourceOwner, sourceRepo);
+            const confirmedIssues = sourceIssues.filter((issue) => hasConfirmedLabel(issue));
+
+            const unconfirmedOpenIssues = sourceIssues.filter((issue) => issue.state === 'open' && !hasConfirmedLabel(issue));
+
+            const libraryToSourceIssues = new Map();
+            for (const issue of confirmedIssues) {
+              const libraryLabels = extractLibraryLabelsFromIssue(issue);
+
+              for (const libLabel of libraryLabels) {
+                if (!libraryToSourceIssues.has(libLabel)) {
+                  libraryToSourceIssues.set(libLabel, []);
+                }
+                libraryToSourceIssues.get(libLabel).push(issue);
+              }
+            }
+
+            const libraryToUnconfirmedOpenIssues = new Map();
+            for (const issue of unconfirmedOpenIssues) {
+              const libraryLabels = extractLibraryLabelsFromIssue(issue);
+              for (const libLabel of libraryLabels) {
+                if (!libraryToUnconfirmedOpenIssues.has(libLabel)) {
+                  libraryToUnconfirmedOpenIssues.set(libLabel, []);
+                }
+                libraryToUnconfirmedOpenIssues.get(libLabel).push(issue);
+              }
+            }
+
+            core.info(`Collecting issues from private repository ${privateOwner}/${privateRepo}...`);
+            const statusBucketIssues = {};
+            for (const [bucketKey, issueNumber] of Object.entries(bucketIssueNumbers)) {
+              const { data } = await privateGh.rest.issues.get({
+                owner: privateOwner,
+                repo: privateRepo,
+                issue_number: issueNumber
+              });
+
+              if (data.pull_request) {
+                throw new Error(`Bucket issue #${issueNumber} (${bucketKey}) is a pull request, expected an issue.`);
+              }
+
+              statusBucketIssues[bucketKey] = data;
+            }
+
+            core.info('Reading PlatformIO metrics report from source repository...');
+            const platformMetricsMd = await readSourceFile('PLATFORMIO_METRICS.md');
+            const platformMetrics = parsePlatformIOMetrics(platformMetricsMd);
+
+            const libraries = new Set(uniqueConfiguredLibraryLabels);
+
+            const reportRows = [];
+
+            for (const libraryLabel of libraries) {
+              const confirmedForLibrary = libraryToSourceIssues.get(libraryLabel) || [];
+              const unconfirmedOpenForLibrary = libraryToUnconfirmedOpenIssues.get(libraryLabel) || [];
+
+              const rawConfirmedCount = confirmedForLibrary.length;
+              const rawUnconfirmedOpenCount = unconfirmedOpenForLibrary.length;
+
+              let confirmedCount = rawConfirmedCount;
+              let unconfirmedOpenCount = rawUnconfirmedOpenCount;
+              let manualCountOverrideApplied = false;
+
+              const countOverride = overrides.issueCountOverride.get(libraryLabel);
+              if (countOverride) {
+                confirmedCount = countOverride.confirmedCount;
+                unconfirmedOpenCount = countOverride.unconfirmedOpenCount;
+                manualCountOverrideApplied = true;
+              }
+
+              const metric = platformMetrics.get(normalize(libraryLabel));
+              const platformSignal = metricSignal(metric);
+              const computedBucket = chooseBucket(
+                confirmedCount,
+                unconfirmedOpenCount,
+                platformSignal.verdict
+              );
+
+              const confirmedIssueLocked = confirmedCount > 0;
+              let finalBucket = computedBucket;
+              let manualCategoryOverrideApplied = false;
+
+              const categoryOverride = overrides.categoryOverride.get(libraryLabel);
+              if (categoryOverride) {
+                if (confirmedIssueLocked) {
+                  finalBucket = 'potentially_unhealthy';
+                } else {
+                  finalBucket = categoryOverride;
+                  manualCategoryOverrideApplied = true;
+                }
+              }
+
+              reportRows.push({
+                library: libraryLabel,
+                confirmedCount,
+                unconfirmedOpenCount,
+                rawConfirmedCount,
+                rawUnconfirmedOpenCount,
+                platformVerdict: platformSignal.verdict,
+                computedBucket,
+                final: finalBucket,
+                metricReason: platformSignal.reason,
+                sourceIssueLinks: confirmedForLibrary.map((i) => i.html_url),
+                unconfirmedIssueLinks: unconfirmedOpenForLibrary.map((i) => i.html_url),
+                bucketIssueNumber: bucketIssueNumbers[finalBucket],
+                manualCountOverrideApplied,
+                manualCategoryOverrideApplied,
+                confirmedIssueLocked
+              });
+            }
+
+            core.info('Applying library labels to private status bucket issues...');
+
+            const assignmentsByBucket = {
+              stable: [],
+              unstable: [],
+              tested: [],
+              not_tested: [],
+              unsure: [],
+              potentially_unhealthy: []
+            };
+
+            for (const row of reportRows) {
+              assignmentsByBucket[row.final].push(row.library);
+            }
+
+            const bucketLabelSets = {};
+            const bucketExactLabelNames = {};
+            for (const [bucketKey, issue] of Object.entries(statusBucketIssues)) {
+              const names = issue.labels.map((l) => (typeof l === 'string' ? l : l.name || '')).filter(Boolean);
+              bucketLabelSets[bucketKey] = new Set(names.map((n) => n.toLowerCase()));
+
+              const exactByLower = new Map();
+              for (const name of names) {
+                exactByLower.set(name.toLowerCase(), name);
+              }
+              bucketExactLabelNames[bucketKey] = exactByLower;
+            }
+
+            let labelsAdded = 0;
+            for (const [bucketKey, labels] of Object.entries(assignmentsByBucket)) {
+              if (!labels.length) continue;
+
+              const missing = labels.filter((name) => !bucketLabelSets[bucketKey].has(name.toLowerCase()));
+              if (!missing.length) continue;
+
+              await privateGh.rest.issues.addLabels({
+                owner: privateOwner,
+                repo: privateRepo,
+                issue_number: bucketIssueNumbers[bucketKey],
+                labels: missing
+              });
+
+              for (const name of missing) {
+                bucketLabelSets[bucketKey].add(name.toLowerCase());
+                bucketExactLabelNames[bucketKey].set(name.toLowerCase(), name);
+                labelsAdded += 1;
+              }
+            }
+
+            let labelsRemoved = 0;
+            for (const row of reportRows) {
+              const labelLower = row.library.toLowerCase();
+              for (const bucketKey of Object.keys(bucketIssueNumbers)) {
+                if (bucketKey === row.final) continue;
+                if (!bucketLabelSets[bucketKey].has(labelLower)) continue;
+
+                const exactName = bucketExactLabelNames[bucketKey].get(labelLower) || row.library;
+                try {
+                  await privateGh.rest.issues.removeLabel({
+                    owner: privateOwner,
+                    repo: privateRepo,
+                    issue_number: bucketIssueNumbers[bucketKey],
+                    name: exactName
+                  });
+                  labelsRemoved += 1;
+                  bucketLabelSets[bucketKey].delete(labelLower);
+                  bucketExactLabelNames[bucketKey].delete(labelLower);
+                } catch (error) {
+                  if (error.status !== 404) throw error;
+                }
+              }
+            }
+
+            core.info(`Bucket sync complete: ${labelsAdded} labels added, ${labelsRemoved} labels removed.`);
+
+            reportRows.sort((a, b) => a.library.localeCompare(b.library));
+
+            const totals = reportRows.reduce((acc, row) => {
+              acc.total += 1;
+              acc[row.final] = (acc[row.final] || 0) + 1;
+              return acc;
+            }, { total: 0 });
+
+            const generatedAt = new Date().toISOString();
+            const lines = [];
+            lines.push('# Library Health Report');
+            lines.push('');
+            lines.push(`Generated: ${generatedAt}`);
+            lines.push(`Source repo: ${sourceOwner}/${sourceRepo}`);
+            lines.push(`Analyzer repo: ${privateOwner}/${privateRepo}`);
+            lines.push(`Confirmed labels: ${Array.from(confirmedLabels).join(', ')}`);
+            lines.push('');
+            lines.push('## Summary');
+            lines.push('');
+            lines.push(`- Libraries analyzed: ${totals.total}`);
+            for (const key of Object.keys(totals).filter((k) => k !== 'total').sort()) {
+              lines.push(`- ${bucketDisplay(key)}: ${totals[key]}`);
+            }
+            lines.push('');
+            lines.push('## Results');
+            lines.push('');
+            lines.push('| Library Label | Confirmed Issues | Open Unconfirmed Issues | PlatformIO Signal | Status | Bucket Issue |');
+            lines.push('|---|---:|---:|---|---|---:|');
+
+            for (const row of reportRows) {
+              lines.push(`| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount} | ${row.platformVerdict} | ${bucketDisplay(row.final)} | #${row.bucketIssueNumber} |`);
+            }
+
+            lines.push('');
+            lines.push('## Notes');
+            lines.push('');
+            lines.push('- Libraries are routed to private-repo status bucket issues by applying/removing library labels.');
+            lines.push('- Open unconfirmed source issues take precedence and route a library to Potentially Unhealthy.');
+            lines.push('- Any confirmed issue routes a library to Potentially Unhealthy (not Stable).');
+            lines.push('- PlatformIO Signal is derived from rank and download trend in PLATFORMIO_METRICS.md.');
+            lines.push(`- Overrides are loaded from private repo path: ${overridePath}.`);
+            lines.push('- Manual category overrides are ignored when confirmed issue lock is active.');
+            lines.push('');
+            lines.push('## Confirmed Issue Links By Library');
+            lines.push('');
+
+            for (const row of reportRows) {
+              lines.push(`### ${row.library}`);
+              lines.push('');
+              lines.push(`- Routed bucket: ${bucketDisplay(row.final)} (#${row.bucketIssueNumber})`);
+              lines.push(`- Computed bucket before override: ${bucketDisplay(row.computedBucket)}`);
+              lines.push(`- Manual category override applied: ${row.manualCategoryOverrideApplied ? 'Yes' : 'No'}`);
+              lines.push(`- Manual issue count override applied: ${row.manualCountOverrideApplied ? 'Yes' : 'No'}`);
+              lines.push(`- Confirmed issue lock active: ${row.confirmedIssueLocked ? 'Yes' : 'No'}`);
+              lines.push(`- Open unconfirmed issues: ${row.unconfirmedOpenCount}`);
+              lines.push(`- Raw open unconfirmed issues: ${row.rawUnconfirmedOpenCount}`);
+              lines.push(`- Confirmed issues: ${row.confirmedCount}`);
+              lines.push(`- Raw confirmed issues: ${row.rawConfirmedCount}`);
+              lines.push(`- PlatformIO: ${row.platformVerdict} (${row.metricReason})`);
+              if (row.sourceIssueLinks.length) {
+                lines.push('- Confirmed source issues:');
+                for (const link of row.sourceIssueLinks) {
+                  lines.push(`- ${link}`);
+                }
+              } else {
+                lines.push('- No confirmed source issues linked.');
+              }
+              if (row.unconfirmedIssueLinks.length) {
+                lines.push('- Open unconfirmed source issues:');
+                for (const link of row.unconfirmedIssueLinks) {
+                  lines.push(`- ${link}`);
+                }
+              }
+              lines.push('');
+            }
+
+            const reportContent = `${lines.join('\n')}\n`;
+
+            const healthyLibraries = reportRows
+              .filter((row) => isHealthyBucket(row.final))
+              .map((row) => row.library)
+              .sort((a, b) => a.localeCompare(b));
+
+            let existingSha;
+            try {
+              const data = await sourceApiRequest(
+                'GET',
+                `/repos/${sourceOwner}/${sourceRepo}/contents/${encodeURIComponent(outputPath).replace(/%2F/g, '/')}`
+              );
+              if (!Array.isArray(data)) {
+                existingSha = data.sha;
+              }
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+
+            await sourceApiRequest('PUT', `/repos/${sourceOwner}/${sourceRepo}/contents/${encodeURIComponent(outputPath).replace(/%2F/g, '/')}`, {
+              message: `chore(report): update library health report (${new Date().toISOString().slice(0, 10)})`,
+              content: Buffer.from(reportContent, 'utf8').toString('base64'),
+              sha: existingSha,
+              branch: sourceDefaultBranch
+            });
+
+            core.info(`Report written to ${sourceOwner}/${sourceRepo}:${outputPath}`);
+
+            const readmePath = 'README.md';
+            const badgeStart = '<!-- HEALTH_BADGES_START -->';
+            const badgeEnd = '<!-- HEALTH_BADGES_END -->';
+
+            const badgeSectionLines = [
+              badgeStart,
+              '## Library Health Badges',
+              '',
+              `Auto-generated from workflow status results (${new Date().toISOString()}).`,
+              '',
+              healthyLibraries.length
+                ? healthyLibraries.map((name) => buildHealthyBadge(name)).join(' ')
+                : 'No libraries are currently in a healthy status bucket.',
+              badgeEnd
+            ];
+
+            const badgeSection = `${badgeSectionLines.join('\n')}\n`;
+
+            let readmeData;
+            try {
+              readmeData = await sourceApiRequest(
+                'GET',
+                `/repos/${sourceOwner}/${sourceRepo}/contents/${encodeURIComponent(readmePath).replace(/%2F/g, '/')}`
+              );
+            } catch (error) {
+              if (error.status === 404) {
+                core.warning('README.md not found in source repository; skipping badge update.');
+                return;
+              }
+              throw error;
+            }
+
+            if (Array.isArray(readmeData)) {
+              core.warning('README.md path resolved to a directory; skipping badge update.');
+              return;
+            }
+
+            const currentReadme = Buffer.from(readmeData.content, 'base64').toString('utf8');
+            let updatedReadme;
+
+            if (currentReadme.includes(badgeStart) && currentReadme.includes(badgeEnd)) {
+              const badgeRegex = new RegExp(`${badgeStart}[\\s\\S]*?${badgeEnd}\\n?`, 'm');
+              updatedReadme = currentReadme.replace(badgeRegex, badgeSection);
+            } else {
+              const spacer = currentReadme.endsWith('\n') ? '\n' : '\n\n';
+              updatedReadme = `${currentReadme}${spacer}${badgeSection}`;
+            }
+
+            if (updatedReadme !== currentReadme) {
+              await sourceApiRequest('PUT', `/repos/${sourceOwner}/${sourceRepo}/contents/${encodeURIComponent(readmePath).replace(/%2F/g, '/')}`, {
+                message: `chore(readme): update healthy badges (${new Date().toISOString().slice(0, 10)})`,
+                content: Buffer.from(updatedReadme, 'utf8').toString('base64'),
+                sha: readmeData.sha,
+                branch: sourceDefaultBranch
+              });
+              core.info(`README badges updated at ${sourceOwner}/${sourceRepo}:${readmePath}`);
+            } else {
+              core.info('README badges already up to date.');
+            }
