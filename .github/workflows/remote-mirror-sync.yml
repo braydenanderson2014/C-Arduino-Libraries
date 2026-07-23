@@ -64,6 +64,7 @@ jobs:
               defaultWindowMinutes: Number(config.sync?.defaultWindowMinutes || 65),
               burstWindowMinutes: Number(config.sync?.burstWindowMinutes || 20),
               burstLookbackMinutes: Number(config.sync?.burstLookbackMinutes || 90),
+              discoveryScanMaxItems: Number(config.sync?.discoveryScanMaxItems || 400),
               maxTargetCommentsPerDigest: Number(config.sync?.maxTargetCommentsPerDigest || 6),
               maxCommentBodyCharacters: Number(config.sync?.maxCommentBodyCharacters || 500),
               maxCommitDigestEntries: Number(config.sync?.maxCommitDigestEntries || 20),
@@ -81,7 +82,7 @@ jobs:
               `<!--\\s*${escapeRegex(MARKER_TARGET)}:\\s*([^/]+)\\/([^#]+)#(\\d+)(?:;type=([a-z_]+))?\\s*-->`,
               "i"
             );
-            const mirroredIssueUrlRegex = /https?:\/\/github\.com\/([^/\s]+)\/([^/\s]+)\/issues\/(\d+)/i;
+            const mirroredIssueOrPullUrlRegex = /https?:\/\/github\.com\/([^/\s]+)\/([^/\s]+)\/(issues|pull)\/(\d+)/i;
 
             const parseMarker = (body, regex) => {
               if (!body) return null;
@@ -101,7 +102,7 @@ jobs:
                 return marker;
               }
 
-              const urlMatch = (body || "").match(mirroredIssueUrlRegex);
+              const urlMatch = (body || "").match(mirroredIssueOrPullUrlRegex);
               if (!urlMatch) {
                 return null;
               }
@@ -109,14 +110,43 @@ jobs:
               return {
                 owner: urlMatch[1],
                 repo: urlMatch[2],
-                number: Number.parseInt(urlMatch[3], 10),
-                sourceType: "issue"
+                sourceType: urlMatch[3] === "pull" ? "pull_request" : "issue",
+                number: Number.parseInt(urlMatch[4], 10)
               };
             };
 
             const parseLastSeenCommentId = (body) => {
               const match = (body || "").match(/lastCommentId=(\d+)/i);
               return match ? Number.parseInt(match[1], 10) : 0;
+            };
+
+            const parseLastSeenEncodedLabels = (body) => {
+              const match = (body || "").match(/targetLabels=([^;\s>]*)/i);
+              return match ? String(match[1]) : "";
+            };
+
+            const decodeMarkerValue = (value) => {
+              if (!value) return "";
+              try {
+                return decodeURIComponent(value);
+              } catch {
+                return "";
+              }
+            };
+
+            const normalizeLabelName = (label) => {
+              if (!label) return "";
+              if (typeof label === "string") return label.trim();
+              if (typeof label.name === "string") return label.name.trim();
+              return "";
+            };
+
+            const getLabelNames = (issueLike) => {
+              const labels = Array.isArray(issueLike?.labels) ? issueLike.labels : [];
+              return labels
+                .map(normalizeLabelName)
+                .filter(Boolean)
+                .sort((a, b) => a.localeCompare(b));
             };
 
             const trimCommentBody = (body) => {
@@ -131,7 +161,7 @@ jobs:
             };
 
             const listTargetIssuesSince = async (sinceIso) => {
-              const all = await github.paginate(github.rest.issues.listForRepo, {
+              return github.paginate(github.rest.issues.listForRepo, {
                 owner: TARGET_OWNER,
                 repo: TARGET_REPO,
                 state: "all",
@@ -140,8 +170,6 @@ jobs:
                 since: sinceIso,
                 per_page: 100
               });
-
-              return all.filter((issue) => !issue.pull_request);
             };
 
             const listSourceIssuesSince = async (sinceIso) => {
@@ -154,6 +182,88 @@ jobs:
                 since: sinceIso,
                 per_page: 100
               });
+            };
+
+            const listSourceIssuesForDiscovery = async (sinceIso) => {
+              const recent = await listSourceIssuesSince(sinceIso);
+
+              const maxItems = Number.isFinite(syncConfig.discoveryScanMaxItems)
+                ? Math.max(100, syncConfig.discoveryScanMaxItems)
+                : 400;
+              const maxPages = Math.max(1, Math.ceil(maxItems / 100));
+              const expanded = [];
+
+              for (let page = 1; page <= maxPages; page += 1) {
+                const response = await github.rest.issues.listForRepo({
+                  owner: SOURCE_OWNER,
+                  repo: SOURCE_REPO,
+                  state: "all",
+                  sort: "updated",
+                  direction: "desc",
+                  per_page: 100,
+                  page
+                });
+
+                const pageItems = Array.isArray(response.data) ? response.data : [];
+                if (pageItems.length === 0) {
+                  break;
+                }
+
+                expanded.push(...pageItems);
+                if (pageItems.length < 100) {
+                  break;
+                }
+              }
+
+              // Fallback path: if issue listing unexpectedly returns nothing,
+              // still discover mirrored links from open/closed PR numbers.
+              if (expanded.length === 0 && recent.length === 0) {
+                for (let page = 1; page <= maxPages; page += 1) {
+                  const response = await github.rest.pulls.list({
+                    owner: SOURCE_OWNER,
+                    repo: SOURCE_REPO,
+                    state: "all",
+                    sort: "updated",
+                    direction: "desc",
+                    per_page: 100,
+                    page
+                  });
+
+                  const pageItems = Array.isArray(response.data) ? response.data : [];
+                  if (pageItems.length === 0) {
+                    break;
+                  }
+
+                  expanded.push(
+                    ...pageItems.map((pullRequest) => ({
+                      number: pullRequest.number,
+                      updated_at: pullRequest.updated_at,
+                      state: pullRequest.state,
+                      pull_request: {
+                        url: pullRequest.url
+                      }
+                    }))
+                  );
+
+                  if (pageItems.length < 100) {
+                    break;
+                  }
+                }
+              }
+
+              const uniqueByNumber = new Map();
+              for (const item of expanded) {
+                uniqueByNumber.set(item.number, item);
+              }
+              for (const item of recent) {
+                uniqueByNumber.set(item.number, item);
+              }
+
+              core.info(
+                `Source discovery candidates: recent=${recent.length}, expanded=${expanded.length}, unique=${uniqueByNumber.size}, maxItems=${maxItems}`
+              );
+
+              return Array.from(uniqueByNumber.values());
             };
 
             const upsertCommentWithMarker = async ({ owner, repo, issueNumber, markerNeedle, body }) => {
@@ -198,7 +308,7 @@ jobs:
               const allPullRequests = await github.paginate(github.rest.pulls.list, {
                 owner: SOURCE_OWNER,
                 repo: SOURCE_REPO,
-                state: "open",
+                state: "all",
                 sort: "updated",
                 direction: "desc",
                 per_page: 100
@@ -402,10 +512,10 @@ jobs:
               .map((targetIssue) => ({ targetIssue, marker: parseMarker(targetIssue.body || "", sourceMarkerRegex) }))
               .filter(({ marker }) => marker && marker.owner === SOURCE_OWNER && marker.repo === SOURCE_REPO && Number.isInteger(marker.number));
 
-            const recentlyUpdatedSourceIssues = await listSourceIssuesSince(sinceIso);
+            const sourceIssuesForDiscovery = await listSourceIssuesForDiscovery(sinceIso);
             const sourceDiscoveredMirrors = [];
 
-            for (const sourceIssue of recentlyUpdatedSourceIssues) {
+            for (const sourceIssue of sourceIssuesForDiscovery) {
               let targetMarker;
               try {
                 targetMarker = await resolveMirrorTargetForSource(sourceIssue.number);
@@ -521,6 +631,28 @@ jobs:
               });
 
               const latestCommentId = targetComments.reduce((maxId, comment) => Math.max(maxId, Number(comment.id || 0)), previousLastCommentId);
+              const currentTargetLabelNames = getLabelNames(targetIssue);
+              const currentTargetLabelsEncoded = encodeURIComponent(currentTargetLabelNames.join(","));
+              const previousTargetLabelsEncoded = parseLastSeenEncodedLabels(previousSyncBody);
+
+              if (previousTargetLabelsEncoded && previousTargetLabelsEncoded !== currentTargetLabelsEncoded) {
+                const previousLabels = decodeMarkerValue(previousTargetLabelsEncoded)
+                  .split(",")
+                  .map((label) => label.trim())
+                  .filter(Boolean);
+
+                await github.rest.issues.createComment({
+                  owner: SOURCE_OWNER,
+                  repo: SOURCE_REPO,
+                  issue_number: sourceNumber,
+                  body: [
+                    `Mirror update: labels changed on ${targetRef}.`,
+                    `Previous labels: ${previousLabels.length > 0 ? previousLabels.join(", ") : "(none)"}`,
+                    `Current labels: ${currentTargetLabelNames.length > 0 ? currentTargetLabelNames.join(", ") : "(none)"}`,
+                    `Target URL: ${targetIssue.html_url}`
+                  ].join("\n")
+                });
+              }
 
               if (targetIssue.state === "closed" && sourceIssue.state === "open") {
                 if (sourceType === "pull_request" && sourceIssue.pull_request) {
@@ -600,9 +732,10 @@ jobs:
                   `Mirror sync status for ${targetRef}.`,
                   `Target state: ${targetIssue.state}`,
                   `Target last update: ${targetIssue.updated_at}`,
+                  `Target labels: ${currentTargetLabelNames.length > 0 ? currentTargetLabelNames.join(", ") : "(none)"}`,
                   `Target comments seen: ${latestCommentId}`,
                   `Last sync run: ${new Date().toISOString()}`,
-                  `<!-- ${MARKER_SYNC}: target=${targetRef};state=${targetIssue.state};updated=${targetIssue.updated_at};sourceType=${sourceType};lastCommentId=${latestCommentId} -->`
+                  `<!-- ${MARKER_SYNC}: target=${targetRef};state=${targetIssue.state};updated=${targetIssue.updated_at};sourceType=${sourceType};lastCommentId=${latestCommentId};targetLabels=${currentTargetLabelsEncoded} -->`
                 ].join("\n")
               });
             }
@@ -632,5 +765,5 @@ jobs:
             }
 
             core.info(
-              `Remote mirror sync finished. targetItems=${mirroredTargetIssues.length}, sourceLinkedItems=${sourceDiscoveredMirrors.length}, syncedItems=${mirrorsToSync.length}, recentSourcePrs=${recentSourcePullRequests.length}, closed=${closureChanges}, reopened=${reopenChanges}, activityComments=${activityComments}, digestUpdates=${digestChanges}`
+              `Remote mirror sync finished. targetItems=${mirroredTargetIssues.length}, sourceDiscoveryCandidates=${sourceIssuesForDiscovery.length}, sourceLinkedItems=${sourceDiscoveredMirrors.length}, syncedItems=${mirrorsToSync.length}, recentSourcePrs=${recentSourcePullRequests.length}, closed=${closureChanges}, reopened=${reopenChanges}, activityComments=${activityComments}, digestUpdates=${digestChanges}`
             );
