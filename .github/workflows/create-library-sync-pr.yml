@@ -40,8 +40,24 @@ jobs:
             const configPath = process.env.CONFIG_PATH;
             const issueMarker = "<!-- library-sync-request -->";
             const issueNumberInput = context.eventName === "workflow_dispatch"
-              ? String(core.getInput("issue_number") || "").trim()
+              ? String(context.payload?.inputs?.issue_number || "").trim()
               : "";
+
+            const parseIssueNumberInput = (value) => {
+              const normalized = String(value || "").trim();
+              if (!normalized) {
+                return null;
+              }
+
+              // Accept values like "150" or "#150".
+              const numericPart = normalized.replace(/^#/, "");
+              if (!/^\d+$/.test(numericPart)) {
+                return null;
+              }
+
+              const parsed = Number.parseInt(numericPart, 10);
+              return Number.isInteger(parsed) ? parsed : null;
+            };
 
             const commentOnIssue = async (issueNumber, body) => {
               await github.rest.issues.createComment({
@@ -63,8 +79,8 @@ jobs:
 
             const getIssue = async () => {
               if (context.eventName === "workflow_dispatch") {
-                const parsed = Number.parseInt(issueNumberInput, 10);
-                if (!Number.isInteger(parsed)) {
+                const parsed = parseIssueNumberInput(issueNumberInput);
+                if (!parsed) {
                   core.setFailed(`Invalid issue_number input: '${issueNumberInput}'`);
                   return null;
                 }
