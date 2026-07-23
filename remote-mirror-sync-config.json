@@ -1,0 +1,25 @@
+{
+  "target": {
+    "owner": "braydenanderson2014",
+    "repo": "C-Arduino-Libraries"
+  },
+  "trackedSourceBaseBranches": [
+    "main"
+  ],
+  "sync": {
+    "defaultWindowMinutes": 65,
+    "burstWindowMinutes": 20,
+    "burstLookbackMinutes": 90,
+    "maxTargetCommentsPerDigest": 6,
+    "maxCommentBodyCharacters": 500,
+    "maxCommitDigestEntries": 20,
+    "maxFileDigestEntries": 40
+  },
+  "markers": {
+    "source": "mirror-source",
+    "target": "mirror-target",
+    "sync": "mirror-sync",
+    "activity": "mirror-activity",
+    "commitDigest": "mirror-commit-digest"
+  }
+}
