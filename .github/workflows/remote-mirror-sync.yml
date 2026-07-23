@@ -39,15 +39,15 @@ jobs:
             const SOURCE_REPO = context.repo.repo;
             const TARGET_OWNER = config.target?.owner;
             const TARGET_REPO = config.target?.repo;
+            const IS_CANONICAL_REPO = SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO;
 
             if (!TARGET_OWNER || !TARGET_REPO) {
               core.setFailed(`Missing target.owner or target.repo in ${configPath}`);
               return;
             }
 
-            if (SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO) {
-              core.info("This is the canonical repository. Skipping remote mirror sync.");
-              return;
+            if (IS_CANONICAL_REPO) {
+              core.info("Running remote mirror sync in canonical repository mode (source-linked mirror discovery enabled).");
             }
 
             const MARKER_SOURCE = config.markers?.source || "mirror-source";
@@ -81,6 +81,7 @@ jobs:
               `<!--\\s*${escapeRegex(MARKER_TARGET)}:\\s*([^/]+)\\/([^#]+)#(\\d+)(?:;type=([a-z_]+))?\\s*-->`,
               "i"
             );
+            const mirroredIssueUrlRegex = /https?:\/\/github\.com\/([^/\s]+)\/([^/\s]+)\/issues\/(\d+)/i;
 
             const parseMarker = (body, regex) => {
               if (!body) return null;
@@ -91,6 +92,25 @@ jobs:
                 repo: match[2],
                 number: Number.parseInt(match[3], 10),
                 sourceType: match[4] || "issue"
+              };
+            };
+
+            const parseMirrorTargetReference = (body) => {
+              const marker = parseMarker(body, targetMarkerRegex);
+              if (marker) {
+                return marker;
+              }
+
+              const urlMatch = (body || "").match(mirroredIssueUrlRegex);
+              if (!urlMatch) {
+                return null;
+              }
+
+              return {
+                owner: urlMatch[1],
+                repo: urlMatch[2],
+                number: Number.parseInt(urlMatch[3], 10),
+                sourceType: "issue"
               };
             };
 
@@ -122,6 +142,18 @@ jobs:
               });
 
               return all.filter((issue) => !issue.pull_request);
+            };
+
+            const listSourceIssuesSince = async (sinceIso) => {
+              return github.paginate(github.rest.issues.listForRepo, {
+                owner: SOURCE_OWNER,
+                repo: SOURCE_REPO,
+                state: "all",
+                sort: "updated",
+                direction: "desc",
+                since: sinceIso,
+                per_page: 100
+              });
             };
 
             const upsertCommentWithMarker = async ({ owner, repo, issueNumber, markerNeedle, body }) => {
@@ -187,8 +219,11 @@ jobs:
 
             const resolveMirrorTargetForSource = async (sourceNumber) => {
               const sourceIssue = await getSourceIssue(sourceNumber);
-              const directMarker = parseMarker(sourceIssue.body || "", targetMarkerRegex);
+              const directMarker = parseMirrorTargetReference(sourceIssue.body || "");
               if (directMarker) {
+                if (!directMarker.sourceType && sourceIssue.pull_request) {
+                  directMarker.sourceType = "pull_request";
+                }
                 return directMarker;
               }
 
@@ -199,9 +234,13 @@ jobs:
                 per_page: 100
               });
 
-              for (const comment of comments) {
-                const marker = parseMarker(comment.body || "", targetMarkerRegex);
+              for (let index = comments.length - 1; index >= 0; index -= 1) {
+                const comment = comments[index];
+                const marker = parseMirrorTargetReference(comment.body || "");
                 if (marker) {
+                  if (!marker.sourceType && sourceIssue.pull_request) {
+                    marker.sourceType = "pull_request";
+                  }
                   return marker;
                 }
               }
@@ -343,12 +382,18 @@ jobs:
               });
 
               if (burstMatches.length === 0) {
-                core.info("Fast sync skipped: no recent target-side mirror activity.");
-                return;
+                if (IS_CANONICAL_REPO) {
+                  core.info("Fast sync did not find target-side markers; continuing with source-linked mirror discovery.");
+                } else {
+                  core.info("Fast sync skipped: no recent target-side mirror activity.");
+                  return;
+                }
               }
 
-              syncWindowMinutes = syncConfig.burstWindowMinutes;
-              core.info(`Fast sync enabled for ${burstMatches.length} recent mirrored target update(s).`);
+              if (burstMatches.length > 0) {
+                syncWindowMinutes = syncConfig.burstWindowMinutes;
+                core.info(`Fast sync enabled for ${burstMatches.length} recent mirrored target update(s).`);
+              }
             }
 
             const sinceIso = toIsoMinutesAgo(syncWindowMinutes);
@@ -357,6 +402,68 @@ jobs:
               .map((targetIssue) => ({ targetIssue, marker: parseMarker(targetIssue.body || "", sourceMarkerRegex) }))
               .filter(({ marker }) => marker && marker.owner === SOURCE_OWNER && marker.repo === SOURCE_REPO && Number.isInteger(marker.number));
 
+            const recentlyUpdatedSourceIssues = await listSourceIssuesSince(sinceIso);
+            const sourceDiscoveredMirrors = [];
+
+            for (const sourceIssue of recentlyUpdatedSourceIssues) {
+              let targetMarker;
+              try {
+                targetMarker = await resolveMirrorTargetForSource(sourceIssue.number);
+              } catch (error) {
+                core.warning(`Mirror target discovery skipped for source item #${sourceIssue.number}: ${error.message}`);
+                continue;
+              }
+
+              if (!targetMarker || !Number.isInteger(targetMarker.number)) {
+                continue;
+              }
+
+              if (targetMarker.owner !== TARGET_OWNER || targetMarker.repo !== TARGET_REPO) {
+                continue;
+              }
+
+              if (targetMarker.owner === SOURCE_OWNER && targetMarker.repo === SOURCE_REPO && targetMarker.number === sourceIssue.number) {
+                continue;
+              }
+
+              let targetIssue;
+              try {
+                const response = await github.rest.issues.get({
+                  owner: TARGET_OWNER,
+                  repo: TARGET_REPO,
+                  issue_number: targetMarker.number
+                });
+                targetIssue = response.data;
+              } catch (error) {
+                core.warning(`Skipping source-linked mirror for #${sourceIssue.number}: target ${TARGET_OWNER}/${TARGET_REPO}#${targetMarker.number} not found (${error.message}).`);
+                continue;
+              }
+
+              sourceDiscoveredMirrors.push({
+                targetIssue,
+                marker: {
+                  owner: SOURCE_OWNER,
+                  repo: SOURCE_REPO,
+                  number: sourceIssue.number,
+                  sourceType: targetMarker.sourceType || (sourceIssue.pull_request ? "pull_request" : "issue")
+                }
+              });
+            }
+
+            const mirrorsByPair = new Map();
+            for (const mirror of mirroredTargetIssues) {
+              const key = `${mirror.marker.number}->${mirror.targetIssue.number}`;
+              mirrorsByPair.set(key, mirror);
+            }
+            for (const mirror of sourceDiscoveredMirrors) {
+              const key = `${mirror.marker.number}->${mirror.targetIssue.number}`;
+              if (!mirrorsByPair.has(key)) {
+                mirrorsByPair.set(key, mirror);
+              }
+            }
+
+            const mirrorsToSync = Array.from(mirrorsByPair.values());
+
             const recentSourcePullRequests = await listSourcePullRequestsSince(sinceIso);
 
             let closureChanges = 0;
@@ -364,7 +471,7 @@ jobs:
             let activityComments = 0;
             let digestChanges = 0;
 
-            for (const { targetIssue, marker } of mirroredTargetIssues) {
+            for (const { targetIssue, marker } of mirrorsToSync) {
               const sourceNumber = marker.number;
               const sourceType = marker.sourceType || "issue";
               const targetRef = `${TARGET_OWNER}/${TARGET_REPO}#${targetIssue.number}`;
@@ -525,5 +632,5 @@ jobs:
             }
 
             core.info(
-              `Remote mirror sync finished. targetItems=${mirroredTargetIssues.length}, recentSourcePrs=${recentSourcePullRequests.length}, closed=${closureChanges}, reopened=${reopenChanges}, activityComments=${activityComments}, digestUpdates=${digestChanges}`
+              `Remote mirror sync finished. targetItems=${mirroredTargetIssues.length}, sourceLinkedItems=${sourceDiscoveredMirrors.length}, syncedItems=${mirrorsToSync.length}, recentSourcePrs=${recentSourcePullRequests.length}, closed=${closureChanges}, reopened=${reopenChanges}, activityComments=${activityComments}, digestUpdates=${digestChanges}`
             );
