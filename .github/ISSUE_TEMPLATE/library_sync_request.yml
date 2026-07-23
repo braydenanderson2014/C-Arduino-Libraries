@@ -1,0 +1,124 @@
+name: Library Sync Request
+description: Maintainers only. Publish one library from this monorepo to its mapped remote repository.
+title: "[Library Sync] "
+labels: ["library-sync-request"]
+projects: ["braydenanderson2014/4"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        <!-- library-sync-request -->
+        Use this form to push the current contents of one library folder to its configured remote repository.
+
+  - type: dropdown
+    id: library
+    attributes:
+      label: Library
+      description: Select the library folder that should be pushed to its remote repository.
+      multiple: false
+      options:
+        - AVLTree
+        - ArrayList
+        - BinarySearchTree
+        - BinaryTree
+        - bPlusTree
+        - bTree
+        - ColorManager
+        - Dictionary
+        - DoubleLinkedList
+        - DynamicStorageLibrary
+        - EthernetConnectionChecker
+        - EthernetMach2ConnectionChecker
+        - ExtremeVariant
+        - FenwickTree
+        - Hashtable
+        - HeapTree
+        - Initializer_List
+        - IntervalTree
+        - iostream
+        - iterator
+        - Json
+        - kdimensionalTree
+        - LinkedList
+        - Map
+        - MathLib
+        - MatrixMath
+        - MbedLittleFSWrapper
+        - MemoryManager
+        - MyDictionary
+        - NewArrayList (TEMP)
+        - Numeric_Limits
+        - OCTree
+        - Operators
+        - Optional
+        - OrderedMap
+        - Predicates
+        - Properties
+        - QuadTree
+        - Queue
+        - RTree
+        - RedBlackTree
+        - SD-master
+        - SDList
+        - SegmentTree
+        - SimpleMutex
+        - SimpleThreadManager
+        - SimpleVector
+        - Stack
+        - String
+        - SuffixTree
+        - Timer
+        - TrieTree
+        - TypeTraits
+        - UnorderedMap
+        - Variant
+        - littlefs-master
+    validations:
+      required: true
+
+  - type: input
+    id: pull_request_title
+    attributes:
+      label: Pull request title
+      description: Optional override for the remote pull request title.
+      placeholder: e.g., Sync AVLTree from monorepo
+    validations:
+      required: false
+
+  - type: input
+    id: target_branch_override
+    attributes:
+      label: Target branch override
+      description: Leave blank to use the branch from .github/library-sync-targets.json.
+      placeholder: e.g., main
+    validations:
+      required: false
+
+  - type: textarea
+    id: sync_summary
+    attributes:
+      label: Sync summary
+      description: State what changes this sync is intended to publish.
+      placeholder: Summarize the library changes that should land in the remote repository.
+    validations:
+      required: true
+
+  - type: textarea
+    id: pull_request_notes
+    attributes:
+      label: Pull request notes
+      description: Optional notes to include in the remote pull request body.
+      placeholder: Mention release notes, validation details, or follow-up work.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I verified the library folder in this monorepo is ready to sync.
+          required: true
+        - label: I understand this workflow only syncs configured library-managed paths, not the full repository.
+          required: true

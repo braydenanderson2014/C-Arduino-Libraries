@@ -1,0 +1,529 @@
+name: Remote Mirror Sync
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      sync_recent_minutes:
+        description: "Optional override for the sync window in minutes"
+        required: false
+        type: string
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  sync-mirror-followups:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sync mirrored issue state and PR digests
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+          script: |
+            const fs = require("fs");
+
+            const configPath = ".github/remote-mirror-sync-config.json";
+            const rawConfig = fs.readFileSync(configPath, "utf8");
+            const config = JSON.parse(rawConfig);
+
+            const SOURCE_OWNER = context.repo.owner;
+            const SOURCE_REPO = context.repo.repo;
+            const TARGET_OWNER = config.target?.owner;
+            const TARGET_REPO = config.target?.repo;
+
+            if (!TARGET_OWNER || !TARGET_REPO) {
+              core.setFailed(`Missing target.owner or target.repo in ${configPath}`);
+              return;
+            }
+
+            if (SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO) {
+              core.info("This is the canonical repository. Skipping remote mirror sync.");
+              return;
+            }
+
+            const MARKER_SOURCE = config.markers?.source || "mirror-source";
+            const MARKER_TARGET = config.markers?.target || "mirror-target";
+            const MARKER_SYNC = config.markers?.sync || "mirror-sync";
+            const MARKER_ACTIVITY = config.markers?.activity || "mirror-activity";
+            const MARKER_COMMIT_DIGEST = config.markers?.commitDigest || "mirror-commit-digest";
+            const FAST_SCHEDULE = "*/10 * * * *";
+            const trackedBaseBranches = Array.isArray(config.trackedSourceBaseBranches)
+              ? config.trackedSourceBaseBranches.filter(Boolean)
+              : [];
+
+            const syncConfig = {
+              defaultWindowMinutes: Number(config.sync?.defaultWindowMinutes || 65),
+              burstWindowMinutes: Number(config.sync?.burstWindowMinutes || 20),
+              burstLookbackMinutes: Number(config.sync?.burstLookbackMinutes || 90),
+              maxTargetCommentsPerDigest: Number(config.sync?.maxTargetCommentsPerDigest || 6),
+              maxCommentBodyCharacters: Number(config.sync?.maxCommentBodyCharacters || 500),
+              maxCommitDigestEntries: Number(config.sync?.maxCommitDigestEntries || 20),
+              maxFileDigestEntries: Number(config.sync?.maxFileDigestEntries || 40)
+            };
+
+            const toIsoMinutesAgo = (minutes) => new Date(Date.now() - minutes * 60 * 1000).toISOString();
+
+            const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const sourceMarkerRegex = new RegExp(
+              `<!--\\s*${escapeRegex(MARKER_SOURCE)}:\\s*([^/]+)\\/([^#]+)#(\\d+)(?:;type=([a-z_]+))?\\s*-->`,
+              "i"
+            );
+            const targetMarkerRegex = new RegExp(
+              `<!--\\s*${escapeRegex(MARKER_TARGET)}:\\s*([^/]+)\\/([^#]+)#(\\d+)(?:;type=([a-z_]+))?\\s*-->`,
+              "i"
+            );
+
+            const parseMarker = (body, regex) => {
+              if (!body) return null;
+              const match = body.match(regex);
+              if (!match) return null;
+              return {
+                owner: match[1],
+                repo: match[2],
+                number: Number.parseInt(match[3], 10),
+                sourceType: match[4] || "issue"
+              };
+            };
+
+            const parseLastSeenCommentId = (body) => {
+              const match = (body || "").match(/lastCommentId=(\d+)/i);
+              return match ? Number.parseInt(match[1], 10) : 0;
+            };
+
+            const trimCommentBody = (body) => {
+              const normalized = String(body || "")
+                .replace(/\r/g, "")
+                .trim();
+              if (!normalized) return "(No comment body provided.)";
+              if (normalized.length <= syncConfig.maxCommentBodyCharacters) {
+                return normalized;
+              }
+              return `${normalized.slice(0, syncConfig.maxCommentBodyCharacters)}...`;
+            };
+
+            const listTargetIssuesSince = async (sinceIso) => {
+              const all = await github.paginate(github.rest.issues.listForRepo, {
+                owner: TARGET_OWNER,
+                repo: TARGET_REPO,
+                state: "all",
+                sort: "updated",
+                direction: "desc",
+                since: sinceIso,
+                per_page: 100
+              });
+
+              return all.filter((issue) => !issue.pull_request);
+            };
+
+            const upsertCommentWithMarker = async ({ owner, repo, issueNumber, markerNeedle, body }) => {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner,
+                repo,
+                issue_number: issueNumber,
+                per_page: 100
+              });
+
+              const existing = comments.find((comment) => typeof comment.body === "string" && comment.body.includes(markerNeedle));
+
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner,
+                  repo,
+                  comment_id: existing.id,
+                  body
+                });
+                return existing.body || "";
+              }
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                body
+              });
+              return "";
+            };
+
+            const getSourceIssue = async (sourceNumber) => {
+              const response = await github.rest.issues.get({
+                owner: SOURCE_OWNER,
+                repo: SOURCE_REPO,
+                issue_number: sourceNumber
+              });
+              return response.data;
+            };
+
+            const listSourcePullRequestsSince = async (sinceIso) => {
+              const allPullRequests = await github.paginate(github.rest.pulls.list, {
+                owner: SOURCE_OWNER,
+                repo: SOURCE_REPO,
+                state: "open",
+                sort: "updated",
+                direction: "desc",
+                per_page: 100
+              });
+
+              return allPullRequests.filter((pullRequest) => {
+                if (!pullRequest.updated_at || pullRequest.updated_at < sinceIso) {
+                  return false;
+                }
+
+                if (trackedBaseBranches.length === 0) {
+                  return true;
+                }
+
+                return trackedBaseBranches.includes(pullRequest.base?.ref || "");
+              });
+            };
+
+            const resolveMirrorTargetForSource = async (sourceNumber) => {
+              const sourceIssue = await getSourceIssue(sourceNumber);
+              const directMarker = parseMarker(sourceIssue.body || "", targetMarkerRegex);
+              if (directMarker) {
+                return directMarker;
+              }
+
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner: SOURCE_OWNER,
+                repo: SOURCE_REPO,
+                issue_number: sourceNumber,
+                per_page: 100
+              });
+
+              for (const comment of comments) {
+                const marker = parseMarker(comment.body || "", targetMarkerRegex);
+                if (marker) {
+                  return marker;
+                }
+              }
+
+              return null;
+            };
+
+            const formatCommitDigest = ({ sourceRef, sourcePrUrl, headSha, commits, files }) => {
+              const commitRows = commits.slice(0, syncConfig.maxCommitDigestEntries).map((commit) => {
+                const sha = (commit.sha || "").slice(0, 7);
+                const message = (commit.commit?.message || "").split("\n")[0] || "(no message)";
+                const author = commit.author?.login || commit.commit?.author?.name || "unknown";
+                return `- ${sha} ${message} (@${author})`;
+              });
+
+              const fileRows = files.slice(0, syncConfig.maxFileDigestEntries).map((file) => {
+                const status = (file.status || "modified").toUpperCase();
+                return `- ${status} ${file.filename} (+${Number(file.additions || 0)}/-${Number(file.deletions || 0)})`;
+              });
+
+              return [
+                "### Source PR Commit/File Sync",
+                `Source PR: ${sourcePrUrl}`,
+                `Source ref: ${sourceRef}`,
+                `Head SHA: ${headSha}`,
+                `Total commits: ${commits.length}`,
+                `Files changed: ${files.length}`,
+                "",
+                "#### Recent commits",
+                commitRows.length > 0 ? commitRows.join("\n") : "- (none)",
+                "",
+                "#### Changed files",
+                fileRows.length > 0 ? fileRows.join("\n") : "- (none)"
+              ].join("\n");
+            };
+
+            const summarizeTargetComments = (comments, targetRef, targetUrl) => {
+              const rows = comments.slice(0, syncConfig.maxTargetCommentsPerDigest).map((comment) => {
+                const author = comment.user?.login || "unknown";
+                const createdAt = comment.created_at || comment.updated_at || "unknown";
+                return [
+                  `- @${author} at ${createdAt}`,
+                  trimCommentBody(comment.body)
+                ].join("\n");
+              });
+
+              return [
+                `Mirror activity detected on ${targetRef}.`,
+                `Target URL: ${targetUrl}`,
+                "",
+                "### New target comments",
+                rows.length > 0 ? rows.join("\n\n") : "- (none)",
+                "",
+                `<!-- ${MARKER_ACTIVITY}: target=${targetRef};count=${comments.length};generated=${new Date().toISOString()} -->`
+              ].join("\n");
+            };
+
+            const syncCommitDigestToTarget = async ({ sourceNumber, targetNumber }) => {
+              const pr = await github.rest.pulls.get({
+                owner: SOURCE_OWNER,
+                repo: SOURCE_REPO,
+                pull_number: sourceNumber
+              });
+
+              const commits = await github.paginate(github.rest.pulls.listCommits, {
+                owner: SOURCE_OWNER,
+                repo: SOURCE_REPO,
+                pull_number: sourceNumber,
+                per_page: 100
+              });
+
+              const files = await github.paginate(github.rest.pulls.listFiles, {
+                owner: SOURCE_OWNER,
+                repo: SOURCE_REPO,
+                pull_number: sourceNumber,
+                per_page: 100
+              });
+
+              const sourceRef = `${SOURCE_OWNER}/${SOURCE_REPO}#${sourceNumber}`;
+              const headSha = pr.data.head?.sha || "";
+              const digestMarkerNeedle = `<!-- ${MARKER_COMMIT_DIGEST}: source=${sourceRef};`;
+              const digestBody = [
+                formatCommitDigest({
+                  sourceRef,
+                  sourcePrUrl: pr.data.html_url,
+                  headSha,
+                  commits,
+                  files
+                }),
+                "",
+                `<!-- ${MARKER_COMMIT_DIGEST}: source=${sourceRef};head=${headSha};updated=${new Date().toISOString()} -->`
+              ].join("\n");
+
+              const previousBody = await upsertCommentWithMarker({
+                owner: TARGET_OWNER,
+                repo: TARGET_REPO,
+                issueNumber: targetNumber,
+                markerNeedle: digestMarkerNeedle,
+                body: digestBody
+              });
+
+              const previousHeadMatch = (previousBody || "").match(/head=([0-9a-f]{7,40})/i);
+              const previousHead = previousHeadMatch ? previousHeadMatch[1] : "";
+
+              if (headSha && previousHead !== headSha) {
+                await github.rest.issues.createComment({
+                  owner: SOURCE_OWNER,
+                  repo: SOURCE_REPO,
+                  issue_number: sourceNumber,
+                  body: [
+                    `Mirror update: commit/file digest was refreshed on ${TARGET_OWNER}/${TARGET_REPO}#${targetNumber}.`,
+                    `Target URL: https://github.com/${TARGET_OWNER}/${TARGET_REPO}/issues/${targetNumber}`,
+                    `New head SHA: ${headSha}`
+                  ].join("\n")
+                });
+                return true;
+              }
+
+              return false;
+            };
+
+            const currentSchedule = context.eventName === "schedule" ? (context.payload.schedule || "") : "";
+            const manualMinutesInput = String(core.getInput("sync_recent_minutes") || "").trim();
+            let syncWindowMinutes = syncConfig.defaultWindowMinutes;
+
+            if (context.eventName === "workflow_dispatch" && manualMinutesInput) {
+              const parsedMinutes = Number.parseInt(manualMinutesInput, 10);
+              if (!Number.isNaN(parsedMinutes) && parsedMinutes > 0) {
+                syncWindowMinutes = parsedMinutes;
+              }
+            }
+
+            if (context.eventName === "schedule" && currentSchedule === FAST_SCHEDULE) {
+              const burstSince = toIsoMinutesAgo(syncConfig.burstLookbackMinutes);
+              const burstCandidates = await listTargetIssuesSince(burstSince);
+              const burstMatches = burstCandidates.filter((targetIssue) => {
+                const marker = parseMarker(targetIssue.body || "", sourceMarkerRegex);
+                return marker && marker.owner === SOURCE_OWNER && marker.repo === SOURCE_REPO;
+              });
+
+              if (burstMatches.length === 0) {
+                core.info("Fast sync skipped: no recent target-side mirror activity.");
+                return;
+              }
+
+              syncWindowMinutes = syncConfig.burstWindowMinutes;
+              core.info(`Fast sync enabled for ${burstMatches.length} recent mirrored target update(s).`);
+            }
+
+            const sinceIso = toIsoMinutesAgo(syncWindowMinutes);
+            const targetIssues = await listTargetIssuesSince(sinceIso);
+            const mirroredTargetIssues = targetIssues
+              .map((targetIssue) => ({ targetIssue, marker: parseMarker(targetIssue.body || "", sourceMarkerRegex) }))
+              .filter(({ marker }) => marker && marker.owner === SOURCE_OWNER && marker.repo === SOURCE_REPO && Number.isInteger(marker.number));
+
+            const recentSourcePullRequests = await listSourcePullRequestsSince(sinceIso);
+
+            let closureChanges = 0;
+            let reopenChanges = 0;
+            let activityComments = 0;
+            let digestChanges = 0;
+
+            for (const { targetIssue, marker } of mirroredTargetIssues) {
+              const sourceNumber = marker.number;
+              const sourceType = marker.sourceType || "issue";
+              const targetRef = `${TARGET_OWNER}/${TARGET_REPO}#${targetIssue.number}`;
+              const sourceRef = `${SOURCE_OWNER}/${SOURCE_REPO}#${sourceNumber}`;
+
+              let sourceIssue;
+              try {
+                sourceIssue = await getSourceIssue(sourceNumber);
+              } catch (error) {
+                core.warning(`Skipping ${targetRef}: source item ${sourceRef} was not found (${error.message}).`);
+                continue;
+              }
+
+              const syncMarkerNeedle = `<!-- ${MARKER_SYNC}: target=${targetRef};`;
+              const previousSyncBody = await upsertCommentWithMarker({
+                owner: SOURCE_OWNER,
+                repo: SOURCE_REPO,
+                issueNumber: sourceNumber,
+                markerNeedle: syncMarkerNeedle,
+                body: [
+                  `Mirror sync status for ${targetRef}.`,
+                  `Target state: ${targetIssue.state}`,
+                  `Target last update: ${targetIssue.updated_at}`,
+                  `Last sync run: ${new Date().toISOString()}`,
+                  `<!-- ${MARKER_SYNC}: target=${targetRef};state=${targetIssue.state};updated=${targetIssue.updated_at};sourceType=${sourceType};lastCommentId=0 -->`
+                ].join("\n")
+              });
+
+              const previousLastCommentId = parseLastSeenCommentId(previousSyncBody);
+              const targetComments = await github.paginate(github.rest.issues.listComments, {
+                owner: TARGET_OWNER,
+                repo: TARGET_REPO,
+                issue_number: targetIssue.number,
+                per_page: 100
+              });
+
+              const relevantNewComments = targetComments.filter((comment) => {
+                if (!comment.id || comment.id <= previousLastCommentId) {
+                  return false;
+                }
+
+                if ((comment.user?.type || "").toLowerCase() === "bot") {
+                  return false;
+                }
+
+                return !(comment.body || "").includes(`<!-- ${MARKER_COMMIT_DIGEST}:`);
+              });
+
+              const latestCommentId = targetComments.reduce((maxId, comment) => Math.max(maxId, Number(comment.id || 0)), previousLastCommentId);
+
+              if (targetIssue.state === "closed" && sourceIssue.state === "open") {
+                if (sourceType === "pull_request" && sourceIssue.pull_request) {
+                  await github.rest.pulls.update({
+                    owner: SOURCE_OWNER,
+                    repo: SOURCE_REPO,
+                    pull_number: sourceNumber,
+                    state: "closed"
+                  });
+                } else {
+                  await github.rest.issues.update({
+                    owner: SOURCE_OWNER,
+                    repo: SOURCE_REPO,
+                    issue_number: sourceNumber,
+                    state: "closed",
+                    state_reason: "completed"
+                  });
+                }
+
+                await github.rest.issues.createComment({
+                  owner: SOURCE_OWNER,
+                  repo: SOURCE_REPO,
+                  issue_number: sourceNumber,
+                  body: [
+                    `Mirror update: ${targetRef} was closed, so this source ${sourceType === "pull_request" ? "pull request" : "issue"} was closed to match.`,
+                    `Target URL: ${targetIssue.html_url}`
+                  ].join("\n")
+                });
+                closureChanges += 1;
+              }
+
+              if (targetIssue.state === "open" && sourceIssue.state === "closed") {
+                if (sourceType === "pull_request" && sourceIssue.pull_request) {
+                  await github.rest.pulls.update({
+                    owner: SOURCE_OWNER,
+                    repo: SOURCE_REPO,
+                    pull_number: sourceNumber,
+                    state: "open"
+                  });
+                } else {
+                  await github.rest.issues.update({
+                    owner: SOURCE_OWNER,
+                    repo: SOURCE_REPO,
+                    issue_number: sourceNumber,
+                    state: "open"
+                  });
+                }
+
+                await github.rest.issues.createComment({
+                  owner: SOURCE_OWNER,
+                  repo: SOURCE_REPO,
+                  issue_number: sourceNumber,
+                  body: [
+                    `Mirror update: ${targetRef} was reopened, so this source ${sourceType === "pull_request" ? "pull request" : "issue"} was reopened to match.`,
+                    `Target URL: ${targetIssue.html_url}`
+                  ].join("\n")
+                });
+                reopenChanges += 1;
+              }
+
+              if (relevantNewComments.length > 0) {
+                await github.rest.issues.createComment({
+                  owner: SOURCE_OWNER,
+                  repo: SOURCE_REPO,
+                  issue_number: sourceNumber,
+                  body: summarizeTargetComments(relevantNewComments, targetRef, targetIssue.html_url)
+                });
+                activityComments += 1;
+              }
+
+              await upsertCommentWithMarker({
+                owner: SOURCE_OWNER,
+                repo: SOURCE_REPO,
+                issueNumber: sourceNumber,
+                markerNeedle: syncMarkerNeedle,
+                body: [
+                  `Mirror sync status for ${targetRef}.`,
+                  `Target state: ${targetIssue.state}`,
+                  `Target last update: ${targetIssue.updated_at}`,
+                  `Target comments seen: ${latestCommentId}`,
+                  `Last sync run: ${new Date().toISOString()}`,
+                  `<!-- ${MARKER_SYNC}: target=${targetRef};state=${targetIssue.state};updated=${targetIssue.updated_at};sourceType=${sourceType};lastCommentId=${latestCommentId} -->`
+                ].join("\n")
+              });
+            }
+
+            for (const pullRequest of recentSourcePullRequests) {
+              try {
+                const targetMarker = await resolveMirrorTargetForSource(pullRequest.number);
+                if (!targetMarker) {
+                  continue;
+                }
+
+                if (targetMarker.owner !== TARGET_OWNER || targetMarker.repo !== TARGET_REPO) {
+                  continue;
+                }
+
+                const changed = await syncCommitDigestToTarget({
+                  sourceNumber: pullRequest.number,
+                  targetNumber: targetMarker.number
+                });
+
+                if (changed) {
+                  digestChanges += 1;
+                }
+              } catch (error) {
+                core.warning(`Commit digest sync skipped for source PR #${pullRequest.number}: ${error.message}`);
+              }
+            }
+
+            core.info(
+              `Remote mirror sync finished. targetItems=${mirroredTargetIssues.length}, recentSourcePrs=${recentSourcePullRequests.length}, closed=${closureChanges}, reopened=${reopenChanges}, activityComments=${activityComments}, digestUpdates=${digestChanges}`
+            );

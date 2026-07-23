@@ -1,0 +1,113 @@
+name: General Question
+description: Ask a general question about the project, usage, or behavior.
+title: "[Question]: "
+labels: ["question"]
+projects: ["braydenanderson2014/4"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to ask a question! Please fill out the details below.
+
+  - type: dropdown
+    id: library   # unique id (alphanumeric, -, _)
+    attributes:
+      label: Repository / Library
+      description: Select the particular repository or library of code this bug relates to.
+      multiple: true          # set to true if users should be able to pick more than one
+      options:
+        - AVLTree
+        - Arraylist
+        - BinarySearchTree
+        - BinaryTree
+        - bPlusTree
+        - bTree
+        - ColorManager
+        - Dictionary
+        - DoubleLinkedList
+        - DynamicStorageLibrary
+        - EthernetConnectionChecker
+        - EthernetMach2ConnectionChecker
+        - ExtremeVariant
+        - FenwickTree
+        - Hashtable
+        - HeapTree
+        - iostream
+        - Initializer_List
+        - IntervalTree
+        - iterator
+        - Json
+        - kdimensionalTree
+        - LinkedList
+        - Map
+        - MathLib
+        - MatrixMath
+        - MbedLittleFSWrapper/src
+        - MemoryManager
+        - MyDictionary
+        - NewArrayList (TEMP)
+        - Numeric_Limits
+        - OCTree
+        - Operators
+        - Optional
+        - OrderedMap
+        - Predicates
+        - Properties
+        - QuadTree
+        - Queue
+        - RTree
+        - RedBlackTree
+        - SDList
+        - SegmentTree
+        - SimpleMutex
+        - SimpleThreadManager
+        - SimpleVector
+        - Stack
+        - String
+        - SuffixTree
+        - Timer
+        - TrieTree
+        - TypeTraits
+        - UnorderedMap
+        - Variant
+        - Other                 # optional catch-all
+    # default: 0             # optional: 0-based index of the pre-selected option
+    validations:
+      required: false           # optional but recommended
+    
+
+
+  - type: input
+    id: summary
+    attributes:
+      label: Question summary
+      description: Briefly describe your question in one sentence.
+      placeholder: e.g., How do I configure the tool with X?
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Provide more context, examples, or references for your question.
+      placeholder: Full description of what you're trying to understand or do.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Program Unique ID
+        - **ID**: []  
+        **Program ID is only for programs with the ability to report issues.**
+
+  - type: input
+    id: program_unique_id
+    attributes:
+      label: Program Unique ID (optional)
+      description: If this was reported from a program that provides an ID, paste it here.
+      placeholder: e.g., PRG-12345
+    validations:
+      required: false
