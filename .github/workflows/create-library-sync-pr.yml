@@ -1,0 +1,422 @@
+name: Create Library Sync PR
+
+on:
+  issues:
+    types: [opened, reopened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue number for a library sync request"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  create-library-sync-pr:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.issue.labels.*.name, 'library-sync-request')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve library sync request
+        id: resolve
+        uses: actions/github-script@v9
+        env:
+          CONFIG_PATH: .github/library-sync-targets.json
+        with:
+          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+
+            const configPath = process.env.CONFIG_PATH;
+            const issueMarker = "<!-- library-sync-request -->";
+            const issueNumberInput = context.eventName === "workflow_dispatch"
+              ? String(core.getInput("issue_number") || "").trim()
+              : "";
+
+            const commentOnIssue = async (issueNumber, body) => {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body
+              });
+            };
+
+            const closeIssue = async (issueNumber) => {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                state: "closed"
+              });
+            };
+
+            const getIssue = async () => {
+              if (context.eventName === "workflow_dispatch") {
+                const parsed = Number.parseInt(issueNumberInput, 10);
+                if (!Number.isInteger(parsed)) {
+                  core.setFailed(`Invalid issue_number input: '${issueNumberInput}'`);
+                  return null;
+                }
+
+                const response = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: parsed
+                });
+                return response.data;
+              }
+
+              return context.payload.issue;
+            };
+
+            const parseIssueSections = (body) => {
+              const sections = {};
+              const normalized = String(body || "").replace(/\r/g, "");
+              const regex = /^###\s+(.+)\n([\s\S]*?)(?=^###\s+.+\n|$)/gm;
+
+              for (const match of normalized.matchAll(regex)) {
+                const heading = match[1].trim();
+                const content = match[2].trim();
+                sections[heading] = content === "_No response_" ? "" : content;
+              }
+
+              return sections;
+            };
+
+            const slugify = (value) => String(value || "")
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-+|-+$/g, "")
+              .slice(0, 50);
+
+            const issue = await getIssue();
+            if (!issue) {
+              return;
+            }
+
+            if (issue.pull_request) {
+              core.info("Issue sync workflow received a pull request payload. Skipping.");
+              core.setOutput("should_run", "false");
+              return;
+            }
+
+            const body = String(issue.body || "");
+            const labels = (issue.labels || []).map((label) => label.name);
+            if (!body.includes(issueMarker) || !labels.includes("library-sync-request")) {
+              core.info("Issue is not a library sync request. Skipping.");
+              core.setOutput("should_run", "false");
+              return;
+            }
+
+            if (context.eventName !== "workflow_dispatch") {
+              const requester = issue.user?.login;
+              const allowedPermissions = new Set(["admin", "maintain", "write"]);
+              let permission = "none";
+
+              if (requester) {
+                try {
+                  const permissionResponse = await github.rest.repos.getCollaboratorPermissionLevel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    username: requester
+                  });
+                  permission = String(permissionResponse.data.permission || "none").toLowerCase();
+                } catch (error) {
+                  if (error?.status !== 404) {
+                    throw error;
+                  }
+                }
+              }
+
+              if (!allowedPermissions.has(permission)) {
+                await commentOnIssue(
+                  issue.number,
+                  [
+                    "This issue form is restricted to repository maintainers.",
+                    "Only collaborators with write, maintain, or admin permission can use library sync requests.",
+                    "This issue will now be closed automatically."
+                  ].join("\n")
+                );
+                await closeIssue(issue.number);
+                core.setOutput("should_run", "false");
+                return;
+              }
+            }
+
+            const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+            const sections = parseIssueSections(body);
+            const library = (sections["Library"] || "").trim();
+            const syncSummary = (sections["Sync summary"] || "").trim();
+            const pullRequestTitleOverride = (sections["Pull request title"] || "").trim();
+            const pullRequestNotes = (sections["Pull request notes"] || "").trim();
+            const targetBranchOverride = (sections["Target branch override"] || "").trim();
+
+            if (!library) {
+              await commentOnIssue(issue.number, "Library sync request could not be processed because the library field was empty.");
+              core.setFailed("Missing library selection in issue form.");
+              return;
+            }
+
+            const defaults = config.defaults || {};
+            const libraryConfig = config.libraries?.[library];
+            if (!libraryConfig) {
+              await commentOnIssue(
+                issue.number,
+                `Library sync request could not be processed because '${library}' is not configured in ${configPath}.`
+              );
+              core.setFailed(`Library '${library}' is not configured.`);
+              return;
+            }
+
+            if (libraryConfig.enabled === false) {
+              await commentOnIssue(
+                issue.number,
+                [
+                  `Library sync request for '${library}' is currently disabled.`,
+                  libraryConfig.reason ? `Reason: ${libraryConfig.reason}` : "Update .github/library-sync-targets.json to enable it."
+                ].join("\n")
+              );
+              core.setFailed(`Library '${library}' is disabled for sync.`);
+              return;
+            }
+
+            const sourcePath = libraryConfig.sourcePath;
+            const targetOwner = libraryConfig.targetOwner || defaults.targetOwner || context.repo.owner;
+            const targetRepo = libraryConfig.targetRepo;
+            const targetPath = libraryConfig.targetPath || defaults.targetPath || ".";
+            const baseBranch = targetBranchOverride || libraryConfig.baseBranch || defaults.baseBranch || "main";
+            const branchPrefix = libraryConfig.branchPrefix || defaults.branchPrefix || "sync-library";
+            const managedPaths = libraryConfig.managedPaths || defaults.managedPaths || [];
+
+            if (!sourcePath || !targetRepo || managedPaths.length === 0) {
+              await commentOnIssue(
+                issue.number,
+                `Library sync request for '${library}' is missing required config values in ${configPath}.`
+              );
+              core.setFailed(`Incomplete config for '${library}'.`);
+              return;
+            }
+
+            const absoluteSourcePath = path.join(process.env.GITHUB_WORKSPACE, sourcePath);
+            if (!fs.existsSync(absoluteSourcePath)) {
+              await commentOnIssue(
+                issue.number,
+                `Library sync request for '${library}' failed because the source path '${sourcePath}' does not exist in this repository.`
+              );
+              core.setFailed(`Source path does not exist: ${sourcePath}`);
+              return;
+            }
+
+            const librarySlug = slugify(library);
+            const branchName = `${branchPrefix}/${librarySlug}/issue-${issue.number}`;
+            const prTitle = pullRequestTitleOverride || `Sync ${library} from monorepo (#${issue.number})`;
+            const prBody = [
+              `Sync request from ${context.repo.owner}/${context.repo.repo}#${issue.number}.`,
+              `Source library path: ${sourcePath}`,
+              `Requested by: @${issue.user?.login || "unknown"}`,
+              "",
+              "### Sync summary",
+              syncSummary || "(No summary provided.)",
+              "",
+              "### Remote PR notes",
+              pullRequestNotes || "(No extra notes provided.)",
+              "",
+              `Source issue URL: ${issue.html_url}`
+            ].join("\n");
+
+            core.setOutput("should_run", "true");
+            core.setOutput("issue_number", String(issue.number));
+            core.setOutput("issue_title", issue.title || "");
+            core.setOutput("issue_url", issue.html_url || "");
+            core.setOutput("library", library);
+            core.setOutput("source_path", sourcePath);
+            core.setOutput("target_owner", targetOwner);
+            core.setOutput("target_repo", targetRepo);
+            core.setOutput("target_path", targetPath);
+            core.setOutput("base_branch", baseBranch);
+            core.setOutput("branch_name", branchName);
+            core.setOutput("pr_title", prTitle);
+            core.setOutput("pr_body", prBody);
+            core.setOutput("managed_paths_json", JSON.stringify(managedPaths));
+
+      - name: Mirror library files into remote branch
+        id: sync_files
+        if: steps.resolve.outputs.should_run == 'true'
+        env:
+          SYNC_TOKEN: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          ISSUE_NUMBER: ${{ steps.resolve.outputs.issue_number }}
+          LIBRARY_NAME: ${{ steps.resolve.outputs.library }}
+          SOURCE_PATH: ${{ steps.resolve.outputs.source_path }}
+          TARGET_OWNER: ${{ steps.resolve.outputs.target_owner }}
+          TARGET_REPO: ${{ steps.resolve.outputs.target_repo }}
+          TARGET_PATH: ${{ steps.resolve.outputs.target_path }}
+          BASE_BRANCH: ${{ steps.resolve.outputs.base_branch }}
+          BRANCH_NAME: ${{ steps.resolve.outputs.branch_name }}
+          MANAGED_PATHS_JSON: ${{ steps.resolve.outputs.managed_paths_json }}
+        run: |
+          if [ -z "$SYNC_TOKEN" ]; then
+            echo "Missing LIBRARY_SYNC_TOKEN or GH_PROJECT_TOKEN secret." >&2
+            exit 1
+          fi
+
+          remote_dir="$RUNNER_TEMP/remote-repo"
+          git clone --depth 1 --branch "$BASE_BRANCH" "https://x-access-token:${SYNC_TOKEN}@github.com/${TARGET_OWNER}/${TARGET_REPO}.git" "$remote_dir"
+
+          pushd "$remote_dir"
+          git checkout -B "$BRANCH_NAME"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          popd
+
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const sourceRoot = path.join(process.env.GITHUB_WORKSPACE, process.env.SOURCE_PATH);
+          const targetRoot = path.join(
+            process.env.RUNNER_TEMP,
+            'remote-repo',
+            process.env.TARGET_PATH === '.' ? '' : process.env.TARGET_PATH
+          );
+          const managedPaths = JSON.parse(process.env.MANAGED_PATHS_JSON || '[]');
+
+          const ensureDir = (dirPath) => {
+            fs.mkdirSync(dirPath, { recursive: true });
+          };
+
+          const copyRecursive = (sourcePath, destinationPath) => {
+            const stats = fs.statSync(sourcePath);
+            if (stats.isDirectory()) {
+              ensureDir(destinationPath);
+              for (const entry of fs.readdirSync(sourcePath)) {
+                copyRecursive(path.join(sourcePath, entry), path.join(destinationPath, entry));
+              }
+              return;
+            }
+
+            ensureDir(path.dirname(destinationPath));
+            fs.copyFileSync(sourcePath, destinationPath);
+          };
+
+          ensureDir(targetRoot);
+
+          for (const managedPath of managedPaths) {
+            const sourcePath = path.join(sourceRoot, managedPath);
+            const destinationPath = path.join(targetRoot, managedPath);
+
+            if (fs.existsSync(sourcePath)) {
+              fs.rmSync(destinationPath, { recursive: true, force: true });
+              copyRecursive(sourcePath, destinationPath);
+            } else {
+              fs.rmSync(destinationPath, { recursive: true, force: true });
+            }
+          }
+          NODE
+
+          pushd "$remote_dir"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "remote_branch_url=https://github.com/${TARGET_OWNER}/${TARGET_REPO}/tree/${BRANCH_NAME}" >> "$GITHUB_OUTPUT"
+            popd
+            exit 0
+          fi
+
+          git commit -m "Sync ${LIBRARY_NAME} from monorepo (#${ISSUE_NUMBER})"
+          git push --force-with-lease origin "$BRANCH_NAME"
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          echo "remote_branch_url=https://github.com/${TARGET_OWNER}/${TARGET_REPO}/tree/${BRANCH_NAME}" >> "$GITHUB_OUTPUT"
+          popd
+
+      - name: Create or update remote pull request
+        if: steps.resolve.outputs.should_run == 'true' && steps.sync_files.outputs.has_changes == 'true'
+        uses: actions/github-script@v9
+        env:
+          ISSUE_NUMBER: ${{ steps.resolve.outputs.issue_number }}
+          LIBRARY_NAME: ${{ steps.resolve.outputs.library }}
+          TARGET_OWNER: ${{ steps.resolve.outputs.target_owner }}
+          TARGET_REPO: ${{ steps.resolve.outputs.target_repo }}
+          BASE_BRANCH: ${{ steps.resolve.outputs.base_branch }}
+          BRANCH_NAME: ${{ steps.resolve.outputs.branch_name }}
+          PR_TITLE: ${{ steps.resolve.outputs.pr_title }}
+          PR_BODY: ${{ steps.resolve.outputs.pr_body }}
+        with:
+          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          script: |
+            const issueNumber = Number.parseInt(process.env.ISSUE_NUMBER, 10);
+            const targetOwner = process.env.TARGET_OWNER;
+            const targetRepo = process.env.TARGET_REPO;
+            const baseBranch = process.env.BASE_BRANCH;
+            const branchName = process.env.BRANCH_NAME;
+            const prTitle = process.env.PR_TITLE;
+            const prBody = process.env.PR_BODY;
+            const marker = `<!-- library-sync-pr: ${targetOwner}/${targetRepo};branch=${branchName} -->`;
+
+            const existingPulls = await github.paginate(github.rest.pulls.list, {
+              owner: targetOwner,
+              repo: targetRepo,
+              state: "open",
+              head: `${targetOwner}:${branchName}`,
+              base: baseBranch,
+              per_page: 100
+            });
+
+            let pullRequest = existingPulls[0];
+            if (!pullRequest) {
+              const created = await github.rest.pulls.create({
+                owner: targetOwner,
+                repo: targetRepo,
+                title: prTitle,
+                head: branchName,
+                base: baseBranch,
+                body: prBody
+              });
+              pullRequest = created.data;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: [
+                `Library sync PR is ready for ${process.env.LIBRARY_NAME}.`,
+                `Remote PR: ${pullRequest.html_url}`,
+                `Remote branch: https://github.com/${targetOwner}/${targetRepo}/tree/${branchName}`,
+                marker
+              ].join("\n")
+            });
+
+      - name: Report no-op sync
+        if: steps.resolve.outputs.should_run == 'true' && steps.sync_files.outputs.has_changes == 'false'
+        uses: actions/github-script@v9
+        env:
+          ISSUE_NUMBER: ${{ steps.resolve.outputs.issue_number }}
+          LIBRARY_NAME: ${{ steps.resolve.outputs.library }}
+          TARGET_OWNER: ${{ steps.resolve.outputs.target_owner }}
+          TARGET_REPO: ${{ steps.resolve.outputs.target_repo }}
+          BRANCH_NAME: ${{ steps.resolve.outputs.branch_name }}
+        with:
+          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number.parseInt(process.env.ISSUE_NUMBER, 10),
+              body: [
+                `No file changes were detected for ${process.env.LIBRARY_NAME}.`,
+                `The remote repository ${process.env.TARGET_OWNER}/${process.env.TARGET_REPO} already matches the managed paths from this monorepo, or the differences are outside the configured sync paths.`,
+                `Branch checked: https://github.com/${process.env.TARGET_OWNER}/${process.env.TARGET_REPO}/tree/${process.env.BRANCH_NAME}`
+              ].join("\n")
+            });

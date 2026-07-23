@@ -255,8 +255,6 @@ jobs:
               const bucketSectionMap = {
                 stable: 'stable',
                 unstable: 'unstable',
-                tested: 'tested',
-                'not tested': 'not_tested',
                 unsure: 'unsure',
                 'potentially unhealthy': 'potentially_unhealthy'
               };
@@ -276,6 +274,9 @@ jobs:
 
               const categoryOverride = new Map();
               const issueCountOverride = new Map();
+              const duplicateCategoryLabels = new Set();
+              const testedLabels = new Set();
+              const duplicateTestedLabels = new Set();
 
               const lines = text.split('\n');
               let currentSection = null;
@@ -285,7 +286,13 @@ jobs:
                 const headerMatch = line.match(/^##\s+(.+)$/i);
                 if (headerMatch) {
                   const sectionName = headerMatch[1].trim().toLowerCase();
-                  currentSection = bucketSectionMap[sectionName] || null;
+                  if (sectionName === 'tested') {
+                    currentSection = 'tested';
+                  } else if (sectionName === 'not tested') {
+                    currentSection = 'not_tested';
+                  } else {
+                    currentSection = bucketSectionMap[sectionName] || null;
+                  }
                   continue;
                 }
 
@@ -295,7 +302,21 @@ jobs:
                     const rawLabel = bulletMatch[1].trim();
                     const canonical = resolveConfiguredLabel(rawLabel);
                     if (canonical) {
-                      categoryOverride.set(canonical, currentSection);
+                      if (currentSection === 'tested') {
+                        if (testedLabels.has(canonical)) {
+                          duplicateTestedLabels.add(canonical);
+                        }
+                        testedLabels.add(canonical);
+                      }
+
+                      const previousSection = categoryOverride.get(canonical);
+                      if (previousSection && previousSection !== currentSection) {
+                        duplicateCategoryLabels.add(canonical);
+                      }
+
+                      if (currentSection !== 'tested' && currentSection !== 'not_tested') {
+                        categoryOverride.set(canonical, currentSection);
+                      }
                     }
                   }
                 }
@@ -313,7 +334,7 @@ jobs:
                 }
               }
 
-              return { categoryOverride, issueCountOverride };
+              return { categoryOverride, issueCountOverride, duplicateCategoryLabels, testedLabels, duplicateTestedLabels };
             }
 
             function parseLibraryLabelsFromIssueTemplate(text) {
@@ -468,6 +489,10 @@ jobs:
               return bucketKey === 'stable' || bucketKey === 'tested';
             }
 
+            function isTestedLibrary(libraryLabel) {
+              return overrides.testedLabels.has(libraryLabel);
+            }
+
             function buildHealthyBadge(name) {
               return `![${name}](https://img.shields.io/badge/${encodeURIComponent(name)}-Healthy-2ea44f)`;
             }
@@ -516,7 +541,26 @@ jobs:
             const overrideContent = await readPrivateFileIfExists(overridePath);
             const overrides = overrideContent
               ? parseOverrideMarkdown(overrideContent, uniqueConfiguredLibraryLabels)
-              : { categoryOverride: new Map(), issueCountOverride: new Map() };
+              : {
+                  categoryOverride: new Map(),
+                  issueCountOverride: new Map(),
+                  duplicateCategoryLabels: new Set(),
+                  testedLabels: new Set(),
+                  duplicateTestedLabels: new Set()
+                };
+
+            if (overrides.duplicateCategoryLabels.size > 0) {
+              core.warning(
+                `Labels reused across multiple override sections: ${Array.from(overrides.duplicateCategoryLabels).join(', ')}. ` +
+                'The last matching section in override.md wins.'
+              );
+            }
+
+            if (overrides.duplicateTestedLabels.size > 0) {
+              core.warning(
+                `Labels listed more than once under Tested: ${Array.from(overrides.duplicateTestedLabels).join(', ')}.`
+              );
+            }
 
             const configuredLibraryLabelsByLower = new Map();
             for (const name of uniqueConfiguredLibraryLabels) {
@@ -616,6 +660,8 @@ jobs:
                 }
               }
 
+              const testingStatus = isTestedLibrary(libraryLabel) ? 'tested' : 'not_tested';
+
               reportRows.push({
                 library: libraryLabel,
                 confirmedCount,
@@ -629,6 +675,8 @@ jobs:
                 sourceIssueLinks: confirmedForLibrary.map((i) => i.html_url),
                 unconfirmedIssueLinks: unconfirmedOpenForLibrary.map((i) => i.html_url),
                 bucketIssueNumber: bucketIssueNumbers[finalBucket],
+                testingStatus,
+                testingIssueNumber: bucketIssueNumbers[testingStatus],
                 manualCountOverrideApplied,
                 manualCategoryOverrideApplied,
                 confirmedIssueLocked
@@ -640,14 +688,15 @@ jobs:
             const assignmentsByBucket = {
               stable: [],
               unstable: [],
-              tested: [],
-              not_tested: [],
               unsure: [],
-              potentially_unhealthy: []
+              potentially_unhealthy: [],
+              tested: [],
+              not_tested: []
             };
 
             for (const row of reportRows) {
               assignmentsByBucket[row.final].push(row.library);
+              assignmentsByBucket[row.testingStatus].push(row.library);
             }
 
             const bucketLabelSets = {};
@@ -733,14 +782,20 @@ jobs:
             for (const key of Object.keys(totals).filter((k) => k !== 'total').sort()) {
               lines.push(`- ${bucketDisplay(key)}: ${totals[key]}`);
             }
+            const testingTotals = reportRows.reduce((acc, row) => {
+              acc[row.testingStatus] = (acc[row.testingStatus] || 0) + 1;
+              return acc;
+            }, {});
+            lines.push(`- Tested: ${testingTotals.tested || 0}`);
+            lines.push(`- Not Tested: ${testingTotals.not_tested || 0}`);
             lines.push('');
             lines.push('## Results');
             lines.push('');
-            lines.push('| Library Label | Confirmed Issues | Open Unconfirmed Issues | PlatformIO Signal | Status | Bucket Issue |');
-            lines.push('|---|---:|---:|---|---|---:|');
+            lines.push('| Library Label | Confirmed Issues | Open Unconfirmed Issues | PlatformIO Signal | Health | Testing | Health Issue | Testing Issue |');
+            lines.push('|---|---:|---:|---|---|---|---:|---:|');
 
             for (const row of reportRows) {
-              lines.push(`| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount} | ${row.platformVerdict} | ${bucketDisplay(row.final)} | #${row.bucketIssueNumber} |`);
+              lines.push(`| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount} | ${row.platformVerdict} | ${bucketDisplay(row.final)} | ${bucketDisplay(row.testingStatus)} | #${row.bucketIssueNumber} | #${row.testingIssueNumber} |`);
             }
 
             lines.push('');
@@ -760,6 +815,7 @@ jobs:
               lines.push(`### ${row.library}`);
               lines.push('');
               lines.push(`- Routed bucket: ${bucketDisplay(row.final)} (#${row.bucketIssueNumber})`);
+              lines.push(`- Testing status: ${bucketDisplay(row.testingStatus)} (#${row.testingIssueNumber})`);
               lines.push(`- Computed bucket before override: ${bucketDisplay(row.computedBucket)}`);
               lines.push(`- Manual category override applied: ${row.manualCategoryOverrideApplied ? 'Yes' : 'No'}`);
               lines.push(`- Manual issue count override applied: ${row.manualCountOverrideApplied ? 'Yes' : 'No'}`);
