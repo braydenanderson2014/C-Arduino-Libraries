@@ -497,6 +497,30 @@ jobs:
               return `![${name}](https://img.shields.io/badge/${encodeURIComponent(name)}-Healthy-2ea44f)`;
             }
 
+            function buildStatusBadge(label, value, color) {
+              return `![${label}: ${value}](https://img.shields.io/badge/${encodeURIComponent(label)}-${encodeURIComponent(value)}-${color}?style=flat-square)`;
+            }
+
+            function healthBadge(bucketKey) {
+              const colorByBucket = {
+                stable: '2ea44f',
+                unstable: 'd73a49',
+                potentially_unhealthy: 'fb8c00',
+                unsure: '9e9e9e'
+              };
+
+              return buildStatusBadge('Health', bucketDisplay(bucketKey), colorByBucket[bucketKey] || '9e9e9e');
+            }
+
+            function testingBadge(testingKey) {
+              const colorByTesting = {
+                tested: '2ea44f',
+                not_tested: '6f42c1'
+              };
+
+              return buildStatusBadge('Testing', bucketDisplay(testingKey), colorByTesting[testingKey] || '9e9e9e');
+            }
+
             core.info(`Reading library list from ${libraryTemplateSourcePath}...`);
             const issueTemplateContent = await readSourceFile(libraryTemplateSourcePath);
             const templateLibraryLabels = parseLibraryLabelsFromIssueTemplate(issueTemplateContent);
@@ -736,8 +760,9 @@ jobs:
             let labelsRemoved = 0;
             for (const row of reportRows) {
               const labelLower = row.library.toLowerCase();
+              const keptBuckets = new Set([row.final, row.testingStatus]);
               for (const bucketKey of Object.keys(bucketIssueNumbers)) {
-                if (bucketKey === row.final) continue;
+                if (keptBuckets.has(bucketKey)) continue;
                 if (!bucketLabelSets[bucketKey].has(labelLower)) continue;
 
                 const exactName = bucketExactLabelNames[bucketKey].get(labelLower) || row.library;
@@ -795,7 +820,7 @@ jobs:
             lines.push('|---|---:|---:|---|---|---|---:|---:|');
 
             for (const row of reportRows) {
-              lines.push(`| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount} | ${row.platformVerdict} | ${bucketDisplay(row.final)} | ${bucketDisplay(row.testingStatus)} | #${row.bucketIssueNumber} | #${row.testingIssueNumber} |`);
+              lines.push(`| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount} | ${row.platformVerdict} | ${healthBadge(row.final)} | ${testingBadge(row.testingStatus)} | #${row.bucketIssueNumber} | #${row.testingIssueNumber} |`);
             }
 
             lines.push('');
@@ -815,7 +840,9 @@ jobs:
               lines.push(`### ${row.library}`);
               lines.push('');
               lines.push(`- Routed bucket: ${bucketDisplay(row.final)} (#${row.bucketIssueNumber})`);
+              lines.push(`- Health badge: ${healthBadge(row.final)}`);
               lines.push(`- Testing status: ${bucketDisplay(row.testingStatus)} (#${row.testingIssueNumber})`);
+              lines.push(`- Testing badge: ${testingBadge(row.testingStatus)}`);
               lines.push(`- Computed bucket before override: ${bucketDisplay(row.computedBucket)}`);
               lines.push(`- Manual category override applied: ${row.manualCategoryOverrideApplied ? 'Yes' : 'No'}`);
               lines.push(`- Manual issue count override applied: ${row.manualCountOverrideApplied ? 'Yes' : 'No'}`);
