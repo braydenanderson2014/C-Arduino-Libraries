@@ -10,8 +10,8 @@ template<typename T>
 class SimpleVector {
 private:
     T* array;
-    unsigned int count;
-    unsigned int capacity;
+    mutable unsigned int count;
+    mutable unsigned int capacity;
 
     /**
      * @brief Resize the array to the specified capacity
