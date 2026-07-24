@@ -1,6 +1,6 @@
 # Library Health Report
 
-Generated: 2026-07-24T07:26:01.943Z
+Generated: 2026-07-24T17:49:53.194Z
 Source repo: braydenanderson2014/C-Arduino-Libraries
 Analyzer repo: braydenanderson2014/SystemCommands
 Confirmed labels: confirmed
@@ -33,7 +33,7 @@ Confirmed labels: confirmed
 | Ethernet Mach2 Connection Checker | 0 | 0 | Unknown | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #21 | #23 |
 | Extreme Variant | 0 | 0 | Unknown | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square) | #21 | #22 |
 | Fenwick Tree | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
-| Hashtable | 1 | 0 | Likely Healthy | ![Health: Potentially Unhealthy](https://img.shields.io/badge/Health-Potentially%20Unhealthy-fb8c00?style=flat-square) | ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square) | #25 | #22 |
+| Hashtable | 2 | 0 | Likely Healthy | ![Health: Potentially Unhealthy](https://img.shields.io/badge/Health-Potentially%20Unhealthy-fb8c00?style=flat-square) | ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square) | #25 | #22 |
 | Heap Tree | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
 | Initializer List | 0 | 0 | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #21 | #23 |
 | Interval Tree | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
@@ -334,7 +334,7 @@ Confirmed labels: confirmed
 - Confirmed issue lock active: Yes
 - Open unconfirmed issues: 0
 - Raw open unconfirmed issues: 0
-- Confirmed issues: 1
+- Confirmed issues: 2
 - Raw confirmed issues: 0
 - PlatformIO: Likely Healthy (Rank 2198 (top 8000).)
 - No confirmed source issues linked.
