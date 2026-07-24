@@ -1,101 +1,171 @@
 # SDList
 
-`SDList` is a dynamic array class for Arduino, with the additional capability to persist data on an SD card. It allows you to store and retrieve elements just like a regular array but can also save its contents to an SD card and load them back when needed.
+`SDList` is a paged, batch-buffered list for Arduino that offloads element storage
+to an SD card (or LittleFS) while keeping only a single fixed-size window of
+elements in RAM at a time.  It behaves like `ArrayList` / `SimpleVector` from the
+user's perspective but lets you hold far more elements than would fit in RAM.
 
-## Features
+## How it works
 
-- Dynamic resizing of the list when more capacity is needed.
-- Persistence of list data using an SD card.
-- Simple API for adding, accessing, and setting elements.
-- Checking the availability of an SD card.
+* **Binary storage** — each element is written as raw `sizeof(T)` bytes.  No text
+  serialisation means no data corruption for any trivially-copyable type (`int`,
+  `float`, `struct`, etc.).
+* **Fixed batch window** — one block of `BATCH_SIZE` elements (default 8) lives in
+  RAM.  When you access an element outside that window the current batch is flushed
+  to disk and the new batch is loaded.  The buffer is allocated once and never
+  reallocated.
+* **Pre-allocated file** — on `begin()` the file is created with
+  `reserveCapacity` zero-filled slots up front.  This avoids filesystem
+  fragmentation.  The reserved area grows automatically (by `BATCH_SIZE` slots at a
+  time) if you add more elements than originally reserved.
+* **LittleFS support** — compile with `-DUSE_LITTLEFS` to route all filesystem calls
+  through `LittleFS` instead of the SD library.
+
+### File format
+
+```
+Offset                Size      Field
+0                     4         Magic  'S','D','L','2'
+4                     4         count     (uint32_t, little-endian)
+8                     4         reserved  (uint32_t, little-endian)
+12 + i * sizeof(T)    sizeof(T) element i
+```
+
+---
 
 ## Installation
 
-To use `SDList` in your Arduino project:
+1. Copy the `SDList` folder into your project's `lib/` directory.
+2. `#include "SDList.h"` in your sketch.
 
-1. Copy `SDList.h` to your project's directory.
-2. Include the `SDList.h` file in your sketch.
+---
 
-## Arduino Library Manager
-## ChangeLog
-### Version 1.0.0
-* Initial Release -> On par with Platformio version 1.0.5
-
-
-
-## ChangeLog
-### Version 1.0.0:
-* Initial Release
-### Version 1.0.1:
-* Dependency Update (Issues with certain Dependencies)
-### Version 1.0.2:  
-* Dependency Update (Issue was not resolved in 1.0.1 but is now properly resolved)
-* Added [SD LIST]: in front of all Serial.prints to make it easier to debug
-### Version 1.0.3: 
-* Update to README
-* Completely Reimplemented this library, It now functions properly and is much more stable. (Only Lightly Tested)
-* This Library now uses the ArrayList Library to store the list in memory, and then writes the list to the SD card when the list is modified (In SDLIST). This makes the library much more stable and reliable.
-* This Library has not been Thoughly tested, and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author
-* Removed the c++ file and moved implementation to the header file
-### Version 1.0.4:
-* This Version was removed from PlatformIO due to a missing feature that was supposed to be added.
-### Version 1.0.5: [BETA-TESTING]
-* Library src Directory was not included in the previous release. This has been fixed.
-* Re-Added Examples
-* Added Overloaded begin() function to allow for custom file names. begin(csPin) was the original, and begin(csPin, Filename) is the new overloaded function.
-### Version 1.0.5:
-* Added new getUnderlyingStructure() function that returns the ArrayList Object
-
-
-
-## Usage
-
-To create an `SDList`, specify the data type you want to store and provide the Chip Select (CS) pin and a filename for the page file on the SD card.
+## Quick start
 
 ```cpp
 #include "SDList.h"
 
-SDList <int> myList(SDCARD, 8); // Mode is (SDCARD || MEMORY), Initial Capacity: 8
-```
-### Appending Elements
-```cpp
-myList.append(42);
-```
-### Accessing Elements
-```cpp
-int value = myList.get(0);
-```
-### Inserting Elements
-```cpp
-myList.insert(0, 100);
-```
-### Checking List Size
-```cpp
-uint16_t listSize = myList.size();
+// Store up to 32 ints, batch window = 8 elements
+SDList<int, 8> myList(SDCARD, 32);
+
+void setup() {
+    Serial.begin(9600);
+    if (!myList.begin(4, "ints.bin")) {   // CS pin 4
+        Serial.println("SD failed – running in memory mode");
+    }
+
+    for (int i = 0; i < 20; i++) myList.append(i * 10);
+
+    Serial.println(myList.get(5));   // 50
+    myList.set(5, 999);
+    myList.insert(0, -1);
+    myList.remove(1);
+    myList.flush();                  // explicit flush (also happens on destruction)
+}
 ```
 
-## Methods
-* append: Add an element to the end of the list.
-* get: Retrieve the element at a specified index.
-* insert: inserts the value of the element at a specified index.
-* size: Get the number of elements in the list.
-* capacity: Get the arraylist capacity
-* clear: clear list and file
-* begin: REQUIRED FOR SD OPERATIONS (Please call begin function before any SD Begin Functions... also beware that setMode can override SD.begin() at any point)
-* setMode: set the Mode(SDCARD || MEMORY)
-* remove: Remove an element (Checks what mode you are in.)
+### LittleFS variant
 
+```cpp
+// Compile with -DUSE_LITTLEFS
+SDList<float, 4> data(SDCARD, 64);
+void setup() {
+    LittleFS.begin();
+    data.beginLFS("floats.bin");
+    data.append(3.14f);
+}
+```
+
+---
+
+## API
+
+| Method | Description |
+|--------|-------------|
+| `begin(csPin [, filename])` | Initialise SD card and open / create the backing file. Returns `false` and falls back to MEMORY mode if the card is unavailable. |
+| `beginLFS([filename])` | Initialise using LittleFS (requires `-DUSE_LITTLEFS`). |
+| `append(element)` | Add element to the end. Returns `bool`. |
+| `add(element)` | Alias for `append()`. |
+| `get(index)` | Return element at index (or `T()` if out of range). |
+| `set(index, element)` | Overwrite element at index. Returns `bool`. |
+| `insert(index, element)` | Insert element, shifting right. Returns `bool`. |
+| `remove(index)` | Remove element, shifting left. Returns `bool`. |
+| `clear()` | Remove all elements and reset the file to its reserved-capacity state. |
+| `flush()` | Force-write the current in-memory batch to disk. |
+| `size()` | Number of valid elements. |
+| `capacity()` | Number of pre-allocated slots (SDCARD) or heap slots (MEMORY). |
+| `isEmpty()` | `true` when `size() == 0`. |
+| `isReady()` | `true` if the filesystem was initialised successfully. |
+| `getMode()` | `SDCARD` or `MEMORY`. |
+| `setMode(mode)` | Switch modes, migrating all data. |
+
+---
+
+## Template parameters
+
+```cpp
+SDList<T, BATCH_SIZE>
+```
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `T` | — | Element type.  Must be trivially copyable. |
+| `BATCH_SIZE` | `8` | Elements held in RAM at once.  Larger → fewer file opens, more RAM. |
+
+---
+
+## Constructor
+
+```cpp
+SDList<T, BATCH_SIZE>(SDListMode mode = SDCARD, uint32_t reserveCapacity = 16)
+```
+
+`reserveCapacity` is the number of element slots written as zeros into the file
+when it is first created.  It grows automatically but pre-sizing avoids
+fragmentation on the FAT filesystem.
+
+---
 
 ## Notes
-The list starts with an initial capacity, which will be doubled each time it runs out of space.
-Ensure the SD card is formatted correctly and that the Arduino has the necessary permissions to read from and write to the SD card.
+
+* **Type constraint** — `T` must be trivially copyable (POD types, plain structs).
+  `String` and other types that own heap memory are **not** supported in SDCARD mode
+  because their binary representation cannot be meaningfully written to / read from
+  a file.  Use MEMORY mode or store plain `char` arrays instead.
+* `flush()` is called automatically when the batch window shifts and on object
+  destruction.  For maximum durability after a burst of writes, call it explicitly.
+* Each `SDList` instance should use a **unique filename** to avoid conflicts.
+* The SD library version must be ≥ 1.3.0 (Arduino `FILE_WRITE` must not include
+  `O_APPEND` so that in-place seeks work).
+
+---
 
 ## Dependencies
+
 * Arduino
-* SD
-* ArrayList (braydenanderson2014)
-* SPI
+* SD + SPI  (or LittleFS when compiled with `-DUSE_LITTLEFS`)
 
+---
 
-## Contributing
-Contributions to SDList are welcome. Please adhere to the provided coding standards and include unit tests with your pull requests.
+## ChangeLog
+
+### Version 2.0.0
+* **Complete rewrite** — binary storage replaces text serialisation; eliminates
+  all data corruption for non-String types.
+* Fixed batch window: one pre-allocated `T[BATCH_SIZE]` buffer, never reallocated.
+* Pre-allocated file with grow-on-demand: no fragmentation.
+* `set()` method added for direct element overwrite.
+* `flush()` / `isReady()` added.
+* `insert()` and `remove()` now correctly shift elements in binary mode.
+* LittleFS support via `-DUSE_LITTLEFS` compile flag.
+* Dropped `ArrayList` dependency.
+* `SDListMode` enum replaces `Mode` to avoid name collisions.
+
+### Version 1.0.5
+* Added `getUnderlyingStructure()`.
+
+### Version 1.0.3
+* Reimplemented using ArrayList for in-memory storage.
+
+### Version 1.0.0
+* Initial release.

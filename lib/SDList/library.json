@@ -1,8 +1,8 @@
 {
     "name": "SDList",
-    "version": "1.0.5",
-    "description": "This Library is an easy to use Library that allows you to save memory by saving things to a file. This Library contains basic implementations of the List functions in a convenient SD card safe manor. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
-    "keywords": ["SDList", "List", "SD", "ArrayList", "Dynamic Storage", "Dynamic Data Storage", "Data Storage", "Data", "Storage", "SD Card", "SD Card Storage", "SD Card Data Storage", "SD Card Data", "SD Card Storage", "SD Card List", "SD Card List Storage", "SD Card List Data", "Utilities"] ,
+    "version": "2.0.0",
+    "description": "Paged, batch-buffered list that offloads elements to SD card or LittleFS using binary storage. Any trivially-copyable type (int, float, struct) is stored without text serialisation, eliminating data corruption. A fixed in-memory batch window keeps RAM predictable while a pre-allocated file prevents fragmentation.",
+    "keywords": ["SDList", "List", "SD", "ArrayList", "Dynamic Storage", "Data Storage", "SD Card", "LittleFS", "Paged", "Binary Storage", "Batch", "Utilities"],
     "repositories": [
         {
             "type": "git",
@@ -20,64 +20,56 @@
     "srcDir": "src",
     "dependencies": {
         "Arduino": "*",
-        "SD": "@1.2.4",
-        "Wire": "*",
-        "SPI": "*",
-        "braydenanderson2014/ArrayList": "*"
-
+        "SD": "*",
+        "SPI": "*"
     },
     "build.header": "SDList.h",
     "license": "Apache-2.0",
     "readme": "README.md",
     "ChangeLog": [
         {
-            "version": "1.0.0",
-            "date": "2023-10-25",
+            "version": "2.0.0",
+            "date": "2025-07-24",
             "changes": [
-                "Initial  UNTESTED release"
+                "Complete rewrite: binary storage replaces text serialisation, eliminating data corruption for all trivially-copyable types.",
+                "Fixed batch window: one pre-allocated T[BATCH_SIZE] buffer, never reallocated.",
+                "Pre-allocated file with grow-on-demand: no fragmentation.",
+                "set() method added for direct element overwrite.",
+                "flush() and isReady() added.",
+                "insert() and remove() now correctly shift elements in binary mode.",
+                "LittleFS support via -DUSE_LITTLEFS compile flag.",
+                "Dropped ArrayList dependency.",
+                "SDListMode enum replaces Mode enum to avoid name collisions."
             ]
         },
         {
-            "version": "1.0.1",
-            "date": "2023-10-31",
+            "version": "1.0.5",
+            "date": "2024-02-14",
             "changes": [
-                "Dependency Update"
-            ]
-        },
-        {
-            "version": "1.0.2",
-            "date": "2023-11-11",
-            "changes": [
-                "Dependency Update: Directly including SD.h;",
-                "Added [SD LIST]: in front of all Serial.prints to make it easier to debug"
+                "Added getUnderlyingStructure()."
             ]
         },
         {
             "version": "1.0.3",
             "date": "2024-02-04",
             "changes": [
-                "Completely Reimplemented this library, It now functions properly and is much more stable. (Only Lightly Tested)",
-                "This Library now uses the ArrayList Library to store the list in memory, and then writes the list to the SD card when the list is modified (In SDLIST). This makes the library much more stable and reliable.",
-                "This Library has not been Thoughly tested, and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
-                "Removed the c++ file and moved implementation to the header file"
+                "Reimplemented using ArrayList for in-memory storage."
             ]
         },
         {
-            "version": "1.0.4",
-            "date": "2024-02-14",
+            "version": "1.0.0",
+            "date": "2023-10-25",
             "changes": [
-                "Library src Directory was not included in the previous release. This has been fixed.",
-                "Re-Added Examples",
-                "Added Overloaded begin() function to allow for custom file names, see README.md for more information"
+                "Initial release."
             ]
         }
     ],
     "examples": [
         {
             "name": "Example",
-            "base": "Examples",
+            "base": "examples/Example",
             "files": [
-                "Example.cpp"
+                "Example.ino"
             ]
         }
     ]
