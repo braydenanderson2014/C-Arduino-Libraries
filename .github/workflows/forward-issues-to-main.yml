@@ -63,7 +63,7 @@ jobs:
       - name: Mirror issue and pull request activity to main repository
         uses: actions/github-script@v9
         with:
-          github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
           script: |
             const SOURCE_OWNER = context.repo.owner;
             const SOURCE_REPO = context.repo.repo;
@@ -669,7 +669,7 @@ jobs:
       - name: Sync mirrored issue status and PR commit digests
         uses: actions/github-script@v9
         with:
-          github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
           script: |
             const SOURCE_OWNER = context.repo.owner;
             const SOURCE_REPO = context.repo.repo;
