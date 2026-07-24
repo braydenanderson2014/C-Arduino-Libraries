@@ -361,7 +361,7 @@ bool operator==(const SimpleVector<T>& other) const {
     /**
      * @brief Get the index of the specified element
      * @param element The element to be searched for
-     * @return The index of the specified element, or 0 if the element is not found
+     * @return The index of the specified element, or -1 if the element is not found
     */
     int indexOf(const T& element) {
         for (unsigned int i = 0; i < count; i++) {
