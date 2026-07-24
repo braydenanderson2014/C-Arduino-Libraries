@@ -1,6 +1,6 @@
 # Library Health Report
 
-Generated: 2026-07-24T17:51:54.916Z
+Generated: 2026-07-24T17:54:59.995Z
 Source repo: braydenanderson2014/C-Arduino-Libraries
 Analyzer repo: braydenanderson2014/SystemCommands
 Confirmed labels: confirmed
@@ -10,8 +10,8 @@ Confirmed labels: confirmed
 - Libraries analyzed: 53
 - Potentially Unhealthy: 4
 - Stable: 16
-- Unstable: 3
-- Unsure: 30
+- Unstable: 6
+- Unsure: 27
 - Tested: 10
 - Not Tested: 43
 
@@ -45,9 +45,9 @@ Confirmed labels: confirmed
 | Map | 0 | 0 | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #21 | #23 |
 | Math Lib | 0 | 0 | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #21 | #23 |
 | Matrix Math | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
-| Memory Manager | 0 | 0 | Unknown | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
+| Memory Manager | 0 | 0 | Unknown | ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #20 | #23 |
 | My Dictionary | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
-| New Array List (TEMP) | 0 | 0 | Unknown | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
+| New Array List (TEMP) | 0 | 0 | Unknown | ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #20 | #23 |
 | Numeric Limits | 0 | 0 | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #21 | #23 |
 | OC Tree | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
 | Operators | 0 | 0 | Watch | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square) | #21 | #22 |
@@ -65,7 +65,7 @@ Confirmed labels: confirmed
 | Simple Thread Manager | 0 | 0 | Unknown | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
 | Simple Vector | 1 | 0 | Likely Healthy | ![Health: Potentially Unhealthy](https://img.shields.io/badge/Health-Potentially%20Unhealthy-fb8c00?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #25 | #23 |
 | Stack | 0 | 0 | Unknown | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
-| String | 0 | 0 | Unknown | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
+| String | 0 | 0 | Unknown | ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #20 | #23 |
 | Suffix Tree | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
 | Timer | 0 | 0 | Unknown | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
 | Trie Tree | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
@@ -528,12 +528,12 @@ Confirmed labels: confirmed
 
 ### Memory Manager
 
-- Routed bucket: Unsure (#24)
-- Health badge: ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)
+- Routed bucket: Unstable (#20)
+- Health badge: ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square)
 - Testing status: Not Tested (#23)
 - Testing badge: ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square)
 - Computed bucket before override: Unsure
-- Manual category override applied: No
+- Manual category override applied: Yes
 - Manual issue count override applied: No
 - Confirmed issue lock active: No
 - Open unconfirmed issues: 0
@@ -562,12 +562,12 @@ Confirmed labels: confirmed
 
 ### New Array List (TEMP)
 
-- Routed bucket: Unsure (#24)
-- Health badge: ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)
+- Routed bucket: Unstable (#20)
+- Health badge: ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square)
 - Testing status: Not Tested (#23)
 - Testing badge: ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square)
 - Computed bucket before override: Unsure
-- Manual category override applied: No
+- Manual category override applied: Yes
 - Manual issue count override applied: No
 - Confirmed issue lock active: No
 - Open unconfirmed issues: 0
@@ -868,12 +868,12 @@ Confirmed labels: confirmed
 
 ### String
 
-- Routed bucket: Unsure (#24)
-- Health badge: ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)
+- Routed bucket: Unstable (#20)
+- Health badge: ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square)
 - Testing status: Not Tested (#23)
 - Testing badge: ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square)
 - Computed bucket before override: Unsure
-- Manual category override applied: No
+- Manual category override applied: Yes
 - Manual issue count override applied: No
 - Confirmed issue lock active: No
 - Open unconfirmed issues: 0
