@@ -116,6 +116,25 @@ Properties::~Properties() {
 // ─── Configuration ────────────────────────────────────────────────────────────
 
 /**
+ * @brief Configures the Properties instance to use the SD card backend.
+ */
+bool Properties::begin(size_t cs, IDENTIFIERTYPE identifierType) {
+    _filesystem = nullptr;
+    chipSelect = cs;
+    this->identifierType = identifierType;
+    return beginSDIfNeeded();
+}
+
+/**
+ * @brief Configures the Properties instance to use an injected filesystem backend.
+ */
+bool Properties::begin(fs::FS& filesystem, IDENTIFIERTYPE identifierType) {
+    _filesystem = &filesystem;
+    this->identifierType = identifierType;
+    return true;
+}
+
+/**
  * @brief Sets the chip select pin used when initialising the SD card internally.
  */
 void Properties::setChipSelect(const size_t cs) {
