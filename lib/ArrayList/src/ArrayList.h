@@ -7,24 +7,29 @@
 #include <Arduino.h>
 #include "../../TypeTraits/src/TypeTraits.h"
 
-//#define IKnowWhatIAmDoing //Uncomment this line if you know what you are doing; USE THE FUNCTIONS UNCOVERED BY THIS DIRECTIVE AT YOUR OWN RISK!!!
-//#define SkinnyArray // Uncomment this line to remove more advanced functions to save memory or define it in your code
+//#define IKnowWhatIAmDoing   // Uncomment to unlock advanced memory-control functions; USE AT YOUR OWN RISK
+//#define SkinnyArray         // Uncomment to remove memory-intensive features and save flash/RAM on constrained devices
+//#define AL_NO_SERIAL        // Uncomment to suppress all Serial output from this library (useful when Serial is not initialized)
 
+// PlatformIO users can also set any of the above via build_flags in platformio.ini, e.g.:
+//   build_flags = -DSkinnyArray -DAL_NO_SERIAL
+//   build_flags = -DSkinnyArray -DOverrideSort
 
 /**
-  *  @attention If you uncomment SkinnyArray, use the below compiler directives to override functions/bring them back into existence
-*/
-#ifdef SkinnyArray //If SkinnyArray is defined, remove more advanced functions unless overridden
-
-//#define OverrideCopyConstructor //Uncomment this line to override the copy constructor when in SkinnyArray Mode
-//#define OverrideAssignmentOperator //Uncomment this line to override the assignment operator when in SkinnyArray Mode
-//#define OverrideSort //Uncomment this line to override the sort function when in SkinnyArray Mode
-//#define OverrideAddAll //Uncomment this line to override the addAll function when in SkinnyArray Mode
-//#define OverrideInsertAll //Uncomment this line to override the insertAll function when in SkinnyArray Mode
-//#define OverrideSpecialtyRemove //Uncomment this line to override the remove function when in SkinnyArray Mode
-//#define OverrideUtilityFunctions //Uncomment this line to override the utility functions when in SkinnyArray Mode
-
+ * @attention When SkinnyArray is defined, the directives below can selectively restore
+ *            individual feature groups.  They can be defined in your code or passed as
+ *            -D flags via your build system (e.g. PlatformIO build_flags).
+ */
+#ifdef SkinnyArray
+//#define OverrideCopyConstructor    // Restore copy constructor
+//#define OverrideAssignmentOperator // Restore assignment operator
+//#define OverrideSort               // Restore all sorting functions
+//#define OverrideAddAll             // Restore addAll() functions
+//#define OverrideInsertAll          // Restore insertAll() functions
+//#define OverrideSpecialtyRemove    // Restore removeIf / removeRange / retainAll
+//#define OverrideUtilityFunctions   // Restore forEach / toArray / clone / sublist / ensureCapacity / trimToSize
 #endif
+
 #define AL_RESIZE_SUCCESS 0
 #define AL_RESIZE_ERROR 1
 #define AL_RESIZE_ERROR2 2
@@ -44,282 +49,146 @@
 template <typename T>
 class ArrayList {
 public:
-    enum SizeType { FIXED, DYNAMIC, DYNAMIC2 }; // Size type
+    enum SizeType { FIXED, DYNAMIC, DYNAMIC2 };
 
-
-#ifndef SkinnyArray //If SkinnyArray is not defined, define the SortAlgorithm enum
-    enum SortAlgorithm { BUBBLE_SORT, QUICK_SORT, MERGE_SORT }; // Sorting algorithms
-#elif defined(OverrideSort) //If OverrideSort is defined, define the SortAlgorithm enum (used when SkinnyArray is defined)
-    enum SortAlgorithm { BUBBLE_SORT, QUICK_SORT, MERGE_SORT }; // Sorting algorithms
+#if !defined(SkinnyArray) || defined(OverrideSort)
+    enum SortAlgorithm { BUBBLE_SORT, QUICK_SORT, MERGE_SORT };
 #endif
-    //Constructor and Destructor
-    
+
+    // ─── Constructors / Destructor ──────────────────────────────────────────
+
     /**
      * @brief Constructs a new ArrayList.
      *
-     * This constructor creates a new ArrayList with the specified size type, initial size, and debug flag.
-     * The size type determines whether the size of the ArrayList is static or dynamic. The initial size specifies
-     * the initial capacity of the ArrayList. The debug flag determines whether debug messages should be printed.
-     *
-     * @param type The size type of the ArrayList. This should be either DYNAMIC or STATIC.
-     * @param initialSize The initial capacity of the ArrayList.
-     * @param debug A flag indicating whether debug messages should be printed.
-    */
+     * @param type        FIXED (no resize), DYNAMIC (2x resize), or DYNAMIC2 (1.5x resize, default).
+     * @param initialSize Initial capacity (default 8).
+     */
     ArrayList(SizeType type = DYNAMIC2, size_t initialSize = 8)
                 : arrayCapacity(initialSize), count(0), initialSize(initialSize), sizeType(type) {
         array = new T[arrayCapacity];
         if (!array) {
+#ifndef AL_NO_SERIAL
             Serial.println("[ArrayList] Memory allocation failed");
+#endif
         }
+#if !defined(SkinnyArray) || defined(OverrideSort)
+        sortAlgorithm = MERGE_SORT;
+#endif
     }
 
-    #ifndef SkinnyArray //If SkinnyArray is not defined, define the COPY Constructor
-     /**
-    * @brief COPY Constructor
-    */
+#if !defined(SkinnyArray) || defined(OverrideCopyConstructor)
+    /**
+     * @brief Copy constructor — performs a deep copy of another ArrayList.
+     */
     ArrayList(const ArrayList<T>& list) {
-        this->sizeType = list.sizeType;
-        this->arrayCapacity = list.arrayCapacity;
-        this->count = list.count;
-        this->array = new T[this->arrayCapacity];
+        this->sizeType       = list.sizeType;
+        this->arrayCapacity  = list.arrayCapacity;
+        this->count          = list.count;
+        this->initialSize    = list.initialSize;
+        this->array          = new T[this->arrayCapacity];
         for (size_t i = 0; i < list.count; ++i) {
             this->array[i] = list.array[i];
         }
+#if !defined(SkinnyArray) || defined(OverrideSort)
+        this->sortAlgorithm = list.sortAlgorithm;
+#endif
     }
-    #elif defined(OverrideCopyConstructor) //If OverrideCopyConstructor is defined, define the COPY Constructor
-    /**
-    * @brief COPY Constructor
-    */
-    ArrayList(const ArrayList<T>& list) {
-        this->sizeType = list.sizeType;
-        this->arrayCapacity = list.arrayCapacity;
-        this->count = list.count;
-        this->array = new T[this->arrayCapacity];
-        for (size_t i = 0; i < list.count; ++i) {
-            this->array[i] = list.array[i];
-        }
-    }
-
-    #endif
+#endif
 
     /**
-     * @brief Destroys the ArrayList.
-     *
-     * This destructor deletes the ArrayList and frees the memory allocated for it.
-     * If the debug flag is set, it prints a message indicating that the ArrayList is being deleted.
-    */
+     * @brief Destructor — frees the internal array.
+     */
     ~ArrayList() {
         delete[] array;
     }
-   
-   /**
-     * @brief Adds an item to the ArrayList.
+
+    // ─── Add ────────────────────────────────────────────────────────────────
+
+    /**
+     * @brief Adds an item to the end of the ArrayList.
      *
-     * This function adds the specified item to the ArrayList. If the size type of the ArrayList is DYNAMIC and the ArrayList is full,
-     * it resizes the ArrayList to accommodate the new item. If the ArrayList is not full, it adds the item to the ArrayList.
-     * If the ArrayList is full and its size type is STATIC, it prints an error message and does not add the item.
-     * (Only if the debug flag is set to true)
-     * @param item The item to add to the ArrayList.
-    */
+     * If the list is full and the size type is DYNAMIC or DYNAMIC2 it resizes automatically.
+     * If the size type is FIXED and the list is full, the item is silently dropped.
+     *
+     * @param item The item to add.
+     */
     void add(T item) {
-        if(sizeType == FIXED && count >= arrayCapacity){ //If size type is fixed and the count is greater than or equal to the array capacity, return nothing;
+        if (sizeType == FIXED && count >= arrayCapacity) {
             return;
         }
-
-        bool resizeNeeded = verifyResizeNeeded(1);
-        // Serial.println(resizeNeeded);// Debugging
-        // Calculate the load factor
-        if(resizeNeeded){ //If the load factor is greater than or equal to 0.8, resize the array
+        if (verifyResizeNeeded(1)) {
             resize();
         }
-        
-        // Resize the array if the load factor is greater than or equal to 0.8
-        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
-        /*
-        if (sizeType == DYNAMIC && loadFactor >= 0.8) { //uses original resize function. This function is less reliable but faster
-            resize();
-        } else if(sizeType == DYNAMIC2 && loadFactor >= 0.8) {// uses new resize2 function that is more reliable but slower
-            resize2();
-        }
-        */
-        // Add the item to the array
-        if (count < arrayCapacity) { //If the count is less than the array capacity add the element. (Verifies that you arent adding an element out of bounds)
+        if (count < arrayCapacity) {
             array[count++] = item;
-        } 
+        }
     }
 
-
-    #ifndef SkinnyArray //If SkinnyArray is not defined, define the AddAll function
+#if !defined(SkinnyArray) || defined(OverrideAddAll)
     /**
      * @brief Adds all items from another ArrayList to this ArrayList.
      *
-     * This function adds all items from the specified ArrayList to this ArrayList. If the size type of this ArrayList is DYNAMIC and 
-     * the total count of items in both ArrayLists exceeds the capacity of this ArrayList, it resizes this ArrayList to accommodate the new items.
-     * If the total count of items in both ArrayLists does not exceed the capacity of this ArrayList, it adds the items from the other ArrayList to this ArrayList.
-     * If the total count of items in both ArrayLists exceeds the capacity of this ArrayList and its size type is STATIC, it prints an error message and does not add the items.
-     * (only if debug flag is set to true)
-     * @param other The ArrayList whose items should be added to this ArrayList.
-     * @return true if the items were added successfully, false otherwise.
-    */
+     * Uses element-by-element assignment, which correctly handles types with
+     * non-trivial copy semantics (e.g. Arduino String).
+     *
+     * @param other The source ArrayList.
+     * @return true if all items were added, false if there was insufficient capacity.
+     */
     bool addAll(const ArrayList<T>& other) {
-        bool resizeNeeded = verifyResizeNeeded(other.count);
-        if(resizeNeeded){
+        if (verifyResizeNeeded(other.count)) {
             resize();
         }
-        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
-        /*
-        if (sizeType == DYNAMIC && count + other.count > arrayCapacity) {
-            resize(); // original resize
-        }
-        if(sizeType == DYNAMIC2 && count + other.count > arrayCapacity){
-            resize2(); // new resize
-        }
-        */
-        
         if (count + other.count <= arrayCapacity) {
-            memcpy(array + count, other.array, other.count * sizeof(T)); //Copies the items from the other array to the new array
-            count += other.count; //Updates the count
-            return true; //Returns true if the items were added successfully
+            for (size_t i = 0; i < other.count; i++) {
+                array[count + i] = other.array[i];
+            }
+            count += other.count;
+            return true;
         }
-        return false; //Returns false if the items were not added successfully
+        return false;
     }
 
     /**
-     * @brief Adds all items from an array to this ArrayList.
+     * @brief Adds all items from a raw array to this ArrayList.
      *
-     * This function adds all items from the specified array to this ArrayList. If the size type of this ArrayList is DYNAMIC and 
-     * the total count of items in the ArrayList and the array exceeds the capacity of this ArrayList, it resizes this ArrayList to accommodate the new items.
-     * If the total count of items in the ArrayList and the array does not exceed the capacity of this ArrayList, it adds the items from the array to this ArrayList.
-     * If the total count of items in the ArrayList and the array exceeds the capacity of this ArrayList and its size type is STATIC, it prints an error message and does not add the items.
+     * Uses element-by-element assignment, which correctly handles types with
+     * non-trivial copy semantics (e.g. Arduino String).
      *
-     * @param other The array/List whose items should be added to this ArrayList.
-     * @param length The length of the array/List.
-     * @return true if the items were added successfully, false otherwise.
-    */
+     * @param other  Pointer to the source array.
+     * @param length Number of elements to add.
+     * @return true if all items were added, false if there was insufficient capacity.
+     */
     bool addAll(const T* other, size_t length) {
-        bool resizeNeeded = verifyResizeNeeded(length);
-        if(resizeNeeded){
+        if (verifyResizeNeeded(length)) {
             resize();
         }
-        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
-        /*
-        if (sizeType == DYNAMIC && count + length > arrayCapacity) {
-            resize();
-        }
-        if(sizeType == DYNAMIC2 && count + length > arrayCapacity){
-            resize2();
-        }
-        */
-    
         if (count + length <= arrayCapacity) {
-            memcpy(array + count, other, length * sizeof(T));
+            for (size_t i = 0; i < length; i++) {
+                array[count + i] = other[i];
+            }
             count += length;
             return true;
         }
         return false;
     }
-    #elif defined(OverrideAddAll) //If OverrideAddAll is defined, define the AddAll function
-/**
-     * @brief Adds all items from another ArrayList to this ArrayList.
-     *
-     * This function adds all items from the specified ArrayList to this ArrayList. If the size type of this ArrayList is DYNAMIC and 
-     * the total count of items in both ArrayLists exceeds the capacity of this ArrayList, it resizes this ArrayList to accommodate the new items.
-     * If the total count of items in both ArrayLists does not exceed the capacity of this ArrayList, it adds the items from the other ArrayList to this ArrayList.
-     * If the total count of items in both ArrayLists exceeds the capacity of this ArrayList and its size type is STATIC, it prints an error message and does not add the items.
-     * (only if debug flag is set to true)
-     * @param other The ArrayList whose items should be added to this ArrayList.
-     * @return true if the items were added successfully, false otherwise.
-    */
-    bool addAll(const ArrayList<T>& other) {
-        bool resizeNeeded = verifyResizeNeeded(other.count);
-        if(resizeNeeded){
-            resize();
-        }
-        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
-        /*
-        if (sizeType == DYNAMIC && count + other.count > arrayCapacity) {
-            resize(); // original resize
-        }
-        if(sizeType == DYNAMIC2 && count + other.count > arrayCapacity){
-            resize2(); // new resize
-        }
-        */
-        
-        if (count + other.count <= arrayCapacity) {
-            memcpy(array + count, other.array, other.count * sizeof(T)); //Copies the items from the other array to the new array
-            count += other.count; //Updates the count
-            return true; //Returns true if the items were added successfully
-        }
-        return false; //Returns false if the items were not added successfully
-    }
+#endif
+
+    // ─── Insert ─────────────────────────────────────────────────────────────
 
     /**
-     * @brief Adds all items from an array to this ArrayList.
+     * @brief Inserts an item at a specific index.
      *
-     * This function adds all items from the specified array to this ArrayList. If the size type of this ArrayList is DYNAMIC and 
-     * the total count of items in the ArrayList and the array exceeds the capacity of this ArrayList, it resizes this ArrayList to accommodate the new items.
-     * If the total count of items in the ArrayList and the array does not exceed the capacity of this ArrayList, it adds the items from the array to this ArrayList.
-     * If the total count of items in the ArrayList and the array exceeds the capacity of this ArrayList and its size type is STATIC, it prints an error message and does not add the items.
-     *
-     * @param other The array/List whose items should be added to this ArrayList.
-     * @param length The length of the array/List.
-     * @return true if the items were added successfully, false otherwise.
-    */
-    bool addAll(const T* other, size_t length) {
-        bool resizeNeeded = verifyResizeNeeded(length);
-        if(resizeNeeded){
-            resize();
-        }
-        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
-        /*
-        if (sizeType == DYNAMIC && count + length > arrayCapacity) {
-            resize();
-        }
-        if(sizeType == DYNAMIC2 && count + length > arrayCapacity){
-            resize2();
-        }
-        */
-    
-        if (count + length <= arrayCapacity) {
-            memcpy(array + count, other, length * sizeof(T));
-            count += length;
-            return true;
-        }
-        return false;
-    }
-    #endif
-
-    /**
-     * @brief Inserts an item at a specific index in the ArrayList.
-     *
-     * This function inserts the specified item at the specified index in the ArrayList. If the index is greater than the count of items in the ArrayList,
-     * it prints an error message and returns false. If the ArrayList is full, it resizes the ArrayList if its size type is DYNAMIC, or prints an error message and returns false if its size type is STATIC.
-     * If the index is valid and the ArrayList is not full, or has been resized successfully, it shifts all items from the index to the end of the ArrayList one position to the right, inserts the item at the index, and increments the count of items.
-     *
-     * @param index The index at which to insert the item.
-     * @param item The item to insert.
-     * @return true if the item was inserted successfully, false otherwise.
-    */
+     * @param index Target index (must be <= count).
+     * @param item  The item to insert.
+     * @return true on success, false if the index is out of range.
+     */
     bool insert(size_t index, T item) {
         if (index > count) {
             return false;
         }
-        bool resizeNeeded = verifyResizeNeeded(1);
-        if(resizeNeeded){
+        if (verifyResizeNeeded(1)) {
             resize();
         }
-        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
-        /*
-        if (count == arrayCapacity) {
-            if (sizeType == DYNAMIC) {
-                resize();
-            } else if(sizeType == DYNAMIC2){
-                resize2();
-            } else {
-                return false;
-            }
-        }
-        */
         for (size_t i = count; i > index; --i) {
             array[i] = array[i - 1];
         }
@@ -328,238 +197,125 @@ public:
         return true;
     }
 
+#if !defined(SkinnyArray) || defined(OverrideAssignmentOperator)
     /**
-     * @brief Overloads the assignment operator to copy the contents of another ArrayList to this ArrayList.
+     * @brief Assignment operator — deep-copies another ArrayList into this one.
      */
     ArrayList<T>& operator=(const ArrayList<T>& list) {
         if (this == &list) {
-            return *this; // Self-assignment check
+            return *this;
         }
-    
-        // Free the current array
         delete[] this->array;
-    
-        // Allocate new memory
         this->arrayCapacity = list.arrayCapacity;
-        this->array = new T[this->arrayCapacity];
-    
-        // Copy metadata
-        this->sizeType = list.sizeType;
-        this->initialSize = list.initialSize;
-        this->count = list.count;
-    
-        // Copy elements
+        this->array         = new T[this->arrayCapacity];
+        this->sizeType      = list.sizeType;
+        this->initialSize   = list.initialSize;
+        this->count         = list.count;
         for (size_t i = 0; i < list.count; i++) {
             this->array[i] = list.array[i];
         }
-    
         return *this;
     }
-
-
+#endif
 
     /**
-     * @brief Overloads the [] operator to access items in the ArrayList.
-     * 
+     * @brief Index operator — returns a reference to the element at the given index.
+     *
+     * @warning If the index is out of bounds, a reference to an internal static default value
+     *          is returned.  The default is reset to T() on each out-of-bounds call to prevent
+     *          corruption across calls.  Do not store this reference beyond the current statement.
+     *
+     * @param index The index of the element.
+     * @return Reference to the element, or to an internal reset default if out of bounds.
      */
-    T& operator [] (size_t index){
-        if(index >= count){
-            return T();
+    T& operator[](size_t index) {
+        if (index >= count) {
+            static T defaultValue;
+            defaultValue = T();
+            return defaultValue;
         }
         return array[index];
     }
 
-    #ifndef SkinnyArray //If SkinnyArray is not defined, define the the InsertAll Funtions
+#if !defined(SkinnyArray) || defined(OverrideInsertAll)
     /**
-     * @brief Inserts all items from another ArrayList at a specific index in this ArrayList.
+     * @brief Inserts all items from another ArrayList at a specific index.
      *
-     * This function inserts all items from the specified ArrayList at the specified index in this ArrayList. If the index is greater than the count of items in this ArrayList,
-     * it prints an error message and returns false. If the ArrayList is full, it resizes the ArrayList if its size type is DYNAMIC, or prints an error message and returns false if its size type is STATIC.
-     * If the index is valid and the ArrayList is not full, or has been resized successfully, it shifts all items from the index to the end of the ArrayList one position to the right, inserts the items from the other ArrayList at the index, and increments the count of items.
+     * Uses element-by-element assignment, which correctly handles types with
+     * non-trivial copy semantics (e.g. Arduino String).
      *
-     * @param index The index at which to insert the items.
-     * @param other The ArrayList whose items should be inserted.
-     * @return true if the items were inserted successfully, false otherwise.
-    */
+     * @param index The insertion point (must be <= count).
+     * @param other The source ArrayList.
+     * @return true on success, false if the index is out of range.
+     */
     bool insertAll(size_t index, const ArrayList<T>& other) {
         if (index > count) {
             return false;
         }
-        bool resizeNeeded = verifyResizeNeeded(other.count);
-        if(resizeNeeded){
+        if (verifyResizeNeeded(other.count)) {
             resize();
         }
-        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
-        /*
-        if (count + length > arrayCapacity) {
-            if (sizeType == DYNAMIC) {
-                resize();
-            } else if(sizeType == DYNAMIC2) {
-                resize2();  
-            } else {
-                return false;
-            }
-        }
-        */
         for (size_t i = count + other.count; i > index + other.count; --i) {
             array[i - 1] = array[i - other.count - 1];
         }
-
-        memcpy(array + index, other.array, other.count * sizeof(T));
+        for (size_t i = 0; i < other.count; i++) {
+            array[index + i] = other.array[i];
+        }
         count += other.count;
         return true;
     }
 
     /**
-     * @brief Inserts all items from an array/List at a specific index in this ArrayList.
+     * @brief Inserts all items from a raw array at a specific index.
      *
-     * This function inserts all items from the specified array/list at the specified index in this ArrayList. If the index is greater than the count of items in this ArrayList,
-     * it prints an error message and returns false. If the ArrayList is full, it resizes the ArrayList if its size type is DYNAMIC, or prints an error message and returns false if its size type is STATIC.
-     * If the index is valid and the ArrayList is not full, or has been resized successfully, it shifts all items from the index to the end of the ArrayList one position to the right, inserts the items from the array at the index, and increments the count of items.
+     * Uses element-by-element assignment, which correctly handles types with
+     * non-trivial copy semantics (e.g. Arduino String).
      *
-     * @param index The index at which to insert the items.
-     * @param other The array/List whose items should be inserted.
-     * @param length The length of the array/List.
-     * @return true if the items were inserted successfully, false otherwise.
-    */
+     * @param index  The insertion point (must be <= count).
+     * @param other  Pointer to the source array.
+     * @param length Number of elements to insert.
+     * @return true on success, false if the index is out of range.
+     */
     bool insertAll(size_t index, const T* other, size_t length) {
         if (index > count) {
             return false;
         }
-        bool resizeNeeded = verifyResizeNeeded(length);
-        if(resizeNeeded){
+        if (verifyResizeNeeded(length)) {
             resize();
         }
-        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
-        /*
-        if (count + length > arrayCapacity) {
-            if (sizeType == DYNAMIC) {
-                resize();
-            } else if(sizeType == DYNAMIC2) {
-                resize2();  
-            } else {
-                return false;
-            }
-        }
-        */
-        
         for (size_t i = count + length - 1; i >= index + length; --i) {
             array[i] = array[i - length];
         }
-        memcpy(array + index, other, length * sizeof(T));
+        for (size_t i = 0; i < length; i++) {
+            array[index + i] = other[i];
+        }
         count += length;
         return true;
     }
-    #elif defined(OverrideInsertAll) //If OverrideInsertAll is defined, define the InsertAll function
-    /**
-     * @brief Inserts all items from another ArrayList at a specific index in this ArrayList.
-     *
-     * This function inserts all items from the specified ArrayList at the specified index in this ArrayList. If the index is greater than the count of items in this ArrayList,
-     * it prints an error message and returns false. If the ArrayList is full, it resizes the ArrayList if its size type is DYNAMIC, or prints an error message and returns false if its size type is STATIC.
-     * If the index is valid and the ArrayList is not full, or has been resized successfully, it shifts all items from the index to the end of the ArrayList one position to the right, inserts the items from the other ArrayList at the index, and increments the count of items.
-     *
-     * @param index The index at which to insert the items.
-     * @param other The ArrayList whose items should be inserted.
-     * @return true if the items were inserted successfully, false otherwise.
-    */
-    bool insertAll(size_t index, const ArrayList<T>& other) {
-        if (index > count) {
-            return false;
-        }
-        bool resizeNeeded = verifyResizeNeeded(other.count);
-        if(resizeNeeded){
-            resize();
-        }
-        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
-        /*
-        if (count + length > arrayCapacity) {
-            if (sizeType == DYNAMIC) {
-                resize();
-            } else if(sizeType == DYNAMIC2) {
-                resize2();  
-            } else {
-                return false;
-            }
-        }
-        */
-        for (size_t i = count + other.count; i > index + other.count; --i) {
-            array[i - 1] = array[i - other.count - 1];
-        }
+#endif
 
-        memcpy(array + index, other.array, other.count * sizeof(T));
-        count += other.count;
-        return true;
-    }
+    // ─── Remove ─────────────────────────────────────────────────────────────
 
     /**
-     * @brief Inserts all items from an array/List at a specific index in this ArrayList.
+     * @brief Removes the first occurrence of a value from the ArrayList.
      *
-     * This function inserts all items from the specified array/list at the specified index in this ArrayList. If the index is greater than the count of items in this ArrayList,
-     * it prints an error message and returns false. If the ArrayList is full, it resizes the ArrayList if its size type is DYNAMIC, or prints an error message and returns false if its size type is STATIC.
-     * If the index is valid and the ArrayList is not full, or has been resized successfully, it shifts all items from the index to the end of the ArrayList one position to the right, inserts the items from the array at the index, and increments the count of items.
-     *
-     * @param index The index at which to insert the items.
-     * @param other The array/List whose items should be inserted.
-     * @param length The length of the array/List.
-     * @return true if the items were inserted successfully, false otherwise.
-    */
-    bool insertAll(size_t index, const T* other, size_t length) {
-        if (index > count) {
-            return false;
-        }
-        bool resizeNeeded = verifyResizeNeeded(length);
-        if(resizeNeeded){
-            resize();
-        }
-        //MOVED: Logic has been moved to verifyResizeNeededed and resize PIO: Version 1.0.5 ALM: 1.0.2
-        /*
-        if (count + length > arrayCapacity) {
-            if (sizeType == DYNAMIC) {
-                resize();
-            } else if(sizeType == DYNAMIC2) {
-                resize2();  
-            } else {
-                return false;
-            }
-        }
-        */
-        
-        for (size_t i = count + length - 1; i >= index + length; --i) {
-            array[i] = array[i - length];
-        }
-        memcpy(array + index, other, length * sizeof(T));
-        count += length;
-        return true;
-    }
-    #endif
-
-    /**
-     * @brief Removes an item from the ArrayList.
-     *
-     * This function removes the specified item from the ArrayList. If the item is not found in the ArrayList, it prints an error message and returns false.
-     * If the item is found in the ArrayList, it removes the item from the ArrayList and returns true.
-     *
-     * @param item The item to remove from the ArrayList.
-     * @return true if the item was removed successfully, false otherwise.
-    */
+     * @param item The value to remove.
+     * @return true if the item was found and removed, false otherwise.
+     */
     bool removeItem(T item) {
-        int index = indexOf(item);
-        if (index >= 0) {
+        size_t index = indexOf(item);
+        if (index != static_cast<size_t>(-1)) {
             remove(index);
             return true;
-        }else{
-            return false;
         }
+        return false;
     }
-    
+
     /**
-     * @brief Removes an item at a specific index from the ArrayList.
+     * @brief Removes the element at a specific index.
      *
-     * This function removes the item at the specified index from the ArrayList. If the index is less than the count of items in the ArrayList,
-     * it shifts all items from the index + 1 to the end of the ArrayList one position to the left, and decrements the count of items.
-     *
-     * @param index The index of the item to remove.
-    */
+     * @param index The index of the element to remove.
+     */
     void remove(size_t index) {
         if (index < count) {
             for (size_t i = index; i < count - 1; ++i) {
@@ -569,17 +325,13 @@ public:
         }
     }
 
-    #ifndef SkinnyArray //If SkinnyArray is not defined, define the SpecialtyRemove function
+#if !defined(SkinnyArray) || defined(OverrideSpecialtyRemove)
     /**
-     * @brief Removes all items from the ArrayList that satisfy a predicate.
+     * @brief Removes all elements for which a predicate returns true.
      *
-     * This function removes all items from the ArrayList that satisfy the specified predicate. The predicate is a function that takes an item of type T and returns a boolean.
-     * If the predicate returns true for an item, that item is removed from the ArrayList. The function shifts all items that do not satisfy the predicate to the left to fill the gaps left by the removed items.
-     * The function can use the Predicates library, which can be found at: https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib
-     *
-     * @param predicate The predicate to test the items against.
-     * @return true if any items were removed, false otherwise.
-    */
+     * @param predicate A function taking T and returning bool.
+     * @return true if at least one element was removed, false otherwise.
+     */
     bool removeIf(bool (*predicate)(T)) {
         size_t removed = 0;
         for (size_t i = 0; i < count; ++i) {
@@ -597,20 +349,13 @@ public:
     }
 
     /**
-     * @brief Removes a range of items from the ArrayList.
+     * @brief Removes all elements in the range [fromIndex, toIndex).
      *
-     * This function removes a range of items from the ArrayList, from the specified fromIndex (inclusive) to the specified toIndex (exclusive).
-     * If fromIndex is greater than toIndex, or if either index is out of bounds, it prints an error message and returns without removing any items.
-     * If the indices are valid, it shifts all items from toIndex to the end of the ArrayList to the left to fill the gaps left by the removed items, and decrements the count of items by the number of removed items.
-     *
-     * @param fromIndex The start index of the range to remove (inclusive).
-     * @param toIndex The end index of the range to remove (exclusive).
-    */
+     * @param fromIndex Start index (inclusive).
+     * @param toIndex   End index (exclusive).
+     */
     void removeRange(size_t fromIndex, size_t toIndex) {
-        if (fromIndex > toIndex) {
-            return;
-        }
-        if (fromIndex < 0 || toIndex > count) {
+        if (fromIndex > toIndex || toIndex > count) {
             return;
         }
         size_t removed = toIndex - fromIndex;
@@ -621,14 +366,13 @@ public:
     }
 
     /**
-     * @brief Retains only the items in this ArrayList that are contained in the specified ArrayList.
+     * @brief Retains only the elements that are also present in another ArrayList.
      *
-     * This function removes from this ArrayList all of its items that are not contained in the specified ArrayList.
-     * After this call, this ArrayList will contain only the items that are also contained in the other ArrayList.
+     * Elements not found in @p other are removed from this list.
      *
-     * @param other The ArrayList containing the items to be retained in this ArrayList.
-     * @return true if this ArrayList changed as a result of the call, false otherwise.
-    */
+     * @param other The ArrayList of values to retain.
+     * @return true if any elements were removed, false otherwise.
+     */
     bool retainAll(const ArrayList<T>& other) {
         size_t removed = 0;
         for (size_t i = 0; i < count; ++i) {
@@ -644,169 +388,97 @@ public:
         }
         return false;
     }
+#endif
 
-    #elif defined(OverrideSpecialtyRemove) //If OverrideSpecialtyRemove is defined, define the SpecialtyRemove function
-    /**
-     * @brief Removes all items from the ArrayList that satisfy a predicate.
-     *
-     * This function removes all items from the ArrayList that satisfy the specified predicate. The predicate is a function that takes an item of type T and returns a boolean.
-     * If the predicate returns true for an item, that item is removed from the ArrayList. The function shifts all items that do not satisfy the predicate to the left to fill the gaps left by the removed items.
-     * The function can use the Predicates library, which can be found at: https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib
-     *
-     * @param predicate The predicate to test the items against.
-     * @return true if any items were removed, false otherwise.
-    */
-    bool removeIf(bool (*predicate)(T)) {
-        size_t removed = 0;
-        for (size_t i = 0; i < count; ++i) {
-            if (predicate(array[i])) {
-                ++removed;
-            } else {
-                array[i - removed] = array[i];
-            }
-        }
-        if (removed > 0) {
-            count -= removed;
-            return true;
-        }
-        return false;
-    }
+    // ─── Modify ─────────────────────────────────────────────────────────────
 
     /**
-     * @brief Removes a range of items from the ArrayList.
+     * @brief Removes all elements from the ArrayList.
      *
-     * This function removes a range of items from the ArrayList, from the specified fromIndex (inclusive) to the specified toIndex (exclusive).
-     * If fromIndex is greater than toIndex, or if either index is out of bounds, it prints an error message and returns without removing any items.
-     * If the indices are valid, it shifts all items from toIndex to the end of the ArrayList to the left to fill the gaps left by the removed items, and decrements the count of items by the number of removed items.
-     *
-     * @param fromIndex The start index of the range to remove (inclusive).
-     * @param toIndex The end index of the range to remove (exclusive).
-    */
-    void removeRange(size_t fromIndex, size_t toIndex) {
-        if (fromIndex > toIndex) {
-            return;
-        }
-        if (fromIndex < 0 || toIndex > count) {
-            return;
-        }
-        size_t removed = toIndex - fromIndex;
-        for (size_t i = fromIndex; i < count - removed; ++i) {
-            array[i] = array[i + removed];
-        }
-        count -= removed;
-    }
-
-    /**
-     * @brief Retains only the items in this ArrayList that are contained in the specified ArrayList.
-     *
-     * This function removes from this ArrayList all of its items that are not contained in the specified ArrayList.
-     * After this call, this ArrayList will contain only the items that are also contained in the other ArrayList.
-     *
-     * @param other The ArrayList containing the items to be retained in this ArrayList.
-     * @return true if this ArrayList changed as a result of the call, false otherwise.
-    */
-    bool retainAll(const ArrayList<T>& other) {
-        size_t removed = 0;
-        for (size_t i = 0; i < count; ++i) {
-            if (!other.contains(array[i])) {
-                ++removed;
-            } else {
-                array[i - removed] = array[i];
-            }
-        }
-        if (removed > 0) {
-            count -= removed;
-            return true;
-        }
-        return false;
-    }
-
-    #endif
-    /**
-     * @brief Clears all items from the ArrayList.
-     *
-     * This function clears all items from the ArrayList and sets the count of items to 0.
-    */
+     * Resets the element count to zero without reallocating the backing array,
+     * preserving the current capacity.
+     */
     void clear() {
-        delete[] array;
-        array = new T[arrayCapacity];
         count = 0;
     }
 
-    //Query and Access
-    
+    // ─── Query & Access ──────────────────────────────────────────────────────
+
     /**
-     * @brief Retrieves the item at a specific index in the ArrayList.
+     * @brief Returns the element at the given index by value.
      *
-     * This function retrieves the item at the specified index in the ArrayList. If the index is less than the count of items in the ArrayList,
-     * it returns the item at the index. If the index is out of bounds, it returns a default-constructed instance of type T.
-     *
-     * @param index The index of the item to retrieve.
-     * @return The item at the specified index, or a default-constructed instance of type T if the index is out of bounds.
-    */
+     * @param index The index.
+     * @return The element, or a default-constructed T if the index is out of bounds.
+     */
     T get(size_t index) const {
         if (index < count) {
             return array[index];
         }
-        return T();// Return default value if index is out of bounds
+        return T();
     }
 
+    /**
+     * @brief Returns a mutable reference to the element at the given index.
+     *
+     * @warning If the index is out of bounds, a reference to an internal static default value
+     *          is returned.  The default is reset to T() on each out-of-bounds call to prevent
+     *          corruption across calls.  Do not store this reference beyond the current statement.
+     *
+     * @param index The index.
+     * @return Mutable reference to the element, or to an internal reset default if out of bounds.
+     */
     T& getReference(size_t index) {
         if (index < count) {
             return array[index];
         }
-
-        static T defaultValue = T();
+        static T defaultValue;
+        defaultValue = T();
         return defaultValue;
     }
 
+    /**
+     * @brief Returns a const reference to the element at the given index.
+     *
+     * @param index The index.
+     * @return Const reference to the element, or to an internal static default if out of bounds.
+     */
     const T& getReference(size_t index) const {
         if (index < count) {
             return array[index];
         }
-
-        static T defaultValue = T();
+        static const T defaultValue = T();
         return defaultValue;
     }
 
     /**
-     * @brief Retrieves the item at a specific index in the ArrayList as a String.
+     * @brief Returns the element at the given index as an Arduino String.
      *
-     * This function retrieves the item at the specified index in the ArrayList and converts it to a String. If the index is less than the count of items in the ArrayList,
-     * it returns the item at the index as a String. If the index is out of bounds, it returns a default-constructed instance of type T as a String.
-     *
-     * @param index The index of the item to retrieve.
-     * @return The item at the specified index as a String, or a default-constructed instance of type T as a String if the index is out of bounds.
-    */
+     * @param index The index.
+     * @return String representation of the element.
+     */
     String getAsString(size_t index) const {
         if (index < count) {
             return toString(array[index]);
         }
-        return toString(T());// Return default value if index is out of bounds
+        return toString(T());
     }
 
     /**
-     * @brief Converts a value of type T to a String.
+     * @brief Converts a value of type T to an Arduino String.
      *
-     * This function converts the specified value of type T to a String using the String constructor.
-     * The type T must be a type that the String constructor can accept.
-     *
-     * @param value The value to convert to a String.
-     * @return The String representation of the value.
-    */
+     * @param value The value to convert.
+     * @return String representation of the value.
+     */
     String toString(const T& value) {
         return String(value);
     }
 
     /**
-     * @brief Checks if the ArrayList contains an item.
+     * @brief Checks whether the ArrayList contains a given item.
      *
-     * This function checks if the ArrayList contains the specified item. If the item is found in the ArrayList, it returns true.
-     * If the item is not found in the ArrayList, it returns false.
-     *
-     * @param item The item to check for.
-     * @return true if the ArrayList contains the item, false otherwise.
-    */
+     * @param item The value to search for.
+     * @return true if found, false otherwise.
+     */
     bool contains(T item) const {
         for (size_t i = 0; i < count; ++i) {
             if (array[i] == item) {
@@ -815,109 +487,75 @@ public:
         }
         return false;
     }
-    
+
     /**
-    * @brief Finds the index of the first occurrence of the specified item in the ArrayList.
-    *
-    * This function returns the index of the first occurrence of the specified item in the ArrayList, or -1 if the ArrayList does not contain the item.
-    * It iterates over the ArrayList from the beginning to the end, comparing each item with the specified item using the == operator.
-    * If it finds a match, it returns the index of the match. If it does not find a match, it prints an error message (if debug is true) and returns -1.
-    *
-    * @param item The item to find in the ArrayList.
-    * @return The index of the first occurrence of the item in the ArrayList, or -1 if the ArrayList does not contain the item.
-    */
+     * @brief Returns the index of the first occurrence of an item.
+     *
+     * @param item The value to find.
+     * @return The zero-based index, or (size_t)-1 if not found.
+     */
     size_t indexOf(T item) const {
         for (size_t i = 0; i < count; ++i) {
             if (array[i] == item) {
                 return i;
             }
         }
-        return static_cast<size_t>(-1); // Indicate not found
-    } 
+        return static_cast<size_t>(-1);
+    }
 
     /**
-     * @brief Retrieves the capacity of the ArrayList.
-     *
-     * This function returns the current capacity of the ArrayList, which is the maximum number of items it can hold without resizing.
-     *
-     * @return The capacity of the ArrayList.
-    */
+     * @brief Returns the current capacity (maximum elements before a resize is needed).
+     */
     size_t capacity() const {
         return arrayCapacity;
     }
 
     /**
-     * @brief Retrieves the count of items in the ArrayList.
-     *
-     * This function returns the current count of items in the ArrayList.
-     *
-     * @return The count of items in the ArrayList.
-    */
+     * @brief Returns the number of elements currently stored.
+     */
     size_t size() const {
         return count;
     }
 
     /**
-     * @brief Checks if the ArrayList is empty.
-     *
-     * This function checks if the ArrayList is empty. If the ArrayList is empty, it returns true. If the ArrayList is not empty, it returns false.
-     *
-     * @return true if the ArrayList is empty, false otherwise.
-    */
+     * @brief Returns true if the ArrayList contains no elements.
+     */
     bool isEmpty() const {
         return count == 0;
     }
 
     /**
-     * @brief Sets the item at a specific index in the ArrayList.
+     * @brief Replaces the element at the given index.
      *
-     * This function updates the item at the specified index in the ArrayList with the provided item.
-     * If the index is within bounds, it sets the item and returns true if the operation succeeds.
-     * If the index is out of bounds, it returns false.
-     *
-     * @param index The index at which to set the item.
-     * @param item The item to set at the specified index.
-     * @return true if the item was successfully set, false if the item was not set or the index is out of bounds.
+     * @param index The index.
+     * @param item  The new value.
+     * @return true if the index was in bounds and the element was set, false otherwise.
      */
     bool set(size_t index, T item) {
         if (index < count) {
             array[index] = item;
             return array[index] == item;
         }
-        
         return false;
     }
 
-    #ifndef SkinnyArray //If SkinnyArray is not defined 
-
+#if !defined(SkinnyArray) || defined(OverrideUtilityFunctions)
     /**
-     * @brief Replaces each item in the ArrayList with the result of applying an operator function to that item.
+     * @brief Applies an operator function to every element, replacing each with the result.
      *
-     * This function applies the specified operator function to each item in the ArrayList, and replaces the item with the result of the function.
-     * The operator function is a function that takes an item of type T and returns a new item of type T.
-     * The function uses the Operators library, which can be found at: https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib
-     *
-     * @note You can utilize any Operator function from the Operators library, or create your own.
-     * @param operatorFunction The operator function to apply to each item.
-    */
+     * @param operatorFunction A function taking T and returning a new T.
+     */
     void replaceAll(T (*operatorFunction)(T)) {
         for (size_t i = 0; i < count; ++i) {
             array[i] = operatorFunction(array[i]);
         }
     }
 
-
-    //Utility Functions
     /**
-     * @brief Performs an action on each item in the ArrayList.
+     * @brief Calls a consumer function for every element in order.
      *
-     * This function applies the specified consumer function to each item in the ArrayList.
-     * The consumer function is a function that takes an item of type T and performs an action on it.
-     * The function does not return a result.
-     * The function can use the Operators library, if needed, which can be found at: https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib
-     *
-     * @param consumer The consumer function to apply to each item.
-    */
+     * @param consumer A void function taking T.
+     */
     void forEach(void (*consumer)(T)) const {
         for (size_t i = 0; i < count; ++i) {
             consumer(array[i]);
@@ -925,35 +563,31 @@ public:
     }
 
     /**
-     * @brief Converts the ArrayList to an array.
+     * @brief Copies all elements into a caller-supplied array.
      *
-     * This function copies the items from the ArrayList into the specified output array.
-     * The output array must be large enough to hold all items in the ArrayList.
-     * The function uses the memcpy function to copy the items, so the type T must be trivially copyable.
+     * Uses element-by-element assignment to correctly handle types with non-trivial
+     * copy semantics (e.g. Arduino String).
      *
-     * @param outputArray The array into which to copy the items.
-     * @return The output array.
-    */
+     * @param outputArray Destination array — must have room for at least size() elements.
+     * @return The destination array pointer.
+     */
     T* toArray(T* outputArray) const {
-        memcpy(outputArray, array, count * sizeof(T));
+        for (size_t i = 0; i < count; i++) {
+            outputArray[i] = array[i];
+        }
         return outputArray;
     }
 
     /**
-     * @brief Creates a sublist of the ArrayList.
+     * @brief Returns a new heap-allocated ArrayList containing elements in [fromIndex, toIndex).
      *
-     * This function creates a new ArrayList that contains the items in the original ArrayList from the specified fromIndex, inclusive, to the specified toIndex, exclusive.
-     * If fromIndex is greater than toIndex, or if either index is out of bounds, the function returns nullptr.
-     *
-     * @param fromIndex The start index of the sublist, inclusive.
-     * @param toIndex The end index of the sublist, exclusive.
-     * @return A new ArrayList that contains the items in the sublist, or nullptr if the indices are invalid.
-    */
+     * @param fromIndex Start index (inclusive).
+     * @param toIndex   End index (exclusive).
+     * @return Pointer to the new ArrayList, or nullptr if the range is invalid.
+     * @warning The caller is responsible for deleting the returned object.
+     */
     ArrayList<T>* sublist(size_t fromIndex, size_t toIndex) const {
-        if (fromIndex > toIndex) {
-            return nullptr;
-        }
-        if (fromIndex < 0 || toIndex > count) {
+        if (fromIndex > toIndex || toIndex > count) {
             return nullptr;
         }
         ArrayList<T>* newList = new ArrayList<T>(sizeType, toIndex - fromIndex);
@@ -964,302 +598,141 @@ public:
     }
 
     /**
-     * @brief Creates a clone of the ArrayList.
+     * @brief Returns a heap-allocated deep copy of this ArrayList.
      *
-     * This function creates a new ArrayList that is a clone of the original ArrayList.
-     * The new ArrayList has the same size type, capacity, and items as the original ArrayList.
-     *
-     * @return A new ArrayList that is a clone of the original ArrayList.
-    */
+     * @return Pointer to the cloned ArrayList.
+     * @warning The caller is responsible for deleting the returned object.
+     */
     ArrayList<T>* clone() const {
-        ArrayList<T>* clone = new ArrayList<T>(sizeType, arrayCapacity);
-        clone->addAll(*this);
-        return clone;
+        ArrayList<T>* cloned = new ArrayList<T>(sizeType, arrayCapacity);
+        cloned->addAll(*this);
+        return cloned;
     }
 
     /**
-     * @brief Creates a clone of the ArrayList with a specified initial capacity.
-     * 
-     * This function creates a new ArrayList that is a clone of the original ArrayList with a specified initial capacity.
-     * The new ArrayList has the same size type, capacity, and items as the original ArrayList.
-     * 
-    */
+     * @brief Returns a heap-allocated deep copy of this ArrayList with a specific capacity.
+     *
+     * @param InitialCapacity The capacity of the new clone.
+     * @return Pointer to the cloned ArrayList.
+     * @warning The caller is responsible for deleting the returned object.
+     */
     ArrayList<T>* clone(int InitialCapacity) const {
-        ArrayList<T>* clone = new ArrayList<T>(sizeType, InitialCapacity);
-        clone->addAll(*this);
-        return clone;
+        ArrayList<T>* cloned = new ArrayList<T>(sizeType, InitialCapacity);
+        cloned->addAll(*this);
+        return cloned;
     }
 
     /**
-     * @brief Ensures that the ArrayList can hold at least the specified number of items without needing to resize.
+     * @brief Ensures the ArrayList can hold at least @p minCapacity elements without resizing.
      *
-     * This function checks if the ArrayList's current capacity is less than the specified minimum capacity.
-     * If it is, it resizes the ArrayList to the specified minimum capacity.
-     * The function uses the memcpy function to copy the items to the new array, so the type T must be trivially copyable.
+     * Uses element-by-element assignment to correctly handle types with non-trivial
+     * copy semantics (e.g. Arduino String).  If allocation fails, the list is unchanged.
      *
-     * @param minCapacity The minimum capacity that the ArrayList should be able to hold without resizing.
-    */
+     * @param minCapacity The required minimum capacity.
+     */
     void ensureCapacity(size_t minCapacity) {
         if (minCapacity > arrayCapacity) {
             T* newArray = new T[minCapacity];
-            memcpy(newArray, array, count * sizeof(T));
+            if (!newArray) return;
+            for (size_t i = 0; i < count; i++) {
+                newArray[i] = array[i];
+            }
             delete[] array;
-            array = newArray;
+            array        = newArray;
             arrayCapacity = minCapacity;
         }
     }
 
     /**
-     * @brief Trims the capacity of the ArrayList to its current size.
+     * @brief Shrinks the capacity of the ArrayList to exactly its current element count.
      *
-     * This function reduces the capacity of the ArrayList to its current size, i.e., the number of items it contains.
-     * If the ArrayList is dynamic and its capacity is greater than its size, it creates a new array with a capacity equal to the size, copies the items to the new array, and deletes the old array.
-     * If the ArrayList is already trimmed or is fixed size, it prints an error message (if debug is true).
-    */
+     * Only applies to DYNAMIC and DYNAMIC2 lists.  Has no effect when already at minimum
+     * capacity or when the list is FIXED.
+     * Uses element-by-element assignment to correctly handle types with non-trivial
+     * copy semantics (e.g. Arduino String).  If allocation fails, the list is unchanged.
+     */
     void trimToSize() {
-        if (sizeType == DYNAMIC && count < arrayCapacity) {
+        if ((sizeType == DYNAMIC || sizeType == DYNAMIC2) && count < arrayCapacity) {
             T* newArray = new T[count];
-            memcpy(newArray, array, count * sizeof(T));
+            if (!newArray) return;
+            for (size_t i = 0; i < count; i++) {
+                newArray[i] = array[i];
+            }
             delete[] array;
-            array = newArray;
-            arrayCapacity = count;
-        } else if(sizeType == DYNAMIC2 && count < arrayCapacity){
-            T* newArray = new T[count];
-            memcpy(newArray, array, count * sizeof(T));
-            delete[] array;
-            array = newArray;
+            array        = newArray;
             arrayCapacity = count;
         }
     }
+#endif
 
-    #elif defined(OverrideUtilityFunctions) //If OverrideUtilityFunctions is defined, define the Utility Functions
-    
+#if !defined(SkinnyArray) || defined(OverrideSort)
     /**
-     * @brief Replaces each item in the ArrayList with the result of applying an operator function to that item.
+     * @brief Sets the sorting algorithm used by the single-argument sort() overload.
      *
-     * This function applies the specified operator function to each item in the ArrayList, and replaces the item with the result of the function.
-     * The operator function is a function that takes an item of type T and returns a new item of type T.
-     * The function uses the Operators library, which can be found at: https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib
-     *
-     * @note You can utilize any Operator function from the Operators library, or create your own.
-     * @param operatorFunction The operator function to apply to each item.
-    */
-    void replaceAll(T (*operatorFunction)(T)) {
-        for (size_t i = 0; i < count; ++i) {
-            array[i] = operatorFunction(array[i]);
-        }
-    }
-
-
-    //Utility Functions
-    /**
-     * @brief Performs an action on each item in the ArrayList.
-     *
-     * This function applies the specified consumer function to each item in the ArrayList.
-     * The consumer function is a function that takes an item of type T and performs an action on it.
-     * The function does not return a result.
-     * The function can use the Operators library, if needed, which can be found at: https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib
-     *
-     * @param consumer The consumer function to apply to each item.
-    */
-    void forEach(void (*consumer)(T)) const {
-        for (size_t i = 0; i < count; ++i) {
-            consumer(array[i]);
-        }
-    }
-
-    /**
-     * @brief Converts the ArrayList to an array.
-     *
-     * This function copies the items from the ArrayList into the specified output array.
-     * The output array must be large enough to hold all items in the ArrayList.
-     * The function uses the memcpy function to copy the items, so the type T must be trivially copyable.
-     *
-     * @param outputArray The array into which to copy the items.
-     * @return The output array.
-    */
-    T* toArray(T* outputArray) const {
-        memcpy(outputArray, array, count * sizeof(T));
-        return outputArray;
-    }
-
-    /**
-     * @brief Creates a sublist of the ArrayList.
-     *
-     * This function creates a new ArrayList that contains the items in the original ArrayList from the specified fromIndex, inclusive, to the specified toIndex, exclusive.
-     * If fromIndex is greater than toIndex, or if either index is out of bounds, the function returns nullptr.
-     *
-     * @param fromIndex The start index of the sublist, inclusive.
-     * @param toIndex The end index of the sublist, exclusive.
-     * @return A new ArrayList that contains the items in the sublist, or nullptr if the indices are invalid.
-    */
-    ArrayList<T>* sublist(size_t fromIndex, size_t toIndex) const {
-        if (fromIndex > toIndex) {
-            return nullptr;
-        }
-        if (fromIndex < 0 || toIndex > count) {
-            return nullptr;
-        }
-        ArrayList<T>* newList = new ArrayList<T>(sizeType, toIndex - fromIndex);
-        for (size_t i = fromIndex; i < toIndex; ++i) {
-            newList->add(array[i]);
-        }
-        return newList;
-    }
-
-    /**
-     * @brief Creates a clone of the ArrayList.
-     *
-     * This function creates a new ArrayList that is a clone of the original ArrayList.
-     * The new ArrayList has the same size type, capacity, and items as the original ArrayList.
-     *
-     * @return A new ArrayList that is a clone of the original ArrayList.
-    */
-    ArrayList<T>* clone() const {
-        ArrayList<T>* clone = new ArrayList<T>(sizeType, arrayCapacity);
-        clone->addAll(*this);
-        return clone;
-    }
-
-    /**
-     * @brief Creates a clone of the ArrayList with a specified initial capacity.
-     * 
-     * This function creates a new ArrayList that is a clone of the original ArrayList with a specified initial capacity.
-     * The new ArrayList has the same size type, capacity, and items as the original ArrayList.
-     * 
-    */
-    ArrayList<T>* clone(int InitialCapacity) const {
-        ArrayList<T>* clone = new ArrayList<T>(sizeType, InitialCapacity);
-        clone->addAll(*this);
-        return clone;
-    }
-
-    /**
-     * @brief Ensures that the ArrayList can hold at least the specified number of items without needing to resize.
-     *
-     * This function checks if the ArrayList's current capacity is less than the specified minimum capacity.
-     * If it is, it resizes the ArrayList to the specified minimum capacity.
-     * The function uses the memcpy function to copy the items to the new array, so the type T must be trivially copyable.
-     *
-     * @param minCapacity The minimum capacity that the ArrayList should be able to hold without resizing.
-    */
-    void ensureCapacity(size_t minCapacity) {
-        if (minCapacity > arrayCapacity) {
-            T* newArray = new T[minCapacity];
-            memcpy(newArray, array, count * sizeof(T));
-            delete[] array;
-            array = newArray;
-            arrayCapacity = minCapacity;
-        }
-    }
-
-    /**
-     * @brief Trims the capacity of the ArrayList to its current size.
-     *
-     * This function reduces the capacity of the ArrayList to its current size, i.e., the number of items it contains.
-     * If the ArrayList is dynamic and its capacity is greater than its size, it creates a new array with a capacity equal to the size, copies the items to the new array, and deletes the old array.
-     * If the ArrayList is already trimmed or is fixed size, it prints an error message (if debug is true).
-    */
-    void trimToSize() {
-        if (sizeType == DYNAMIC && count < arrayCapacity) {
-            T* newArray = new T[count];
-            memcpy(newArray, array, count * sizeof(T));
-            delete[] array;
-            array = newArray;
-            arrayCapacity = count;
-        } else if(sizeType == DYNAMIC2 && count < arrayCapacity){
-            T* newArray = new T[count];
-            memcpy(newArray, array, count * sizeof(T));
-            delete[] array;
-            array = newArray;
-            arrayCapacity = count;
-        }
-    }
-    #endif
-
-    #ifndef SkinnyArray //If SkinnyArray is not defined, define the SpecialtySearch function
-    /**
-     * @brief Sets the sorting algorithm to use for sorting the ArrayList.
-     *
-     * This function sets the sorting algorithm to use for sorting the ArrayList.
-     * The sorting algorithm is specified by the SortAlgorithm enum value.
-     *
-     * @param algorithm The sorting algorithm to use.
-    */
-    void setSortAlgorithm(SortAlgorithm algorithm = MERGE_SORT){
+     * @param algorithm BUBBLE_SORT, QUICK_SORT, or MERGE_SORT (default: MERGE_SORT).
+     */
+    void setSortAlgorithm(SortAlgorithm algorithm = MERGE_SORT) {
         sortAlgorithm = algorithm;
     }
 
     /**
-     * @brief Gets the sorting algorithm used for sorting the ArrayList.
-     *
-     * This function gets the sorting algorithm used for sorting the ArrayList.
-     * The sorting algorithm is specified by the SortAlgorithm enum value.
-     *
-     * @return The sorting algorithm used for sorting the ArrayList.
-    */
-    SortAlgorithm getSortAlgorithm(){
+     * @brief Returns the currently selected sorting algorithm.
+     */
+    SortAlgorithm getSortAlgorithm() {
         return sortAlgorithm;
     }
 
     /**
-     * @brief Sorts the ArrayList.
-     * 
-     * This function sorts the ArrayList using the specified comparator function
-     * Sorting Algorithm is determined by the sortAlgorithm variable (use the sort function to set the sorting algorithm)
-    */
+     * @brief Sorts the ArrayList using the currently selected algorithm.
+     *
+     * @param comparator Returns true when its first argument should come after the second
+     *                   in the sorted order.
+     */
     void sort(bool (*comparator)(T, T)) {
         switch (sortAlgorithm) {
             case BUBBLE_SORT:
                 bubbleSort(comparator);
                 break;
             case QUICK_SORT:
-                quickSort(comparator, 0, count - 1);
+                quickSort(comparator);
                 break;
             default:
                 mergeSort(*this, 0, count - 1);
-            break;
+                break;
         }
     }
 
     /**
-     * @brief Sorts the ArrayList.
+     * @brief Sorts the ArrayList using a specified algorithm.
      *
-     * This function sorts the ArrayList using the specified comparator function and sorting algorithm.
-     * The comparator function is a function that takes two items of type T and returns true if the first item is less than the second item, or false otherwise.
-     * The sorting algorithm is an enum value that specifies the sorting algorithm to use. The available sorting algorithms are BUBBLE_SORT and QUICK_SORT.
-     * The function uses the bubble sort algorithm by default.
-     * The function can use the Predicates library, which can be found at:
-    */ 
-    void sort(bool (*comparator)(T, T), SortAlgorithm algorithm) { 
-        switch (algorithm) { 
-            case BUBBLE_SORT: 
-                bubbleSort(comparator); 
-            break; 
-            case QUICK_SORT: 
-                quickSort(comparator, 0, count - 1); 
-            break; // Add cases for additional sorting algorithms 
+     * @param comparator Returns true when its first argument should come after the second.
+     * @param algorithm  The sorting algorithm to use.
+     */
+    void sort(bool (*comparator)(T, T), SortAlgorithm algorithm) {
+        switch (algorithm) {
+            case BUBBLE_SORT:
+                bubbleSort(comparator);
+                break;
+            case QUICK_SORT:
+                quickSort(comparator);
+                break;
             default:
                 mergeSort(*this, 0, count - 1);
-            break;
-        } 
+                break;
+        }
     }
 
     /**
-     * @brief Sorts the ArrayList using the bubble sort algorithm.
+     * @brief Sorts using Bubble Sort.
      *
-     * This function sorts the items in the ArrayList using the bubble sort algorithm.
-     * The order of the items is determined by the specified comparator function.
-     * The comparator function should take two items of type T and return true if the first item should come after the second item in the sorted ArrayList, and false otherwise.
-     *
-     * @param comparator The comparator function that determines the order of the items.
-    */
+     * @param comparator Returns true when the first arg should come after the second.
+     */
     void bubbleSort(bool (*comparator)(T, T)) {
         for (size_t i = 0; i < count - 1; ++i) {
             for (size_t j = 0; j < count - i - 1; ++j) {
                 if (comparator(array[j], array[j + 1])) {
-                    T temp = array[j];
-                    array[j] = array[j + 1];
+                    T temp       = array[j];
+                    array[j]     = array[j + 1];
                     array[j + 1] = temp;
                 }
             }
@@ -1267,159 +740,24 @@ public:
     }
 
     /**
-     * @brief Sorts the ArrayList using the quick sort algorithm.
+     * @brief Sorts using Quick Sort.
      *
-     * This function sorts the items in the ArrayList using the quick sort algorithm.
-     * The order of the items is determined by the specified comparator function.
-     * The comparator function should take two items of type T and return true if the first item should come after the second item in the sorted ArrayList, and false otherwise.
-     *
-     * @param comparator The comparator function that determines the order of the items.
-    */
+     * @param comparator Returns true when the first arg should come after the second.
+     */
     void quickSort(bool (*comparator)(T, T)) {
         quickSortHelper(comparator, 0, count - 1);
     }
 
-    #elif defined(OverrideSort) //If OverrideSort is defined, define the SpecialtySearch function
     /**
-     * @brief Sets the sorting algorithm to use for sorting the ArrayList.
+     * @brief Recursively sorts a subrange using Merge Sort.
      *
-     * This function sets the sorting algorithm to use for sorting the ArrayList.
-     * The sorting algorithm is specified by the SortAlgorithm enum value.
+     * @note Each merge step allocates temporary heap arrays.  On very memory-constrained
+     *       devices prefer BUBBLE_SORT or QUICK_SORT to avoid this overhead.
      *
-     * @param algorithm The sorting algorithm to use.
-    */
-    void setSortAlgorithm(SortAlgorithm algorithm = MERGE_SORT){
-        sortAlgorithm = algorithm;
-    }
-
-    /**
-     * @brief Gets the sorting algorithm used for sorting the ArrayList.
-     *
-     * This function gets the sorting algorithm used for sorting the ArrayList.
-     * The sorting algorithm is specified by the SortAlgorithm enum value.
-     *
-     * @return The sorting algorithm used for sorting the ArrayList.
-    */
-    SortAlgorithm getSortAlgorithm(){
-        return sortAlgorithm;
-    }
-
-    /**
-     * @brief Sorts the ArrayList.
-     * 
-     * This function sorts the ArrayList using the specified comparator function
-     * Sorting Algorithm is determined by the sortAlgorithm variable (use the sort function to set the sorting algorithm)
-    */
-    void sort(bool (*comparator)(T, T)) {
-        switch (sortAlgorithm) {
-            case BUBBLE_SORT:
-                bubbleSort(comparator);
-                break;
-            case QUICK_SORT:
-                quickSort(comparator, 0, count - 1);
-                break;
-            default:
-                mergeSort(*this, 0, count - 1);
-            break;
-        }
-    }
-
-    /**
-     * @brief Sorts the ArrayList.
-     *
-     * This function sorts the ArrayList using the specified comparator function and sorting algorithm.
-     * The comparator function is a function that takes two items of type T and returns true if the first item is less than the second item, or false otherwise.
-     * The sorting algorithm is an enum value that specifies the sorting algorithm to use. The available sorting algorithms are BUBBLE_SORT and QUICK_SORT.
-     * The function uses the bubble sort algorithm by default.
-     * The function can use the Predicates library, which can be found at:
-    */ 
-    void sort(bool (*comparator)(T, T), SortAlgorithm algorithm) { 
-        switch (algorithm) { 
-            case BUBBLE_SORT: 
-                bubbleSort(comparator); 
-            break; 
-            case QUICK_SORT: 
-                quickSort(comparator, 0, count - 1); 
-            break; // Add cases for additional sorting algorithms 
-            default:
-                mergeSort(*this, 0, count - 1);
-            break;
-        } 
-    }
-
-    /**
-     * @brief Sorts the ArrayList using the bubble sort algorithm.
-     *
-     * This function sorts the items in the ArrayList using the bubble sort algorithm.
-     * The order of the items is determined by the specified comparator function.
-     * The comparator function should take two items of type T and return true if the first item should come after the second item in the sorted ArrayList, and false otherwise.
-     *
-     * @param comparator The comparator function that determines the order of the items.
-    */
-    void bubbleSort(bool (*comparator)(T, T)) {
-        for (size_t i = 0; i < count - 1; ++i) {
-            for (size_t j = 0; j < count - i - 1; ++j) {
-                if (comparator(array[j], array[j + 1])) {
-                    T temp = array[j];
-                    array[j] = array[j + 1];
-                    array[j + 1] = temp;
-                }
-            }
-        }
-    }
-
-    /**
-     * @brief Sorts the ArrayList using the quick sort algorithm.
-     *
-     * This function sorts the items in the ArrayList using the quick sort algorithm.
-     * The order of the items is determined by the specified comparator function.
-     * The comparator function should take two items of type T and return true if the first item should come after the second item in the sorted ArrayList, and false otherwise.
-     *
-     * @param comparator The comparator function that determines the order of the items.
-    */
-    void quickSort(bool (*comparator)(T, T)) {
-        quickSortHelper(comparator, 0, count - 1);
-    }
-
-    #endif
-    /**
-     * @brief Returns a pointer to the first item in the ArrayList.
-     *
-     * This function returns a pointer to the first item in the ArrayList.
-     * This can be used to iterate over the ArrayList using pointer arithmetic.
-     *
-     * @return A pointer to the first item in the ArrayList.
-    */
-    T* begin() const { 
-        return &array[0]; 
-    }
-    
-    /**
-     * @brief Returns a pointer to the item after the last item in the ArrayList.
-     *
-     * This function returns a pointer to the item after the last item in the ArrayList.
-     * This can be used to iterate over the ArrayList using pointer arithmetic.
-     *
-     * @return A pointer to the item after the last item in the ArrayList.
-    */
-    T* end() const { 
-        return &array[count]; 
-    }
-
-    #ifndef SkinnyArray //If SkinnyArray is not defined define the following functions
-
-    /**
-     * Recursively sorts the elements of an ArrayList using the Merge Sort algorithm.
-     * This function splits the list into two halves, calls itself for the two halves,
-     * and then merges the two sorted halves. The function uses the merge() function
-     * for merging two halves. The recursive sorting continues until the sub-arrays
-     * have only one element each, which are inherently sorted.
-     * 
-     * @param list Reference to an ArrayList of template type T to be sorted.
-     * @param l The starting index of the sub-array to be sorted.
-     * @param r The ending index of the sub-array to be sorted.
-     * @template T The data type of the elements in the ArrayList.
-    */
+     * @param list Reference to the ArrayList being sorted.
+     * @param l    Left boundary index.
+     * @param r    Right boundary index.
+     */
     void mergeSort(ArrayList<T>& list, int l, int r) {
         if (l < r) {
             int m = l + (r - l) / 2;
@@ -1428,513 +766,220 @@ public:
             merge(list, l, m, r);
         }
     }
+#endif
 
+#if !defined(SkinnyArray) || defined(OverrideUtilityFunctions)
     /**
-     * @brief Sets the size type of the ArrayList.
+     * @brief Sets the resize mode of this ArrayList.
      *
-     * This function sets the size type of the ArrayList. (DYNAMIC, DYNAMIC2, FIXED)
-     * 
-     * @param type The size type to set.
+     * @param type FIXED, DYNAMIC, or DYNAMIC2.
      */
-    void setSizeType(SizeType type){
+    void setSizeType(SizeType type) {
         sizeType = type;
     }
 
-
     /**
-     * @brief Gets the size type of the ArrayList.
-     *
-     * This function gets the size type of the ArrayList. (DYNAMIC, DYNAMIC2, FIXED)
-     * 
-     * @return The size type of the ArrayList.
+     * @brief Returns the current resize mode.
      */
-    SizeType getSizeType(){
+    SizeType getSizeType() {
         return sizeType;
     }
+#endif
 
+#if !defined(SkinnyArray) || defined(OverrideSort) || defined(OverrideUtilityFunctions)
     /**
-     * @brief Gets the initial size of the ArrayList.
-     *
-     * This function gets the initial size of the ArrayList.
-     * 
-     * @return The initial size of the ArrayList.
+     * @brief Returns the initial capacity this ArrayList was constructed with.
      */
-    size_t getInitialSize(){
+    size_t getInitialSize() {
         return initialSize;
     }
 
     /**
-     * @brief Sets the initial size of the ArrayList.
+     * @brief Updates the stored initial-size value.
      *
-     * This function sets the initial size of the ArrayList.
-     * 
-     * @param size The initial size to set.
+     * @param size The new initial-size value to store.
      */
-    void setInitialSize(size_t size){
+    void setInitialSize(size_t size) {
         initialSize = size;
     }
+#endif
 
-    #elif defined(OverrideSort) //If OverrideSort is defined, define the following functions
-    /**
-     * Recursively sorts the elements of an ArrayList using the Merge Sort algorithm.
-     * This function splits the list into two halves, calls itself for the two halves,
-     * and then merges the two sorted halves. The function uses the merge() function
-     * for merging two halves. The recursive sorting continues until the sub-arrays
-     * have only one element each, which are inherently sorted.
-     * 
-     * @param list Reference to an ArrayList of template type T to be sorted.
-     * @param l The starting index of the sub-array to be sorted.
-     * @param r The ending index of the sub-array to be sorted.
-     * @template T The data type of the elements in the ArrayList.
-    */
-    void mergeSort(ArrayList<T>& list, int l, int r) {
-        if (l < r) {
-            int m = l + (r - l) / 2;
-            mergeSort(list, l, m);
-            mergeSort(list, m + 1, r);
-            merge(list, l, m, r);
-        }
+    // ─── Iterators ───────────────────────────────────────────────────────────
+
+    /** @brief Returns a pointer to the first element (enables range-based for loops). */
+    T* begin() const {
+        return &array[0];
     }
 
-    /**
-     * @brief Gets the initial size of the ArrayList.
-     *
-     * This function gets the initial size of the ArrayList.
-     *
-     * @return The initial size of the ArrayList.
-     */
-    size_t getInitialSize(){
-        return initialSize;
+    /** @brief Returns a pointer one past the last element (enables range-based for loops). */
+    T* end() const {
+        return &array[count];
     }
 
+#ifdef IKnowWhatIAmDoing
     /**
-     * @brief Sets the initial size of the ArrayList.
+     * @brief Directly overwrites the internal capacity field.
      *
-     * This function sets the initial size of the ArrayList.
-     *
-     * @param size The initial size to set.
+     * @warning This does NOT reallocate the backing array.  Only use this when you have
+     *          already replaced the array pointer via other means and know exactly what
+     *          you are doing.  Misuse will corrupt memory.
      */
-    void setInitialSize(size_t size){
-        initialSize = size;
-    }
-
-    #elif defined(OverrideUtilityFunctions) //If OverrideUtility is defined, define the following functions
-    
-    /**
-     * @brief Sets the size type of the ArrayList.
-     *
-     * This function sets the size type of the ArrayList. (DYNAMIC, DYNAMIC2, FIXED)
-     * 
-     * @param type The size type to set.
-     */
-    void setSizeType(SizeType type){
-        sizeType = type;
-    }
-
-
-    /**
-     * @brief Gets the size type of the ArrayList.
-     *
-     * This function gets the size type of the ArrayList. (DYNAMIC, DYNAMIC2, FIXED)
-     * 
-     * @return The size type of the ArrayList.
-     */
-    SizeType getSizeType(){
-        return sizeType;
-    }
-
-    /**
-     * @brief Gets the initial size of the ArrayList.
-     *
-     * This function gets the initial size of the ArrayList.
-     * 
-     * @return The initial size of the ArrayList.
-     */
-    size_t getInitialSize(){
-        return initialSize;
-    }
-
-    /**
-     * @brief Sets the initial size of the ArrayList.
-     *
-     * This function sets the initial size of the ArrayList.
-     * 
-     * @param size The initial size to set.
-     */
-    void setInitialSize(size_t size){
-        initialSize = size;
-    }
-
-    #endif
-
-    #ifdef IKnowWhatIAmDoing // You Better Hope You Do!
-
-    /**
-     * @brief Sets the capacity of the ArrayList.
-     * 
-     * This function sets the capacity of the ArrayList.
-     * @warning DO NOT USE THIS FUNCTION UNLESS YOU ABSOLUTELY KNOW WHAT YOU ARE DOING
-     * You can seriously screw stuff up. This is mainly used as a helper function when combining ArrayLists
-     * @attention Read the Warning before trying to use this function!!!
-     * 
-     * @param capacity The capacity to set.
-     */
-    void setCapacity(size_t capacity){
+    void setCapacity(size_t capacity) {
         arrayCapacity = capacity;
     }
 
     /**
-     * @brief Sets the count of the ArrayList.
-     * 
-     * This function sets the count of the ArrayList.
-     * @warning DO NOT USE THIS FUNCTION UNLESS YOU ABSOLUTELY KNOW WHAT YOU ARE DOING
-     * You can seriously screw stuff up. This is mainly used as a helper function when combining ArrayLists
-     * @attention Read the Warning before trying to use this function!!!
-     * 
-     * @param count The amount of items in the array.
+     * @brief Directly overwrites the element count.
+     *
+     * @warning Setting count above the actual number of initialised elements exposes
+     *          uninitialised memory.  Use with extreme caution.
      */
-    void setCount(size_t count){
+    void setCount(size_t count) {
         this->count = count;
     }
+#endif
 
-    #endif // IKnowWhatIAmDoing
 private:
-    T* array;
-    size_t arrayCapacity;
-    size_t count;
-    size_t initialSize;
+    T*       array;
+    size_t   arrayCapacity;
+    size_t   count;
+    size_t   initialSize;
     SizeType sizeType;
-    #ifndef SkinnyArray //If SkinnyArray is not defined, define following variables
+#if !defined(SkinnyArray) || defined(OverrideSort)
     SortAlgorithm sortAlgorithm;
-    #elif defined(OverrideSort) //If OverrideSort is defined, define following variables
-    SortAlgorithm sortAlgorithm;
-    #endif
-    /**
-     * @brief Resizes the ArrayList.
-     *
-     * This function resizes the ArrayList to 1.5 times its current capacity.
-     * It creates a new array with the new capacity, copies the items to the new array, and deletes the old array.
-     * If the new capacity is greater than the maximum size_t value, it prints an error message (if debug is true) and does not resize the ArrayList.
-     * @attention The function name has been changed to resize1() from resize() PIO: Version 1.0.5 ALM: 1.0.2
-     * 
-     * @details This function uses a different algorithm then resize2() to resize the ArrayList. This function is faster than resize2() but is less reliable.
-     * also, it resizes to 2 times it current capacity
-     * @related resize2()
-    */
-    void resize1() {
-        size_t newCapacity = arrayCapacity * 2;
-        T* newArray = new T[newCapacity];
-        memcpy(newArray, array, count * sizeof(T));
-        delete[] array;
-        array = newArray;
-        size_t tempCapacity = newCapacity;
-        int oldCapacity = arrayCapacity;
-        arrayCapacity = newCapacity;
-        if(tempCapacity != arrayCapacity){
-            arrayCapacity = oldCapacity;
-        }
-    }
+#endif
+
+    // ─── Private: Resize ─────────────────────────────────────────────────────
 
     /**
-     * @brief Resizes the ArrayList.
-     *
-     * This function resizes the ArrayList to 1.5 times its current capacity.
-     * It creates a new array with the new capacity, copies the items to the new array, and deletes the old array.
-     * If the new capacity is greater than the maximum size_t value, it prints an error message (if debug is true) and does not resize the ArrayList.
-     * @details This uses a different algorithm then resize1() to resize the ArrayList. ADDED PIO: Version 1.0.4 ALM: 1.0.1 
-     * This function is slower then resize1() but is more reliable. Also resizes to 1.5 times its current capacity
-     * 
-     * @related resize1()
-     * @note This function has been refractored to ensure proper functioning.
+     * @brief Returns true when the backing array needs to grow to fit @p spacesNeeded
+     *        additional elements.
      */
-    void resize2() {
-        size_t newCapacity = arrayCapacity + (arrayCapacity / 2);
-        T* newArray = new T[newCapacity];
-        for(size_t i = 0; i < count; i++){
-            newArray[i] = array[i];
-        }
-        delete[] array;
-        array = newArray;
-        size_t tempCapacity = newCapacity;
-        int oldCapacity = arrayCapacity;
-        arrayCapacity = newCapacity;
-        if(tempCapacity != arrayCapacity){
-            arrayCapacity = oldCapacity;
-        }
-    }
-
-    /**
-     * @brief Verifies if a resize is needed.
-     *
-     * This function verifies if a resize is needed based on the number of spaces needed.
-     * If the size type is FIXED, the function returns false.
-     * If the count plus the number of spaces needed is greater than the array capacity, or the load factor is greater than 0.75, the function returns true.
-     * Otherwise, the function returns false.
-     *
-     * @param spacesNeeded The number of spaces needed in the ArrayList.
-     * @return true if a resize is needed, false otherwise.
-     * 
-     * @note This function has been refractered to ensure proper functionality.
-    */
     bool verifyResizeNeeded(size_t spacesNeeded) {
         return sizeType != FIXED && (count + spacesNeeded > arrayCapacity);
     }
 
+    /**
+     * @brief Dispatches to the appropriate resize implementation based on SizeType.
+     */
+    void resize() {
+        if (sizeType == DYNAMIC) {
+            resize1();
+        } else if (sizeType == DYNAMIC2) {
+            resize2();
+        }
+    }
 
     /**
-     * @brief Resizes the ArrayList.
-     * This function calls the necessary resize functions based on the size type.
-     * If the size type is DYNAMIC, it calls resize1().
-     * If the size type is DYNAMIC2, it calls resize2().
-     * If the size type is FIXED, it does nothing. returns void
+     * @brief Grows the backing array to 2x its current capacity (DYNAMIC mode).
+     *
+     * Uses element-by-element assignment to correctly handle types with non-trivial
+     * copy semantics (e.g. Arduino String).  If the allocation fails the list is
+     * left unchanged.
      */
-    void resize(){
-        if(sizeType == FIXED){
+    void resize1() {
+        size_t newCapacity = arrayCapacity * 2;
+        T* newArray = new T[newCapacity];
+        if (!newArray) return;
+        for (size_t i = 0; i < count; i++) {
+            newArray[i] = array[i];
+        }
+        delete[] array;
+        array        = newArray;
+        arrayCapacity = newCapacity;
+    }
+
+    /**
+     * @brief Grows the backing array to 1.5x its current capacity (DYNAMIC2 mode).
+     *
+     * Allocates less excess memory than resize1() at the cost of more frequent
+     * resizes.  Uses element-by-element assignment.  If the allocation fails the
+     * list is left unchanged.
+     */
+    void resize2() {
+        size_t newCapacity = arrayCapacity + (arrayCapacity / 2);
+        T* newArray = new T[newCapacity];
+        if (!newArray) return;
+        for (size_t i = 0; i < count; i++) {
+            newArray[i] = array[i];
+        }
+        delete[] array;
+        array        = newArray;
+        arrayCapacity = newCapacity;
+    }
+
+#if !defined(SkinnyArray) || defined(OverrideSort)
+    // ─── Private: Sort helpers ───────────────────────────────────────────────
+
+    /**
+     * @brief Partitions a subarray for Quick Sort and returns the pivot index.
+     */
+    int partition(bool (*comparator)(T, T), int low, int high) {
+        T pivot = array[high];
+        int i   = (low - 1);
+        for (int j = low; j <= high - 1; j++) {
+            if (comparator(array[j], pivot)) {
+                i++;
+                swapElements(&array[i], &array[j]);
+            }
+        }
+        swapElements(&array[i + 1], &array[high]);
+        return (i + 1);
+    }
+
+    /**
+     * @brief Recursive Quick Sort driver.
+     */
+    void quickSortHelper(bool (*comparator)(T, T), int low, int high) {
+        if (low < high) {
+            int pi = partition(comparator, low, high);
+            quickSortHelper(comparator, low, pi - 1);
+            quickSortHelper(comparator, pi + 1, high);
+        }
+    }
+
+    /**
+     * @brief Merges two sorted halves of the ArrayList during Merge Sort.
+     *
+     * Allocates two temporary heap arrays during the merge; they are freed before
+     * returning.  If either allocation fails the merge is skipped and the subrange
+     * is left in its pre-merge (partially sorted) state.
+     */
+    void merge(ArrayList<T>& list, int l, int m, int r) {
+        int n1 = m - l + 1;
+        int n2 = r - m;
+        T* L   = new T[n1];
+        T* R   = new T[n2];
+        if (!L || !R) {
+            delete[] L;
+            delete[] R;
             return;
         }
-        if(sizeType == DYNAMIC){
-            resize1();
-        } else if(sizeType == DYNAMIC2){
-            resize2();
-        } 
-    }
-
-    #ifndef SkinnyArray //If SkinnyArray is not defined, define following functions
-
-    /**
-     * @brief Sorts the ArrayList using the quick sort algorithm.
-     *
-     * This function sorts the items in the ArrayList using the quick sort algorithm.
-     * The order of the items is determined by the specified comparator function.
-     * The comparator function should take two items of type T and return true if the first item should come after the second item in the sorted ArrayList, and false otherwise.
-     *
-     * @param comparator The comparator function that determines the order of the items.
-     * @param low The lowest index of the sublist to sort.
-     * @param high The highest index of the sublist to sort.
-    */
-    int partition(bool (*comparator)(T, T), int low, int high) { 
-        T pivot = array[high]; 
-        int i = (low - 1); 
-        for (int j = low; j <= high - 1; j++) { 
-            if (comparator(array[j], pivot)) { 
-                i++; 
-                swap(&array[i], &array[j]); 
-            } 
-        } 
-        swap(&array[i + 1], &array[high]); 
-        return (i + 1); 
-    } 
-
-    /**
-     * @brief Sorts the ArrayList using the quick sort algorithm.
-     *
-     * This function sorts the items in the ArrayList using the quick sort algorithm.
-     * The order of the items is determined by the specified comparator function.
-     * The comparator function should take two items of type T and return true if the first item should come after the second item in the sorted ArrayList, and false otherwise.
-     *
-     * @param comparator The comparator function that determines the order of the items.
-     * @param low The lowest index of the sublist to sort.
-     * @param high The highest index of the sublist to sort.
-    */
-    void quickSortHelper(bool (*comparator)(T, T), int low, int high) {
-        if (low < high) { 
-            int pi = partition(comparator, low, high); 
-            quickSortHelper(comparator, low, pi - 1); 
-            quickSortHelper(comparator, pi + 1, high);
-        } 
-    }
- 
-    /**
-     * Merges two halves of an ArrayList that have been sorted independently.
-     * The function takes three indices, l (left index), m (middle index), and r (right index).
-     * It assumes that the sub-arrays ArrayList[l..m] and ArrayList[m+1..r] are sorted,
-     * and merges them into a single sorted sub-array ArrayList[l..r].
-     * 
-     * @param list Reference to an ArrayList of template type T that is being sorted.
-     * @param l The starting index of the first sub-array.
-     * @param m The ending index of the first sub-array, which also serves as the middle point.
-     * @param r The ending index of the second sub-array.
-    */
-    void merge(ArrayList<T>& list, int l, int m, int r) {
-        int i, j, k;
-        int n1 = m - l + 1;
-        int n2 = r - m;
-
-        // Create temp arrays
-        T* L = new T[n1];
-        T* R = new T[n2];
-
-        // Copy data to temp arrays L[] and R[]
-        for (i = 0; i < n1; i++)
-            L[i] = list[l + i];
-        for (j = 0; j < n2; j++)
-            R[j] = list[m + 1 + j];
-
-        // Merge the temp arrays back into list[l..r]
-        i = 0; // Initial index of first subarray
-        j = 0; // Initial index of second subarray
-        k = l; // Initial index of merged subarray
+        for (int i = 0; i < n1; i++) L[i] = list[l + i];
+        for (int j = 0; j < n2; j++) R[j] = list[m + 1 + j];
+        int i = 0, j = 0, k = l;
         while (i < n1 && j < n2) {
             if (L[i] <= R[j]) {
-                list[k] = L[i];
-                i++;
+                list[k++] = L[i++];
             } else {
-                list[k] = R[j];
-                j++;
+                list[k++] = R[j++];
             }
-            k++;
         }
-
-        // Copy the remaining elements of L[], if there are any
-        while (i < n1) {
-            list[k] = L[i];
-            i++;
-            k++;
-        }
-
-        // Copy the remaining elements of R[], if there are any
-        while (j < n2) {
-            list[k] = R[j];
-            j++;
-            k++;
-        }
-
+        while (i < n1) list[k++] = L[i++];
+        while (j < n2) list[k++] = R[j++];
         delete[] L;
         delete[] R;
     }
 
-
     /**
-     * @brief Swaps two items in the ArrayList.
-     *
-     * This function swaps the items at the specified indices in the ArrayList.
-     *
-     * @param a The index of the first item to swap.
-     * @param b The index of the second item to swap.
-    */
-    void swap(T* a, T* b) { 
-        T t = *a; 
-        *a = *b; 
-        *b = t; 
-    } 
-    #elif defined (OverrideSort) //If OverrideSort is defined, define following functions
-    
-    /**
-     * @brief Sorts the ArrayList using the quick sort algorithm.
-     *
-     * This function sorts the items in the ArrayList using the quick sort algorithm.
-     * The order of the items is determined by the specified comparator function.
-     * The comparator function should take two items of type T and return true if the first item should come after the second item in the sorted ArrayList, and false otherwise.
-     *
-     * @param comparator The comparator function that determines the order of the items.
-     * @param low The lowest index of the sublist to sort.
-     * @param high The highest index of the sublist to sort.
-    */
-    int partition(bool (*comparator)(T, T), int low, int high) { 
-        T pivot = array[high]; 
-        int i = (low - 1); 
-        for (int j = low; j <= high - 1; j++) { 
-            if (comparator(array[j], pivot)) { 
-                i++; 
-                swap(&array[i], &array[j]); 
-            } 
-        } 
-        swap(&array[i + 1], &array[high]); 
-        return (i + 1); 
-    } 
-
-    /**
-     * @brief Sorts the ArrayList using the quick sort algorithm.
-     *
-     * This function sorts the items in the ArrayList using the quick sort algorithm.
-     * The order of the items is determined by the specified comparator function.
-     * The comparator function should take two items of type T and return true if the first item should come after the second item in the sorted ArrayList, and false otherwise.
-     *
-     * @param comparator The comparator function that determines the order of the items.
-     * @param low The lowest index of the sublist to sort.
-     * @param high The highest index of the sublist to sort.
-    */
-    void quickSortHelper(bool (*comparator)(T, T), int low, int high) {
-        if (low < high) { 
-            int pi = partition(comparator, low, high); 
-            quickSortHelper(comparator, low, pi - 1); 
-            quickSortHelper(comparator, pi + 1, high);
-        } 
+     * @brief Swaps two elements.
+     */
+    void swapElements(T* a, T* b) {
+        T t = *a;
+        *a  = *b;
+        *b  = t;
     }
- 
-    /**
-     * Merges two halves of an ArrayList that have been sorted independently.
-     * The function takes three indices, l (left index), m (middle index), and r (right index).
-     * It assumes that the sub-arrays ArrayList[l..m] and ArrayList[m+1..r] are sorted,
-     * and merges them into a single sorted sub-array ArrayList[l..r].
-     * 
-     * @param list Reference to an ArrayList of template type T that is being sorted.
-     * @param l The starting index of the first sub-array.
-     * @param m The ending index of the first sub-array, which also serves as the middle point.
-     * @param r The ending index of the second sub-array.
-    */
-    void merge(ArrayList<T>& list, int l, int m, int r) {
-        int i, j, k;
-        int n1 = m - l + 1;
-        int n2 = r - m;
-
-        // Create temp arrays
-        T* L = new T[n1];
-        T* R = new T[n2];
-
-        // Copy data to temp arrays L[] and R[]
-        for (i = 0; i < n1; i++)
-            L[i] = list[l + i];
-        for (j = 0; j < n2; j++)
-            R[j] = list[m + 1 + j];
-
-        // Merge the temp arrays back into list[l..r]
-        i = 0; // Initial index of first subarray
-        j = 0; // Initial index of second subarray
-        k = l; // Initial index of merged subarray
-        while (i < n1 && j < n2) {
-            if (L[i] <= R[j]) {
-                list[k] = L[i];
-                i++;
-            } else {
-                list[k] = R[j];
-                j++;
-            }
-            k++;
-        }
-
-        // Copy the remaining elements of L[], if there are any
-        while (i < n1) {
-            list[k] = L[i];
-            i++;
-            k++;
-        }
-
-        // Copy the remaining elements of R[], if there are any
-        while (j < n2) {
-            list[k] = R[j];
-            j++;
-            k++;
-        }
-
-        delete[] L;
-        delete[] R;
-    }
-
-
-    /**
-     * @brief Swaps two items in the ArrayList.
-     *
-     * This function swaps the items at the specified indices in the ArrayList.
-     *
-     * @param a The index of the first item to swap.
-     * @param b The index of the second item to swap.
-    */
-    void swap(T* a, T* b) { 
-        T t = *a; 
-        *a = *b; 
-        *b = t; 
-    } 
-    #endif
+#endif
 };
+
 #endif // ARRAYLIST_H
