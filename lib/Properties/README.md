@@ -142,7 +142,7 @@ void setup() {
 }
 ```
 
-`LittleFSProperties.h` is kept only as a backward-compatible shim for older sketches.
+`LittleFSProperties.h` is kept only as a backwards-compatible shim for older sketches.
 
 Here's an example of how to use the `Properties` class:
 
