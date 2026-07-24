@@ -3,14 +3,14 @@
 #include "Hashtable.h"
 
 void test_is_empty_tracks_element_count() {
-    Hashtable<String, int> table;
+    Hashtable<int, int> table;
 
     TEST_ASSERT_TRUE(table.isEmpty());
 
-    table.put("alpha", 1);
+    table.put(11, 1);
     TEST_ASSERT_FALSE(table.isEmpty());
 
-    table.remove("alpha");
+    table.remove(11);
     TEST_ASSERT_TRUE(table.isEmpty());
 }
 
