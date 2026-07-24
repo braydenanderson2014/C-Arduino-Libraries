@@ -207,12 +207,16 @@ public:
 
     void emplace_back() {  
         ensureCapacity();
-        array[count++] = T();
+        array[count].~T();
+        new (array + count) T();
+        count++;
     }
 
     void emplace_back(const T& value) {
         ensureCapacity();
-        array[count++] = value;
+        array[count].~T();
+        new (array + count) T(value);
+        count++;
     }
 
     //back() method
