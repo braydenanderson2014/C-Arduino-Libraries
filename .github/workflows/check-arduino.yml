@@ -3,12 +3,22 @@ name: Check Arduino
 # See: https://docs.github.com/en/free-pro-team@latest/actions/reference/events-that-trigger-workflows
 on:
   push:
+    branches:
+      - '**'
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
   schedule:
     # Run every Tuesday at 8 AM UTC to catch breakage caused by new rules added to Arduino Lint.
     - cron: "0 8 * * TUE"
   workflow_dispatch:
   repository_dispatch:
+
+permissions:
+  contents: write
+  issues: write
 
 jobs:
   lint:
@@ -18,11 +28,180 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Arduino Lint
-        uses: arduino/arduino-lint-action@v3
+      - name: Install Arduino Lint
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-lint/main/install.sh | BINDIR=/usr/local/bin sh
+
+      - name: Run Arduino Lint and capture logs
+        id: lint
+        shell: bash
+        run: |
+          set +e
+          arduino-lint \
+            --compliance specification \
+            --library-manager update \
+            --official \
+            --project-type library \
+            2>&1 | tee arduino-lint.log
+          LINT_EXIT_CODE=${PIPESTATUS[0]}
+
+          if grep -Eiq '(^|[^A-Z])ERROR([^A-Z]|$)' arduino-lint.log; then
+            echo "has_errors=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_errors=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "lint_exit_code=${LINT_EXIT_CODE}" >> "$GITHUB_OUTPUT"
+
+      - name: Derive library label name
+        id: library
+        shell: bash
+        run: |
+          repo_name="${GITHUB_REPOSITORY#*/}"
+          label_name="${repo_name#Arduino}"
+          label_name=$(echo "$label_name" | sed -E 's/([A-Z]+)([A-Z][a-z])/\1 \2/g; s/([a-z0-9])([A-Z])/\1 \2/g')
+          echo "library_label=${label_name}" >> "$GITHUB_OUTPUT"
+
+      - name: Sync lint labels to private health repo and queue project health refresh
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork != true
+        uses: actions/github-script@v8
+        env:
+          TARGET_OWNER: braydenanderson2014
+          TARGET_REPO: C-Arduino-Libraries
+          PASSING_LINT_ISSUE_NUMBER: "26"
+          FAILED_LINT_ISSUE_NUMBER: "27"
+          LIBRARY_LABEL: ${{ steps.library.outputs.library_label }}
+          HAS_ERRORS: ${{ steps.lint.outputs.has_errors }}
         with:
-          compliance: specification
-          library-manager: update
-          # Always use this setting for official repositories. Remove for 3rd party projects.
-          official: true
-          project-type: library
+          github-token: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
+          script: |
+            const owner = process.env.TARGET_OWNER;
+            const repo = process.env.TARGET_REPO;
+            const libraryLabel = (process.env.LIBRARY_LABEL || '').trim();
+            const hasErrors = process.env.HAS_ERRORS === 'true';
+            const passingIssue = Number.parseInt(process.env.PASSING_LINT_ISSUE_NUMBER || '26', 10);
+            const failedIssue = Number.parseInt(process.env.FAILED_LINT_ISSUE_NUMBER || '27', 10);
+
+            try {
+              if (!libraryLabel) {
+                core.warning('Library label is empty; skipping lint label sync.');
+              } else {
+                let labelExists = true;
+                try {
+                  await github.rest.issues.getLabel({ owner, repo, name: libraryLabel });
+                } catch (error) {
+                  if (error.status === 404) {
+                    labelExists = false;
+                    core.warning(`Label '${libraryLabel}' does not exist in ${owner}/${repo}; skipping label sync.`);
+                  } else {
+                    throw error;
+                  }
+                }
+
+                if (labelExists) {
+                  const issueToAdd = hasErrors ? failedIssue : passingIssue;
+                  const issueToRemove = hasErrors ? passingIssue : failedIssue;
+
+                  await github.rest.issues.addLabels({
+                    owner,
+                    repo,
+                    issue_number: issueToAdd,
+                    labels: [libraryLabel]
+                  });
+
+                  try {
+                    await github.rest.issues.removeLabel({
+                      owner,
+                      repo,
+                      issue_number: issueToRemove,
+                      name: libraryLabel
+                    });
+                  } catch (error) {
+                    if (error.status !== 404) throw error;
+                  }
+                }
+              }
+
+              await github.rest.repos.createDispatchEvent({
+                owner,
+                repo,
+                event_type: 'lint-status-updated',
+                client_payload: {
+                  source_repository: context.repo.repo,
+                  source_owner: context.repo.owner,
+                  library_label: libraryLabel,
+                  lint_status: hasErrors ? 'failed' : 'passing',
+                  run_id: context.runId,
+                  run_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+                  sha: context.sha
+                }
+              });
+
+              core.info(`Queued project health refresh in ${owner}/${repo}.`);
+            } catch (error) {
+              core.warning(`Lint status sync skipped due to API/permission error: ${error.message}`);
+            }
+
+      - name: Create or update lint issue on errors
+        if: steps.lint.outputs.has_errors == 'true' && github.event.pull_request.head.repo.fork != true
+        uses: actions/github-script@v8
+        env:
+          ISSUE_TITLE: "Arduino Lint errors detected"
+        with:
+          script: |
+            const fs = require('fs');
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issueTitle = process.env.ISSUE_TITLE;
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+
+            let log = fs.readFileSync('arduino-lint.log', 'utf8');
+            const maxLogChars = 45000;
+            if (log.length > maxLogChars) {
+              log = `${log.slice(0, maxLogChars)}\n\n... [truncated]`;
+            }
+
+            const body = [
+              'Arduino Lint reported error-level findings.',
+              '',
+              `- Workflow run: ${runUrl}`,
+              `- Commit: ${context.sha}`,
+              `- Trigger: ${context.eventName}`,
+              '',
+              '```text',
+              log,
+              '```'
+            ].join('\n');
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open',
+              creator: 'github-actions[bot]',
+              per_page: 100
+            });
+
+            const existing = issues.find((i) => i.title === issueTitle);
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: existing.number,
+                body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title: issueTitle,
+                body,
+                labels: ['bug', 'ci']
+              });
+            }
+
+      - name: Fail job on lint errors
+        if: steps.lint.outputs.has_errors == 'true'
+        run: |
+          echo "Arduino Lint reported errors. See issue created/updated by workflow for full logs."
+          exit 1

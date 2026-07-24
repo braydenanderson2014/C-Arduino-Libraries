@@ -3,10 +3,13 @@ name: Project Health Monitoring
 on:
   schedule:
     - cron: "0 * * * *"   # hourly; adjust as needed
+  repository_dispatch:
+    types: [lint-status-updated]
   workflow_dispatch: {}
 
 permissions:
   contents: read
+  issues: read
 
 jobs:
   triage_health:
@@ -42,6 +45,22 @@ jobs:
             const AT_RISK_MIN = 20;   // >= this => At risk (adjusted for additional statuses)
             const OFF_TRACK_MIN = 40; // >= this => Off track (adjusted for additional statuses)
             const NOT_HEALTHY_MIN = 65; // >= this => Not healthy (critical threshold)
+            const PASSING_LINT_ISSUE_NUMBER = 26;
+            const FAILED_LINT_ISSUE_NUMBER = 27;
+
+            async function countIssueLabels(issueNumber) {
+              const { data } = await github.rest.issues.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber
+              });
+
+              if (data.pull_request) {
+                throw new Error(`Expected issue #${issueNumber}, but found a pull request.`);
+              }
+
+              return (data.labels || []).length;
+            }
 
             // 1) Fetch project + fields
             const proj = await github.graphql(`
@@ -141,7 +160,13 @@ jobs:
             core.info(`Total active work items: ${totalCount}`);
             core.info(`Status breakdown: ${JSON.stringify(statusCounts, null, 2)}`);
 
-            // 3) Decide overall project status based on total active work
+            // 3) Read lint status buckets from private tracker issues
+            const passingLintCount = await countIssueLabels(PASSING_LINT_ISSUE_NUMBER);
+            const failedLintCount = await countIssueLabels(FAILED_LINT_ISSUE_NUMBER);
+            core.info(`Passing lint libraries (issue #${PASSING_LINT_ISSUE_NUMBER} labels): ${passingLintCount}`);
+            core.info(`Failed lint libraries (issue #${FAILED_LINT_ISSUE_NUMBER} labels): ${failedLintCount}`);
+
+            // 4) Decide overall project status based on total active work + lint failures
             let statusEnum = "ON_TRACK";
             let healthDescription = "🟢 On Track";
             
@@ -156,6 +181,16 @@ jobs:
               healthDescription = "🟡 At Risk";
             }
 
+            if (failedLintCount > 0) {
+              if (failedLintCount >= 5) {
+                statusEnum = "OFF_TRACK";
+                healthDescription = "🟠 Off Track (Lint Failures)";
+              } else if (statusEnum === "ON_TRACK") {
+                statusEnum = "AT_RISK";
+                healthDescription = "🟡 At Risk (Lint Failures)";
+              }
+            }
+
             const today = new Date().toISOString().slice(0,10); // YYYY-MM-DD
             
             // Create detailed breakdown for the status update
@@ -167,6 +202,9 @@ jobs:
             const body = `**Project Health Summary** (as of ${today})\n\n` +
              `**Overall Status: ${healthDescription}**\n\n` +
              `**Total Active Work Items: ${totalCount}**\n\n` +
+             `**Lint Status (Issue Labels):**\n` +
+             `• ✅ Passing Lint (#${PASSING_LINT_ISSUE_NUMBER}): **${passingLintCount}**\n` +
+             `• ❌ Failed Lint (#${FAILED_LINT_ISSUE_NUMBER}): **${failedLintCount}**\n\n` +
              `**Status Breakdown:**\n${statusBreakdown || '• No active items found'}\n\n` +
              `**Health Thresholds:**\n` +
              `• 🟢 On Track: < ${AT_RISK_MIN}\n` +
