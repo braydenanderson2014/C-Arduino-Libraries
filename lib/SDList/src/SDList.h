@@ -275,7 +275,7 @@ class SDList {
         while (newCap < minCap) newCap *= 2;
         T* buf = new T[newCap];
         if (!buf) return false;
-        for (size_t i = 0; i < (size_t)_count; i++) buf[i] = _mem[i];
+        for (size_t i = 0; i < (size_t)_count && _mem; i++) buf[i] = _mem[i];
         delete[] _mem;
         _mem    = buf;
         _memCap = newCap;
@@ -495,7 +495,7 @@ public:
 
         for (uint32_t i = index; i < _count - 1; i++) {
             T val = get(i + 1);
-            set(i, val);
+            if (!set(i, val)) return false;
         }
         _count--;
         return _flushBatch();
