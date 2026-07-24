@@ -319,15 +319,17 @@ jobs:
             const isPullRequestEvent = context.eventName === "pull_request";
             const isManualDispatch = context.eventName === "workflow_dispatch";
 
-            // Safety: do nothing if this workflow is installed in the target repo.
-            if (SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO) {
-              core.info("This is the main repository. Skipping forward operation.");
+            const isMainRepository = SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO;
+            const hasProjectToken = (process.env.GH_PROJECT_TOKEN_PRESENT || "").toLowerCase() === "true";
+
+            if (!hasProjectToken && !isMainRepository) {
+              core.warning("GH_PROJECT_TOKEN is unavailable; skipping cross-repository forwarding for this run.");
               return;
             }
 
-            const hasProjectToken = (process.env.GH_PROJECT_TOKEN_PRESENT || "").toLowerCase() === "true";
-            if (!hasProjectToken) {
-              core.warning("GH_PROJECT_TOKEN is unavailable; skipping cross-repository forwarding for this run.");
+            // Safety: do nothing if this workflow is installed in the target repo.
+            if (isMainRepository) {
+              core.info("This is the main repository. Skipping forward operation.");
               return;
             }
 
@@ -691,14 +693,16 @@ jobs:
             const COMMIT_DIGEST_MARKER_PREFIX = "<!-- mirror-commit-digest:";
             const FAST_SCHEDULE = "*/10 * * * *";
 
-            if (SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO) {
-              core.info("This is the main repository. Skipping mirror sync.");
+            const isMainRepository = SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO;
+            const hasProjectToken = (process.env.GH_PROJECT_TOKEN_PRESENT || "").toLowerCase() === "true";
+
+            if (!hasProjectToken && !isMainRepository) {
+              core.warning("GH_PROJECT_TOKEN is unavailable; skipping cross-repository mirror sync for this run.");
               return;
             }
 
-            const hasProjectToken = (process.env.GH_PROJECT_TOKEN_PRESENT || "").toLowerCase() === "true";
-            if (!hasProjectToken) {
-              core.warning("GH_PROJECT_TOKEN is unavailable; skipping cross-repository mirror sync for this run.");
+            if (isMainRepository) {
+              core.info("This is the main repository. Skipping mirror sync.");
               return;
             }
 
