@@ -61,6 +61,34 @@ void test_erase_last_element() {
     TEST_ASSERT_EQUAL_INT(200, vec[1]);
 }
 
+void test_release_memory_then_put_reinitializes_storage() {
+    SimpleVector<int> vec;
+    vec.put(1);
+    vec.releaseMemory();
+
+    vec.put(42);
+
+    TEST_ASSERT_EQUAL_INT(1, vec.elements());
+    TEST_ASSERT_EQUAL_INT(42, vec[0]);
+}
+
+void test_zero_capacity_constructor_can_grow() {
+    SimpleVector<int> vec(0);
+
+    vec.put(7);
+
+    TEST_ASSERT_EQUAL_INT(1, vec.elements());
+    TEST_ASSERT_EQUAL_INT(7, vec[0]);
+}
+
+void test_index_of_returns_minus_one_when_missing() {
+    SimpleVector<int> vec;
+    vec.put(10);
+    vec.put(20);
+
+    TEST_ASSERT_EQUAL_INT(-1, vec.indexOf(999));
+}
+
 void setup() {
     Serial.begin(115200);
     delay(1000);
@@ -72,6 +100,9 @@ void setup() {
     RUN_TEST(test_erase_with_duplicate_values);
     RUN_TEST(test_erase_first_element);
     RUN_TEST(test_erase_last_element);
+    RUN_TEST(test_release_memory_then_put_reinitializes_storage);
+    RUN_TEST(test_zero_capacity_constructor_can_grow);
+    RUN_TEST(test_index_of_returns_minus_one_when_missing);
     UNITY_END();
     
     Serial.println("SimpleVector Tests Completed!");

@@ -109,6 +109,10 @@ private:
     int count;  // The number of elements in the table
     float loadFactorThreshold = 0.7; // The load factor threshold for resizing
     Hash hashFunction; // The hash function to use
+
+    static int normalizeTableSize(int requestedSize) {
+        return requestedSize <= 0 ? INITIAL_TABLE_SIZE : requestedSize;
+    }
         
 // Simplified hash function that delegates to the Hash functor
     /**
@@ -147,7 +151,8 @@ private:
      * @return Whether or not the resize was successful
     */
     bool resize(int newSize) {
-        Entry** newTable = new Entry*[newSize]();
+        const int targetSize = normalizeTableSize(newSize);
+        Entry** newTable = new Entry*[targetSize]();
         if (!newTable) {
             return false; // Memory allocation failed
         }
@@ -155,7 +160,7 @@ private:
             Entry* entry = table[i];
             while (entry) {
                 Entry* next = entry->next;
-                int index = calculateIndex(entry->key, newSize); // Hash with respect to the new table size
+                int index = calculateIndex(entry->key, targetSize); // Hash with respect to the new table size
                 entry->next = newTable[index];
                 newTable[index] = entry;
                 entry = next;
@@ -164,7 +169,7 @@ private:
 
         delete[] table; // Free the old table
         table = newTable; // Update the pointer to the new table
-        TABLE_SIZE = newSize; // Update the size
+        TABLE_SIZE = targetSize; // Update the size
         return true;
     }
 public:
@@ -224,7 +229,7 @@ public:
         **/
         KeyValuePair operator*() const {
             if (!currentEntry) {
-                return KeyValuePair{"", ""}; // Return an empty key-value pair if invalid
+                return KeyValuePair{K(), V()}; // Return an empty key-value pair if invalid
             }
             return KeyValuePair{currentEntry->key, currentEntry->value};
         }
@@ -376,7 +381,7 @@ public:
      * 
     */
     Hashtable(size_t initialCapacity, float loadFactor) 
-        : TABLE_SIZE(initialCapacity), count(0), loadFactorThreshold(loadFactor), hashFunction() {
+        : TABLE_SIZE(normalizeTableSize(static_cast<int>(initialCapacity))), count(0), loadFactorThreshold(loadFactor), hashFunction() {
         table = new Entry*[TABLE_SIZE]();
         // Initialize buckets to nullptr...
     }
@@ -494,6 +499,9 @@ public:
     *       If the key is not found, the function returns false and does not modify the variable pointed to by the value parameter.
     */
     bool getElement(const K& key, V* value) const{
+        if (value == nullptr) {
+            return false;
+        }
         int index = calculateIndex(key, TABLE_SIZE);
         Entry* entry = table[index];
         while (entry != nullptr) {
@@ -698,7 +706,7 @@ public:
      * @return Whether or not the hash table is empty
     */
     bool isEmpty() const {
-        return size() == 0;
+        return count == 0;
     }
 
     /**
@@ -823,9 +831,13 @@ public:
             entry = entry->next;
         }
         // If the key does not exist, create a new entry with the default value
-        V defaultValue = V();
-        put(key, defaultValue);
-        return table[index]->value;
+        put(key, V());
+        V* value = get(key);
+        if (value != nullptr) {
+            return *value;
+        }
+        static V dummy = V();
+        return dummy;
     }
 
     /**
@@ -850,7 +862,8 @@ public:
             entry = entry->next;
         }
         // If the key does not exist, return the default value
-        return V();
+        static const V defaultValue = V();
+        return defaultValue;
     }
 
     //get bucket
