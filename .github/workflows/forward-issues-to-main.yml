@@ -65,7 +65,7 @@ jobs:
         env:
           GH_PROJECT_TOKEN_VALUE: ${{ secrets.GH_PROJECT_TOKEN }}
         with:
-          github-token: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
+          github-token: ${{ github.repository == 'braydenanderson2014/C-Arduino-Libraries' && github.token || secrets.GH_PROJECT_TOKEN }}
           script: |
             const SOURCE_OWNER = context.repo.owner;
             const SOURCE_REPO = context.repo.repo;
@@ -681,7 +681,7 @@ jobs:
         env:
           GH_PROJECT_TOKEN_VALUE: ${{ secrets.GH_PROJECT_TOKEN }}
         with:
-          github-token: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
+          github-token: ${{ github.repository == 'braydenanderson2014/C-Arduino-Libraries' && github.token || secrets.GH_PROJECT_TOKEN }}
           script: |
             const SOURCE_OWNER = context.repo.owner;
             const SOURCE_REPO = context.repo.repo;
