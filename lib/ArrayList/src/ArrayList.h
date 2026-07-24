@@ -55,6 +55,9 @@ public:
     enum SortAlgorithm { BUBBLE_SORT, QUICK_SORT, MERGE_SORT };
 #endif
 
+    /** Sentinel value returned by indexOf() when an item is not found. */
+    static const size_t INVALID_INDEX = static_cast<size_t>(-1);
+
     // ─── Constructors / Destructor ──────────────────────────────────────────
 
     /**
@@ -304,7 +307,7 @@ public:
      */
     bool removeItem(T item) {
         size_t index = indexOf(item);
-        if (index != static_cast<size_t>(-1)) {
+        if (index != INVALID_INDEX) {
             remove(index);
             return true;
         }
@@ -355,6 +358,8 @@ public:
      * @param toIndex   End index (exclusive).
      */
     void removeRange(size_t fromIndex, size_t toIndex) {
+        // Note: if fromIndex > count then either fromIndex > toIndex (first check)
+        // or toIndex >= fromIndex > count (second check) will catch it.
         if (fromIndex > toIndex || toIndex > count) {
             return;
         }
@@ -500,7 +505,7 @@ public:
                 return i;
             }
         }
-        return static_cast<size_t>(-1);
+        return INVALID_INDEX;
     }
 
     /**
@@ -587,6 +592,8 @@ public:
      * @warning The caller is responsible for deleting the returned object.
      */
     ArrayList<T>* sublist(size_t fromIndex, size_t toIndex) const {
+        // Note: if fromIndex > count then either fromIndex > toIndex (first check)
+        // or toIndex >= fromIndex > count (second check) will catch it.
         if (fromIndex > toIndex || toIndex > count) {
             return nullptr;
         }
@@ -652,6 +659,7 @@ public:
      * copy semantics (e.g. Arduino String).  If allocation fails, the list is unchanged.
      */
     void trimToSize() {
+        // DYNAMIC and DYNAMIC2 behave identically here: both simply trim to count.
         if ((sizeType == DYNAMIC || sizeType == DYNAMIC2) && count < arrayCapacity) {
             T* newArray = new T[count];
             if (!newArray) return;
