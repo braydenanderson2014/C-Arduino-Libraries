@@ -62,6 +62,8 @@ jobs:
     steps:
       - name: Mirror issue and pull request activity to main repository
         uses: actions/github-script@v9
+        env:
+          GH_PROJECT_TOKEN_PRESENT: ${{ secrets.GH_PROJECT_TOKEN != '' }}
         with:
           github-token: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
           script: |
@@ -320,6 +322,12 @@ jobs:
             // Safety: do nothing if this workflow is installed in the target repo.
             if (SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO) {
               core.info("This is the main repository. Skipping forward operation.");
+              return;
+            }
+
+            const hasProjectToken = (process.env.GH_PROJECT_TOKEN_PRESENT || "").toLowerCase() === "true";
+            if (!hasProjectToken) {
+              core.warning("GH_PROJECT_TOKEN is unavailable; skipping cross-repository forwarding for this run.");
               return;
             }
 
@@ -668,6 +676,8 @@ jobs:
     steps:
       - name: Sync mirrored issue status and PR commit digests
         uses: actions/github-script@v9
+        env:
+          GH_PROJECT_TOKEN_PRESENT: ${{ secrets.GH_PROJECT_TOKEN != '' }}
         with:
           github-token: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
           script: |
@@ -683,6 +693,12 @@ jobs:
 
             if (SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO) {
               core.info("This is the main repository. Skipping mirror sync.");
+              return;
+            }
+
+            const hasProjectToken = (process.env.GH_PROJECT_TOKEN_PRESENT || "").toLowerCase() === "true";
+            if (!hasProjectToken) {
+              core.warning("GH_PROJECT_TOKEN is unavailable; skipping cross-repository mirror sync for this run.");
               return;
             }
 
