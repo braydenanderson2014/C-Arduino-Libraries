@@ -593,7 +593,11 @@ bool Properties::loadFromINI(const String& filename) {
             int separatorIndex = line.indexOf('=');
             if (separatorIndex != -1) {
                 String key = line.substring(0, separatorIndex);
-                String value = line.substring(separatorIndex + 1);
+                int valueStart = separatorIndex + 1;
+                if (valueStart < line.length() && line.charAt(valueStart) == ' ') {
+                    ++valueStart;
+                }
+                String value = line.substring(valueStart);
                 key.trim();
                 value.trim();
                 table.put(key, value);
