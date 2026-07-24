@@ -274,7 +274,7 @@ bool Properties::saveToSD(const String& filename) {
     if (file) {
         char sep = getSeparator();
         for (PropertiesIterator it = begin(); it != end(); ++it) {
-            if (it.value().length() > 0) {
+            if (it.value().length() > 0) { // Properties with empty values are not persisted
                 file.print(it.key() + sep + it.value() + "\n");
             }
         }
@@ -574,7 +574,7 @@ bool Properties::loadFromINI(const String& filename) {
             int separatorIndex = line.indexOf('=');
             if (separatorIndex != -1) {
                 String key = line.substring(0, separatorIndex);
-                String value = line.substring(separatorIndex + 2);
+                String value = line.substring(separatorIndex + 1);
                 key.trim();
                 value.trim();
                 table.put(key, value);
@@ -678,9 +678,18 @@ bool Properties::loadFromTOML(const String& filename) {
             int separatorIndex = line.indexOf('=');
             if (separatorIndex != -1) {
                 String key = line.substring(0, separatorIndex);
-                String value = line.substring(separatorIndex + 3, line.length() - 1);
                 key.trim();
-                value.trim();
+                // TOML string values are quoted: key = "value"
+                int quoteStart = line.indexOf('"', separatorIndex);
+                int quoteEnd   = line.lastIndexOf('"');
+                String value;
+                if (quoteStart != -1 && quoteEnd > quoteStart) {
+                    value = line.substring(quoteStart + 1, quoteEnd);
+                } else {
+                    // Unquoted value fallback
+                    value = line.substring(separatorIndex + 1);
+                    value.trim();
+                }
                 table.put(key, value);
             }
         }
