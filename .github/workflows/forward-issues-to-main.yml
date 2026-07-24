@@ -63,7 +63,7 @@ jobs:
       - name: Mirror issue and pull request activity to main repository
         uses: actions/github-script@v9
         env:
-          GH_PROJECT_TOKEN_PRESENT: ${{ secrets.GH_PROJECT_TOKEN != '' }}
+          GH_PROJECT_TOKEN_VALUE: ${{ secrets.GH_PROJECT_TOKEN }}
         with:
           github-token: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
           script: |
@@ -320,7 +320,7 @@ jobs:
             const isManualDispatch = context.eventName === "workflow_dispatch";
 
             const isMainRepository = SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO;
-            const hasProjectToken = (process.env.GH_PROJECT_TOKEN_PRESENT || "").toLowerCase() === "true";
+            const hasProjectToken = Boolean((process.env.GH_PROJECT_TOKEN_VALUE || "").trim());
 
             if (!hasProjectToken && !isMainRepository) {
               core.warning("GH_PROJECT_TOKEN is unavailable; skipping cross-repository forwarding for this run.");
@@ -679,7 +679,7 @@ jobs:
       - name: Sync mirrored issue status and PR commit digests
         uses: actions/github-script@v9
         env:
-          GH_PROJECT_TOKEN_PRESENT: ${{ secrets.GH_PROJECT_TOKEN != '' }}
+          GH_PROJECT_TOKEN_VALUE: ${{ secrets.GH_PROJECT_TOKEN }}
         with:
           github-token: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
           script: |
@@ -694,7 +694,7 @@ jobs:
             const FAST_SCHEDULE = "*/10 * * * *";
 
             const isMainRepository = SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO;
-            const hasProjectToken = (process.env.GH_PROJECT_TOKEN_PRESENT || "").toLowerCase() === "true";
+            const hasProjectToken = Boolean((process.env.GH_PROJECT_TOKEN_VALUE || "").trim());
 
             if (!hasProjectToken && !isMainRepository) {
               core.warning("GH_PROJECT_TOKEN is unavailable; skipping cross-repository mirror sync for this run.");
