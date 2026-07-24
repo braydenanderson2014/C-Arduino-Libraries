@@ -10,7 +10,6 @@
     "defaultWindowMinutes": 65,
     "burstWindowMinutes": 20,
     "burstLookbackMinutes": 90,
-    "discoveryScanMaxItems": 400,
     "maxTargetCommentsPerDigest": 6,
     "maxCommentBodyCharacters": 500,
     "maxCommitDigestEntries": 20,
