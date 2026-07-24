@@ -248,7 +248,7 @@ jobs:
               if (!itemId) {
                 const addMutation = `
                   mutation($projectId: ID!, $contentId: ID!) {
-                    addProjectV2ItemByContentId(input: {
+                    addProjectV2ItemById(input: {
                       projectId: $projectId
                       contentId: $contentId
                     }) {
@@ -264,7 +264,7 @@ jobs:
                   contentId: pullRequestNodeId
                 });
 
-                itemId = addResult.addProjectV2ItemByContentId.item.id;
+                itemId = addResult.addProjectV2ItemById.item.id;
                 console.log(`✅ Added pull request #${issueNumber} to project`);
               } else {
                 console.log(`ℹ️ Pull request #${issueNumber} is already in the project`);

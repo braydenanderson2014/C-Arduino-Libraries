@@ -62,8 +62,10 @@ jobs:
     steps:
       - name: Mirror issue and pull request activity to main repository
         uses: actions/github-script@v9
+        env:
+          GH_PROJECT_TOKEN_VALUE: ${{ secrets.GH_PROJECT_TOKEN }}
         with:
-          github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ github.repository == 'braydenanderson2014/C-Arduino-Libraries' && github.token || secrets.GH_PROJECT_TOKEN }}
           script: |
             const SOURCE_OWNER = context.repo.owner;
             const SOURCE_REPO = context.repo.repo;
@@ -317,8 +319,16 @@ jobs:
             const isPullRequestEvent = context.eventName === "pull_request";
             const isManualDispatch = context.eventName === "workflow_dispatch";
 
+            const isMainRepository = SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO;
+            const hasProjectToken = Boolean((process.env.GH_PROJECT_TOKEN_VALUE || "").trim());
+
+            if (!hasProjectToken && !isMainRepository) {
+              core.warning("GH_PROJECT_TOKEN is unavailable; skipping cross-repository forwarding for this run.");
+              return;
+            }
+
             // Safety: do nothing if this workflow is installed in the target repo.
-            if (SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO) {
+            if (isMainRepository) {
               core.info("This is the main repository. Skipping forward operation.");
               return;
             }
@@ -668,8 +678,10 @@ jobs:
     steps:
       - name: Sync mirrored issue status and PR commit digests
         uses: actions/github-script@v9
+        env:
+          GH_PROJECT_TOKEN_VALUE: ${{ secrets.GH_PROJECT_TOKEN }}
         with:
-          github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ github.repository == 'braydenanderson2014/C-Arduino-Libraries' && github.token || secrets.GH_PROJECT_TOKEN }}
           script: |
             const SOURCE_OWNER = context.repo.owner;
             const SOURCE_REPO = context.repo.repo;
@@ -681,7 +693,15 @@ jobs:
             const COMMIT_DIGEST_MARKER_PREFIX = "<!-- mirror-commit-digest:";
             const FAST_SCHEDULE = "*/10 * * * *";
 
-            if (SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO) {
+            const isMainRepository = SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO;
+            const hasProjectToken = Boolean((process.env.GH_PROJECT_TOKEN_VALUE || "").trim());
+
+            if (!hasProjectToken && !isMainRepository) {
+              core.warning("GH_PROJECT_TOKEN is unavailable; skipping cross-repository mirror sync for this run.");
+              return;
+            }
+
+            if (isMainRepository) {
               core.info("This is the main repository. Skipping mirror sync.");
               return;
             }
