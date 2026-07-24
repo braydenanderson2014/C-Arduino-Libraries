@@ -3,6 +3,7 @@
 
 #include "Hashtable.h"
 #include <Arduino.h>
+#include <FS.h>
 
 class Properties {
 private:
@@ -18,13 +19,29 @@ private:
         };
         IDENTIFIERTYPE identifierType = EQUALS;
 
-        size_t chipSelect = 4; // Declaration of the chip select pin
+        size_t chipSelect = 4;       // Chip select pin for SD card
+        bool _bypassSDBegin = false; // When true, skip SD.begin() (caller has already initialized SD)
+        fs::FS* _filesystem = nullptr; // Optional external filesystem (LittleFS, SD, SPIFFS, etc.)
+
+        // Private helpers
+        bool beginSDIfNeeded();                          // Calls SD.begin(chipSelect) unless bypassed
+        char getSeparator() const;                       // Returns the separator character for the current identifierType
+        String normalizePath(const String& filename) const; // Prepends '/' if path doesn't start with one
+        File openForRead(const String& filename);        // Opens file for reading (using _filesystem or SD)
+        File openForWrite(const String& filename);       // Opens file for writing/truncating (using _filesystem or SD)
+        bool fileExists(const String& filename);         // Checks file existence (using _filesystem or SD)
+        bool removeFile(const String& filename);         // Removes a file (using _filesystem or SD)
+
     public:
-        Properties(); // Declaration of the constructor
+        Properties(); // Default constructor — uses SD card
+        explicit Properties(fs::FS& filesystem); // Constructor that injects an external filesystem
         ~Properties();
 
         void setChipSelect(const size_t cs); // Declaration of the setChipSelect method, which sets the chip select pin
         size_t getChipSelect(); // Declaration of the getChipSelect method, which returns the chip select pin
+        void setBypassSDBegin(bool bypass); // When true, skip SD.begin() on every operation
+        bool getBypassSDBegin();
+        void setFilesystem(fs::FS& filesystem); // Set (or change) the filesystem used for all file operations
         void identify(const IDENTIFIERTYPE identifierType); // Declaration of the begin method, which sets the identifier type... If not called, Default is EQUALS (=)
         void setProperty(const String& key, const String& value);
         void setProperty(const String& key, const String& value, const String& filePath);

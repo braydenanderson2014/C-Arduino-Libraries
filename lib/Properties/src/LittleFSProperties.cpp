@@ -64,6 +64,29 @@ size_t LittleFSProperties::getChipSelect() {
 }
 
 /**
+ * @brief setBypassSDBegin (Set the bypass SD begin flag)
+ * 
+ * @param bypass (Bypass)
+ * 
+ * @details When true, SD.begin() will NOT be called before SD operations.
+ *          Use this when the calling application has already initialised the SD card.
+ * @return void
+*/
+void LittleFSProperties::setBypassSDBegin(bool bypass) {
+    _bypassSDBegin = bypass;
+}
+
+/**
+ * @brief getBypassSDBegin (Get the bypass SD begin flag)
+ * 
+ * @details Returns the current bypassSDBegin flag.
+ * @return bool
+*/
+bool LittleFSProperties::getBypassSDBegin() {
+    return _bypassSDBegin;
+}
+
+/**
  * @brief exists (Check if the key exists in the LittleFSProperties)
  * 
  * @param key (Variable Name)
@@ -106,6 +129,7 @@ bool LittleFSProperties::exists(const String& key, const String& value) {
 bool LittleFSProperties::beginSD(size_t cs = 4 , IDENTIFIERTYPE identifierType = EQUALS) {
     chipSelect = cs;
     this->identifierType = identifierType;
+    if (_bypassSDBegin) return true;
     if (!SD.begin(chipSelect)) {
         return false;
     }
@@ -175,9 +199,9 @@ void LittleFSProperties::setProperty(const String& key, const String& value) {
  * @return void
 */
 void LittleFSProperties::setProperty(const String& key, const String& value, const String& filePath) {
-    loadFromSD(filePath);
+    load(filePath);
     table.put(key, value);
-    saveToSD(filePath);
+    save(filePath);
 }
 
 /**
@@ -209,7 +233,7 @@ String LittleFSProperties::getProperty(const String& key) {
  * @return String
 */
 String LittleFSProperties::getProperty(const String& key, const String& defaultValue, const String& filePath) {
-    loadFromSD(filePath);
+    load(filePath);
     String* valuePtr = table.get(key);
     if (!valuePtr) {
         return defaultValue;

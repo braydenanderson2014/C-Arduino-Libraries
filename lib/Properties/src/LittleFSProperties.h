@@ -18,12 +18,15 @@ private:
         };
         IDENTIFIERTYPE identifierType = EQUALS;
         size_t chipSelect = 4; // Declaration of the chip select pin
+        bool _bypassSDBegin = false; // When true, skip SD.begin() (caller has already initialized SD)
     public:
         LittleFSProperties(); // Declaration of the constructor
         ~LittleFSProperties();
 
         void setChipSelect(const size_t cs); // Declaration of the setChipSelect method, which sets the chip select pin
         size_t getChipSelect(); // Declaration of the getChipSelect method, which returns the chip select pin
+        void setBypassSDBegin(bool bypass); // When true, skip SD.begin() on every SD operation
+        bool getBypassSDBegin();
 
         bool beginLFS(); // Declaration of the begin method, which sets the identifier type... If not called, Default is EQUALS (=) (LFS )
         bool beginSD(size_t cs, IDENTIFIERTYPE identifierType); // Declaration of the begin method, which sets the identifier type... If not called, Default is EQUALS (=) (SD)
