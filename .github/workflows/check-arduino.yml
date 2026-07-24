@@ -64,7 +64,7 @@ jobs:
 
       - name: Sync lint labels to private health repo and queue project health refresh
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork != true
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           TARGET_OWNER: braydenanderson2014
           TARGET_REPO: C-Arduino-Libraries
@@ -144,7 +144,7 @@ jobs:
 
       - name: Create or update lint issue on errors
         if: steps.lint.outputs.has_errors == 'true' && github.event.pull_request.head.repo.fork != true
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           ISSUE_TITLE: "Arduino Lint errors detected"
         with:
