@@ -485,16 +485,31 @@ bool Properties::loadFromJSON(const String& filename) {
     }
     File file = openForRead(filename);
     if (file) {
+        String pendingKey;
+        bool hasPendingKey = false;
         while (file.available()) {
             String line = file.readStringUntil('\n');
-            int keyStartIndex = line.indexOf("\"key\": \"");
-            int keyEndIndex = line.indexOf("\",");
-            int valueStartIndex = line.indexOf("\"value\": \"");
-            int valueEndIndex = line.indexOf("\"", valueStartIndex + 9);
-            if (keyStartIndex != -1 && keyEndIndex != -1 && valueStartIndex != -1 && valueEndIndex != -1) {
-                String key = line.substring(keyStartIndex + 8, keyEndIndex);
-                String value = line.substring(valueStartIndex + 9, valueEndIndex);
-                table.put(key, value);
+            line.trim();
+
+            int keyLabelIndex = line.indexOf("\"key\":");
+            if (keyLabelIndex != -1) {
+                int keyStartIndex = line.indexOf('\"', keyLabelIndex + 6);
+                int keyEndIndex = line.indexOf('\"', keyStartIndex + 1);
+                if (keyStartIndex != -1 && keyEndIndex != -1) {
+                    pendingKey = line.substring(keyStartIndex + 1, keyEndIndex);
+                    hasPendingKey = true;
+                }
+            }
+
+            int valueLabelIndex = line.indexOf("\"value\":");
+            if (valueLabelIndex != -1 && hasPendingKey) {
+                int valueStartIndex = line.indexOf('\"', valueLabelIndex + 8);
+                int valueEndIndex = line.indexOf('\"', valueStartIndex + 1);
+                if (valueStartIndex != -1 && valueEndIndex != -1) {
+                    String value = line.substring(valueStartIndex + 1, valueEndIndex);
+                    table.put(pendingKey, value);
+                    hasPendingKey = false;
+                }
             }
         }
         file.close();
@@ -544,7 +559,9 @@ bool Properties::loadFromYAML(const String& filename) {
             int separatorIndex = line.indexOf(':');
             if (separatorIndex != -1) {
                 String key = line.substring(0, separatorIndex);
-                String value = line.substring(separatorIndex + 2);
+                String value = line.substring(separatorIndex + 1);
+                key.trim();
+                value.trim();
                 table.put(key, value);
             }
         }
