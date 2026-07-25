@@ -9,9 +9,15 @@
 template<typename T>
 class SimpleVector {
 private:
+    static const unsigned int DEFAULT_CAPACITY = 4;
     T* array;
     mutable unsigned int count;
     mutable unsigned int capacity;
+    static const unsigned int MIN_CAPACITY = 4;
+
+    static unsigned int normalizeCapacity(unsigned int requestedCapacity) {
+        return requestedCapacity == 0 ? DEFAULT_CAPACITY : requestedCapacity;
+    }
 
     /**
      * @brief Resize the array to the specified capacity
@@ -22,7 +28,8 @@ private:
      * @note This method will copy all elements from the old array to the new array.
     */
     void resize(unsigned int newCapacity) {
-        T* newArray = new T[newCapacity];
+        const unsigned int targetCapacity = normalizeCapacity(newCapacity);
+        T* newArray = new T[targetCapacity];
         if (!newArray) {
             Serial.println("Memory allocation failed during resize.");
             return;
@@ -32,7 +39,7 @@ private:
         }
         delete[] array;
         array = newArray;
-        capacity = newCapacity;
+        capacity = targetCapacity;
     }
 
     /**
@@ -41,6 +48,10 @@ private:
      * @private This method is private because it is only used internally.
     */
     void ensureCapacity() {
+        if (capacity == 0 || array == nullptr) {
+            resize(DEFAULT_CAPACITY);
+            return;
+        }
         if (count == capacity) {
             resize(2 * capacity);
         }
@@ -49,13 +60,13 @@ public:
     // The SimpleVectorIterator class will be defined below
     class SimpleVectorIterator;
 
-    SimpleVector() : array(new T[4]), count(0), capacity(4) {
+    SimpleVector() : array(new T[DEFAULT_CAPACITY]), count(0), capacity(DEFAULT_CAPACITY) {
         if(!array){
             Serial.println("Memory allocation failed.");
         }
     }
 
-    SimpleVector(unsigned int initialCapacity) : array(new T[initialCapacity]), count(0), capacity(initialCapacity) {
+    SimpleVector(unsigned int initialCapacity) : array(new T[normalizeCapacity(initialCapacity)]), count(0), capacity(normalizeCapacity(initialCapacity)) {
         if(!array){
             Serial.println("Memory allocation failed.");
         }
@@ -121,8 +132,16 @@ public:
      * @public This method is public because it is meant to be called by the user.
     */
     bool shrinkToFit() {
+        if (count == 0) {
+            if (capacity != MIN_CAPACITY || array == nullptr) {
+                resize(MIN_CAPACITY);
+                count = 0;
+                return true;
+            }
+            return false;
+        }
         if (count < capacity) {
-            resize(count);
+            resize(count == 0 ? DEFAULT_CAPACITY : count);
             return true;
         }
         return false;
@@ -137,9 +156,9 @@ public:
         if(array){
             delete[] array;
         }
-        array = new T[4];
+        array = new T[DEFAULT_CAPACITY];
         count = 0;
-        capacity = 4;
+        capacity = DEFAULT_CAPACITY;
 
     }
 
@@ -153,9 +172,10 @@ public:
         if(array){
             delete[] array;
         }
-        array = new T[newCapacity];
+        const unsigned int targetCapacity = normalizeCapacity(static_cast<unsigned int>(newCapacity));
+        array = new T[targetCapacity];
         count = 0;
-        capacity = newCapacity;
+        capacity = targetCapacity;
     }
 
     /**
@@ -184,9 +204,7 @@ public:
      * 
     */
     void put(const T& item) {
-        if (count == capacity) {
-            resize(2 * capacity);
-        }
+        ensureCapacity();
         array[count++] = item;
     }
 
@@ -200,20 +218,24 @@ public:
 
     void emplace_back() {  
         ensureCapacity();
-        // Default-construct in place
+        array[count].~T();
         new (array + count) T();
         count++;
     }
 
     void emplace_back(const T& value) {
         ensureCapacity();
-        // Copy-construct in place
+        array[count].~T();
         new (array + count) T(value);
         count++;
     }
 
     //back() method
     T& back() {
+        static T dummy = T();
+        if (count == 0 || array == nullptr) {
+            return dummy;
+        }
         return array[count - 1];
     }
 
@@ -350,7 +372,7 @@ bool operator==(const SimpleVector<T>& other) const {
     /**
      * @brief Get the index of the specified element
      * @param element The element to be searched for
-     * @return The index of the specified element, or 0 if the element is not found
+     * @return The index of the specified element, or -1 if the element is not found
     */
     int indexOf(const T& element) {
         for (unsigned int i = 0; i < count; i++) {
@@ -358,7 +380,7 @@ bool operator==(const SimpleVector<T>& other) const {
                 return i;
             }
         }
-        return 0; // Element not found
+        return -1; // Element not found
     }
 
     // ... Other methods ...

@@ -48,7 +48,7 @@ Your contributions help keep this project alive and growing! 🚀
 | **Accessing Elements** | |
 | `T& get(unsigned int index)` | Retrieves an element at a given index. |
 | `T* getPtr(unsigned int index)` | Returns a pointer to an element at an index. |
-| `T& back()` | Returns the last element. |
+| `T& back()` | Returns the last element, or a default fallback reference when the vector is empty. |
 | `T& operator[](unsigned int index)` | Access element at index using bracket notation. |
 | `const T& operator[](unsigned int index) const` | Read-only access to elements. |
 | **Capacity & Size** | |
@@ -57,7 +57,7 @@ Your contributions help keep this project alive and growing! 🚀
 | `bool isEmpty() const` | Checks if the vector is empty. |
 | `bool shrinkToFit()` | Shrinks capacity to match the element count. |
 | **Searching** | |
-| `int indexOf(const T& element)` | Finds the index of an element. |
+| `int indexOf(const T& element)` | Finds the index of an element, or `-1` if not found. |
 | **Memory Management** | |
 | `void releaseMemory()` | Manually releases allocated memory. |
 | **Iterator Support** | |

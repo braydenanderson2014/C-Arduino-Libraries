@@ -16,7 +16,7 @@ The `Hashtable` library provides an efficient way to store key-value pairs in an
 | `void put(const K& key, const V& value)` | Inserts a key-value pair into the hashtable. Overwrites if the key exists. |
 | `V* get(const K& key) const` | Retrieves the value associated with a key. Returns `nullptr` if key is not found. [WARNING]: Returns a pointer and not the value itself |
 | `V getElement(const K& key) const` | Retrieves the value associated with a key or returns a default-constructed value if not found. |
-| `bool getElement(const K& key, V* value) const` | Retrieves the value and stores it in `value` if key exists. Returns `true` if found. |
+| `bool getElement(const K& key, V* value) const` | Retrieves the value and stores it in `value` if key exists. Returns `true` if found. Returns `false` immediately if `value` is `nullptr`. |
 | `bool exists(const K& key) const` | Checks if a key exists in the hashtable. |
 | `bool remove(const K& key)` | Removes a key-value pair from the hashtable. Returns `true` if removed. |
 | `void clear()` | Clears the hashtable and frees memory. |
@@ -30,7 +30,8 @@ The `Hashtable` library provides an efficient way to store key-value pairs in an
 | `SimpleVector<V> values() const` | Returns a vector of all values. |
 | `bool containsKey(const K& key) const` | Checks if the given key exists in the table. |
 | `bool containsValue(const V& value) const` | Checks if the given value exists in the table. |
-| `V& operator[](const K& key)` | Accesses elements by key. If key does not exist, inserts a new default value. |
+| `V& operator[](const K& key)` | Accesses elements by key. If key does not exist, inserts a new default value. Falls back to a static dummy reference if insertion fails. |
+| `const V& operator[](const K& key) const` | Read-only access by key. Returns a static default-constructed value if the key does not exist. |
 | `void debugIterator()` | Prints all key-value pairs in the hashtable using an iterator. |
 
 ---
@@ -79,9 +80,7 @@ for (auto it = hashTable.begin(); it != hashTable.end(); ++it) {
 ---
 ## 📜 **PlatformIO Changelog**
 ### Latest Version:
-- **v1.1.4** [BETA] (2025-02)
-             - README.md has been updated
-  
+- **v1.1.4** (see changes below)
 
 
 ### Previous Versions:
@@ -164,9 +163,29 @@ return Iterator(this, TABLE_SIZE, nullptr);
 ```
 which is exactly what end() already has inside. This is just to be neater.
 
+- **v1.1.4**
+             - Added `normalizeTableSize()` private helper: zero or negative initial capacities now safely default to `INITIAL_TABLE_SIZE` instead of causing undefined behavior.
+             - Fixed `Hashtable(size_t initialCapacity, float loadFactor)` constructor to pass capacity through `normalizeTableSize()`.
+             - Fixed `resize()` to use the normalized size throughout, preventing zero-size allocations.
+             - Fixed `isEmpty()` to check `count == 0` directly instead of calling `size()`.
+             - Fixed `operator*()` in Iterator: empty-pair fallback changed from `KeyValuePair{"", ""}` to `KeyValuePair{K(), V()}` for type-safe default construction with non-String key/value types.
+             - Fixed `getElement(const K& key, V* value) const`: now returns `false` immediately when `value` is `nullptr` instead of dereferencing a null pointer.
+             - Fixed `operator[](const K& key)` (non-const): now safely returns a `static V dummy` fallback if the internal `get()` call returns `nullptr` after `put()`.
+             - Fixed `operator[](const K& key) const`: now returns a stable `static const V defaultValue` reference instead of a dangling reference to a temporary.
+
 ---
 ## 📜 **Arduino Changelog**
 ### Latest Version:
+- **v1.0.5** [ON-PAR] -> PlatformIO v1.1.4
+             - Added `normalizeTableSize()` private helper: zero or negative initial capacities now safely default to `INITIAL_TABLE_SIZE`.
+             - Fixed `Hashtable(size_t initialCapacity, float loadFactor)` constructor to use `normalizeTableSize()`.
+             - Fixed `resize()` to use the normalized size, preventing zero-size allocations.
+             - Fixed `isEmpty()` to check `count == 0` directly instead of calling `size()`.
+             - Fixed `Iterator::operator*()`: empty-pair fallback changed from `KeyValuePair{"", ""}` to `KeyValuePair{K(), V()}`.
+             - Fixed `getElement(const K&, V*)`: returns `false` immediately when `value` is `nullptr`.
+             - Fixed `operator[]` (non-const): safely returns a static fallback if insertion lookup fails.
+             - Fixed `operator[]` (const): returns a stable static reference instead of a temporary.
+
 - **v1.0.4** [BETA] (2025-02) [ON-PAR] -> Platformio v1.1.4 [BETA]
              - README.md has been updated
             
@@ -211,8 +230,6 @@ This is to make sure that empty data is printed as empty and not garbage data.
 return Iterator(this, TABLE_SIZE, nullptr);
 ```
 which is exactly what end() already has inside. This is just to be neater.
-
-
 
 ---
 ## 💖 **Support My Work**  
