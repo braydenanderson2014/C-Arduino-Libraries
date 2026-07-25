@@ -55,7 +55,7 @@ jobs:
 
           TARGET_INPUT="${{ github.event.inputs.target_library_path || '' }}"
 
-          python3 - <<'PY'
+          DISCOVERY_JSON="$(python3 - <<'PY'
           import json
           import os
           from pathlib import Path
@@ -95,12 +95,28 @@ jobs:
               seen.add(item)
               deduped.append(item)
 
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
-            fh.write(f"matrix={json.dumps(deduped)}\\n")
-            fh.write(f"count={len(deduped)}\\n")
-            fh.write(f"has_targets={'true' if deduped else 'false'}\\n")
-            fh.write(f"targets_display={', '.join(deduped) if deduped else '(none)'}\\n")
+          print(json.dumps({
+            "matrix": deduped,
+            "count": len(deduped),
+            "has_targets": bool(deduped),
+            "targets_display": ", ".join(deduped) if deduped else "(none)",
+          }))
           PY
+          )"
+
+          echo "Discovery payload: ${DISCOVERY_JSON}"
+
+          MATRIX_JSON="$(printf '%s' "${DISCOVERY_JSON}" | jq -c '.matrix')"
+          COUNT_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.count')"
+          HAS_TARGETS_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.has_targets')"
+          TARGETS_DISPLAY_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.targets_display')"
+
+          {
+            echo "matrix=${MATRIX_JSON}"
+            echo "count=${COUNT_VALUE}"
+            echo "has_targets=${HAS_TARGETS_VALUE}"
+            echo "targets_display=${TARGETS_DISPLAY_VALUE}"
+          } >> "$GITHUB_OUTPUT"
         env:
           TARGET_INPUT: ${{ github.event.inputs.target_library_path || '' }}
 
@@ -108,7 +124,9 @@ jobs:
         shell: bash
         run: |
           echo "Discovered library targets count: ${{ steps.discover.outputs.count }}"
+          echo "Discovered library has_targets: ${{ steps.discover.outputs.has_targets }}"
           echo "Discovered library targets: ${{ steps.discover.outputs.targets_display }}"
+          echo "Discovered library matrix: ${{ steps.discover.outputs.matrix }}"
 
   host-library-compile:
     needs: discover-libraries
