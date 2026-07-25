@@ -13,6 +13,7 @@ private:
     T* array;
     mutable unsigned int count;
     mutable unsigned int capacity;
+    static const unsigned int MIN_CAPACITY = 4;
 
     static unsigned int normalizeCapacity(unsigned int requestedCapacity) {
         return requestedCapacity == 0 ? DEFAULT_CAPACITY : requestedCapacity;
@@ -47,9 +48,11 @@ private:
      * @private This method is private because it is only used internally.
     */
     void ensureCapacity() {
-        if (capacity == 0) {
+        if (capacity == 0 || array == nullptr) {
             resize(DEFAULT_CAPACITY);
-        } else if (count == capacity) {
+            return;
+        }
+        if (count == capacity) {
             resize(2 * capacity);
         }
     }
@@ -129,6 +132,14 @@ public:
      * @public This method is public because it is meant to be called by the user.
     */
     bool shrinkToFit() {
+        if (count == 0) {
+            if (capacity != MIN_CAPACITY || array == nullptr) {
+                resize(MIN_CAPACITY);
+                count = 0;
+                return true;
+            }
+            return false;
+        }
         if (count < capacity) {
             resize(count == 0 ? DEFAULT_CAPACITY : count);
             return true;
@@ -222,7 +233,7 @@ public:
     //back() method
     T& back() {
         static T dummy = T();
-        if (count == 0) {
+        if (count == 0 || array == nullptr) {
             return dummy;
         }
         return array[count - 1];

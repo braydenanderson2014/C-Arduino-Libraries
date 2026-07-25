@@ -122,6 +122,9 @@ private:
      * @return The hash of the key
     */
     int hash(const K& key) const {
+        if (TABLE_SIZE <= 0) {
+            return 0;
+        }
         return hashFunction(key) % TABLE_SIZE;
     }
 
@@ -133,6 +136,9 @@ private:
     * @return The index of the key in the hash table
     */
     int calculateIndex(const K& key, int tableSize) const {
+        if (tableSize <= 0) {
+            return 0;
+        }
         return hashFunction(key) % tableSize;
     }
  // Private function to resize the hash table
@@ -831,13 +837,19 @@ public:
             entry = entry->next;
         }
         // If the key does not exist, create a new entry with the default value
-        put(key, V());
-        V* value = get(key);
-        if (value != nullptr) {
-            return *value;
+        V defaultValue = V();
+        put(key, defaultValue);
+        int newIndex = hash(key);
+        Entry* inserted = table[newIndex];
+        while (inserted != nullptr) {
+            if (inserted->key == key) {
+                return inserted->value;
+            }
+            inserted = inserted->next;
         }
-        static V dummy = V();
-        return dummy;
+        // Defensive fallback: if insertion unexpectedly failed, return a stable static value.
+        static V fallback = V();
+        return fallback;
     }
 
     /**
