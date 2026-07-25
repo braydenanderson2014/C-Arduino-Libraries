@@ -38,7 +38,6 @@ jobs:
             const path = require("path");
 
             const configPath = process.env.CONFIG_PATH;
-            const issueMarker = "<!-- library-sync-request -->";
             const issueNumberInput = context.eventName === "workflow_dispatch"
               ? String(context.payload?.inputs?.issue_number || "").trim()
               : "";
@@ -129,7 +128,7 @@ jobs:
 
             const body = String(issue.body || "");
             const labels = (issue.labels || []).map((label) => label.name);
-            if (!body.includes(issueMarker) || !labels.includes("library-sync-request")) {
+            if (!labels.includes("library-sync-request")) {
               core.info("Issue is not a library sync request. Skipping.");
               core.setOutput("should_run", "false");
               return;
