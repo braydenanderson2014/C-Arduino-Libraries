@@ -3,7 +3,21 @@
 
 #include "Hashtable.h"
 #include <Arduino.h>
-#include <FS.h>
+#include <SD.h>
+
+#if __has_include(<FS.h>)
+  #include <FS.h>
+#else
+  namespace fs {
+    class FS {
+    public:
+      virtual ~FS() = default;
+      virtual File open(const char* path, const char* mode) = 0;
+      virtual bool exists(const char* path) = 0;
+      virtual bool remove(const char* path) = 0;
+    };
+  }
+#endif
 
 class Properties {
 public:
