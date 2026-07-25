@@ -14,7 +14,7 @@
     https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/Release/README.md
 
 */
-#include <RedBlackTree.h>
+#include <redblackTree.h>
 
 // Create a RedBlackTree object
 RedBlackTree<int> rbtree;

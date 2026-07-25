@@ -377,7 +377,7 @@
 
     #define DBL_MIN FLT_MIN // On Arduino, double is often the same as float
     #define DBL_MAX FLT_MAX
-#elif defined (_AVR_ATmega2560_)
+#elif defined(_AVR_ATmega2560_) || defined(__AVR_ATmega2560__) || defined(ARDUINO_AVR_MEGA2560)
     #define CHAR_MIN (-128)
     #define CHAR_MAX 127
 

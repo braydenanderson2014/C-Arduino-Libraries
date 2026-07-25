@@ -25,6 +25,18 @@ public:
     String(unsigned long v) : std::string(std::to_string(v)) {}
     String(float v) : std::string(std::to_string(v)) {}
     String(double v) : std::string(std::to_string(v)) {}
+
+    long toInt() const {
+        char* end = nullptr;
+        const long value = std::strtol(this->c_str(), &end, 10);
+        return (end == this->c_str()) ? 0L : value;
+    }
+
+    float toFloat() const {
+        char* end = nullptr;
+        const float value = std::strtof(this->c_str(), &end);
+        return (end == this->c_str()) ? 0.0f : value;
+    }
 };
 
 constexpr uint8_t LOW = 0;
@@ -39,6 +51,16 @@ constexpr int BIN = 2;
 
 inline void pinMode(uint8_t, uint8_t) {}
 inline void digitalWrite(uint8_t, uint8_t) {}
+
+template <typename T>
+inline T min(const T& a, const T& b) {
+    return (a < b) ? a : b;
+}
+
+template <typename T>
+inline T max(const T& a, const T& b) {
+    return (a > b) ? a : b;
+}
 
 inline unsigned long millis() {
     static const auto start = std::chrono::steady_clock::now();

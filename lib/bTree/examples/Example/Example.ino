@@ -15,7 +15,7 @@
 
 */
 
-#include <BTree.h>
+#include <bTree.h>
 
 // Create a new instance of the bTree class
 BTree<double> tree(3); // A B Tree with a minimum degree of 3
