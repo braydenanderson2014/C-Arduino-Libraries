@@ -16,6 +16,7 @@ jobs:
         with:
           script: |
             const labels = [
+              "library-sync-request",
               "AVL Tree",
               "Array List",
               "Binary Search Tree",
