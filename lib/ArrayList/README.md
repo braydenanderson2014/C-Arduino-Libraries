@@ -84,15 +84,18 @@ ArrayList<String> strList(ArrayList<String>::FIXED, 5); //This can never be reiz
 |----------------------------|---------------------|
 | void setCapacity(size_t capacity);	| Manually sets list capacity. ⚠️ Use with caution! |
 | void setCount(size_t count);	| Manually sets the number of elements. ⚠️ Can cause unexpected behavior! |
-| ⚙️ Compiler Directives for Optimization |  ⚠️ Use with caution! |
+| ⚙️ Compiler Directives for Optimization | ⚠️ Use with caution! — can also be set via PlatformIO `build_flags` |
 |-----------|-------------|
-| Directive	| Description |
+| Directive | Description |
 |-----------|-------------|
-| #define SkinnyArray	| Removes memory-intensive functions for optimization. |
-| #define OverrideSort	| Re-enables sorting functions when SkinnyArray is active. |
-| #define OverrideAddAll |	Re-enables bulk addition functions if SkinnyArray is used. |
-| #define OverrideUtilityFunctions	| Re-enables utility functions like cloning. |
-| #define IKnowWhatIAmDoing	| Grants access to manual memory controls. ⚠️ Handle with extreme care! |
+| `#define SkinnyArray` | Removes memory-intensive features to save flash/RAM. |
+| `#define AL_NO_SERIAL` | Suppresses all Serial output from the library. |
+| `#define OverrideSort` | Restores sorting functions when SkinnyArray is active. |
+| `#define OverrideAddAll` | Restores bulk-add functions when SkinnyArray is active. |
+| `#define OverrideInsertAll` | Restores bulk-insert functions when SkinnyArray is active. |
+| `#define OverrideSpecialtyRemove` | Restores removeIf/removeRange/retainAll when SkinnyArray is active. |
+| `#define OverrideUtilityFunctions` | Restores utility functions (clone, toArray, forEach…) when SkinnyArray is active. |
+| `#define IKnowWhatIAmDoing` | Grants access to manual memory controls. ⚠️ Handle with extreme care! |
 
 ## Installation
 
@@ -212,7 +215,31 @@ This documentation provides a full API reference with updated function descripti
 🔗 **Resolved Issue:** [#96](https://github.com/braydenanderson2014/C-Arduino-Libraries/issues/96)  
 ✅ **New Feature**: `getSizeType()` and `setSizeType()` *(Available only if `SkinnyArray` is disabled or `OverrideUtilityFunctions` is enabled)*  
 
-### **v1.0.6-BETA** *(Latest Stable)*
+### **v1.0.7-BETA** *(Latest)*
+
+#### 🐛 Bug Fixes
+- **Fixed `operator[]` undefined behaviour** — previously returned a reference to a stack temporary (dangling ref). Now returns a reference to a reset static default value, preventing garbled Serial output.
+- **Fixed `getReference()` shared static corruption** — the mutable static default value is now reset to `T()` on every out-of-bounds call, preventing corruption across calls.
+- **Fixed `sort()` compile error for QUICK_SORT** — `sort()` was calling `quickSort` with the wrong number of arguments, causing a compile error whenever the Quick Sort path was reached. Now correctly calls `quickSort(comparator)`.
+- **Fixed uninitialised `sortAlgorithm`** — the sort-algorithm member was not initialised in the constructor; it is now initialised to `MERGE_SORT`.
+- **Fixed copy constructor not copying `initialSize` and `sortAlgorithm`**.
+
+#### ✅ Memory Safety Improvements
+- **Replaced all `memcpy` calls with element-by-element assignment** in `addAll`, `insertAll`, `toArray`, `ensureCapacity`, `trimToSize`, `resize1`. `memcpy` bypassed copy constructors and was unsafe for any `T` with non-trivial copy semantics (e.g. Arduino `String`, RAII types). Element-wise assignment calls the proper copy-assignment operator.
+- **`clear()` no longer deallocates and reallocates** — it simply resets `count = 0`, preserving capacity and avoiding unnecessary heap churn that contributes to fragmentation.
+- **Null checks added after every `new`** in `resize1`, `resize2`, `ensureCapacity`, `trimToSize`, and `merge`. If an allocation fails the list is left in its previous valid state.
+
+#### ⚙️ New Compiler Directive
+- **`AL_NO_SERIAL`** — define this to suppress all `Serial.println` calls emitted by the library. Useful when `Serial` has not been initialised in the sketch.  Can be set via PlatformIO `build_flags = -DAL_NO_SERIAL`.
+
+#### 🔧 Code Restructuring (no behaviour change)
+- **Compiler-directive blocks refactored** — eliminated ~800 lines of duplicated function bodies. Each `#ifndef SkinnyArray … #elif defined(OverrideXxx) … #endif` pattern has been replaced by the equivalent `#if !defined(SkinnyArray) || defined(OverrideXxx)` block containing the function body exactly once. Semantics are identical.
+- **`operator=` now guarded by `OverrideAssignmentOperator`** — previously the assignment operator was compiled unconditionally even when `SkinnyArray` was defined, inconsistent with all other advanced features.
+- **Renamed internal `swap` → `swapElements`** to avoid shadowing `std::swap` on platforms that import the standard library.
+
+---
+
+### **v1.0.6-BETA**
 - **Resolved Issue** :  ArrayList(const ArrayList<T>& list) was improperly set up causing compiling issues.
 - **Added Import** TypeTraits Library is now packaged. TBH: Not entirely sure why I added that import but there you go :) 
 ---
@@ -276,15 +303,48 @@ int main() {
 ```
 
 ## Available Compiler Directives
-* //#define IKnowWhatIAmDoing //Uncomment this line if you know what you are doing; USE THE FUNCTIONS UNCOVERED BY THIS DIRECTIVE AT YOUR OWN RISK!!! [NOT-SUGGESTED]: Please only use the functions protected by this Directive being disabled if you know what you are doing.
-* //#define SkinnyArray // Uncomment this line to remove more advanced functions to save memory or define it in your code [SUGGESTED] : If you are using super memory constrained devices and want to add a bunch of data to the arraylist.
-=== Next Directives are Contigent on SkinnyArray Directive
-* //#define OverrideCopyConstructor //Uncomment this line to override the copy constructor when in SkinnyArray Mode
-* //#define OverrideAssignmentOperator //Uncomment this line to override the assignment operator when in SkinnyArray Mode
-* //#define OverrideSort //Uncomment this line to override the sort function when in SkinnyArray Mode
-* //#define OverrideAddAll //Uncomment this line to override the addAll function when in SkinnyArray Mode
-* //#define OverrideInsertAll //Uncomment this line to override the insertAll function when in SkinnyArray Mode
-* //#define OverrideSpecialtyRemove //Uncomment this line to override the remove function when in SkinnyArray Mode
-* //#define OverrideUtilityFunctions //Uncomment this line to override the utility functions when in SkinnyArray Mode
+
+All directives can be either uncommented in `ArrayList.h` **or** passed as build flags so
+you never need to edit the library source.
+
+### Always-available directives
+
+| Directive | Description |
+|---|---|
+| `#define SkinnyArray` | Removes memory-intensive features (sorting, bulk ops, cloning) to save flash/RAM on constrained devices. **Recommended** for very memory-limited hardware. |
+| `#define AL_NO_SERIAL` | Suppresses all `Serial.println` calls emitted by the library. Use this when `Serial` has not been initialized in your sketch. |
+| `#define IKnowWhatIAmDoing` | Unlocks `setCapacity()` and `setCount()` for low-level memory control. ⚠️ Use with extreme caution. |
+
+### Override directives (contingent on `SkinnyArray` being defined)
+
+These selectively restore feature groups that `SkinnyArray` would otherwise strip:
+
+| Directive | Restores |
+|---|---|
+| `#define OverrideCopyConstructor` | Copy constructor |
+| `#define OverrideAssignmentOperator` | Assignment `operator=` |
+| `#define OverrideSort` | All sorting functions (Bubble, Quick, Merge Sort) |
+| `#define OverrideAddAll` | `addAll()` functions |
+| `#define OverrideInsertAll` | `insertAll()` functions |
+| `#define OverrideSpecialtyRemove` | `removeIf()`, `removeRange()`, `retainAll()` |
+| `#define OverrideUtilityFunctions` | `forEach()`, `toArray()`, `clone()`, `sublist()`, `ensureCapacity()`, `trimToSize()`, `setSizeType()`, `getSizeType()` |
+
+### Using directives from PlatformIO (`platformio.ini`)
+
+You do **not** need to uncomment anything in the library header.  Add `-D` flags to your
+environment's `build_flags` instead:
+
+```ini
+[env:myboard]
+platform = ...
+board    = ...
+framework = arduino
+build_flags =
+    -DSkinnyArray
+    -DOverrideSort          ; bring back sorting even in SkinnyArray mode
+    -DAL_NO_SERIAL          ; suppress Serial output
+```
+
+Any combination of the directives above is valid as a `-D` flag.
 
 

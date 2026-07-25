@@ -1,6 +1,6 @@
 # Library Health Report
 
-Generated: 2026-07-24T17:54:59.995Z
+Generated: 2026-07-25T03:48:44.323Z
 Source repo: braydenanderson2014/C-Arduino-Libraries
 Analyzer repo: braydenanderson2014/SystemCommands
 Confirmed labels: confirmed
@@ -9,11 +9,11 @@ Confirmed labels: confirmed
 
 - Libraries analyzed: 53
 - Potentially Unhealthy: 4
-- Stable: 16
+- Stable: 17
 - Unstable: 6
-- Unsure: 27
-- Tested: 10
-- Not Tested: 43
+- Unsure: 26
+- Tested: 11
+- Not Tested: 42
 
 ## Results
 
@@ -26,7 +26,7 @@ Confirmed labels: confirmed
 | Binary Search Tree | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
 | Binary Tree | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
 | Color Manager | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
-| Dictionary | 0 | 0 | Watch | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #21 | #23 |
+| Dictionary | 0 | 0 | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #21 | #23 |
 | Double Linked List | 0 | 0 | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #21 | #23 |
 | Dynamic Storage Library | 0 | 0 | Unknown | ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #20 | #23 |
 | Ethernet Connection Checker | 0 | 0 | Unknown | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square) | #21 | #22 |
@@ -46,20 +46,20 @@ Confirmed labels: confirmed
 | Math Lib | 0 | 0 | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #21 | #23 |
 | Matrix Math | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
 | Memory Manager | 0 | 0 | Unknown | ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #20 | #23 |
-| My Dictionary | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
+| My Dictionary | 0 | 0 | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #21 | #23 |
 | New Array List (TEMP) | 0 | 0 | Unknown | ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #20 | #23 |
 | Numeric Limits | 0 | 0 | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #21 | #23 |
 | OC Tree | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
-| Operators | 0 | 0 | Watch | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square) | #21 | #22 |
+| Operators | 0 | 0 | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square) | #21 | #22 |
 | Optional | 0 | 0 | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square) | #21 | #22 |
 | Ordered Map | 0 | 0 | Unknown | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
-| Predicates | 0 | 0 | Watch | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square) | #21 | #22 |
-| Properties | 0 | 0 | Unknown | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square) | #21 | #22 |
+| Predicates | 0 | 0 | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square) | #21 | #22 |
+| Properties | 0 | 0 | Unknown | ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square) | ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square) | #20 | #22 |
 | Quad Tree | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
 | Queue | 0 | 0 | Unknown | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
 | R Tree | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
 | Red Black Tree | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
-| SD List | 0 | 0 | Watch | ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #20 | #23 |
+| SD List | 0 | 0 | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square) | #21 | #22 |
 | Segment Tree | 0 | 0 | Watch | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
 | Simple Mutex | 0 | 0 | Unknown | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
 | Simple Thread Manager | 0 | 0 | Unknown | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square) | #24 | #23 |
@@ -98,7 +98,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 2
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 2722 (top 8000).)
+- PlatformIO: Likely Healthy (Rank 2711 (top 8000).)
 - No confirmed source issues linked.
 
 ### AVL Tree
@@ -209,7 +209,7 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Not Tested (#23)
 - Testing badge: ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square)
-- Computed bucket before override: Unsure
+- Computed bucket before override: Stable
 - Manual category override applied: Yes
 - Manual issue count override applied: No
 - Confirmed issue lock active: No
@@ -217,7 +217,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Watch (Rank 15606, trends -12/0.)
+- PlatformIO: Likely Healthy (Rank 15605, trends 1/0.)
 - No confirmed source issues linked.
 
 ### Double Linked List
@@ -234,7 +234,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 6594 (top 8000).)
+- PlatformIO: Likely Healthy (Rank 6605 (top 8000).)
 - No confirmed source issues linked.
 
 ### Dynamic Storage Library
@@ -336,7 +336,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 2
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 2198 (top 8000).)
+- PlatformIO: Likely Healthy (Rank 2219 (top 8000).)
 - No confirmed source issues linked.
 
 ### Heap Tree
@@ -370,7 +370,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 2009 (top 8000).)
+- PlatformIO: Likely Healthy (Rank 2010 (top 8000).)
 - No confirmed source issues linked.
 
 ### Interval Tree
@@ -421,7 +421,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 4670 (top 8000).)
+- PlatformIO: Likely Healthy (Rank 4677 (top 8000).)
 - No confirmed source issues linked.
 
 ### Json
@@ -489,7 +489,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 3331 (top 8000).)
+- PlatformIO: Likely Healthy (Rank 3347 (top 8000).)
 - No confirmed source issues linked.
 
 ### Math Lib
@@ -506,7 +506,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 4697 (top 8000).)
+- PlatformIO: Likely Healthy (Rank 4702 (top 8000).)
 - No confirmed source issues linked.
 
 ### Matrix Math
@@ -545,11 +545,11 @@ Confirmed labels: confirmed
 
 ### My Dictionary
 
-- Routed bucket: Unsure (#24)
-- Health badge: ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)
+- Routed bucket: Stable (#21)
+- Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Not Tested (#23)
 - Testing badge: ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square)
-- Computed bucket before override: Unsure
+- Computed bucket before override: Stable
 - Manual category override applied: No
 - Manual issue count override applied: No
 - Confirmed issue lock active: No
@@ -557,7 +557,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Watch (Rank 15614, trends -12/-4.)
+- PlatformIO: Likely Healthy (Rank 15613, trends 1/-4.)
 - No confirmed source issues linked.
 
 ### New Array List (TEMP)
@@ -591,7 +591,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 4698 (top 8000).)
+- PlatformIO: Likely Healthy (Rank 4703 (top 8000).)
 - No confirmed source issues linked.
 
 ### OC Tree
@@ -617,7 +617,7 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Computed bucket before override: Unsure
+- Computed bucket before override: Stable
 - Manual category override applied: Yes
 - Manual issue count override applied: No
 - Confirmed issue lock active: No
@@ -625,7 +625,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Watch (Rank 15709, trends -10/-2.)
+- PlatformIO: Likely Healthy (Rank 15708, trends 1/-2.)
 - No confirmed source issues linked.
 
 ### Optional
@@ -642,7 +642,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 6844 (top 8000).)
+- PlatformIO: Likely Healthy (Rank 6854 (top 8000).)
 - No confirmed source issues linked.
 
 ### Ordered Map
@@ -668,7 +668,7 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Computed bucket before override: Unsure
+- Computed bucket before override: Stable
 - Manual category override applied: Yes
 - Manual issue count override applied: No
 - Confirmed issue lock active: No
@@ -676,13 +676,13 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Watch (Rank 15710, trends -10/-3.)
+- PlatformIO: Likely Healthy (Rank 15709, trends 1/-3.)
 - No confirmed source issues linked.
 
 ### Properties
 
-- Routed bucket: Stable (#21)
-- Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
+- Routed bucket: Unstable (#20)
+- Health badge: ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
 - Computed bucket before override: Unsure
@@ -766,11 +766,11 @@ Confirmed labels: confirmed
 
 ### SD List
 
-- Routed bucket: Unstable (#20)
-- Health badge: ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square)
-- Testing status: Not Tested (#23)
-- Testing badge: ![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square)
-- Computed bucket before override: Unsure
+- Routed bucket: Stable (#21)
+- Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
+- Testing status: Tested (#22)
+- Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
+- Computed bucket before override: Stable
 - Manual category override applied: Yes
 - Manual issue count override applied: No
 - Confirmed issue lock active: No
@@ -778,7 +778,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Watch (Rank 15612, trends -12/-4.)
+- PlatformIO: Likely Healthy (Rank 15611, trends 1/-4.)
 - No confirmed source issues linked.
 
 ### Segment Tree
@@ -846,7 +846,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 1
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 2097 (top 8000).)
+- PlatformIO: Likely Healthy (Rank 2098 (top 8000).)
 - No confirmed source issues linked.
 
 ### Stack
@@ -948,7 +948,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 3864 (top 8000).)
+- PlatformIO: Likely Healthy (Rank 3870 (top 8000).)
 - No confirmed source issues linked.
 
 ### Unordered Map
@@ -965,7 +965,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank 2966 (top 8000).)
+- PlatformIO: Likely Healthy (Rank 2957 (top 8000).)
 - No confirmed source issues linked.
 
 ### Variant
@@ -982,6 +982,6 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Watch (Rank 16693, trends -7/-3.)
+- PlatformIO: Watch (Rank 16694, trends -1/-3.)
 - No confirmed source issues linked.
 
