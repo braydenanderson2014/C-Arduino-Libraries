@@ -115,7 +115,7 @@ typedef char* va_list;
 #include <LiquidCrystal_I2C.h>
 #include <LiquidCrystal.h>
 #include <Wire.h>
-#include <SDFat.h>
+#include <SdFat.h>
 #include <SPI.h>
 //#include <hyperdisplay.h>
 

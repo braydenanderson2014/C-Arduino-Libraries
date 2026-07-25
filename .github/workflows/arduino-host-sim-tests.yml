@@ -166,15 +166,33 @@ jobs:
           #define HOST_ARDUINO_SIM_ARDUINO_H
           #include <cstdlib>
           #include <cstdint>
+          #include <iomanip>
           #include <iostream>
           #include <string>
           using byte = std::uint8_t;
-          using String = std::string;
+          class String : public std::string {
+          public:
+              using std::string::string;
+              String() : std::string() {}
+              String(const char* s) : std::string(s ? s : "") {}
+              String(const std::string& s) : std::string(s) {}
+              String(char c) : std::string(1, c) {}
+              String(int v) : std::string(std::to_string(v)) {}
+              String(unsigned int v) : std::string(std::to_string(v)) {}
+              String(long v) : std::string(std::to_string(v)) {}
+              String(unsigned long v) : std::string(std::to_string(v)) {}
+              String(float v) : std::string(std::to_string(v)) {}
+              String(double v) : std::string(std::to_string(v)) {}
+          };
           constexpr uint8_t LOW = 0;
           constexpr uint8_t HIGH = 1;
           constexpr uint8_t INPUT = 0;
           constexpr uint8_t OUTPUT = 1;
           constexpr uint8_t LED_BUILTIN = 13;
+          constexpr int DEC = 10;
+          constexpr int HEX = 16;
+          constexpr int OCT = 8;
+          constexpr int BIN = 2;
           inline void pinMode(uint8_t, uint8_t) {}
           inline void digitalWrite(uint8_t, uint8_t) {}
           class HostSerial {
@@ -183,21 +201,32 @@ jobs:
               void flush() {}
               template <typename T> void print(const T& value) { std::cout << value; }
               template <typename T> void println(const T& value) { std::cout << value << std::endl; }
+              template <typename T>
+              void print(const T& value, int base) {
+                  if (base == HEX) { std::cout << std::hex << value << std::dec; return; }
+                  if (base == OCT) { std::cout << std::oct << value << std::dec; return; }
+                  std::cout << value;
+              }
+              template <typename T>
+              void println(const T& value, int base) {
+                  print(value, base);
+                  std::cout << std::endl;
+              }
               void println() { std::cout << std::endl; }
               explicit operator bool() const { return true; }
           };
           inline HostSerial Serial;
           inline unsigned long millis() { return 0UL; }
           inline void delay(unsigned long) {}
-            inline void randomSeed(unsigned long seed) { std::srand(static_cast<unsigned int>(seed)); }
-            inline long random(long max) {
+          inline void randomSeed(unsigned long seed) { std::srand(static_cast<unsigned int>(seed)); }
+          inline long random(long max) {
               if (max <= 0) { return 0; }
               return static_cast<long>(std::rand() % max);
-            }
-            inline long random(long min, long max) {
+          }
+          inline long random(long min, long max) {
               if (max <= min) { return min; }
               return min + random(max - min);
-            }
+          }
           #endif
           EOF
 
@@ -209,29 +238,29 @@ jobs:
           #endif
           EOF
 
-            cat > .github/tmp-host-shim/Ethernet.h <<'EOF'
-            #ifndef HOST_ARDUINO_SIM_ETHERNET_H
-            #define HOST_ARDUINO_SIM_ETHERNET_H
-            #include "Arduino.h"
-            #include <cstddef>
-            #include <cstdint>
-            #include <cstring>
-            class IPAddress {
-            public:
+          cat > .github/tmp-host-shim/Ethernet.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_ETHERNET_H
+          #define HOST_ARDUINO_SIM_ETHERNET_H
+          #include "Arduino.h"
+          #include <cstddef>
+          #include <cstdint>
+          #include <cstring>
+          class IPAddress {
+          public:
               IPAddress() : _address{0, 0, 0, 0} {}
               IPAddress(uint8_t a, uint8_t b, uint8_t c, uint8_t d) : _address{a, b, c, d} {}
               uint8_t operator[](size_t index) const { return index < 4 ? _address[index] : 0; }
               uint8_t& operator[](size_t index) {
-                if (index >= 4) { static uint8_t dummy = 0; return dummy; }
-                return _address[index];
+                  if (index >= 4) { static uint8_t dummy = 0; return dummy; }
+                  return _address[index];
               }
-            private:
+          private:
               uint8_t _address[4];
-            };
-            enum EthernetLinkStatus { Unknown, LinkON, LinkOFF };
-            enum EthernetHardwareStatus { EthernetNoHardware, EthernetW5100, EthernetW5200, EthernetW5500 };
-            class EthernetClient {
-            public:
+          };
+          enum EthernetLinkStatus { Unknown, LinkON, LinkOFF };
+          enum EthernetHardwareStatus { EthernetNoHardware, EthernetW5100, EthernetW5200, EthernetW5500 };
+          class EthernetClient {
+          public:
               EthernetClient() : _connected(false) {}
               bool connect(const char*, uint16_t) { _connected = true; return true; }
               bool connect(const IPAddress&, uint16_t) { _connected = true; return true; }
@@ -251,27 +280,27 @@ jobs:
               bool connected() const { return _connected; }
               void stop() { _connected = false; }
               explicit operator bool() const { return true; }
-            private:
+          private:
               bool _connected;
-            };
-            class EthernetServer {
-            public:
+          };
+          class EthernetServer {
+          public:
               explicit EthernetServer(uint16_t) {}
               void begin() {}
               EthernetClient available() { return EthernetClient(); }
-            };
-            class EthernetClass {
-            public:
+          };
+          class EthernetClass {
+          public:
               EthernetClass()
-                : _localIp(192, 168, 1, 200), _dnsIp(8, 8, 8, 8), _gatewayIp(192, 168, 1, 1),
-                _subnetIp(255, 255, 255, 0), _linkStatus(LinkON), _hardwareStatus(EthernetW5500) {}
+                  : _localIp(192, 168, 1, 200), _dnsIp(8, 8, 8, 8), _gatewayIp(192, 168, 1, 1),
+                    _subnetIp(255, 255, 255, 0), _linkStatus(LinkON), _hardwareStatus(EthernetW5500) {}
               void init(uint8_t) {}
               int begin(uint8_t*, unsigned long = 0) { return 1; }
               void begin(uint8_t*, const IPAddress& ip, const IPAddress& dns, const IPAddress& gateway, const IPAddress& subnet) {
-                _localIp = ip;
-                _dnsIp = dns;
-                _gatewayIp = gateway;
-                _subnetIp = subnet;
+                  _localIp = ip;
+                  _dnsIp = dns;
+                  _gatewayIp = gateway;
+                  _subnetIp = subnet;
               }
               IPAddress localIP() const { return _localIp; }
               IPAddress dnsServerIP() const { return _dnsIp; }
@@ -281,15 +310,90 @@ jobs:
               void setRetransmissionCount(uint8_t) {}
               EthernetLinkStatus linkStatus() const { return _linkStatus; }
               EthernetHardwareStatus hardwareStatus() const { return _hardwareStatus; }
-            private:
+          private:
               IPAddress _localIp;
               IPAddress _dnsIp;
               IPAddress _gatewayIp;
               IPAddress _subnetIp;
               EthernetLinkStatus _linkStatus;
               EthernetHardwareStatus _hardwareStatus;
-            };
-            inline EthernetClass Ethernet;
+          };
+          inline EthernetClass Ethernet;
+          #endif
+          EOF
+
+          cat > .github/tmp-host-shim/SdFat.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_SDFAT_H
+          #define HOST_ARDUINO_SIM_SDFAT_H
+          #include "Arduino.h"
+          #include <cstddef>
+          #include <cstdint>
+          constexpr uint8_t O_READ = 0x01;
+          constexpr uint8_t O_WRITE = 0x02;
+          constexpr uint8_t O_CREAT = 0x04;
+          #ifndef SD_CS_PIN
+          #define SD_CS_PIN 4
+          #endif
+          #ifndef SD_SCK_MHZ
+          #define SD_SCK_MHZ(x) (x)
+          #endif
+          class FsFile {
+          public:
+              explicit operator bool() const { return true; }
+              int read() { return -1; }
+              int read(void*, size_t) { return 0; }
+              size_t write(const void*, size_t size) { return size; }
+              size_t write(uint8_t) { return 1; }
+              void close() {}
+          };
+          class SdCardMock { public: uint32_t sectorCount() const { return 4UL * 1024UL * 1024UL; } };
+          class SdVolumeMock {
+          public:
+              uint32_t freeClusterCount() const { return 32768UL; }
+              uint32_t clusterCount() const { return 65536UL; }
+              uint32_t sectorsPerCluster() const { return 8UL; }
+          };
+          class SdFat {
+          public:
+              bool begin() { return true; }
+              bool begin(uint8_t, uint32_t = 0) { return true; }
+              FsFile open(const char*, uint8_t = O_READ) { return FsFile(); }
+              FsFile open(const String&, uint8_t = O_READ) { return FsFile(); }
+              SdCardMock* card() { return &_card; }
+              SdVolumeMock* vol() { return &_vol; }
+          private:
+              SdCardMock _card;
+              SdVolumeMock _vol;
+          };
+          using SdFile = FsFile;
+          #endif
+          EOF
+
+          cat > .github/tmp-host-shim/SDFat.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_SDFAT_COMPAT_H
+          #define HOST_ARDUINO_SIM_SDFAT_COMPAT_H
+          #include "SdFat.h"
+          #endif
+          EOF
+
+            cat > .github/tmp-host-shim/lz4.h <<'EOF'
+            #ifndef HOST_ARDUINO_SIM_LZ4_H
+            #define HOST_ARDUINO_SIM_LZ4_H
+            #include <cstring>
+            inline int LZ4_compress_default(const char* src, char* dst, int srcSize, int dstCapacity) {
+              if (!src || !dst || srcSize < 0 || dstCapacity < 0) { return 0; }
+              if (srcSize > dstCapacity) { return 0; }
+              if (srcSize == 0) { return 0; }
+              std::memcpy(dst, src, static_cast<size_t>(srcSize));
+              return srcSize;
+            }
+            inline int LZ4_decompress_safe(const char* src, char* dst, int compressedSize, int dstCapacity) {
+              if (!src || !dst || compressedSize < 0 || dstCapacity < 0) { return -1; }
+              if (compressedSize > dstCapacity) { return -1; }
+              if (compressedSize == 0) { return 0; }
+              std::memcpy(dst, src, static_cast<size_t>(compressedSize));
+              return compressedSize;
+            }
             #endif
             EOF
 

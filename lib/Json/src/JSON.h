@@ -1,7 +1,7 @@
 #ifndef JSON_H
 #define JSON_H
 
-#include <SDFat.h>
+#include <SdFat.h>
 #include <Arduino.h>
 #include <SimpleVector.h>
 #include <lz4.h>
