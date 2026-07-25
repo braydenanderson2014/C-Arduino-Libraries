@@ -75,6 +75,7 @@ public:
     void setSingle(const T& value) {
         isList = false;
         singleValue = value;
+        listValues.clear();
     }
 
     /**
@@ -82,10 +83,17 @@ public:
      * 
      * @param values The ArrayList of values to set
      */
+    #ifdef useSimpleVector
+    void setList(const SimpleVector<T>& values) {
+        isList = true;
+        listValues = values;
+    }
+    #else
     void setList(const ArrayList<T>& values) {
         isList = true;
         listValues = values;
     }
+    #endif
 
     /**
      * @brief Gets the single value of the Variant
@@ -93,7 +101,17 @@ public:
      * @return The single value of the Variant
      */
     T getSingle() const {
-        return isList ? listValues.get(0) : singleValue;
+        #ifdef useSimpleVector
+        if (isList) {
+            return listValues.elements() > 0 ? listValues[0] : T();
+        }
+        return singleValue;
+        #else
+        if (isList) {
+            return listValues.size() > 0 ? listValues.get(0) : T();
+        }
+        return singleValue;
+        #endif
     }
 
 
@@ -149,6 +167,7 @@ public:
      */
     void addValue(const T& value) {
         if (!isList) {
+            listValues.clear();
             listValues.add(singleValue);
             isList = true;
         }
