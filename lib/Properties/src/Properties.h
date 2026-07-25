@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include <SD.h>
 
-#if __has_include(<FS.h>)
+#if defined(__has_include) && __has_include(<FS.h>)
   #include <FS.h>
 #else
   namespace fs {
