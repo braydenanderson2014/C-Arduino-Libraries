@@ -3,6 +3,85 @@
 #include <Arduino.h>
 #include <SD.h>
 
+namespace {
+String jsonEscape(const String& input) {
+    String escaped;
+    for (size_t i = 0; i < input.length(); ++i) {
+        char c = input.charAt(i);
+        switch (c) {
+            case '\"': escaped += "\\\""; break;
+            case '\\': escaped += "\\\\"; break;
+            case '\b': escaped += "\\b"; break;
+            case '\f': escaped += "\\f"; break;
+            case '\n': escaped += "\\n"; break;
+            case '\r': escaped += "\\r"; break;
+            case '\t': escaped += "\\t"; break;
+            default:
+                if (static_cast<unsigned char>(c) < 0x20) {
+                    const char* hex = "0123456789ABCDEF";
+                    escaped += "\\u00";
+                    escaped += hex[(static_cast<unsigned char>(c) >> 4) & 0x0F];
+                    escaped += hex[static_cast<unsigned char>(c) & 0x0F];
+                } else {
+                    escaped += c;
+                }
+                break;
+        }
+    }
+    return escaped;
+}
+
+int fromHex(char c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
+    if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
+    return -1;
+}
+
+String jsonUnescape(const String& input) {
+    String unescaped;
+    for (size_t i = 0; i < input.length(); ++i) {
+        char c = input.charAt(i);
+        if (c == '\\' && i + 1 < input.length()) {
+            char next = input.charAt(++i);
+            switch (next) {
+                case '\"': unescaped += '\"'; break;
+                case '\\': unescaped += '\\'; break;
+                case '/':  unescaped += '/'; break;
+                case 'b':  unescaped += '\b'; break;
+                case 'f':  unescaped += '\f'; break;
+                case 'n':  unescaped += '\n'; break;
+                case 'r':  unescaped += '\r'; break;
+                case 't':  unescaped += '\t'; break;
+                case 'u':
+                    if (i + 4 < input.length()) {
+                        int h1 = fromHex(input.charAt(i + 1));
+                        int h2 = fromHex(input.charAt(i + 2));
+                        int h3 = fromHex(input.charAt(i + 3));
+                        int h4 = fromHex(input.charAt(i + 4));
+                        if (h1 >= 0 && h2 >= 0 && h3 >= 0 && h4 >= 0) {
+                            int codepoint = (h1 << 12) | (h2 << 8) | (h3 << 4) | h4;
+                            if (codepoint <= 0xFF) {
+                                unescaped += static_cast<char>(codepoint);
+                            }
+                            i += 4;
+                            break;
+                        }
+                    }
+                    unescaped += "\\u";
+                    break;
+                default:
+                    unescaped += next;
+                    break;
+            }
+        } else {
+            unescaped += c;
+        }
+    }
+    return unescaped;
+}
+} // namespace
+
 // ─── Private helpers ─────────────────────────────────────────────────────────
 
 /**
@@ -452,7 +531,7 @@ bool Properties::storeToJSON(const String& filename, const String& comments) {
     File file = openForWrite(filename);
     if (file) {
         file.print("{\n");
-        file.print("  \"comments\": \"" + comments + "\",\n");
+        file.print("  \"comments\": \"" + jsonEscape(comments) + "\",\n");
         file.print("  \"properties\": [\n");
         bool firstProperty = true;
         for (PropertiesIterator it = begin(); it != end(); ++it) {
@@ -461,8 +540,8 @@ bool Properties::storeToJSON(const String& filename, const String& comments) {
                     file.print(",\n");
                 }
                 file.print("    {\n");
-                file.print("      \"key\": \"" + it.key() + "\",\n");
-                file.print("      \"value\": \"" + it.value() + "\"\n");
+                file.print("      \"key\": \"" + jsonEscape(it.key()) + "\",\n");
+                file.print("      \"value\": \"" + jsonEscape(it.value()) + "\"\n");
                 file.print("    }");
                 file.print("\n");
                 firstProperty = false;
@@ -494,9 +573,9 @@ bool Properties::loadFromJSON(const String& filename) {
             int keyLabelIndex = line.indexOf("\"key\":");
             if (keyLabelIndex != -1) {
                 int keyStartIndex = line.indexOf('\"', keyLabelIndex + 6);
-                int keyEndIndex = line.indexOf('\"', keyStartIndex + 1);
+                int keyEndIndex = line.lastIndexOf('\"');
                 if (keyStartIndex != -1 && keyEndIndex != -1) {
-                    pendingKey = line.substring(keyStartIndex + 1, keyEndIndex);
+                    pendingKey = jsonUnescape(line.substring(keyStartIndex + 1, keyEndIndex));
                     hasPendingKey = true;
                 }
             }
@@ -504,9 +583,9 @@ bool Properties::loadFromJSON(const String& filename) {
             int valueLabelIndex = line.indexOf("\"value\":");
             if (valueLabelIndex != -1 && hasPendingKey) {
                 int valueStartIndex = line.indexOf('\"', valueLabelIndex + 8);
-                int valueEndIndex = line.indexOf('\"', valueStartIndex + 1);
+                int valueEndIndex = line.lastIndexOf('\"');
                 if (valueStartIndex != -1 && valueEndIndex != -1) {
-                    String value = line.substring(valueStartIndex + 1, valueEndIndex);
+                    String value = jsonUnescape(line.substring(valueStartIndex + 1, valueEndIndex));
                     table.put(pendingKey, value);
                     hasPendingKey = false;
                 }

@@ -19,7 +19,8 @@
     "dependencies": {
         "arduino-libraries/SD": "*",
         "Arduino": "*",
-        "Hashtable": "*"
+        "Hashtable": "*",
+        "SimpleVector": "*"
     },
     "examples": [
         {
