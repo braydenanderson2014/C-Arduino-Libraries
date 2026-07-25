@@ -37,6 +37,26 @@ public:
         const float value = std::strtof(this->c_str(), &end);
         return (end == this->c_str()) ? 0.0f : value;
     }
+
+    String substring(unsigned int from) const {
+        if (from >= this->size()) {
+            return String("");
+        }
+        return String(this->substr(from));
+    }
+
+    String substring(unsigned int from, unsigned int to) const {
+        if (from >= this->size()) {
+            return String("");
+        }
+        if (to > this->size()) {
+            to = static_cast<unsigned int>(this->size());
+        }
+        if (to <= from) {
+            return String("");
+        }
+        return String(this->substr(from, to - from));
+    }
 };
 
 constexpr uint8_t LOW = 0;

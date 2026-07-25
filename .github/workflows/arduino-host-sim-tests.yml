@@ -193,6 +193,16 @@ jobs:
                 const float value = std::strtof(this->c_str(), &end);
                 return (end == this->c_str()) ? 0.0f : value;
               }
+                String substring(unsigned int from) const {
+                  if (from >= this->size()) { return String(""); }
+                  return String(this->substr(from));
+                }
+                String substring(unsigned int from, unsigned int to) const {
+                  if (from >= this->size()) { return String(""); }
+                  if (to > this->size()) { to = static_cast<unsigned int>(this->size()); }
+                  if (to <= from) { return String(""); }
+                  return String(this->substr(from, to - from));
+                }
           };
           constexpr uint8_t LOW = 0;
           constexpr uint8_t HIGH = 1;
@@ -389,6 +399,39 @@ jobs:
           #include "SdFat.h"
           #endif
           EOF
+
+            cat > .github/tmp-host-shim/RTClib.h <<'EOF'
+            #ifndef HOST_ARDUINO_SIM_RTCLIB_H
+            #define HOST_ARDUINO_SIM_RTCLIB_H
+            #include "Arduino.h"
+            class DateTime {
+            public:
+              DateTime() : _year(1970), _month(1), _day(1), _hour(0), _minute(0), _second(0) {}
+              DateTime(int year, int month, int day, int hour, int minute, int second)
+                : _year(year), _month(month), _day(day), _hour(hour), _minute(minute), _second(second) {}
+              unsigned long unixtime() const { return millis() / 1000UL; }
+              String timestamp() const {
+                return String(_year) + "-" + String(_month) + "-" + String(_day) + " " +
+                   String(_hour) + ":" + String(_minute) + ":" + String(_second);
+              }
+            private:
+              int _year;
+              int _month;
+              int _day;
+              int _hour;
+              int _minute;
+              int _second;
+            };
+            class RTC_DS3231 {
+            public:
+              bool begin() { return true; }
+              DateTime now() const { return _current; }
+              void adjust(const DateTime& value) { _current = value; }
+            private:
+              DateTime _current;
+            };
+            #endif
+            EOF
 
             cat > .github/tmp-host-shim/lz4.h <<'EOF'
             #ifndef HOST_ARDUINO_SIM_LZ4_H
