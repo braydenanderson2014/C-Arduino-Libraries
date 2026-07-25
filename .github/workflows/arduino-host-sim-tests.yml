@@ -419,7 +419,7 @@ jobs:
           LIB_PATH: ${{ matrix.libraryPath }}
 
       - name: Upload per-library compile artifact
-        if: always()
+        if: always() && steps.smoke.outputs.out_dir != ''
         uses: actions/upload-artifact@v4
         with:
           name: host-library-compile-${{ steps.smoke.outputs.lib_slug }}-${{ matrix.backend }}
