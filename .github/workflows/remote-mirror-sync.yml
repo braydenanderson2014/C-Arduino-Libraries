@@ -314,16 +314,28 @@ jobs:
                 per_page: 100
               });
 
+              const skippedSyncPullRequestTitle = /^Sync\s+.+\s+from monorepo\s*\(#\d+\)$/i;
+              const skippedSyncPullRequestBranch = /^sync-library\//i;
+
               return allPullRequests.filter((pullRequest) => {
                 if (!pullRequest.updated_at || pullRequest.updated_at < sinceIso) {
                   return false;
                 }
 
                 if (trackedBaseBranches.length === 0) {
-                  return true;
+                  // Fall through to the sync PR exclusions below.
+                } else if (!trackedBaseBranches.includes(pullRequest.base?.ref || "")) {
+                  return false;
                 }
 
-                return trackedBaseBranches.includes(pullRequest.base?.ref || "");
+                const pullTitle = String(pullRequest.title || "");
+                const headRef = String(pullRequest.head?.ref || "");
+
+                if (skippedSyncPullRequestTitle.test(pullTitle) || skippedSyncPullRequestBranch.test(headRef)) {
+                  return false;
+                }
+
+                return true;
               });
             };
 
