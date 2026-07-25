@@ -229,6 +229,109 @@ jobs:
 
           echo "shim_dir=.github/tmp-host-shim" >> "$GITHUB_OUTPUT"
 
+      - name: Validate header include casing
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          lib_path = Path("${{ matrix.libraryPath }}")
+          src_dir = lib_path / "src"
+          props = lib_path / "library.properties"
+
+          # Build include search roots used by host smoke compile.
+          search_roots = [src_dir]
+          lib_root = Path("lib")
+          if lib_root.is_dir():
+              for child in sorted(lib_root.iterdir()):
+                  child_src = child / "src"
+                  if child.is_dir() and child_src.is_dir():
+                      search_roots.append(child_src)
+          if Path("src").is_dir():
+              search_roots.append(Path("src"))
+
+          include_re = re.compile(r'^\s*#\s*include\s*"([^"]+)"')
+          skip = {"Arduino.h", "SD.h", "SPI.h", "LittleFS.h"}
+
+          # Lowercase index for case mismatch detection.
+          root_indices = {}
+          for root in search_roots:
+              idx = {}
+              for f in root.rglob("*"):
+                  if f.is_file():
+                      rel = f.relative_to(root).as_posix()
+                      idx[rel.lower()] = rel
+              root_indices[root] = idx
+
+          problems = []
+
+          # 1) Validate library.properties includes entries match actual file case in this library src.
+          if props.is_file():
+              includes_value = None
+              for line in props.read_text(encoding="utf-8", errors="ignore").splitlines():
+                  if line.strip().startswith("includes="):
+                      includes_value = line.split("=", 1)[1].strip()
+                      break
+
+              if includes_value:
+                  declared = [s.strip() for s in includes_value.split(",") if s.strip()]
+                  src_name_map = {p.name.lower(): p.name for p in src_dir.glob("*") if p.is_file()}
+                  for inc in declared:
+                      exact_path = src_dir / inc
+                      if exact_path.is_file():
+                          continue
+                      actual_name = src_name_map.get(inc.lower())
+                      if actual_name:
+                          problems.append(
+                              f"{props.as_posix()}: includes entry '{inc}' has wrong case, expected '{actual_name}'"
+                          )
+                      else:
+                          problems.append(
+                              f"{props.as_posix()}: includes entry '{inc}' not found in {src_dir.as_posix()}"
+                          )
+
+          # 2) Validate local source includes do not reference differently-cased headers.
+          source_files = [
+              p for p in src_dir.rglob("*")
+              if p.is_file() and p.suffix.lower() in {".h", ".hpp", ".hh", ".c", ".cc", ".cpp", ".ino"}
+          ]
+
+          for sf in source_files:
+              for line_no, line in enumerate(sf.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
+                  m = include_re.match(line)
+                  if not m:
+                      continue
+                  inc = m.group(1)
+                  if inc in skip:
+                      continue
+
+                  # Exact resolution in any search root passes.
+                  exact = any((root / inc).is_file() for root in search_roots)
+                  if exact:
+                      continue
+
+                  # If exact failed but lowercase resolution exists, this is a case mismatch.
+                  for root, idx in root_indices.items():
+                      actual_rel = idx.get(inc.lower())
+                      if actual_rel and actual_rel != inc:
+                          problems.append(
+                              f"{sf.as_posix()}:{line_no}: include '{inc}' has wrong case, expected '{actual_rel}' (from {root.as_posix()})"
+                          )
+                          break
+
+          if problems:
+              print("Header include casing/declaration validation failed:")
+              for p in problems:
+                  print(f" - {p}")
+              sys.exit(1)
+
+          print(f"Header include casing/declaration validation passed for {lib_path.as_posix()}")
+          PY
+
       - name: Build per-library host compile smoke
         id: smoke
         shell: bash
