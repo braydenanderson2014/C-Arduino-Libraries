@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: "0 * * * *"   # hourly; adjust as needed
   repository_dispatch:
-    types: [lint-status-updated]
+    types: [lint-status-updated, compile-status-updated, testing-status-updated, project-health-refresh]
   workflow_dispatch: {}
 
 permissions:

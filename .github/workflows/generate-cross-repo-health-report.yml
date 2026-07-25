@@ -39,6 +39,26 @@ on:
         description: Private repo issue number used as Potentially Unhealthy bucket
         required: true
         default: "25"
+      passing_lint_issue_number:
+        description: Private repo issue number used as Lint Passed bucket
+        required: true
+        default: "26"
+      failed_lint_issue_number:
+        description: Private repo issue number used as Lint Failed bucket
+        required: true
+        default: "27"
+      compilation_passed_issue_number:
+        description: Private repo issue number used as Compilation Passed bucket
+        required: true
+        default: "28"
+      compilation_failed_issue_number:
+        description: Private repo issue number used as Compilation Failed bucket
+        required: true
+        default: "29"
+      failed_testing_issue_number:
+        description: Private repo issue number used as Failed Testing bucket
+        required: true
+        default: "33"
       override_path:
         description: Path to override markdown in private repository
         required: true
@@ -65,6 +85,11 @@ jobs:
           NOT_TESTED_ISSUE_NUMBER: ${{ github.event.inputs.not_tested_issue_number }}
           UNSURE_ISSUE_NUMBER: ${{ github.event.inputs.unsure_issue_number }}
           POTENTIALLY_UNHEALTHY_ISSUE_NUMBER: ${{ github.event.inputs.potentially_unhealthy_issue_number }}
+          PASSING_LINT_ISSUE_NUMBER: ${{ github.event.inputs.passing_lint_issue_number }}
+          FAILED_LINT_ISSUE_NUMBER: ${{ github.event.inputs.failed_lint_issue_number }}
+          COMPILATION_PASSED_ISSUE_NUMBER: ${{ github.event.inputs.compilation_passed_issue_number }}
+          COMPILATION_FAILED_ISSUE_NUMBER: ${{ github.event.inputs.compilation_failed_issue_number }}
+          FAILED_TESTING_ISSUE_NUMBER: ${{ github.event.inputs.failed_testing_issue_number }}
           OVERRIDE_PATH: ${{ github.event.inputs.override_path }}
         with:
           script: |
@@ -88,6 +113,14 @@ jobs:
               not_tested: parseIssueNumber('not_tested_issue_number', process.env.NOT_TESTED_ISSUE_NUMBER),
               unsure: parseIssueNumber('unsure_issue_number', process.env.UNSURE_ISSUE_NUMBER),
               potentially_unhealthy: parseIssueNumber('potentially_unhealthy_issue_number', process.env.POTENTIALLY_UNHEALTHY_ISSUE_NUMBER)
+            };
+
+            const statusIssueNumbers = {
+              lint_passed: parseIssueNumber('passing_lint_issue_number', process.env.PASSING_LINT_ISSUE_NUMBER),
+              lint_failed: parseIssueNumber('failed_lint_issue_number', process.env.FAILED_LINT_ISSUE_NUMBER),
+              compilation_passed: parseIssueNumber('compilation_passed_issue_number', process.env.COMPILATION_PASSED_ISSUE_NUMBER),
+              compilation_failed: parseIssueNumber('compilation_failed_issue_number', process.env.COMPILATION_FAILED_ISSUE_NUMBER),
+              testing_failed: parseIssueNumber('failed_testing_issue_number', process.env.FAILED_TESTING_ISSUE_NUMBER)
             };
 
             if (!sourceRepoInput || !sourceRepoInput.includes('/')) {
@@ -521,6 +554,24 @@ jobs:
               return buildStatusBadge('Testing', bucketDisplay(testingKey), colorByTesting[testingKey] || '9e9e9e');
             }
 
+            function lintBadge(lintKey) {
+              const map = {
+                passed: buildStatusBadge('Lint', 'Passed', '2ea44f'),
+                failed: buildStatusBadge('Lint', 'Failed', 'd73a49'),
+                unknown: buildStatusBadge('Lint', 'Unknown', '9e9e9e')
+              };
+              return map[lintKey] || map.unknown;
+            }
+
+            function compilationBadge(compilationKey) {
+              const map = {
+                passed: buildStatusBadge('Compilation', 'Passed', '2ea44f'),
+                failed: buildStatusBadge('Compilation', 'Failed', 'd73a49'),
+                unknown: buildStatusBadge('Compilation', 'Unknown', '9e9e9e')
+              };
+              return map[compilationKey] || map.unknown;
+            }
+
             core.info(`Reading library list from ${libraryTemplateSourcePath}...`);
             const issueTemplateContent = await readSourceFile(libraryTemplateSourcePath);
             const templateLibraryLabels = parseLibraryLabelsFromIssueTemplate(issueTemplateContent);
@@ -636,6 +687,33 @@ jobs:
               statusBucketIssues[bucketKey] = data;
             }
 
+            const statusIssues = {};
+            for (const [statusKey, issueNumber] of Object.entries(statusIssueNumbers)) {
+              const { data } = await privateGh.rest.issues.get({
+                owner: privateOwner,
+                repo: privateRepo,
+                issue_number: issueNumber
+              });
+
+              if (data.pull_request) {
+                throw new Error(`Status issue #${issueNumber} (${statusKey}) is a pull request, expected an issue.`);
+              }
+
+              statusIssues[statusKey] = data;
+            }
+
+            const labelsFromIssue = (issue) => new Set(
+              (issue.labels || [])
+                .map((l) => (typeof l === 'string' ? l : l.name || '').toLowerCase())
+                .filter(Boolean)
+            );
+
+            const lintPassedLabels = labelsFromIssue(statusIssues.lint_passed);
+            const lintFailedLabels = labelsFromIssue(statusIssues.lint_failed);
+            const compilationPassedLabels = labelsFromIssue(statusIssues.compilation_passed);
+            const compilationFailedLabels = labelsFromIssue(statusIssues.compilation_failed);
+            const testingFailedLabels = labelsFromIssue(statusIssues.testing_failed);
+
             core.info('Reading PlatformIO metrics report from source repository...');
             const platformMetricsMd = await readSourceFile('PLATFORMIO_METRICS.md');
             const platformMetrics = parsePlatformIOMetrics(platformMetricsMd);
@@ -685,6 +763,18 @@ jobs:
               }
 
               const testingStatus = isTestedLibrary(libraryLabel) ? 'tested' : 'not_tested';
+              const libraryLower = libraryLabel.toLowerCase();
+              const lintStatus = lintPassedLabels.has(libraryLower)
+                ? 'passed'
+                : lintFailedLabels.has(libraryLower)
+                  ? 'failed'
+                  : 'unknown';
+              const compilationStatus = compilationPassedLabels.has(libraryLower)
+                ? 'passed'
+                : compilationFailedLabels.has(libraryLower)
+                  ? 'failed'
+                  : 'unknown';
+              const testingFailureStatus = testingFailedLabels.has(libraryLower) ? 'failed' : 'not_failed';
 
               reportRows.push({
                 library: libraryLabel,
@@ -701,6 +791,12 @@ jobs:
                 bucketIssueNumber: bucketIssueNumbers[finalBucket],
                 testingStatus,
                 testingIssueNumber: bucketIssueNumbers[testingStatus],
+                lintStatus,
+                lintIssueNumber: statusIssueNumbers[lintStatus === 'failed' ? 'lint_failed' : 'lint_passed'],
+                compilationStatus,
+                compilationIssueNumber: statusIssueNumbers[compilationStatus === 'failed' ? 'compilation_failed' : 'compilation_passed'],
+                testingFailureStatus,
+                testingFailureIssueNumber: statusIssueNumbers.testing_failed,
                 manualCountOverrideApplied,
                 manualCategoryOverrideApplied,
                 confirmedIssueLocked
@@ -816,11 +912,11 @@ jobs:
             lines.push('');
             lines.push('## Results');
             lines.push('');
-            lines.push('| Library Label | Confirmed Issues | Open Unconfirmed Issues | PlatformIO Signal | Health | Testing | Health Issue | Testing Issue |');
-            lines.push('|---|---:|---:|---|---|---|---:|---:|');
+            lines.push('| Library Label | Confirmed Issues | Open Unconfirmed Issues | PlatformIO Signal | Health | Testing | Lint | Compilation | Health Issue | Testing Issue | Lint Issue | Compilation Issue |');
+            lines.push('|---|---:|---:|---|---|---|---|---|---:|---:|---:|---:|');
 
             for (const row of reportRows) {
-              lines.push(`| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount} | ${row.platformVerdict} | ${healthBadge(row.final)} | ${testingBadge(row.testingStatus)} | #${row.bucketIssueNumber} | #${row.testingIssueNumber} |`);
+              lines.push(`| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount} | ${row.platformVerdict} | ${healthBadge(row.final)} | ${testingBadge(row.testingStatus)} | ${lintBadge(row.lintStatus)} | ${compilationBadge(row.compilationStatus)} | #${row.bucketIssueNumber} | #${row.testingIssueNumber} | #${row.lintIssueNumber} | #${row.compilationIssueNumber} |`);
             }
 
             lines.push('');
@@ -853,6 +949,11 @@ jobs:
               lines.push(`- Health badge: ${healthBadge(row.final)}`);
               lines.push(`- Testing status: ${bucketDisplay(row.testingStatus)} (#${row.testingIssueNumber})`);
               lines.push(`- Testing badge: ${testingBadge(row.testingStatus)}`);
+              lines.push(`- Lint status: ${row.lintStatus === 'passed' ? 'Passed' : row.lintStatus === 'failed' ? 'Failed' : 'Unknown'} (#${row.lintIssueNumber})`);
+              lines.push(`- Lint badge: ${lintBadge(row.lintStatus)}`);
+              lines.push(`- Compilation status: ${row.compilationStatus === 'passed' ? 'Passed' : row.compilationStatus === 'failed' ? 'Failed' : 'Unknown'} (#${row.compilationIssueNumber})`);
+              lines.push(`- Compilation badge: ${compilationBadge(row.compilationStatus)}`);
+              lines.push(`- Failed testing bucket (#${row.testingFailureIssueNumber}): ${row.testingFailureStatus === 'failed' ? 'Yes' : 'No'}`);
               lines.push(`- Computed bucket before override: ${bucketDisplay(row.computedBucket)}`);
               lines.push(`- Manual category override applied: ${row.manualCategoryOverrideApplied ? 'Yes' : 'No'}`);
               lines.push(`- Manual issue count override applied: ${row.manualCountOverrideApplied ? 'Yes' : 'No'}`);
@@ -885,6 +986,16 @@ jobs:
               .filter((row) => isHealthyBucket(row.final))
               .map((row) => row.library)
               .sort((a, b) => a.localeCompare(b));
+
+            const lintTotals = reportRows.reduce((acc, row) => {
+              acc[row.lintStatus] = (acc[row.lintStatus] || 0) + 1;
+              return acc;
+            }, {});
+
+            const compilationTotals = reportRows.reduce((acc, row) => {
+              acc[row.compilationStatus] = (acc[row.compilationStatus] || 0) + 1;
+              return acc;
+            }, {});
 
             let existingSha;
             try {
@@ -921,6 +1032,9 @@ jobs:
               healthyLibraries.length
                 ? healthyLibraries.map((name) => buildHealthyBadge(name)).join(' ')
                 : 'No libraries are currently in a healthy status bucket.',
+              '',
+              `Lint: ${buildStatusBadge('Passed Lint', String(lintTotals.passed || 0), '2ea44f')} ${buildStatusBadge('Failed Lint', String(lintTotals.failed || 0), 'd73a49')} ${buildStatusBadge('Unknown Lint', String(lintTotals.unknown || 0), '9e9e9e')}`,
+              `Compilation: ${buildStatusBadge('Passed Compilation', String(compilationTotals.passed || 0), '2ea44f')} ${buildStatusBadge('Failed Compilation', String(compilationTotals.failed || 0), 'd73a49')} ${buildStatusBadge('Unknown Compilation', String(compilationTotals.unknown || 0), '9e9e9e')}`,
               badgeEnd
             ];
 

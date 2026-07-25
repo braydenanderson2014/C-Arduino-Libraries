@@ -33,6 +33,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   discover-libraries:
@@ -796,3 +797,278 @@ jobs:
           name: host-arduino-sim-${{ matrix.backend }}
           path: test/host_arduino_sim/out/report-${{ matrix.backend }}.json
           if-no-files-found: error
+
+  sync-systemcommands-status-labels:
+    needs:
+      - discover-libraries
+      - host-library-compile
+      - host-sim-integration
+    if: always() && github.event_name != 'pull_request' && needs.discover-libraries.outputs.has_targets == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync SystemCommands status bucket labels
+        uses: actions/github-script@v9
+        env:
+          GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
+          DISCOVERED_MATRIX_JSON: ${{ needs.discover-libraries.outputs.matrix }}
+        with:
+          github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+          script: |
+            const tokenPresent = Boolean(process.env.GH_PROJECT_TOKEN && process.env.GH_PROJECT_TOKEN.trim());
+            if (!tokenPresent) {
+              core.notice('Skipping SystemCommands status sync because GH_PROJECT_TOKEN is not set.');
+              return;
+            }
+
+            const TARGET_OWNER = 'braydenanderson2014';
+            const TARGET_REPO = 'SystemCommands';
+            const ISSUE_TESTED = 22;
+            const ISSUE_NOT_TESTED = 23;
+            const ISSUE_COMPILATION_PASSED = 28;
+            const ISSUE_COMPILATION_FAILED = 29;
+            const ISSUE_TESTING_FAILED = 33;
+            const EXPECTED_BACKENDS = ['sd', 'littlefs'];
+
+            const normalize = (value) => String(value || '')
+              .toLowerCase()
+              .replace(/fs/g, 'filesystem')
+              .replace(/[^a-z0-9]/g, '');
+
+            const parseJsonArray = (raw) => {
+              if (!raw || !raw.trim()) return [];
+              try {
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? parsed : [];
+              } catch {
+                return [];
+              }
+            };
+
+            const discoveredTargets = parseJsonArray(process.env.DISCOVERED_MATRIX_JSON);
+            if (!discoveredTargets.length) {
+              core.info('No discovered targets found, nothing to sync.');
+              return;
+            }
+
+            const basename = (path) => {
+              if (!path || path === '.') return 'root';
+              const parts = String(path).split('/').filter(Boolean);
+              return parts.length ? parts[parts.length - 1] : String(path);
+            };
+
+            const allRepoLabels = await github.paginate(github.rest.issues.listLabelsForRepo, {
+              owner: TARGET_OWNER,
+              repo: TARGET_REPO,
+              per_page: 100
+            });
+
+            const labelByNormalized = new Map();
+            for (const label of allRepoLabels) {
+              const key = normalize(label.name);
+              if (!labelByNormalized.has(key)) {
+                labelByNormalized.set(key, label.name);
+              }
+            }
+
+            const targetPathToLabel = new Map();
+            for (const target of discoveredTargets) {
+              if (target === '.') {
+                continue;
+              }
+              const key = normalize(basename(target));
+              const resolved = labelByNormalized.get(key) || basename(target);
+              targetPathToLabel.set(target, resolved);
+            }
+
+            const managedLabels = new Set(Array.from(targetPathToLabel.values()));
+            if (!managedLabels.size) {
+              core.info('No managed library labels resolved for discovered targets.');
+              return;
+            }
+
+            const runJobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+              per_page: 100
+            });
+
+            const parseCompileJob = (name) => {
+              if (!name || !name.startsWith('host-library-compile')) {
+                return null;
+              }
+
+              const suffixMatch = name.match(/\((.+)\)\s*$/);
+              if (!suffixMatch) {
+                return null;
+              }
+
+              const inner = suffixMatch[1];
+              let parts = inner.split(',').map((s) => s.trim()).filter(Boolean);
+              if (parts.length < 2) {
+                parts = inner.split('|').map((s) => s.trim()).filter(Boolean);
+              }
+              if (parts.length < 2) {
+                return null;
+              }
+
+              return {
+                libraryPath: parts[0],
+                backend: parts[1]
+              };
+            };
+
+            const compileByLibrary = new Map();
+            for (const job of runJobs) {
+              const parsed = parseCompileJob(job.name);
+              if (!parsed) continue;
+
+              if (!compileByLibrary.has(parsed.libraryPath)) {
+                compileByLibrary.set(parsed.libraryPath, new Map());
+              }
+
+              const backendStates = compileByLibrary.get(parsed.libraryPath);
+              backendStates.set(parsed.backend, job.conclusion || 'unknown');
+            }
+
+            const compilePassed = new Set();
+            const compileFailed = new Set();
+
+            for (const target of discoveredTargets) {
+              if (target === '.') continue;
+
+              const label = targetPathToLabel.get(target);
+              if (!label) continue;
+
+              const backendStates = compileByLibrary.get(target) || new Map();
+              const conclusions = EXPECTED_BACKENDS.map((backend) => backendStates.get(backend) || 'missing');
+              const allSuccess = conclusions.every((state) => state === 'success');
+
+              if (allSuccess) {
+                compilePassed.add(label);
+              } else {
+                compileFailed.add(label);
+              }
+            }
+
+            const integrationJobs = runJobs.filter((job) => String(job.name || '').startsWith('host-sim-integration'));
+            const integrationPassed = integrationJobs.length > 0 && integrationJobs.every((job) => job.conclusion === 'success');
+
+            const tested = new Set();
+            const failedTesting = new Set();
+
+            if (integrationPassed) {
+              for (const label of compilePassed) {
+                tested.add(label);
+              }
+            } else {
+              for (const label of compilePassed) {
+                failedTesting.add(label);
+              }
+            }
+
+            const notTested = new Set();
+            for (const label of managedLabels) {
+              if (!tested.has(label) && !failedTesting.has(label)) {
+                notTested.add(label);
+              }
+            }
+
+            const desiredByIssue = new Map([
+              [ISSUE_TESTED, tested],
+              [ISSUE_NOT_TESTED, notTested],
+              [ISSUE_COMPILATION_PASSED, compilePassed],
+              [ISSUE_COMPILATION_FAILED, compileFailed],
+              [ISSUE_TESTING_FAILED, failedTesting]
+            ]);
+
+            const listIssueLabelNames = async (issueNumber) => {
+              const { data } = await github.rest.issues.get({
+                owner: TARGET_OWNER,
+                repo: TARGET_REPO,
+                issue_number: issueNumber
+              });
+
+              if (data.pull_request) {
+                throw new Error(`Target #${issueNumber} is a pull request, expected an issue.`);
+              }
+
+              return (data.labels || [])
+                .map((item) => (typeof item === 'string' ? item : item.name || ''))
+                .filter(Boolean);
+            };
+
+            let addedTotal = 0;
+            let removedTotal = 0;
+
+            for (const [issueNumber, desiredSet] of desiredByIssue.entries()) {
+              const currentNames = await listIssueLabelNames(issueNumber);
+              const currentByLower = new Map();
+              for (const name of currentNames) {
+                currentByLower.set(name.toLowerCase(), name);
+              }
+
+              const desiredLower = new Set(Array.from(desiredSet).map((name) => name.toLowerCase()));
+              const managedLower = new Set(Array.from(managedLabels).map((name) => name.toLowerCase()));
+
+              const toAdd = Array.from(desiredSet).filter((name) => !currentByLower.has(name.toLowerCase()));
+              if (toAdd.length) {
+                await github.rest.issues.addLabels({
+                  owner: TARGET_OWNER,
+                  repo: TARGET_REPO,
+                  issue_number: issueNumber,
+                  labels: toAdd
+                });
+                addedTotal += toAdd.length;
+              }
+
+              for (const [labelLower, exactName] of currentByLower.entries()) {
+                if (!managedLower.has(labelLower)) {
+                  continue;
+                }
+                if (desiredLower.has(labelLower)) {
+                  continue;
+                }
+
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: TARGET_OWNER,
+                    repo: TARGET_REPO,
+                    issue_number: issueNumber,
+                    name: exactName
+                  });
+                  removedTotal += 1;
+                } catch (error) {
+                  if (error.status !== 404) {
+                    throw error;
+                  }
+                }
+              }
+            }
+
+            core.info(`SystemCommands status sync complete. Added labels: ${addedTotal}. Removed labels: ${removedTotal}.`);
+            core.info(`Compile passed: ${Array.from(compilePassed).sort().join(', ') || '(none)'}`);
+            core.info(`Compile failed: ${Array.from(compileFailed).sort().join(', ') || '(none)'}`);
+            core.info(`Tested: ${Array.from(tested).sort().join(', ') || '(none)'}`);
+            core.info(`Not tested: ${Array.from(notTested).sort().join(', ') || '(none)'}`);
+            core.info(`Failed testing: ${Array.from(failedTesting).sort().join(', ') || '(none)'}`);
+
+            await github.rest.repos.createDispatchEvent({
+              owner: TARGET_OWNER,
+              repo: TARGET_REPO,
+              event_type: 'compile-status-updated',
+              client_payload: {
+                source_repository: context.repo.repo,
+                source_owner: context.repo.owner,
+                run_id: context.runId,
+                run_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+                sha: context.sha,
+                compile_passed: Array.from(compilePassed).sort(),
+                compile_failed: Array.from(compileFailed).sort(),
+                tested: Array.from(tested).sort(),
+                not_tested: Array.from(notTested).sort(),
+                failed_testing: Array.from(failedTesting).sort()
+              }
+            });
+
+            core.info(`Queued project health refresh in ${TARGET_OWNER}/${TARGET_REPO}.`);
