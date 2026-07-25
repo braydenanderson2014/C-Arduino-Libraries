@@ -39,7 +39,7 @@ private:
         explicit Properties(fs::FS& filesystem); // Constructor that injects an external filesystem
         ~Properties();
 
-        bool begin(size_t cs = 4, IDENTIFIERTYPE identifierType = EQUALS); // Initialize/use the SD backend
+        bool begin(size_t cs, IDENTIFIERTYPE identifierType = EQUALS); // Initialize/use the SD backend
         bool begin(fs::FS& filesystem, IDENTIFIERTYPE identifierType = EQUALS); // Initialize/use an injected filesystem backend
         void setChipSelect(const size_t cs); // Declaration of the setChipSelect method, which sets the chip select pin
         size_t getChipSelect(); // Declaration of the getChipSelect method, which returns the chip select pin
