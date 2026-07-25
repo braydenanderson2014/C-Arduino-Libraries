@@ -79,9 +79,11 @@ public:
     }
 
     /**
-     * @brief Sets the value of the Variant to an ArrayList
+     * @brief Sets the value of the Variant to a list
      * 
-     * @param values The ArrayList of values to set
+     * Uses ArrayList<T> by default, or SimpleVector<T> when useSimpleVector is defined.
+     * 
+     * @param values The list of values to set (ArrayList<T> or SimpleVector<T> depending on configuration)
      */
     #ifdef useSimpleVector
     void setList(const SimpleVector<T>& values) {
