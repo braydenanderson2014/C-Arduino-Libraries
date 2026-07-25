@@ -68,8 +68,13 @@ public:
     ArrayList(SizeType type = DYNAMIC2, size_t initialSize = 8)
                 : arrayCapacity(initialSize), count(0), initialSize(initialSize), sizeType(type) {
         array = new T[arrayCapacity];
+#if !defined(SkinnyArray) || defined(OverrideSort)
+        sortAlgorithm = MERGE_SORT;
+#endif
         if (!array) {
+#ifndef AL_NO_SERIAL
             Serial.println("[ArrayList] Memory allocation failed");
+#endif
         }
     }
 
@@ -81,6 +86,10 @@ public:
         this->sizeType = list.sizeType;
         this->arrayCapacity = list.arrayCapacity;
         this->count = list.count;
+        this->initialSize = list.initialSize;
+#if !defined(SkinnyArray) || defined(OverrideSort)
+        this->sortAlgorithm = list.sortAlgorithm;
+#endif
         this->array = new T[this->arrayCapacity];
         for (size_t i = 0; i < list.count; ++i) {
             this->array[i] = list.array[i];
@@ -94,6 +103,10 @@ public:
         this->sizeType = list.sizeType;
         this->arrayCapacity = list.arrayCapacity;
         this->count = list.count;
+        this->initialSize = list.initialSize;
+#if !defined(SkinnyArray) || defined(OverrideSort)
+        this->sortAlgorithm = list.sortAlgorithm;
+#endif
         this->array = new T[this->arrayCapacity];
         for (size_t i = 0; i < list.count; ++i) {
             this->array[i] = list.array[i];
@@ -177,7 +190,9 @@ public:
         */
         
         if (count + other.count <= arrayCapacity) {
-            memcpy(array + count, other.array, other.count * sizeof(T)); //Copies the items from the other array to the new array
+            for (size_t i = 0; i < other.count; ++i) {
+                array[count + i] = other.array[i];
+            }
             count += other.count; //Updates the count
             return true; //Returns true if the items were added successfully
         }
@@ -212,7 +227,9 @@ public:
         */
     
         if (count + length <= arrayCapacity) {
-            memcpy(array + count, other, length * sizeof(T));
+            for (size_t i = 0; i < length; ++i) {
+                array[count + i] = other[i];
+            }
             count += length;
             return true;
         }
@@ -364,7 +381,9 @@ public:
      */
     T& operator [] (size_t index){
         if(index >= count){
-            return T();
+            static T defaultValue;
+            defaultValue = T();
+            return defaultValue;
         }
         return array[index];
     }
@@ -405,7 +424,9 @@ public:
             array[i - 1] = array[i - other.count - 1];
         }
 
-        memcpy(array + index, other.array, other.count * sizeof(T));
+        for (size_t i = 0; i < other.count; ++i) {
+            array[index + i] = other.array[i];
+        }
         count += other.count;
         return true;
     }
@@ -446,7 +467,9 @@ public:
         for (size_t i = count + length - 1; i >= index + length; --i) {
             array[i] = array[i - length];
         }
-        memcpy(array + index, other, length * sizeof(T));
+        for (size_t i = 0; i < length; ++i) {
+            array[index + i] = other[i];
+        }
         count += length;
         return true;
     }
@@ -728,8 +751,6 @@ public:
      * This function clears all items from the ArrayList and sets the count of items to 0.
     */
     void clear() {
-        delete[] array;
-        array = new T[arrayCapacity];
         count = 0;
     }
 
@@ -756,7 +777,8 @@ public:
             return array[index];
         }
 
-        static T defaultValue = T();
+        static T defaultValue;
+        defaultValue = T();
         return defaultValue;
     }
 
@@ -765,7 +787,8 @@ public:
             return array[index];
         }
 
-        static T defaultValue = T();
+        static T defaultValue;
+        defaultValue = T();
         return defaultValue;
     }
 
@@ -935,7 +958,9 @@ public:
      * @return The output array.
     */
     T* toArray(T* outputArray) const {
-        memcpy(outputArray, array, count * sizeof(T));
+        for (size_t i = 0; i < count; ++i) {
+            outputArray[i] = array[i];
+        }
         return outputArray;
     }
 
@@ -1002,7 +1027,9 @@ public:
     void ensureCapacity(size_t minCapacity) {
         if (minCapacity > arrayCapacity) {
             T* newArray = new T[minCapacity];
-            memcpy(newArray, array, count * sizeof(T));
+            for (size_t i = 0; i < count; ++i) {
+                newArray[i] = array[i];
+            }
             delete[] array;
             array = newArray;
             arrayCapacity = minCapacity;
@@ -1019,13 +1046,17 @@ public:
     void trimToSize() {
         if (sizeType == DYNAMIC && count < arrayCapacity) {
             T* newArray = new T[count];
-            memcpy(newArray, array, count * sizeof(T));
+            for (size_t i = 0; i < count; ++i) {
+                newArray[i] = array[i];
+            }
             delete[] array;
             array = newArray;
             arrayCapacity = count;
         } else if(sizeType == DYNAMIC2 && count < arrayCapacity){
             T* newArray = new T[count];
-            memcpy(newArray, array, count * sizeof(T));
+            for (size_t i = 0; i < count; ++i) {
+                newArray[i] = array[i];
+            }
             delete[] array;
             array = newArray;
             arrayCapacity = count;
@@ -1214,7 +1245,7 @@ public:
                 bubbleSort(comparator);
                 break;
             case QUICK_SORT:
-                quickSort(comparator, 0, count - 1);
+                quickSort(comparator);
                 break;
             default:
                 mergeSort(*this, 0, count - 1);
@@ -1237,7 +1268,7 @@ public:
                 bubbleSort(comparator); 
             break; 
             case QUICK_SORT: 
-                quickSort(comparator, 0, count - 1); 
+                quickSort(comparator); 
             break; // Add cases for additional sorting algorithms 
             default:
                 mergeSort(*this, 0, count - 1);
@@ -1316,7 +1347,7 @@ public:
                 bubbleSort(comparator);
                 break;
             case QUICK_SORT:
-                quickSort(comparator, 0, count - 1);
+                quickSort(comparator);
                 break;
             default:
                 mergeSort(*this, 0, count - 1);
@@ -1339,7 +1370,7 @@ public:
                 bubbleSort(comparator); 
             break; 
             case QUICK_SORT: 
-                quickSort(comparator, 0, count - 1); 
+                quickSort(comparator); 
             break; // Add cases for additional sorting algorithms 
             default:
                 mergeSort(*this, 0, count - 1);
@@ -1624,7 +1655,9 @@ private:
     void resize1() {
         size_t newCapacity = arrayCapacity * 2;
         T* newArray = new T[newCapacity];
-        memcpy(newArray, array, count * sizeof(T));
+        for (size_t i = 0; i < count; ++i) {
+            newArray[i] = array[i];
+        }
         delete[] array;
         array = newArray;
         size_t tempCapacity = newCapacity;
