@@ -41,6 +41,7 @@ jobs:
       matrix: ${{ steps.discover.outputs.matrix }}
       has_targets: ${{ steps.discover.outputs.has_targets }}
       count: ${{ steps.discover.outputs.count }}
+      targets_display: ${{ steps.discover.outputs.targets_display }}
 
     steps:
       - name: Checkout repository
@@ -98,9 +99,16 @@ jobs:
             fh.write(f"matrix={json.dumps(deduped)}\\n")
             fh.write(f"count={len(deduped)}\\n")
             fh.write(f"has_targets={'true' if deduped else 'false'}\\n")
+            fh.write(f"targets_display={', '.join(deduped) if deduped else '(none)'}\\n")
           PY
         env:
           TARGET_INPUT: ${{ github.event.inputs.target_library_path || '' }}
+
+      - name: Log discovery results
+        shell: bash
+        run: |
+          echo "Discovered library targets count: ${{ steps.discover.outputs.count }}"
+          echo "Discovered library targets: ${{ steps.discover.outputs.targets_display }}"
 
   host-library-compile:
     needs: discover-libraries
@@ -115,6 +123,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Log current matrix target
+        shell: bash
+        run: |
+          echo "Compiling host smoke target for library path: ${{ matrix.libraryPath }}"
+          echo "Backend: ${{ matrix.backend }}"
 
       - name: Prepare host shim headers
         id: shim
@@ -316,14 +330,19 @@ jobs:
 
           if [ "${missing}" -eq 0 ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "reason=all required integration files are present" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "reason=missing one or more integration-only files under test/host_arduino_sim or required dependency headers" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Skip integration runner when prerequisites are missing
         if: steps.precheck.outputs.run != 'true'
         shell: bash
-        run: echo "Skipping host-sim integration runner because required files are not present."
+        run: |
+          echo "Skipping host-sim integration runner only."
+          echo "Reason: ${{ steps.precheck.outputs.reason }}"
+          echo "Per-library host compile job is independent and controlled by discover-libraries outputs."
 
       - name: Build host simulation runner
         if: steps.precheck.outputs.run == 'true'
