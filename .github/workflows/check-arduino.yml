@@ -67,7 +67,7 @@ jobs:
         uses: actions/github-script@v8
         env:
           TARGET_OWNER: braydenanderson2014
-          TARGET_REPO: C-Arduino-Libraries
+          TARGET_REPO: SystemCommands
           PASSING_LINT_ISSUE_NUMBER: "26"
           FAILED_LINT_ISSUE_NUMBER: "27"
           LIBRARY_LABEL: ${{ steps.library.outputs.library_label }}
@@ -81,6 +81,8 @@ jobs:
             const hasErrors = process.env.HAS_ERRORS === 'true';
             const passingIssue = Number.parseInt(process.env.PASSING_LINT_ISSUE_NUMBER || '26', 10);
             const failedIssue = Number.parseInt(process.env.FAILED_LINT_ISSUE_NUMBER || '27', 10);
+
+            core.info(`Lint label sync target: ${owner}/${repo} (passing issue #${passingIssue}, failed issue #${failedIssue})`);
 
             try {
               if (!libraryLabel) {
