@@ -666,8 +666,10 @@ jobs:
                 });
               }
 
+              const sourceIsPullRequest = Boolean(sourceIssue.pull_request);
+
               if (targetIssue.state === "closed" && sourceIssue.state === "open") {
-                if (sourceType === "pull_request" && sourceIssue.pull_request) {
+                if (sourceIsPullRequest) {
                   await github.rest.pulls.update({
                     owner: SOURCE_OWNER,
                     repo: SOURCE_REPO,
@@ -675,13 +677,27 @@ jobs:
                     state: "closed"
                   });
                 } else {
-                  await github.rest.issues.update({
-                    owner: SOURCE_OWNER,
-                    repo: SOURCE_REPO,
-                    issue_number: sourceNumber,
-                    state: "closed",
-                    state_reason: "completed"
-                  });
+                  try {
+                    await github.rest.issues.update({
+                      owner: SOURCE_OWNER,
+                      repo: SOURCE_REPO,
+                      issue_number: sourceNumber,
+                      state: "closed",
+                      state_reason: "completed"
+                    });
+                  } catch (error) {
+                    if (error?.status === 422) {
+                      core.info(`Retrying close for source issue #${sourceNumber} without state_reason after validation failure.`);
+                      await github.rest.issues.update({
+                        owner: SOURCE_OWNER,
+                        repo: SOURCE_REPO,
+                        issue_number: sourceNumber,
+                        state: "closed"
+                      });
+                    } else {
+                      throw error;
+                    }
+                  }
                 }
 
                 await github.rest.issues.createComment({
@@ -697,7 +713,7 @@ jobs:
               }
 
               if (targetIssue.state === "open" && sourceIssue.state === "closed") {
-                if (sourceType === "pull_request" && sourceIssue.pull_request) {
+                if (sourceIsPullRequest) {
                   await github.rest.pulls.update({
                     owner: SOURCE_OWNER,
                     repo: SOURCE_REPO,
