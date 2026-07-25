@@ -574,7 +574,7 @@ bool Properties::loadFromJSON(const String& filename) {
             if (keyLabelIndex != -1) {
                 int keyStartIndex = line.indexOf('\"', keyLabelIndex + 6);
                 int keyEndIndex = line.lastIndexOf('\"');
-                if (keyStartIndex != -1 && keyEndIndex != -1) {
+                if (keyStartIndex != -1 && keyEndIndex != -1 && keyEndIndex > keyStartIndex) {
                     pendingKey = jsonUnescape(line.substring(keyStartIndex + 1, keyEndIndex));
                     hasPendingKey = true;
                 }
