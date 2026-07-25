@@ -2,6 +2,7 @@
 #define HOST_ARDUINO_SIM_ARDUINO_H
 
 #include <chrono>
+#include <cstdlib>
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -9,6 +10,15 @@
 
 using byte = std::uint8_t;
 using String = std::string;
+
+constexpr uint8_t LOW = 0;
+constexpr uint8_t HIGH = 1;
+constexpr uint8_t INPUT = 0;
+constexpr uint8_t OUTPUT = 1;
+constexpr uint8_t LED_BUILTIN = 13;
+
+inline void pinMode(uint8_t, uint8_t) {}
+inline void digitalWrite(uint8_t, uint8_t) {}
 
 inline unsigned long millis() {
     static const auto start = std::chrono::steady_clock::now();
@@ -20,6 +30,24 @@ inline unsigned long millis() {
 
 inline void delay(unsigned long ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+}
+
+inline void randomSeed(unsigned long seed) {
+    std::srand(static_cast<unsigned int>(seed));
+}
+
+inline long random(long max) {
+    if (max <= 0) {
+        return 0;
+    }
+    return static_cast<long>(std::rand() % max);
+}
+
+inline long random(long min, long max) {
+    if (max <= min) {
+        return min;
+    }
+    return min + random(max - min);
 }
 
 class HostSerial {
