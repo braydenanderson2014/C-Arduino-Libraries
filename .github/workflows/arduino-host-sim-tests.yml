@@ -257,6 +257,23 @@ jobs:
             EXTRA_FLAGS="-DUSE_LITTLEFS"
           fi
 
+          INCLUDE_FLAGS=(
+            "-I${{ steps.shim.outputs.shim_dir }}"
+            "-I${LIB_PATH}/src"
+          )
+
+          # Add all monorepo library src paths so cross-library includes resolve.
+          if [ -d "lib" ]; then
+            while IFS= read -r src_dir; do
+              INCLUDE_FLAGS+=("-I${src_dir}")
+            done < <(find lib -mindepth 2 -maxdepth 2 -type d -name src | sort)
+          fi
+
+          # Include root src for repositories that expose shared headers there.
+          if [ -d "src" ]; then
+            INCLUDE_FLAGS+=("-Isrc")
+          fi
+
           python3 - <<'PY' > "${OUT_DIR}/smoke.cpp"
           import os
           from pathlib import Path
@@ -292,8 +309,7 @@ jobs:
           PY
 
           g++ -std=c++17 -O2 -DAL_NO_SERIAL ${EXTRA_FLAGS} \
-            -I"${{ steps.shim.outputs.shim_dir }}" \
-            -I"${LIB_PATH}/src" \
+            "${INCLUDE_FLAGS[@]}" \
             "${OUT_DIR}/smoke.cpp" \
             -c -o "${OUT_DIR}/smoke.o"
         env:
