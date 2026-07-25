@@ -714,12 +714,42 @@ jobs:
 
               if (targetIssue.state === "open" && sourceIssue.state === "closed") {
                 if (sourceIsPullRequest) {
-                  await github.rest.pulls.update({
-                    owner: SOURCE_OWNER,
-                    repo: SOURCE_REPO,
-                    pull_number: sourceNumber,
-                    state: "open"
-                  });
+                  let reopenedPullRequest = false;
+                  try {
+                    await github.rest.pulls.update({
+                      owner: SOURCE_OWNER,
+                      repo: SOURCE_REPO,
+                      pull_number: sourceNumber,
+                      state: "open"
+                    });
+                    reopenedPullRequest = true;
+                  } catch (error) {
+                    const cannotReopenPullRequest =
+                      error?.status === 422 &&
+                      String(error?.message || "").toLowerCase().includes("cannot be reopened");
+
+                    if (cannotReopenPullRequest) {
+                      core.warning(
+                        `Source pull request ${sourceRef} cannot be reopened by GitHub. Skipping reopen to keep sync workflow running.`
+                      );
+                    } else {
+                      throw error;
+                    }
+                  }
+
+                  if (!reopenedPullRequest) {
+                    await github.rest.issues.createComment({
+                      owner: SOURCE_OWNER,
+                      repo: SOURCE_REPO,
+                      issue_number: sourceNumber,
+                      body: [
+                        `Mirror update: ${targetRef} was reopened, but this source pull request cannot be reopened by GitHub.`,
+                        `Source PR remains closed.`,
+                        `Target URL: ${targetIssue.html_url}`
+                      ].join("\n")
+                    });
+                    continue;
+                  }
                 } else {
                   await github.rest.issues.update({
                     owner: SOURCE_OWNER,
