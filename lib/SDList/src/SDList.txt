@@ -1,462 +1,586 @@
 #ifndef SDList_h
 #define SDList_h
 
-
 /*
-    
+ * SDList  –  Paged / batched list backed by SD card or LittleFS
+ * Version 2.0.0
+ *
+ * Elements are stored in raw binary (sizeof(T) bytes per slot), so ANY
+ * trivially-copyable type T is preserved exactly — no text serialisation,
+ * no data corruption.
+ *
+ * A single fixed-size in-memory window of BATCH_SIZE elements acts as the
+ * RAM buffer.  Only that one batch lives in RAM; every other element stays on
+ * the filesystem.  The batch buffer is allocated once at construction and is
+ * never reallocated, giving stable, predictable memory usage.
+ *
+ * File layout
+ * ───────────
+ *   Offset               Size      Field
+ *   0                    4         Magic  'S','D','L','2'
+ *   4                    4         count     (uint32_t, little-endian)
+ *   8                    4         reserved  (uint32_t, little-endian)
+ *   12 + i * sizeof(T)   sizeof(T) element i  (i = 0 … reserved-1)
+ *
+ * Build-time option
+ * ─────────────────
+ *   -DUSE_LITTLEFS   Route filesystem calls through LittleFS instead of the
+ *                    Arduino SD library.  Default: SD + SPI.
  */
 
-
 #include <Arduino.h>
-#include <SD.h>
-#include <SPI.h>
-#include <ArrayList.h>
+#include <string.h>
 
-enum Mode {SDCARD, MEMORY};
+#if defined(USE_LITTLEFS)
+  #include <LittleFS.h>
+  #define SDLIST_FS  LittleFS
+#else
+  #include <SD.h>
+  #include <SPI.h>
+  #define SDLIST_FS  SD
+#endif
 
-template <typename T>
+enum SDListMode { SDCARD, MEMORY };
+
+/**
+ * @brief Fixed-batch paged list that offloads elements to SD card or LittleFS.
+ *
+ * @tparam T          Element type.  Must be trivially copyable (POD, structs of
+ *                    PODs, etc.).  String and other heap-owning types are NOT
+ *                    supported in SDCARD mode.
+ * @tparam BATCH_SIZE Number of elements in the in-memory batch window.
+ *                    Default: 8.  Larger values trade RAM for fewer file opens.
+ */
+template <typename T, size_t BATCH_SIZE = 8>
 class SDList {
-    private:
-        String filename = "list.txt"; // The name of the file to read and write to
-        Mode mode = MEMORY; // The mode of the SDList object (SDCARD or MEMORY) Default is MEMORY
-        int csPin = 4; // The chip select pin for the SD card
-        ArrayList<T> arrayList = ArrayList<T>(); // The ArrayList to store elements in memory
 
-        /**
-         * @private
-         * @brief Check if the file exists
-         * 
-         * @return bool True if the file exists, and if it is false, it creates the file and returns true. Only returns false is if the mode is MEMORY
-         * 
-        */
-        bool checkFile() {
-            if (mode == MEMORY) {
-                return false;
-            } else {
-                if (!SD.exists(filename)) {
-                    File file = SD.open(filename, FILE_WRITE);
-                    file.close();
+    // ── compile-time guard (works without C++11 static_assert in class body) ─
+    typedef char _BatchSizeCheck[(BATCH_SIZE > 0) ? 1 : -1];
+
+    // ── File layout ──────────────────────────────────────────────────────────
+    static const uint32_t HDR_BYTES = 12u;  // 4 magic + 4 count + 4 reserved
+
+    // ── In-memory batch ──────────────────────────────────────────────────────
+    T        _batch[BATCH_SIZE]; ///< The one batch that lives in RAM (never reallocated)
+    uint32_t _batchStart;        ///< Element index of _batch[0]
+    uint32_t _batchLoaded;       ///< Valid elements currently in _batch
+    bool     _batchDirty;        ///< _batch has unsaved modifications
+
+    // ── List state ───────────────────────────────────────────────────────────
+    uint32_t _count;             ///< Total valid elements stored
+    uint32_t _reserved;          ///< Pre-allocated slots in the file
+    uint32_t _initReserved;      ///< Reserved count used when (re)creating the file
+
+    // ── Config ───────────────────────────────────────────────────────────────
+    String     _filename;
+    int        _csPin;
+    bool       _ready;
+    SDListMode _mode;
+
+    // ── Memory-mode heap array ───────────────────────────────────────────────
+    T*     _mem;                 ///< Heap array for MEMORY-mode fallback
+    size_t _memCap;              ///< Allocated slots in _mem
+
+    // ========================================================================
+    //  Private helpers – file I/O
+    // ========================================================================
+
+    /** Byte offset in the file for element index i. */
+    static uint32_t _elemOff(uint32_t i) {
+        return HDR_BYTES + (uint32_t)sizeof(T) * i;
+    }
+
+    /** Aligned batch-window start index for element index. */
+    static uint32_t _winStart(uint32_t index) {
+        return (index / (uint32_t)BATCH_SIZE) * (uint32_t)BATCH_SIZE;
+    }
+
+    /**
+     * Write the 12-byte header to an already-open file.
+     * Seeks to offset 0 before writing.
+     */
+    bool _writeHeader(File& f) const {
+        if (!f.seek(0)) return false;
+        const uint8_t magic[4] = {'S', 'D', 'L', '2'};
+        if ((size_t)f.write(magic, 4) != 4) return false;
+        uint32_t c = _count;
+        uint32_t r = _reserved;
+        if ((size_t)f.write((const uint8_t*)&c, 4) != 4) return false;
+        if ((size_t)f.write((const uint8_t*)&r, 4) != 4) return false;
+        return true;
+    }
+
+    /**
+     * Read and validate the 12-byte header from an already-open file.
+     * Seeks to offset 0 before reading.
+     */
+    bool _readHeader(File& f, uint32_t& cnt, uint32_t& res) {
+        if (!f.seek(0)) return false;
+        uint8_t magic[4];
+        if ((size_t)f.read(magic, 4) != 4) return false;
+        if (magic[0] != 'S' || magic[1] != 'D' ||
+            magic[2] != 'L' || magic[3] != '2') return false;
+        if ((size_t)f.read((uint8_t*)&cnt, 4) != 4) return false;
+        if ((size_t)f.read((uint8_t*)&res, 4) != 4) return false;
+        return true;
+    }
+
+    /**
+     * Flush the dirty in-memory batch and update the header in one
+     * file open/close cycle.
+     */
+    bool _flushBatch() {
+        if (!_batchDirty) return true;
+        if (!_ready || _mode != SDCARD) { _batchDirty = false; return true; }
+
+        File f = SDLIST_FS.open(_filename, FILE_WRITE);
+        if (!f) return false;
+
+        bool ok = _writeHeader(f);
+        if (ok && _batchLoaded > 0) {
+            ok = f.seek(_elemOff(_batchStart));
+            if (ok) {
+                uint32_t bytes = _batchLoaded * (uint32_t)sizeof(T);
+                ok = ((uint32_t)f.write((const uint8_t*)_batch, bytes) == bytes);
+            }
+        }
+        f.close();
+        if (ok) _batchDirty = false;
+        return ok;
+    }
+
+    /**
+     * Load a batch window starting at startIdx from the file.
+     * Flushes the current dirty batch first.
+     */
+    bool _loadBatch(uint32_t startIdx) {
+        if (_batchDirty && !_flushBatch()) return false;
+
+        _batchStart  = startIdx;
+        _batchLoaded = 0;
+        _batchDirty  = false;
+
+        // Nothing to read when startIdx is at or beyond valid elements
+        if (!_ready || _mode != SDCARD || startIdx >= _count) return true;
+
+        File f = SDLIST_FS.open(_filename, FILE_READ);
+        if (!f) return false;
+        if (!f.seek(_elemOff(startIdx))) { f.close(); return false; }
+
+        uint32_t toRead = (uint32_t)BATCH_SIZE;
+        if (startIdx + toRead > _count) toRead = _count - startIdx;
+
+        uint32_t bytes = toRead * (uint32_t)sizeof(T);
+        uint32_t got   = (uint32_t)f.read((uint8_t*)_batch, bytes);
+        f.close();
+
+        _batchLoaded = got / (uint32_t)sizeof(T);
+        return (_batchLoaded == toRead);
+    }
+
+    /**
+     * Ensure the in-memory batch window covers element index.
+     * Loads a new batch if needed.
+     */
+    bool _ensureBatch(uint32_t index) {
+        if (index >= _batchStart && index < _batchStart + _batchLoaded)
+            return true;
+        return _loadBatch(_winStart(index));
+    }
+
+    /**
+     * Extend the pre-allocated area in the file by BATCH_SIZE additional
+     * zero-valued slots.
+     */
+    bool _grow() {
+        uint32_t newRes = _reserved + (uint32_t)BATCH_SIZE;
+        File f = SDLIST_FS.open(_filename, FILE_WRITE);
+        if (!f) return false;
+
+        if (!f.seek(_elemOff(_reserved))) { f.close(); return false; }
+
+        T zeroElem;
+        memset(&zeroElem, 0, sizeof(T));
+        bool ok = true;
+        for (uint32_t i = 0; i < (uint32_t)BATCH_SIZE && ok; i++) {
+            ok = ((size_t)f.write((const uint8_t*)&zeroElem, sizeof(T)) == sizeof(T));
+        }
+        if (ok) {
+            _reserved = newRes;
+            ok = _writeHeader(f);
+        }
+        f.close();
+        return ok;
+    }
+
+    /**
+     * (Re)create the file: header + _reserved pre-allocated zero slots.
+     * Any existing file at _filename is removed first.
+     */
+    bool _initFile() {
+        if (SDLIST_FS.exists(_filename)) SDLIST_FS.remove(_filename);
+
+        File f = SDLIST_FS.open(_filename, FILE_WRITE);
+        if (!f) return false;
+
+        bool ok = _writeHeader(f);
+        if (ok) {
+            T zeroElem;
+            memset(&zeroElem, 0, sizeof(T));
+            for (uint32_t i = 0; i < _reserved && ok; i++) {
+                ok = ((size_t)f.write((const uint8_t*)&zeroElem, sizeof(T)) == sizeof(T));
+            }
+        }
+        f.close();
+        return ok;
+    }
+
+    /**
+     * Try to open an existing file and validate its header.
+     * If the file is missing or corrupt, creates a fresh one.
+     */
+    bool _openOrCreate() {
+        if (SDLIST_FS.exists(_filename)) {
+            File f = SDLIST_FS.open(_filename, FILE_READ);
+            if (f) {
+                uint32_t cnt = 0, res = 0;
+                bool ok = _readHeader(f, cnt, res);
+                f.close();
+                if (ok && res >= (uint32_t)BATCH_SIZE) {
+                    _count    = cnt;
+                    _reserved = res;
+                    _ready    = true;
+                    _loadBatch(0);
                     return true;
                 }
-                return true;
             }
+            // Corrupt file – remove and fall through to create
+            SDLIST_FS.remove(_filename);
+        }
+        _count    = 0;
+        _reserved = _initReserved;
+        _ready    = _initFile();
+        if (_ready) { _batchStart = 0; _batchLoaded = 0; }
+        return _ready;
+    }
+
+    // ========================================================================
+    //  Private helpers – memory mode
+    // ========================================================================
+
+    /** Grow the heap array to hold at least minCap elements. */
+    bool _memGrow(size_t minCap) {
+        if (minCap <= _memCap) return true;
+        size_t newCap = (_memCap == 0) ? (size_t)BATCH_SIZE : _memCap;
+        while (newCap < minCap) newCap *= 2;
+        T* buf = new T[newCap];
+        if (!buf) return false;
+        for (size_t i = 0; i < (size_t)_count && _mem; i++) buf[i] = _mem[i];
+        delete[] _mem;
+        _mem    = buf;
+        _memCap = newCap;
+        return true;
+    }
+
+public:
+    // ========================================================================
+    //  Construction / destruction
+    // ========================================================================
+
+    /**
+     * @brief Construct an SDList.
+     *
+     * @param mode            SDCARD (default) or MEMORY.
+     * @param reserveCapacity Number of element slots to pre-allocate in the
+     *                        backing file on first begin().  Clamped to a
+     *                        minimum of BATCH_SIZE.
+     */
+    explicit SDList(SDListMode mode = SDCARD, uint32_t reserveCapacity = 16)
+        : _batchStart(0), _batchLoaded(0), _batchDirty(false),
+          _count(0),
+          _reserved(reserveCapacity >= (uint32_t)BATCH_SIZE
+                    ? reserveCapacity : (uint32_t)BATCH_SIZE),
+          _initReserved(reserveCapacity >= (uint32_t)BATCH_SIZE
+                        ? reserveCapacity : (uint32_t)BATCH_SIZE),
+          _filename("sdlist.bin"), _csPin(4),
+          _ready(false), _mode(mode),
+          _mem(nullptr), _memCap(0)
+    {}
+
+    ~SDList() {
+        if (_mode == SDCARD && _batchDirty) _flushBatch();
+        delete[] _mem;
+        _mem = nullptr;
+    }
+
+    // ========================================================================
+    //  Initialisation
+    // ========================================================================
+
+    /**
+     * @brief Initialise in SD-card mode.
+     *
+     * @param csPin    Chip-select pin for the SD card.
+     * @param filename Binary file on the card (default "sdlist.bin").
+     *                 Use a unique name per SDList instance.
+     * @return true on success.  Returns false if the SD card could not be
+     *         initialised; the object automatically falls back to MEMORY mode
+     *         in that case (check getMode()).
+     *
+     * @note Call this before any list operations in SDCARD mode.
+     */
+    bool begin(int csPin = 4, const String& filename = "sdlist.bin") {
+        _csPin    = csPin;
+        _filename = filename;
+
+        if (_mode == MEMORY) {
+            _ready = true;
+            return true;
         }
 
-        /**
-         * @private
-         * @brief Check if the element exists in the file
-         * 
-         * @param element The element to check
-         * 
-         * @return bool True if the element exists in the file, and false if it does not
-        */
-        bool checkElement(const T& element) {
-            File file = SD.open(filename, FILE_READ);
-            if (file) {
-                String line;
-                while (file.available()) {
-                    line = file.readStringUntil('\n');
-                    if (line == element) {
-                        file.close();
-                        return true;  // Return true when a match is found
-                    }
-                }
-                file.close();
-            }
-            return false;  // Return false if no match was found or the file couldn't be opened
-            
+#if !defined(USE_LITTLEFS)
+        if (!SD.begin(csPin)) {
+            _mode  = MEMORY;
+            _ready = true;
+            return false;   // caller can check getMode() == MEMORY
+        }
+#endif
+        return _openOrCreate();
+    }
+
+    /**
+     * @brief begin() overload that accepts a C-string filename.
+     */
+    bool begin(int csPin, const char* filename) {
+        return begin(csPin, String(filename));
+    }
+
+    /**
+     * @brief Initialise in LittleFS mode.
+     *
+     * Compile the project with -DUSE_LITTLEFS so that SDLIST_FS resolves to
+     * LittleFS.  No chip-select pin is needed.
+     *
+     * @param filename File path on the LFS volume (default "sdlist.bin").
+     */
+    bool beginLFS(const String& filename = "sdlist.bin") {
+        _filename = filename;
+        _mode     = SDCARD;   // shares the same internal code-path
+        _ready    = true;
+        return _openOrCreate();
+    }
+
+    // ========================================================================
+    //  Core list API
+    // ========================================================================
+
+    /**
+     * @brief Force-flush the in-memory batch to disk.
+     *
+     * Normally the batch is flushed automatically when the window moves or
+     * on destruction.  Call this explicitly after a burst of writes if you
+     * want the data persisted immediately.
+     *
+     * @return true on success.
+     */
+    bool flush() { return _flushBatch(); }
+
+    /**
+     * @brief Append an element to the end of the list.
+     *
+     * @return true on success; false on I/O error or allocation failure.
+     */
+    bool append(const T& element) {
+        if (_mode == MEMORY) {
+            if (!_memGrow(_count + 1)) return false;
+            _mem[_count++] = element;
+            return true;
+        }
+        if (!_ready) return false;
+
+        // Grow the pre-allocated area if full
+        if (_count >= _reserved && !_grow()) return false;
+
+        // Make sure the batch window covers the slot at _count
+        if (!(_count >= _batchStart &&
+              _count <  _batchStart + (uint32_t)BATCH_SIZE)) {
+            if (!_loadBatch(_winStart(_count))) return false;
         }
 
-        /**
-         * @private
-         * @brief Check if the file is empty
-         * 
-         * @return bool True if the file is empty, and false if it is not
-        */
-        bool isFileEmpty() {
-            File file = SD.open(filename, FILE_READ);
-            bool isEmpty = file.size() == 0;
-            file.close();
-            return isEmpty;
-        }
+        uint32_t slot = _count - _batchStart;
+        _batch[slot] = element;
+        if (slot + 1 > _batchLoaded) _batchLoaded = slot + 1;
+        _batchDirty = true;
+        _count++;
+        return true;
+    }
 
-        /**
-         * @private
-         * @brief Add an element to the file
-         * 
-         * @param element The element to add
-         * 
-         * @details The function will add the element to the file. If the file is empty, it will use print to avoid leading newline.
-        */
-        void addElement(const T& element) {
-            if (mode == MEMORY) {
-                return;
-            } else {
-                File file = SD.open(filename, FILE_WRITE);
-                if (isFileEmpty()) {
-                    file.print(element); // Use print for the first element to avoid leading newline
-                } else {
-                    file.println(element); // Use println for subsequent elements
-                }
-                file.close();
-            }
-        }
+    /** Alias for append(). */
+    bool add(const T& element) { return append(element); }
 
-        /**
-         * @private
-         * @brief Read the file into memory
-         * 
-         * @details The function will read the file into memory and clear the ArrayList before reading the file
-        */
-        void readFileIntoMemory(){
-            File file = SD.open(filename, FILE_READ);
-            if (file) {
-                arrayList.clear();  // Clear the arrayList before reading the file
-                String line;
-                while (file.available()) {
-                    line = file.readStringUntil('\n');
-                    arrayList.add(line);  // Add each line from the file to the arrayList
-                }
-                file.close();
-            }
-            SD.remove(filename); // Remove the file after reading it into memory
-            checkFile(); // Create a new file
-        }
+    /**
+     * @brief Retrieve the element at index.
+     *
+     * @return The element value, or a zero-initialised T() if index is out of
+     *         range or an I/O error occurs.
+     */
+    T get(uint32_t index) {
+        if (index >= _count) return T();
+        if (_mode == MEMORY) return _mem[index];
+        if (!_ready) return T();
+        if (!_ensureBatch(index)) return T();
+        return _batch[index - _batchStart];
+    }
 
-        /**
-         * @private
-         * @brief Dump the memory into the file
-         * 
-         * @details The function will dump the memory into the file
-        */
-        void dumpMemoryToFile(){
-            File file = SD.open(filename, FILE_WRITE);
-            for(int i = 0; i < arrayList.size(); i++){
-                file.println(arrayList.get(i));
-            }
-            file.close();
-            arrayList.clear();
-        }
-    public:
-        /**
-         * @brief Construct a new SDList object
-         * 
-         * @param mode SDCARD or MEMORY
-         * @param initialCapacity Passes directly into the ArrayList constructor
-         * 
-        */
-        SDList(Mode mode = SDCARD, size_t initialCapacity = 8) : arrayList(ArrayList<T>::DYNAMIC2, initialCapacity) {
-            this -> mode = mode;
-            //this -> begin(csPin);
-        }
+    /**
+     * @brief Overwrite the element at index.
+     *
+     * @return true on success; false if index is out of range or I/O error.
+     */
+    bool set(uint32_t index, const T& element) {
+        if (index >= _count) return false;
+        if (_mode == MEMORY) { _mem[index] = element; return true; }
+        if (!_ready) return false;
+        if (!_ensureBatch(index)) return false;
+        _batch[index - _batchStart] = element;
+        _batchDirty = true;
+        return true;
+    }
 
-        /**
-         * @brief Destroy the SDList object
-         * 
-        */
-        ~SDList() {
-            clear();
-        }
+    /**
+     * @brief Insert an element at index, shifting subsequent elements right.
+     *
+     * Inserting at or beyond size() is equivalent to append().
+     *
+     * @return true on success.
+     */
+    bool insert(uint32_t index, const T& element) {
+        if (index >= _count) return append(element);
 
-        /**
-         * @brief Get the underlying ArrayList object
-         * 
-         * @return ArrayList<T> The underlying ArrayList object
-         */
-        ArrayList<T> getUnderlyingStructure() {
-            return arrayList;
+        if (_mode == MEMORY) {
+            if (!_memGrow(_count + 1)) return false;
+            for (size_t i = _count; i > (size_t)index; i--)
+                _mem[i] = _mem[i - 1];
+            _mem[index] = element;
+            _count++;
+            return true;
         }
+        if (!_ready) return false;
+        if (_count >= _reserved && !_grow()) return false;
 
-        /**
-         * @brief Begin the SDList object
-         * 
-         * @param csPin The chip select pin for the SD card
-         * 
-         * @note This function is required to run in SD mode but not required for Memory mode
-        */
-        void begin(int csPin = 4) {
-             if(mode == SDCARD) {
-                bool success = SD.begin(csPin);
-                if (!success) {
-                    this -> mode = MEMORY;
-                } else {
-                    this -> mode = SDCARD;
-                    checkFile();
-                }
-                this -> csPin = csPin;
-            } else {
-                this -> mode = MEMORY;
-            }
+        _count++;  // claim the new slot before shifting
+        for (uint32_t i = _count - 1; i > index; i--) {
+            T val = get(i - 1);
+            if (!set(i, val)) { _count--; return false; }
         }
+        if (!set(index, element)) { _count--; return false; }
+        return _flushBatch();
+    }
 
-        /**
-         * @brief Begin the SDList object
-         * 
-         * @param csPin The chip select pin for the SD card
-         * @param filename The name of the file to read and write to
-         * 
-         * @note This function is required to run in SD mode if multiple instances of the library are used but not required for Memory mode
-         * if you are only using one instance of the library, you can use this begin function to set the filename or use the begin(csPin) function to use the default
-        */
-        void begin(int csPin, String filename) {
-            this -> filename = filename;
-            begin(csPin);
-        }
-    
-        /**
-         * @brief Set the Mode of the SDList object
-         * 
-         * @param mode SDCARD or MEMORY
-         * 
-         * @details If the mode is SDCARD, the function will attempt to initialize the SD card and check if the file exists. 
-         * If the file does not exist, it will be created. If the SD card cannot be initialized, the mode will be set to MEMORY. 
-         * If the mode is MEMORY, the function will read the file into memory and set the mode to MEMORY.
-         * if you are changing from one mode to another, the data will be copied from the previous mode to the new mode. 
-         * (from file to memory, or from memory to file)
-        */
-        void setMode(Mode mode) {
-            this->mode = mode;
-            if(mode == SDCARD) {
-                bool success = SD.begin(csPin);
-                if (!success) {
-                    this -> mode = MEMORY;
-                    readFileIntoMemory();
-                } else {
-                    this -> mode = SDCARD;
-                    checkFile();
-                    dumpMemoryToFile();
-                }
-            }
-        }
+    /**
+     * @brief Remove element at index, shifting subsequent elements left.
+     *
+     * @return true on success; false if index is out of range.
+     */
+    bool remove(uint32_t index) {
+        if (index >= _count) return false;
 
-        /**
-         * @brief Get the Mode of the SDList object
-         * 
-         * @return Mode SDCARD or MEMORY
-        */
-        Mode getMode() const {
-            return mode;
+        if (_mode == MEMORY) {
+            for (size_t i = index; i < (size_t)_count - 1; i++)
+                _mem[i] = _mem[i + 1];
+            _count--;
+            return true;
         }
+        if (!_ready) return false;
 
-        /**
-         * @brief Append an element to the SDList object
-         * 
-         * @param element The element to append
-         * 
-         * @details If the mode is SDCARD, the function will check if the element exists in the file. 
-         * If the element does not exist, it will be added to the file. 
-         * If the mode is MEMORY, the element will be added to the ArrayList.
-        */
-        void append(const T& element)  {
-            arrayList.add(element);
-            if(mode == SDCARD) {
-                bool success = checkElement(element);
-                if(!success) {
-                    addElement(element);
-                } else {
-                    Serial.println("Element already exists" + element);
-                }
-            }
+        for (uint32_t i = index; i < _count - 1; i++) {
+            T val = get(i + 1);
+            if (!set(i, val)) return false;
         }
+        _count--;
+        return _flushBatch();
+    }
 
-        /**
-         * @brief Clear the SDList object
-         * 
-         * @details If the mode is MEMORY, the function will clear the ArrayList. 
-         * If the mode is SDCARD, the function will clear the file.
-        */
-        void clear() {
-            if (mode == MEMORY) {
-                arrayList.clear();
-            } else {
-                SD.remove(filename);
-                checkFile();
-            }
-        }
+    /**
+     * @brief Clear all elements.
+     *
+     * In SDCARD mode the file is reset to an empty, pre-allocated state (the
+     * reserved-capacity block is rewritten as zeros, count is set to 0).
+     * No reallocation occurs.
+     */
+    void clear() {
+        _count       = 0;
+        _batchStart  = 0;
+        _batchLoaded = 0;
+        _batchDirty  = false;
+        if (_mode == MEMORY) return;  // keep heap array; just reset count
+        _reserved = _initReserved;
+        if (_ready) _initFile();
+    }
 
-        /**
-         * @brief Get an element from the SDList object
-         * 
-         * @param index The index of the element to get
-         * 
-         * @return T The element at the specified index
-         * 
-         * @details If the mode is SDCARD, the function will read the file into memory, get the element at the specified index, and clear the ArrayList. 
-         * If the mode is MEMORY, the function will get the element at the specified index.
-         * 
-         * @note File reading is slower then memory reading.
-        */
-        T get(int index)  {
-            if(mode == SDCARD){
-                File file = SD.open(filename, FILE_READ);
-                if (file) {
-                    arrayList.clear();  // Clear the arrayList before reading the file
-                    String line;
-                    while (file.available()) {
-                        line = file.readStringUntil('\n');
-                        if(line == "") {
-                            continue;
-                        }
-                        arrayList.add(line);  // Add each line from the file to the arrayList
-                    }
-                    file.close();
-                }
-                T element = arrayList.get(index);  // Get the element at the specified index
-                arrayList.clear();  // Clear the arrayList after getting the element
-                return element;
-            }else {
-                return arrayList.get(index);
-            }
-        }
+    /**
+     * @brief Switch between SDCARD and MEMORY modes, migrating all data.
+     *
+     * When switching SDCARD → MEMORY the file content is loaded into a heap
+     * array.  When switching MEMORY → SDCARD all heap elements are written to
+     * the file (requires begin() to have succeeded previously).
+     */
+    void setMode(SDListMode newMode) {
+        if (newMode == _mode) return;
 
-        /**
-         * @brief Insert an element into the SDList object
-         * 
-         * @param index The index to insert the element
-         * @param element The element to insert
-         * 
-         * @details If the mode is MEMORY, the function will insert the element into the ArrayList at the specified index. 
-         * If the mode is SDCARD, the function will read the file into memory, insert the element into the ArrayList at the specified index, and dump the memory into the file.
-         * 
-         * @note File reading is slower then memory reading.
-         * @note if the index is greater than the size of the list, the element will be appended to the end of the list.
-         * @note if the element already exists in the list, it will not be added.
-         * @note if the list is empty, the element will be appended to the list.
-        */
-        void insert(int index, const T& element) {
-            if (mode == MEMORY) {
-                arrayList.insert(index, element);
-            } else {
-                if(checkElement(element)){
-                    return;
-                }
-                if(size() == 0 || index >= size()){
-                    append(element);
-                    return;
-                } 
-                File file = SD.open(filename, FILE_READ);
-                if (file) {
-                    String line;
-                    int i = 0;
-                    String content = "";
-                    while (file.available()) {
-                        line = file.readStringUntil('\n');
-                        if (i == index) {
-                            content += element + "\n";
-                        }
-                        content += line + "\n";
-                        i++;
-                    }
-                    file.close();
-                    file = SD.open(filename, FILE_WRITE);
-                    file.print(content);
-                    file.close();
-                }
-            }
+        if (newMode == MEMORY) {
+            // SD → Memory: pull all elements into the heap array
+            uint32_t cnt = _count;
+            if (!_memGrow(cnt)) return;
+            for (uint32_t i = 0; i < cnt; i++) _mem[i] = get(i);
+            _mode  = MEMORY;
+            _count = cnt;
+        } else {
+            // Memory → SD: push all heap elements into the file
+            if (!_ready) return;
+            uint32_t cnt = _count;
+            T* tmp   = _mem;
+            _mem     = nullptr;
+            _memCap  = 0;
+            _mode    = SDCARD;
+            _count   = 0;
+            _batchStart  = 0;
+            _batchLoaded = 0;
+            _batchDirty  = false;
+            _reserved    = _initReserved;
+            _initFile();
+            for (uint32_t i = 0; i < cnt; i++) append(tmp[i]);
+            _flushBatch();
+            delete[] tmp;
         }
+    }
 
-        /**
-         * @brief Remove an element from the SDList object
-         * 
-         * @param index The index of the element to remove
-         * 
-         * @details If the mode is MEMORY, the function will remove the element from the ArrayList at the specified index. 
-         * If the mode is SDCARD, the function will read the file into memory, remove the element from the ArrayList at the specified index, and dump the memory into the file.
-         * 
-         * @note File reading is slower then memory reading.
-        */
-        void remove(int index) {
-            if (mode == MEMORY) {
-                arrayList.remove(index);
-            } else {
-                File file = SD.open(filename, FILE_READ);
-                if (file) {
-                    String line;
-                    int i = 0;
-                    String content = "";
-                    while (file.available()) {
-                        line = file.readStringUntil('\n');
-                        if (i != index) {
-                            content += line + "\n";
-                        }
-                        i++;
-                    }
-                    file.close();
-                    file = SD.open(filename, FILE_WRITE);
-                    file.print(content);
-                    file.close();
-                }
-            }
-        }
+    // ========================================================================
+    //  Query
+    // ========================================================================
 
-        /**
-         * @brief Get the size of the SDList object
-         * 
-         * @return size_t The size of the SDList object
-         * 
-         * @details If the mode is MEMORY, the function will return the size of the ArrayList. 
-         * If the mode is SDCARD, the function will return the number of lines in the file.
-         * 
-         * @note File reading is slower then memory reading.
-        */
-        size_t size() const {
-            if (mode == MEMORY) {
-                return arrayList.size();
-            } else {
-                File file = SD.open(filename, FILE_READ);
-                if (file) {
-                    String line;
-                    int i = 0;
-                    while (file.available()) {
-                        line = file.readStringUntil('\n');
-                        i++;
-                    }
-                    file.close();
-                    return i;
-                } else {
-                    return 0;
-                }
-            }
-        }
-        
-        /**
-         * @brief Get the capacity of the SDList object
-         * 
-         * @return size_t The capacity of the SDList object
-         * 
-         * @details If the mode is MEMORY, the function will return the capacity of the ArrayList. 
-         * If the mode is SDCARD, the function will return the number of lines in the file.
-         * 
-         * @note File reading is slower then memory reading.
-        */
-        size_t capacity() const {
-            if (mode == MEMORY) {
-                return arrayList.capacity();
-            } else {
-                File file = SD.open(filename, FILE_READ);
-                if (file) {
-                    String line;
-                    int i = 0;
-                    while (file.available()) {
-                        line = file.readStringUntil('\n');
-                        i++;
-                    }
-                    file.close();
-                    return i;
-                } else {
-                    return 0;
-                }
-            }
-        }
-        
-        /**
-         *  @brief Check if the SDList object is empty
-         * 
-         * @return bool True if the SDList object is empty, and false if it is not
-        */
-        bool isEmpty() const {
-           return size() == 0;
-        }
+    /** @return Number of valid elements. */
+    size_t size() const { return (size_t)_count; }
+
+    /**
+     * @return Number of pre-allocated slots (SDCARD mode) or heap-allocated
+     *         slots (MEMORY mode).
+     */
+    size_t capacity() const {
+        return (_mode == MEMORY) ? _memCap : (size_t)_reserved;
+    }
+
+    /** @return true if the list contains no elements. */
+    bool isEmpty() const { return _count == 0; }
+
+    /**
+     * @return true if begin() (or beginLFS()) completed successfully.
+     *         Always true in MEMORY mode.
+     */
+    bool isReady() const { return _ready; }
+
+    /** @return Current operating mode (SDCARD or MEMORY). */
+    SDListMode getMode() const { return _mode; }
 };
 
 #endif // SDList_h
