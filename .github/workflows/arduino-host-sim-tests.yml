@@ -1,0 +1,376 @@
+name: Arduino Host Simulation Tests
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - ".github/workflows/arduino-host-sim-tests.yml"
+      - "test/host_arduino_sim/**"
+      - "lib/**"
+      - "src/**"
+      - "library.properties"
+      - "library.json"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/arduino-host-sim-tests.yml"
+      - "test/host_arduino_sim/**"
+      - "lib/**"
+      - "src/**"
+      - "library.properties"
+      - "library.json"
+  workflow_dispatch:
+    inputs:
+      memory_limit_bytes:
+        description: "Optional memory peak limit for host tests"
+        required: false
+        type: string
+      target_library_path:
+        description: "Optional relative library path (example: lib/ArrayList or . for root)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  discover-libraries:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+      has_targets: ${{ steps.discover.outputs.has_targets }}
+      count: ${{ steps.discover.outputs.count }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Discover Arduino-style libraries
+        id: discover
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TARGET_INPUT="${{ github.event.inputs.target_library_path || '' }}"
+
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          target = os.environ.get("TARGET_INPUT", "").strip()
+          root = Path(".")
+
+          def is_arduino_library(path: Path) -> bool:
+            return (path / "library.properties").is_file() and (path / "src").is_dir()
+
+          results = []
+
+          if target:
+            target_path = Path(target)
+            if str(target_path) == ".":
+              target_path = Path(".")
+
+            if not is_arduino_library(target_path):
+              raise SystemExit(f"Requested target_library_path '{target}' is not an Arduino-style library (missing library.properties or src/)")
+
+            results = [str(target_path).replace('\\\\', '/').rstrip('/') or '.']
+          else:
+            if is_arduino_library(root):
+              results.append(".")
+
+            lib_dir = Path("lib")
+            if lib_dir.is_dir():
+              for child in sorted(lib_dir.iterdir()):
+                if child.is_dir() and is_arduino_library(child):
+                  results.append(str(child).replace('\\\\', '/'))
+
+          # Deduplicate while preserving order.
+          deduped = []
+          seen = set()
+          for item in results:
+            if item not in seen:
+              seen.add(item)
+              deduped.append(item)
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+            fh.write(f"matrix={json.dumps(deduped)}\\n")
+            fh.write(f"count={len(deduped)}\\n")
+            fh.write(f"has_targets={'true' if deduped else 'false'}\\n")
+          PY
+        env:
+          TARGET_INPUT: ${{ github.event.inputs.target_library_path || '' }}
+
+  host-library-compile:
+    needs: discover-libraries
+    if: needs.discover-libraries.outputs.has_targets == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        libraryPath: ${{ fromJson(needs.discover-libraries.outputs.matrix) }}
+        backend: [sd, littlefs]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare host shim headers
+        id: shim
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -d "test/host_arduino_sim/include" ]; then
+            echo "shim_dir=test/host_arduino_sim/include" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          mkdir -p .github/tmp-host-shim
+
+          cat > .github/tmp-host-shim/Arduino.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_ARDUINO_H
+          #define HOST_ARDUINO_SIM_ARDUINO_H
+          #include <cstdint>
+          #include <iostream>
+          #include <string>
+          using byte = std::uint8_t;
+          using String = std::string;
+          class HostSerial {
+          public:
+              void begin(unsigned long) {}
+              void flush() {}
+              template <typename T> void print(const T& value) { std::cout << value; }
+              template <typename T> void println(const T& value) { std::cout << value << std::endl; }
+              void println() { std::cout << std::endl; }
+              explicit operator bool() const { return true; }
+          };
+          inline HostSerial Serial;
+          inline unsigned long millis() { return 0UL; }
+          inline void delay(unsigned long) {}
+          #endif
+          EOF
+
+          cat > .github/tmp-host-shim/SPI.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_SPI_H
+          #define HOST_ARDUINO_SIM_SPI_H
+          class SPIClass { public: void begin() {} };
+          inline SPIClass SPI;
+          #endif
+          EOF
+
+          cat > .github/tmp-host-shim/SD.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_SD_H
+          #define HOST_ARDUINO_SIM_SD_H
+          #include "Arduino.h"
+          #include <cstddef>
+          #include <cstdint>
+          constexpr std::uint8_t FILE_READ = 0x01;
+          constexpr std::uint8_t FILE_WRITE = 0x02;
+          class File {
+          public:
+              explicit operator bool() const { return false; }
+              bool seek(std::uint32_t) { return false; }
+              std::size_t write(const std::uint8_t*, std::size_t) { return 0; }
+              std::size_t read(std::uint8_t*, std::size_t) { return 0; }
+              void close() {}
+          };
+          class SDClass {
+          public:
+              bool begin(int) { return true; }
+              bool exists(const String&) const { return false; }
+              bool remove(const String&) const { return true; }
+              File open(const String&, std::uint8_t) const { return File(); }
+          };
+          inline SDClass SD;
+          #endif
+          EOF
+
+          cat > .github/tmp-host-shim/LittleFS.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_LITTLEFS_H
+          #define HOST_ARDUINO_SIM_LITTLEFS_H
+          #include "SD.h"
+          inline SDClass LittleFS;
+          #endif
+          EOF
+
+          echo "shim_dir=.github/tmp-host-shim" >> "$GITHUB_OUTPUT"
+
+      - name: Build per-library host compile smoke
+        id: smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          LIB_PATH="${{ matrix.libraryPath }}"
+          LIB_NAME="$(basename "${LIB_PATH}")"
+          if [ "${LIB_PATH}" = "." ]; then
+            LIB_NAME="root"
+          fi
+
+          LIB_SLUG="$(echo "${LIB_PATH}" | tr '/\\.' '___')"
+          if [ -z "${LIB_SLUG}" ]; then
+            LIB_SLUG="root"
+          fi
+
+          OUT_DIR="test/host_arduino_sim/out/library-smoke/${LIB_SLUG}/${{ matrix.backend }}"
+          mkdir -p "${OUT_DIR}"
+
+          echo "lib_slug=${LIB_SLUG}" >> "$GITHUB_OUTPUT"
+          echo "out_dir=${OUT_DIR}" >> "$GITHUB_OUTPUT"
+
+          EXTRA_FLAGS=""
+          if [ "${{ matrix.backend }}" = "littlefs" ]; then
+            EXTRA_FLAGS="-DUSE_LITTLEFS"
+          fi
+
+          python3 - <<'PY' > "${OUT_DIR}/smoke.cpp"
+          import os
+          from pathlib import Path
+
+          lib_path = Path(os.environ["LIB_PATH"])
+          src_dir = lib_path / "src"
+          props = lib_path / "library.properties"
+
+          includes = []
+          if props.is_file():
+              for line in props.read_text(encoding="utf-8", errors="ignore").splitlines():
+                  if line.strip().startswith("includes="):
+                      raw = line.split("=", 1)[1].strip()
+                      includes = [item.strip() for item in raw.split(",") if item.strip()]
+                      break
+
+          if not includes:
+              headers = sorted(src_dir.glob("*.h"))
+              if headers:
+                  includes = [headers[0].name]
+
+          if not includes:
+              raise SystemExit(f"No includable header found for {lib_path}")
+
+          print('#include "Arduino.h"')
+          print('#include "SD.h"')
+          print('#ifdef USE_LITTLEFS')
+          print('#include "LittleFS.h"')
+          print('#endif')
+          for inc in includes:
+              print(f'#include "{inc}"')
+          print('int main() { return 0; }')
+          PY
+
+          g++ -std=c++17 -O2 -DAL_NO_SERIAL ${EXTRA_FLAGS} \
+            -I"${{ steps.shim.outputs.shim_dir }}" \
+            -I"${LIB_PATH}/src" \
+            "${OUT_DIR}/smoke.cpp" \
+            -c -o "${OUT_DIR}/smoke.o"
+        env:
+          LIB_PATH: ${{ matrix.libraryPath }}
+
+      - name: Upload per-library compile artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-library-compile-${{ steps.smoke.outputs.lib_slug }}-${{ matrix.backend }}
+          path: ${{ steps.smoke.outputs.out_dir }}
+          if-no-files-found: warn
+
+  host-sim-integration:
+    needs: discover-libraries
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [sd, littlefs]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check integration prerequisites
+        id: precheck
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required=(
+            test/host_arduino_sim/host_arduino_sim_tests.cpp
+            test/host_arduino_sim/include/Arduino.h
+            test/host_arduino_sim/include/SD.h
+            test/host_arduino_sim/include/LittleFS.h
+            test/host_arduino_sim/include/SPI.h
+            lib/ArrayList/src/ArrayList.h
+            lib/Hashtable/src/Hashtable.h
+            lib/SimpleVector/src/SimpleVector.h
+            lib/SDList/src/SDList.h
+            lib/TypeTraits/src/TypeTraits.h
+          )
+
+          missing=0
+          for file in "${required[@]}"; do
+            if [ ! -f "${file}" ]; then
+              echo "Missing required integration file: ${file}"
+              missing=1
+            fi
+          done
+
+          if [ "${missing}" -eq 0 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip integration runner when prerequisites are missing
+        if: steps.precheck.outputs.run != 'true'
+        shell: bash
+        run: echo "Skipping host-sim integration runner because required files are not present."
+
+      - name: Build host simulation runner
+        if: steps.precheck.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test/host_arduino_sim/out/bin
+
+          EXTRA_FLAGS=""
+          if [ "${{ matrix.backend }}" = "littlefs" ]; then
+            EXTRA_FLAGS="-DUSE_LITTLEFS"
+          fi
+
+          g++ -std=c++17 -O2 \
+            -DAL_NO_SERIAL ${EXTRA_FLAGS} \
+            -Itest/host_arduino_sim/include \
+            -Ilib/ArrayList/src \
+            -Ilib/Hashtable/src \
+            -Ilib/SimpleVector/src \
+            -Ilib/SDList/src \
+            -Ilib/TypeTraits/src \
+            test/host_arduino_sim/host_arduino_sim_tests.cpp \
+            -o test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.backend }}
+
+      - name: Run host simulation tests
+        if: steps.precheck.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          MEM_LIMIT="${{ github.event.inputs.memory_limit_bytes || '' }}"
+          if [ -z "${MEM_LIMIT}" ]; then
+            MEM_LIMIT="8388608"
+          fi
+
+          REPORT_PATH="test/host_arduino_sim/out/report-${{ matrix.backend }}.json"
+          FS_ROOT="test/host_arduino_sim/out/fs-${{ matrix.backend }}"
+
+          HOST_MEM_LIMIT_BYTES="${MEM_LIMIT}" \
+          HOST_SIM_REPORT="${REPORT_PATH}" \
+          HOST_SIM_FS_ROOT="${FS_ROOT}" \
+          ./test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.backend }}
+
+      - name: Upload host simulation report
+        if: always() && steps.precheck.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-arduino-sim-${{ matrix.backend }}
+          path: test/host_arduino_sim/out/report-${{ matrix.backend }}.json
+          if-no-files-found: error
