@@ -66,27 +66,27 @@ Serial.println(v.size()); // Output: 1 (Default initialized value)
 
 ## API Reference
 ### Method Description
-| Method                  | Description                                                                 |
-|-------------------------|-----------------------------------------------------------------------------|
-| `//#define useSimpleVector` | When enabled, Variant switches from ArrayList to SimpleVector            |
-| `Variant()`             | Default constructor (sets to single value mode).                            |
-| `Variant(const T& value)` | Initializes with a single value.                                           |
-| `Variant(const ArrayList<T>& values)` | Initializes with a list.                                       |
-| `Variant(const SimpleVector<T>& values)` | Initializes with a list.                                    |
-| `bool isSingle() const` | Returns true if storing a single value.                                     |
-| `bool isArrayList() const` | Returns true if storing a list.                                           |
-| `bool isSimpleVector() const` | Returns true if storing a list.                                        |
-| `void setSingle(const T& value)` | Sets a single value, overriding list mode.                          |
-| `void setList(const ArrayList<T>& values)` | Sets a list, overriding single value mode.                |
-| `void setList(const SimpleVector<T>& values)` | Sets a list, overriding single value mode.             |
-| `T getSingle() const`   | Returns the single value. If in list mode, returns the first element.       |
-| `ArrayList<T>& getList()` | Returns the list. Converts to list mode if needed.                        |
-| `const ArrayList<T>& getList() const` | Returns the list in a constant context.                       |
-| `SimpleVector<T>& getList()` | Returns the list. Converts to list mode if needed.                     |
-| `const SimpleVector<T>& getList() const` | Returns the list in a constant context.                    |
-| `void addValue(const T& value)` | Adds a value to the list. Converts to list mode if needed.           |
-| `int size() const`      | Returns the number of elements.                                             |
-| `void clear()`          | Resets the Variant to a single default value.                               |
+| Method | Availability | Description |
+|--------|--------------|-------------|
+| `//#define useSimpleVector` | Compile-time option | Switches internal list storage from `ArrayList<T>` to `SimpleVector<T>`. |
+| `Variant()` | Always | Default constructor. Initializes in single-value mode with `T()`. |
+| `Variant(const T& value)` | Always | Initializes in single-value mode with `value`. |
+| `Variant(const ArrayList<T>& values)` | When `useSimpleVector` is **not** defined | Initializes in list mode with ArrayList data. |
+| `Variant(const SimpleVector<T>& values)` | When `useSimpleVector` **is** defined | Initializes in list mode with SimpleVector data. |
+| `bool isSingle() const` | Always | Returns `true` when storing a single value, `false` when in list mode. |
+| `bool isArrayList() const` | When `useSimpleVector` is **not** defined | Returns `true` when in list mode. |
+| `bool isSimpleVector() const` | When `useSimpleVector` **is** defined | Returns `true` when in list mode. |
+| `void setSingle(const T& value)` | Always | Switches to single-value mode, stores `value`, and clears backing list state. |
+| `void setList(const ArrayList<T>& values)` | When `useSimpleVector` is **not** defined | Switches to list mode and assigns ArrayList contents. |
+| `void setList(const SimpleVector<T>& values)` | When `useSimpleVector` **is** defined | Switches to list mode and assigns SimpleVector contents. |
+| `T getSingle() const` | Always | Returns stored single value. If in list mode, returns first list element (`get(0)`). |
+| `ArrayList<T>& getList()` | When `useSimpleVector` is **not** defined | Returns mutable list. If currently single, converts to list and seeds with current single value. |
+| `const ArrayList<T>& getList() const` | When `useSimpleVector` is **not** defined | Returns list reference in const context (does not trigger conversion). |
+| `SimpleVector<T>& getList()` | When `useSimpleVector` **is** defined | Returns mutable list. If currently single, converts to list and seeds with current single value. |
+| `const SimpleVector<T>& getList() const` | When `useSimpleVector` **is** defined | Returns list reference in const context (does not trigger conversion). |
+| `void addValue(const T& value)` | Always | If currently single, converts to list by seeding with single value first, then appends `value`. |
+| `int size() const` | Always | Returns `1` in single mode, otherwise list element count. |
+| `void clear()` | Always | Resets to single mode with default `T()` and clears backing list state. |
 
 
 ## Notes
@@ -98,18 +98,28 @@ Uncomment the #define useSimpleVector to use the SimpleVectorLibrary instead of 
 
 ## 📜 **PlatformIO Changelog**
 ### Latest Version:
-- **v1.0.0** [BETA] (2025-02-15)
-             - Initial Release
+- **v1.0.1**  (2026-07-25)
+             - Fixed mode-switch behavior in `setSingle()` so stale list data is cleared when returning to single-value mode.
+             - Fixed `addValue()` single-to-list conversion to reset prior backing list state before seeding with the single value.
+             - Restored `setList()` overload compatibility for `useSimpleVector` mode.
+             - Added broader regression test coverage for constructor, conversion, and mode-transition flows.
 
 ### Previous Versions:
+- **v1.0.0**  (2025-02-15)
+             - Initial Release
 
 
 ## 📜 **Arduino Changelog**
 ### Latest Version:
-- **v1.0.0** [BETA] (2025-02-15) [ON-PAR] -> Platformio v1.0.0 [BETA]
-             - Initial Release
+- **v1.0.1** (2026-07-25) [ON-PAR] -> Platformio v1.0.1 [BETA]
+             - Fixed mode-switch behavior in `setSingle()` so stale list data is cleared when returning to single-value mode.
+             - Fixed `addValue()` single-to-list conversion to reset prior backing list state before seeding with the single value.
+             - Restored `setList()` overload compatibility for `useSimpleVector` mode.
+             - Added broader regression test coverage for constructor, conversion, and mode-transition flows.
 
 ### Previous Versions:
+- **v1.0.0** (2025-02-15) [ON-PAR] -> Platformio v1.0.0 [BETA]
+             - Initial Release
 
 
 
