@@ -225,17 +225,16 @@ This documentation provides a full API reference with updated function descripti
 - **Fixed copy constructor not copying `initialSize` and `sortAlgorithm`**.
 
 #### ✅ Memory Safety Improvements
-- **Replaced all `memcpy` calls with element-by-element assignment** in `addAll`, `insertAll`, `toArray`, `ensureCapacity`, `trimToSize`, `resize1`. `memcpy` bypassed copy constructors and was unsafe for any `T` with non-trivial copy semantics (e.g. Arduino `String`, RAII types). Element-wise assignment calls the proper copy-assignment operator.
+- **Replaced `memcpy` with element-by-element assignment in active default paths** for `addAll`, `insertAll`, `toArray`, `ensureCapacity`, `trimToSize`, and `resize1` to preserve non-trivial copy semantics (e.g. Arduino `String`).
 - **`clear()` no longer deallocates and reallocates** — it simply resets `count = 0`, preserving capacity and avoiding unnecessary heap churn that contributes to fragmentation.
-- **Null checks added after every `new`** in `resize1`, `resize2`, `ensureCapacity`, `trimToSize`, and `merge`. If an allocation fails the list is left in its previous valid state.
+- **Null checks added in the active growth/capacity paths** (`resize1`, `ensureCapacity`, `trimToSize`) so failed allocations leave the list unchanged.
 
 #### ⚙️ New Compiler Directive
 - **`AL_NO_SERIAL`** — define this to suppress all `Serial.println` calls emitted by the library. Useful when `Serial` has not been initialised in the sketch.  Can be set via PlatformIO `build_flags = -DAL_NO_SERIAL`.
 
 #### 🔧 Code Restructuring (no behaviour change)
-- **Compiler-directive blocks refactored** — eliminated ~800 lines of duplicated function bodies. Each `#ifndef SkinnyArray … #elif defined(OverrideXxx) … #endif` pattern has been replaced by the equivalent `#if !defined(SkinnyArray) || defined(OverrideXxx)` block containing the function body exactly once. Semantics are identical.
+- **Resolved duplicated `addAll(const T*, size_t)` implementation** from a bad merge, leaving a single authoritative overload in the default build path.
 - **`operator=` now guarded by `OverrideAssignmentOperator`** — previously the assignment operator was compiled unconditionally even when `SkinnyArray` was defined, inconsistent with all other advanced features.
-- **Renamed internal `swap` → `swapElements`** to avoid shadowing `std::swap` on platforms that import the standard library.
 
 ---
 
