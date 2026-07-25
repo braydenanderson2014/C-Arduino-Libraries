@@ -454,16 +454,18 @@ bool Properties::storeToJSON(const String& filename, const String& comments) {
         file.print("{\n");
         file.print("  \"comments\": \"" + comments + "\",\n");
         file.print("  \"properties\": [\n");
+        bool firstProperty = true;
         for (PropertiesIterator it = begin(); it != end(); ++it) {
             if (it.value().length() > 0) {
+                if (!firstProperty) {
+                    file.print(",\n");
+                }
                 file.print("    {\n");
                 file.print("      \"key\": \"" + it.key() + "\",\n");
                 file.print("      \"value\": \"" + it.value() + "\"\n");
                 file.print("    }");
-                if (it != end()) {
-                    file.print(",");
-                }
                 file.print("\n");
+                firstProperty = false;
             }
         }
         file.print("  ]\n");
