@@ -184,6 +184,81 @@ void test_insert_all_list_exact_fit_does_not_resize() {
     assert_list_equals(list, expected, sizeof(expected) / sizeof(expected[0]));
 }
 
+void test_insert_on_full_fixed_list_returns_false_and_leaves_contents_intact() {
+    ArrayList<int> list(ArrayList<int>::FIXED, 4);
+
+    list.add(1);
+    list.add(2);
+    list.add(4);
+    list.add(5);
+
+    size_t capacityBefore = list.capacity();
+    bool ok = list.insert(2, 3);
+
+    TEST_ASSERT_FALSE(ok);
+    TEST_ASSERT_EQUAL_UINT((unsigned int)capacityBefore, (unsigned int)list.capacity());
+
+    const int expected[] = {1, 2, 4, 5};
+    assert_list_equals(list, expected, sizeof(expected) / sizeof(expected[0]));
+}
+
+void test_insert_all_raw_on_full_fixed_list_returns_false() {
+    ArrayList<int> list(ArrayList<int>::FIXED, 4);
+    const int extraValues[] = {3, 4};
+
+    list.add(1);
+    list.add(2);
+    list.add(5);
+    list.add(6);
+
+    size_t capacityBefore = list.capacity();
+    bool ok = list.insertAll(2, extraValues, 2);
+
+    TEST_ASSERT_FALSE(ok);
+    TEST_ASSERT_EQUAL_UINT((unsigned int)capacityBefore, (unsigned int)list.capacity());
+
+    const int expected[] = {1, 2, 5, 6};
+    assert_list_equals(list, expected, sizeof(expected) / sizeof(expected[0]));
+}
+
+void test_sort_with_merge_sort_respects_comparator() {
+    ArrayList<int> list(ArrayList<int>::DYNAMIC2, 8);
+    list.add(8);
+    list.add(3);
+    list.add(7);
+    list.add(1);
+
+    list.sort(ascending_int_comparator, ArrayList<int>::MERGE_SORT);
+
+    const int expected[] = {1, 3, 7, 8};
+    assert_list_equals(list, expected, sizeof(expected) / sizeof(expected[0]));
+}
+
+void test_begin_and_end_are_safe_for_zero_capacity_lists() {
+    ArrayList<int> list(ArrayList<int>::FIXED, 0);
+
+    TEST_ASSERT_EQUAL_PTR(list.begin(), list.end());
+}
+
+void test_insert_all_raw_with_zero_length_is_a_no_op() {
+    ArrayList<int> list(ArrayList<int>::DYNAMIC2, 4);
+    const int extraValues[] = {3, 4};
+
+    list.add(1);
+    list.add(2);
+
+    size_t sizeBefore = list.size();
+    size_t capacityBefore = list.capacity();
+    bool ok = list.insertAll(0, extraValues, 0);
+
+    TEST_ASSERT_TRUE(ok);
+    TEST_ASSERT_EQUAL_UINT((unsigned int)sizeBefore, (unsigned int)list.size());
+    TEST_ASSERT_EQUAL_UINT((unsigned int)capacityBefore, (unsigned int)list.capacity());
+
+    const int expected[] = {1, 2};
+    assert_list_equals(list, expected, sizeof(expected) / sizeof(expected[0]));
+}
+
 void test_get_reference_updates_item_in_place() {
     ArrayList<int> list(ArrayList<int>::DYNAMIC2, 4);
 
@@ -233,7 +308,7 @@ void test_sort_with_quick_sort_enum_compiles_and_sorts() {
 
     list.sort(ascending_int_comparator, ArrayList<int>::QUICK_SORT);
 
-    const int expected[] = {9, 6, 3, 1};
+    const int expected[] = {1, 3, 6, 9};
     assert_list_equals(list, expected, sizeof(expected) / sizeof(expected[0]));
 }
 
@@ -247,8 +322,30 @@ void test_sort_with_quick_sort_selected_via_setter_compiles_and_sorts() {
     list.setSortAlgorithm(ArrayList<int>::QUICK_SORT);
     list.sort(ascending_int_comparator);
 
-    const int expected[] = {5, 4, 2, 1};
+    const int expected[] = {1, 2, 4, 5};
     assert_list_equals(list, expected, sizeof(expected) / sizeof(expected[0]));
+}
+
+void test_sort_on_empty_list_is_a_no_op() {
+    ArrayList<int> list(ArrayList<int>::DYNAMIC2, 4);
+
+    list.sort(ascending_int_comparator);
+    list.sort(ascending_int_comparator, ArrayList<int>::QUICK_SORT);
+
+    TEST_ASSERT_EQUAL_UINT(0, (unsigned int)list.size());
+    TEST_ASSERT_EQUAL_UINT(4, (unsigned int)list.capacity());
+}
+
+void test_copy_assignment_preserves_sort_algorithm_setting() {
+    ArrayList<int> source(ArrayList<int>::DYNAMIC2, 4);
+    ArrayList<int> target(ArrayList<int>::DYNAMIC2, 4);
+
+    source.setSortAlgorithm(ArrayList<int>::QUICK_SORT);
+    target.setSortAlgorithm(ArrayList<int>::BUBBLE_SORT);
+
+    target = source;
+
+    TEST_ASSERT_EQUAL(source.getSortAlgorithm(), target.getSortAlgorithm());
 }
 
 void test_sort_algorithm_defaults_to_merge_sort() {
@@ -358,6 +455,34 @@ void test_trim_to_size_non_trivial_type_uses_assignment_path() {
     TEST_ASSERT_EQUAL_UINT((unsigned int)list.size(), (unsigned int)list.capacity());
 }
 
+void test_add_grows_after_trimming_empty_list_to_zero_capacity() {
+    ArrayList<int> list(ArrayList<int>::DYNAMIC2, 4);
+
+    list.trimToSize();
+
+    TEST_ASSERT_EQUAL_UINT(0, (unsigned int)list.capacity());
+
+    list.add(1);
+
+    TEST_ASSERT_EQUAL_UINT(1, (unsigned int)list.size());
+    TEST_ASSERT_TRUE(list.capacity() >= 1);
+    TEST_ASSERT_EQUAL_INT(1, list.get(0));
+}
+
+void test_add_grows_from_one_slot_capacity() {
+    ArrayList<int> list(ArrayList<int>::DYNAMIC2, 1);
+
+    list.add(7);
+    size_t capacityBefore = list.capacity();
+
+    list.add(8);
+
+    TEST_ASSERT_EQUAL_UINT(2, (unsigned int)list.size());
+    TEST_ASSERT_TRUE(list.capacity() > capacityBefore);
+    TEST_ASSERT_EQUAL_INT(7, list.get(0));
+    TEST_ASSERT_EQUAL_INT(8, list.get(1));
+}
+
 void test_resize1_non_trivial_type_uses_assignment_path() {
     ArrayList<CopyTracked> list(ArrayList<CopyTracked>::DYNAMIC, 4);
     list.add(CopyTracked(1));
@@ -432,6 +557,9 @@ void setup() {
     RUN_TEST(test_get_reference_oob_resets_and_does_not_leak_between_instances);
     RUN_TEST(test_sort_with_quick_sort_enum_compiles_and_sorts);
     RUN_TEST(test_sort_with_quick_sort_selected_via_setter_compiles_and_sorts);
+    RUN_TEST(test_sort_with_merge_sort_respects_comparator);
+    RUN_TEST(test_begin_and_end_are_safe_for_zero_capacity_lists);
+    RUN_TEST(test_sort_on_empty_list_is_a_no_op);
     RUN_TEST(test_sort_algorithm_defaults_to_merge_sort);
     RUN_TEST(test_copy_constructor_copies_initial_size_and_sort_algorithm);
     RUN_TEST(test_add_all_non_trivial_type_uses_assignment_path);
@@ -439,6 +567,8 @@ void setup() {
     RUN_TEST(test_to_array_non_trivial_type_uses_assignment_path);
     RUN_TEST(test_ensure_capacity_non_trivial_type_uses_assignment_path);
     RUN_TEST(test_trim_to_size_non_trivial_type_uses_assignment_path);
+    RUN_TEST(test_add_grows_after_trimming_empty_list_to_zero_capacity);
+    RUN_TEST(test_add_grows_from_one_slot_capacity);
     RUN_TEST(test_resize1_non_trivial_type_uses_assignment_path);
     RUN_TEST(test_clear_keeps_capacity_and_allows_reuse);
     RUN_TEST(test_set_size_type_switch_to_fixed_blocks_growth);

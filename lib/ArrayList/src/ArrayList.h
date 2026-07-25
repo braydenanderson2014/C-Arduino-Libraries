@@ -192,6 +192,9 @@ public:
         if (verifyResizeNeeded(1)) {
             resize();
         }
+        if (count >= arrayCapacity) {
+            return false;
+        }
         for (size_t i = count; i > index; --i) {
             array[i] = array[i - 1];
         }
@@ -208,15 +211,22 @@ public:
         if (this == &list) {
             return *this;
         }
+        T* newArray = new T[list.arrayCapacity];
+        if (!newArray) {
+            return *this;
+        }
+        for (size_t i = 0; i < list.count; i++) {
+            newArray[i] = list.array[i];
+        }
         delete[] this->array;
+        this->array         = newArray;
         this->arrayCapacity = list.arrayCapacity;
-        this->array         = new T[this->arrayCapacity];
         this->sizeType      = list.sizeType;
         this->initialSize   = list.initialSize;
         this->count         = list.count;
-        for (size_t i = 0; i < list.count; i++) {
-            this->array[i] = list.array[i];
-        }
+#if !defined(SkinnyArray) || defined(OverrideSort)
+        this->sortAlgorithm = list.sortAlgorithm;
+#endif
         return *this;
     }
 #endif
@@ -258,6 +268,9 @@ public:
         if (verifyResizeNeeded(other.count)) {
             resize();
         }
+        if (count + other.count > arrayCapacity) {
+            return false;
+        }
         for (size_t i = count + other.count; i > index + other.count; --i) {
             array[i - 1] = array[i - other.count - 1];
         }
@@ -283,11 +296,17 @@ public:
         if (index > count) {
             return false;
         }
+        if (length == 0) {
+            return true;
+        }
         if (verifyResizeNeeded(length)) {
             resize();
         }
-        for (size_t i = count + length - 1; i >= index + length; --i) {
-            array[i] = array[i - length];
+        if (count + length > arrayCapacity) {
+            return false;
+        }
+        for (size_t i = count + length; i > index + length; --i) {
+            array[i - 1] = array[i - length - 1];
         }
         for (size_t i = 0; i < length; i++) {
             array[index + i] = other[i];
@@ -697,6 +716,9 @@ public:
      *                   in the sorted order.
      */
     void sort(bool (*comparator)(T, T)) {
+        if (count < 2) {
+            return;
+        }
         switch (sortAlgorithm) {
             case BUBBLE_SORT:
                 bubbleSort(comparator);
@@ -705,7 +727,7 @@ public:
                 quickSort(comparator);
                 break;
             default:
-                mergeSort(*this, 0, count - 1);
+                mergeSort(*this, comparator, 0, count - 1);
                 break;
         }
     }
@@ -717,6 +739,9 @@ public:
      * @param algorithm  The sorting algorithm to use.
      */
     void sort(bool (*comparator)(T, T), SortAlgorithm algorithm) {
+        if (count < 2) {
+            return;
+        }
         switch (algorithm) {
             case BUBBLE_SORT:
                 bubbleSort(comparator);
@@ -725,7 +750,7 @@ public:
                 quickSort(comparator);
                 break;
             default:
-                mergeSort(*this, 0, count - 1);
+                mergeSort(*this, comparator, 0, count - 1);
                 break;
         }
     }
@@ -736,6 +761,9 @@ public:
      * @param comparator Returns true when the first arg should come after the second.
      */
     void bubbleSort(bool (*comparator)(T, T)) {
+        if (count < 2) {
+            return;
+        }
         for (size_t i = 0; i < count - 1; ++i) {
             for (size_t j = 0; j < count - i - 1; ++j) {
                 if (comparator(array[j], array[j + 1])) {
@@ -753,6 +781,9 @@ public:
      * @param comparator Returns true when the first arg should come after the second.
      */
     void quickSort(bool (*comparator)(T, T)) {
+        if (count < 2) {
+            return;
+        }
         quickSortHelper(comparator, 0, count - 1);
     }
 
@@ -766,12 +797,12 @@ public:
      * @param l    Left boundary index.
      * @param r    Right boundary index.
      */
-    void mergeSort(ArrayList<T>& list, int l, int r) {
+    void mergeSort(ArrayList<T>& list, bool (*comparator)(T, T), int l, int r) {
         if (l < r) {
             int m = l + (r - l) / 2;
-            mergeSort(list, l, m);
-            mergeSort(list, m + 1, r);
-            merge(list, l, m, r);
+            mergeSort(list, comparator, l, m);
+            mergeSort(list, comparator, m + 1, r);
+            merge(list, comparator, l, m, r);
         }
     }
 #endif
@@ -816,12 +847,12 @@ public:
 
     /** @brief Returns a pointer to the first element (enables range-based for loops). */
     T* begin() const {
-        return &array[0];
+        return array;
     }
 
     /** @brief Returns a pointer one past the last element (enables range-based for loops). */
     T* end() const {
-        return &array[count];
+        return array + count;
     }
 
 #ifdef IKnowWhatIAmDoing
@@ -887,6 +918,9 @@ private:
      */
     void resize1() {
         size_t newCapacity = arrayCapacity * 2;
+        if (newCapacity <= count) {
+            newCapacity = count + 1;
+        }
         T* newArray = new T[newCapacity];
         if (!newArray) return;
         for (size_t i = 0; i < count; i++) {
@@ -906,6 +940,9 @@ private:
      */
     void resize2() {
         size_t newCapacity = arrayCapacity + (arrayCapacity / 2);
+        if (newCapacity <= count) {
+            newCapacity = count + 1;
+        }
         T* newArray = new T[newCapacity];
         if (!newArray) return;
         for (size_t i = 0; i < count; i++) {
@@ -926,7 +963,7 @@ private:
         T pivot = array[high];
         int i   = (low - 1);
         for (int j = low; j <= high - 1; j++) {
-            if (comparator(array[j], pivot)) {
+            if (comparator(pivot, array[j])) {
                 i++;
                 swapElements(&array[i], &array[j]);
             }
@@ -953,7 +990,7 @@ private:
      * returning.  If either allocation fails the merge is skipped and the subrange
      * is left in its pre-merge (partially sorted) state.
      */
-    void merge(ArrayList<T>& list, int l, int m, int r) {
+    void merge(ArrayList<T>& list, bool (*comparator)(T, T), int l, int m, int r) {
         int n1 = m - l + 1;
         int n2 = r - m;
         T* L   = new T[n1];
@@ -967,7 +1004,7 @@ private:
         for (int j = 0; j < n2; j++) R[j] = list[m + 1 + j];
         int i = 0, j = 0, k = l;
         while (i < n1 && j < n2) {
-            if (L[i] <= R[j]) {
+            if (!comparator(L[i], R[j])) {
                 list[k++] = L[i++];
             } else {
                 list[k++] = R[j++];
