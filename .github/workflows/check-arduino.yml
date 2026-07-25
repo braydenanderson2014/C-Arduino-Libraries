@@ -67,7 +67,7 @@ jobs:
         uses: actions/github-script@v8
         env:
           TARGET_OWNER: braydenanderson2014
-          TARGET_REPO: SystemCommands
+          TARGET_REPO: C-Arduino-Libraries
           PASSING_LINT_ISSUE_NUMBER: "26"
           FAILED_LINT_ISSUE_NUMBER: "27"
           LIBRARY_LABEL: ${{ steps.library.outputs.library_label }}
