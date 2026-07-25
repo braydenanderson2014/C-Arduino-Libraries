@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <unity.h>
-#include "Hashtable.h"
+#include "../../lib/Hashtable/src/Hashtable.h"
 
 void test_is_empty_tracks_element_count() {
     Hashtable<int, int> table;
