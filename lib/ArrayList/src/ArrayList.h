@@ -162,17 +162,14 @@ public:
      * @return true if all items were added, false if there was insufficient capacity.
      */
     bool addAll(const T* other, size_t length) {
-        if (verifyResizeNeeded(length)) {
-            resize();
+        if (!ensureAdditionalCapacity(length)) {
+            return false;
         }
-        if (count + length <= arrayCapacity) {
-            for (size_t i = 0; i < length; i++) {
-                array[count + i] = other[i];
-            }
-            count += length;
-            return true;
+        for (size_t i = 0; i < length; i++) {
+            array[count + i] = other[i];
         }
-        return false;
+        count += length;
+        return true;
     }
 #endif
 
@@ -265,10 +262,7 @@ public:
         if (index > count) {
             return false;
         }
-        if (verifyResizeNeeded(other.count)) {
-            resize();
-        }
-        if (count + other.count > arrayCapacity) {
+        if (!ensureAdditionalCapacity(other.count)) {
             return false;
         }
         for (size_t i = count + other.count; i > index + other.count; --i) {
@@ -299,10 +293,7 @@ public:
         if (length == 0) {
             return true;
         }
-        if (verifyResizeNeeded(length)) {
-            resize();
-        }
-        if (count + length > arrayCapacity) {
+        if (!ensureAdditionalCapacity(length)) {
             return false;
         }
         for (size_t i = count + length; i > index + length; --i) {
@@ -951,6 +942,20 @@ private:
         delete[] array;
         array        = newArray;
         arrayCapacity = newCapacity;
+    }
+
+    bool ensureAdditionalCapacity(size_t spacesNeeded) {
+        if (sizeType == FIXED) {
+            return count + spacesNeeded <= arrayCapacity;
+        }
+        while (count + spacesNeeded > arrayCapacity) {
+            size_t previousCapacity = arrayCapacity;
+            resize();
+            if (arrayCapacity == previousCapacity) {
+                return false;
+            }
+        }
+        return true;
     }
 
 #if !defined(SkinnyArray) || defined(OverrideSort)

@@ -90,19 +90,26 @@ void test_add_all_fills_remaining_capacity_without_resizing() {
 
 void test_add_all_array_resizes_when_insufficient_capacity() {
     ArrayList<int> list(ArrayList<int>::DYNAMIC2, 8);
-    const int extraValues[] = {100, 101};
+    const int extraValues[] = {
+        100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+        110, 111, 112, 113, 114, 115, 116, 117, 118, 119
+    };
 
     for (int i = 0; i < 7; ++i) {
         list.add(i);
     }
 
-    bool ok = list.addAll(extraValues, 2);
+    bool ok = list.addAll(extraValues, sizeof(extraValues) / sizeof(extraValues[0]));
 
     TEST_ASSERT_TRUE(ok);
-    TEST_ASSERT_EQUAL_UINT(9, (unsigned int)list.size());
-    TEST_ASSERT_TRUE(list.capacity() > 8);
+    TEST_ASSERT_EQUAL_UINT(27, (unsigned int)list.size());
+    TEST_ASSERT_TRUE(list.capacity() >= 27);
 
-    const int expected[] = {0, 1, 2, 3, 4, 5, 6, 100, 101};
+    const int expected[] = {
+        0, 1, 2, 3, 4, 5, 6,
+        100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+        110, 111, 112, 113, 114, 115, 116, 117, 118, 119
+    };
     assert_list_equals(list, expected, sizeof(expected) / sizeof(expected[0]));
 }
 
@@ -184,6 +191,32 @@ void test_insert_all_list_exact_fit_does_not_resize() {
     assert_list_equals(list, expected, sizeof(expected) / sizeof(expected[0]));
 }
 
+void test_insert_all_list_resizes_multiple_times_when_needed() {
+    ArrayList<int> list(ArrayList<int>::DYNAMIC2, 8);
+    ArrayList<int> block(ArrayList<int>::DYNAMIC2, 8);
+
+    for (int i = 0; i < 7; ++i) {
+        list.add(i);
+    }
+    for (int i = 100; i < 120; ++i) {
+        block.add(i);
+    }
+
+    bool ok = list.insertAll(3, block);
+
+    TEST_ASSERT_TRUE(ok);
+    TEST_ASSERT_EQUAL_UINT(27, (unsigned int)list.size());
+    TEST_ASSERT_TRUE(list.capacity() >= 27);
+
+    const int expected[] = {
+        0, 1, 2,
+        100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+        110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
+        3, 4, 5, 6
+    };
+    assert_list_equals(list, expected, sizeof(expected) / sizeof(expected[0]));
+}
+
 void test_insert_on_full_fixed_list_returns_false_and_leaves_contents_intact() {
     ArrayList<int> list(ArrayList<int>::FIXED, 4);
 
@@ -218,6 +251,32 @@ void test_insert_all_raw_on_full_fixed_list_returns_false() {
     TEST_ASSERT_EQUAL_UINT((unsigned int)capacityBefore, (unsigned int)list.capacity());
 
     const int expected[] = {1, 2, 5, 6};
+    assert_list_equals(list, expected, sizeof(expected) / sizeof(expected[0]));
+}
+
+void test_insert_all_raw_resizes_multiple_times_when_needed() {
+    ArrayList<int> list(ArrayList<int>::DYNAMIC2, 8);
+    const int extraValues[] = {
+        200, 201, 202, 203, 204, 205, 206, 207, 208, 209,
+        210, 211, 212, 213, 214, 215, 216, 217, 218, 219
+    };
+
+    for (int i = 0; i < 7; ++i) {
+        list.add(i);
+    }
+
+    bool ok = list.insertAll(4, extraValues, sizeof(extraValues) / sizeof(extraValues[0]));
+
+    TEST_ASSERT_TRUE(ok);
+    TEST_ASSERT_EQUAL_UINT(27, (unsigned int)list.size());
+    TEST_ASSERT_TRUE(list.capacity() >= 27);
+
+    const int expected[] = {
+        0, 1, 2, 3,
+        200, 201, 202, 203, 204, 205, 206, 207, 208, 209,
+        210, 211, 212, 213, 214, 215, 216, 217, 218, 219,
+        4, 5, 6
+    };
     assert_list_equals(list, expected, sizeof(expected) / sizeof(expected[0]));
 }
 
@@ -552,6 +611,7 @@ void setup() {
     RUN_TEST(test_set_existing_item_does_not_resize);
     RUN_TEST(test_insert_on_full_list_resizes_and_shifts_items);
     RUN_TEST(test_insert_all_list_exact_fit_does_not_resize);
+    RUN_TEST(test_insert_all_list_resizes_multiple_times_when_needed);
     RUN_TEST(test_get_reference_updates_item_in_place);
     RUN_TEST(test_operator_index_oob_returns_reset_default_reference_each_time);
     RUN_TEST(test_get_reference_oob_resets_and_does_not_leak_between_instances);
@@ -570,6 +630,7 @@ void setup() {
     RUN_TEST(test_add_grows_after_trimming_empty_list_to_zero_capacity);
     RUN_TEST(test_add_grows_from_one_slot_capacity);
     RUN_TEST(test_resize1_non_trivial_type_uses_assignment_path);
+    RUN_TEST(test_insert_all_raw_resizes_multiple_times_when_needed);
     RUN_TEST(test_clear_keeps_capacity_and_allows_reuse);
     RUN_TEST(test_set_size_type_switch_to_fixed_blocks_growth);
     RUN_TEST(test_initial_size_getter_and_setter_round_trip);
