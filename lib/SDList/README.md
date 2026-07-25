@@ -150,7 +150,7 @@ fragmentation on the FAT filesystem.
 ## ChangeLog
 
 ### Version 2.0.0
-* **Complete rewrite** — binary storage replaces text serialisation; eliminates
+* **Complete rewrite** — binary storage replaces text serialization; eliminates
   all data corruption for non-String types.
 * Fixed batch window: one pre-allocated `T[BATCH_SIZE]` buffer, never reallocated.
 * Pre-allocated file with grow-on-demand: no fragmentation.
