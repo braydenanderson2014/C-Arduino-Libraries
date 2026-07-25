@@ -833,6 +833,16 @@ jobs:
             lines.push(`- Overrides are loaded from private repo path: ${overridePath}.`);
             lines.push('- Manual category overrides are ignored when confirmed issue lock is active.');
             lines.push('');
+            lines.push('## SystemCommands Issue Map');
+            lines.push('');
+            lines.push('- #26: Lint Passed');
+            lines.push('- #27: Lint Failed');
+            lines.push('- #28: Compilation Passed');
+            lines.push('- #29: Compilation Failed');
+            lines.push('- #30: Passive Development');
+            lines.push('- #31: Active Development');
+            lines.push('- #32: Deprecated / Slated For Removal');
+            lines.push('');
             lines.push('## Confirmed Issue Links By Library');
             lines.push('');
 
