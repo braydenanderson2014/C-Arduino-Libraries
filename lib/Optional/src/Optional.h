@@ -36,7 +36,8 @@ public:
      */
     T& getValue() {
         if (!has_value) {
-            value = T();
+            static T default_value = T();
+            return default_value;
         }
         return value;
     }
@@ -227,14 +228,15 @@ public:
      *         to the internal default-constructed value of type T.
      */
     T& ref() {
-        return getValue();
+        if (!has_value) {
+            static T default_value = T();
+            return default_value;
+        }
+        return value;
     }
 
     const T& ref() const {
-        if (!has_value) {
-            return emptyValue();
-        }
-        return value;
+        return getValue();
     }
     
     /**

@@ -11,7 +11,10 @@
 #endif
 
 #if JSON_ENABLE_OPTIONAL_RETURNS
-// Enable with -DJSON_ENABLE_OPTIONAL_RETURNS=1 to expose Optional<T> JSON getters.
+// Enable Optional<T> JSON getters by defining JSON_ENABLE_OPTIONAL_RETURNS=1 in every
+// compilation unit that includes JSON.h *and* in the unit that compiles JSON.cpp
+// (e.g. pass -DJSON_ENABLE_OPTIONAL_RETURNS=1 to every g++ invocation that touches
+// either file). Optional.h (lib/Optional/src) must also be on the include path.
 #include <Optional.h>
 #endif
 
