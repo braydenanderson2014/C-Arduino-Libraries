@@ -830,6 +830,9 @@ struct Custom_String {
          * @return String - The replaced STRing
         */
         String Replace(const char* subSTR, const char* Replacement) const {
+            if (!subSTR || !Replacement) {
+                return *this;
+            }
             String result;
             unsigned int start = 0;
             const unsigned int subLength = STR_LEN(subSTR);
@@ -874,6 +877,9 @@ struct Custom_String {
          * @return String - The STRing with the Sub_String removed
         */
         String remove(const char* subSTR) const {
+            if (!subSTR) {
+                return *this;
+            }
             String result;
             unsigned int start = 0;
             const unsigned int subLength = STR_LEN(subSTR);

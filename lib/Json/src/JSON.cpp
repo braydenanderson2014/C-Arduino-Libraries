@@ -177,26 +177,31 @@ int JSON::readFromFile(const char* filename) {
             (static_cast<uint32_t>(header[3]) << 24);
 
         if (expectedSize > 0 && fileData.size() > sizeof(uint32_t)) {
-            char* decompressedBuffer = static_cast<char*>(std::malloc(static_cast<size_t>(expectedSize) + 1));
-            if (!decompressedBuffer) {
-                return JSON_DECOMPRESSION_ERROR;
-            }
+            static const uint32_t MAX_DECOMPRESSED_SIZE = 64u * 1024u * 1024u;
+            static const uint32_t MAX_COMPRESSION_RATIO = 256u;
+            const size_t compressedPayloadSize = fileData.size() - sizeof(uint32_t);
+            if (expectedSize <= MAX_DECOMPRESSED_SIZE && expectedSize <= compressedPayloadSize * MAX_COMPRESSION_RATIO) {
+                char* decompressedBuffer = static_cast<char*>(std::malloc(static_cast<size_t>(expectedSize) + 1));
+                if (!decompressedBuffer) {
+                    return JSON_DECOMPRESSION_ERROR;
+                }
 
-            const int decompressedSize = LZ4_decompress_safe(
-                fileData.data() + sizeof(uint32_t),
-                decompressedBuffer,
-                static_cast<int>(fileData.size() - sizeof(uint32_t)),
-                static_cast<int>(expectedSize)
-            );
+                const int decompressedSize = LZ4_decompress_safe(
+                    fileData.data() + sizeof(uint32_t),
+                    decompressedBuffer,
+                    static_cast<int>(fileData.size() - sizeof(uint32_t)),
+                    static_cast<int>(expectedSize)
+                );
 
-            if (decompressedSize >= 0) {
-                decompressedBuffer[decompressedSize] = '\0';
-                const bool parsed = readFromString(decompressedBuffer);
+                if (decompressedSize >= 0) {
+                    decompressedBuffer[decompressedSize] = '\0';
+                    const bool parsed = readFromString(decompressedBuffer);
+                    std::free(decompressedBuffer);
+                    return parsed ? JSON_READ_SUCCESS : JSON_FILE_PARSE_ERROR;
+                }
+
                 std::free(decompressedBuffer);
-                return parsed ? JSON_READ_SUCCESS : JSON_FILE_PARSE_ERROR;
             }
-
-            std::free(decompressedBuffer);
         }
     }
 
@@ -1072,7 +1077,7 @@ JSON::Node* JSON::findOrCreateNode(const char* path, bool createIntermediate) {
 
 JSON::Node* JSON::findNode(const char* path) const {
     if (!path || !*path) {
-        return const_cast<Node*>(&root);
+        return nullptr;
     }
 
     if ((root.type != ValueType::Object && root.type != ValueType::Array) || !root.children) {
