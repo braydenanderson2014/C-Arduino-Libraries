@@ -579,10 +579,6 @@ jobs:
               return status === 'passed' ? 'Passed' : status === 'failed' ? 'Failed' : 'Unknown';
             }
 
-            function issueRef(issueNumber) {
-              return issueNumber != null ? `#${issueNumber}` : 'N/A';
-            }
-
             function statusToIssueNumber(status, passedKey, failedKey) {
               if (status === 'failed') return statusIssueNumbers[failedKey];
               if (status === 'passed') return statusIssueNumbers[passedKey];
@@ -937,18 +933,34 @@ jobs:
             lines.push('');
             lines.push('## Results');
             lines.push('');
-            lines.push('| Library Label | Confirmed Issues | Open Unconfirmed Issues | PlatformIO Signal | Health | Testing | Lint | Compilation | Health Issue | Testing Issue | Lint Issue | Compilation Issue |');
-            lines.push('|---|---:|---:|---|---|---|---|---|---:|---:|---:|---:|');
-
+            lines.push('### Health & Testing Status');
+            lines.push('');
+            lines.push('| Library Label | PlatformIO Signal | Health | Testing |');
+            lines.push('|---|---|---|---|');
             for (const row of reportRows) {
               lines.push(
-                `| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount}` +
-                ` | ${row.platformVerdict} | ${healthBadge(row.final)}` +
-                ` | ${testingBadge(row.testingStatus)} | ${lintBadge(row.lintStatus)}` +
-                ` | ${compilationBadge(row.compilationStatus)}` +
-                ` | #${row.bucketIssueNumber} | #${row.testingIssueNumber}` +
-                ` | ${issueRef(row.lintIssueNumber)} | ${issueRef(row.compilationIssueNumber)} |`
+                `| ${row.library} | ${row.platformVerdict}` +
+                ` | ${healthBadge(row.final)} | ${testingBadge(row.testingStatus)} |`
               );
+            }
+            lines.push('');
+            lines.push('### Quality Status');
+            lines.push('');
+            lines.push('| Library Label | Lint | Compilation |');
+            lines.push('|---|---|---|');
+            for (const row of reportRows) {
+              lines.push(
+                `| ${row.library} | ${lintBadge(row.lintStatus)}` +
+                ` | ${compilationBadge(row.compilationStatus)} |`
+              );
+            }
+            lines.push('');
+            lines.push('### Issue Counts');
+            lines.push('');
+            lines.push('| Library Label | Confirmed Issues | Open Unconfirmed Issues |');
+            lines.push('|---|---:|---:|');
+            for (const row of reportRows) {
+              lines.push(`| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount} |`);
             }
 
             lines.push('');
