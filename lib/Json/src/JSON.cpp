@@ -1,84 +1,298 @@
 #include "JSON.h"
 
-// --------------------------------------------------------------------
-// Information
-// --------------------------------------------------------------------
-bool JSON::hasKey(const char*& path) const {
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+
+JSON::Node::Node() : key(nullptr), type(ValueType::Null), stringValue(nullptr), children(nullptr) {}
+
+JSON::Node::Node(const Node& other) : key(nullptr), type(ValueType::Null), stringValue(nullptr), children(nullptr) {
+    copyFrom(other);
+}
+
+JSON::Node& JSON::Node::operator=(const Node& other) {
+    if (this != &other) {
+        clear();
+        copyFrom(other);
+    }
+    return *this;
+}
+
+JSON::Node::~Node() {
+    clear();
+}
+
+void JSON::Node::clear() {
+    if (key) {
+        free(key);
+        key = nullptr;
+    }
+
+    if (type == ValueType::String && stringValue) {
+        free(stringValue);
+    }
+    stringValue = nullptr;
+
+    if (children) {
+        delete children;
+        children = nullptr;
+    }
+
+    type = ValueType::Null;
+    boolValue = false;
+}
+
+void JSON::Node::copyFrom(const Node& other) {
+    key = nullptr;
+    stringValue = nullptr;
+    children = nullptr;
+    type = other.type;
+
+    if (other.key) {
+        const size_t keyLength = std::strlen(other.key) + 1;
+        key = static_cast<char*>(std::malloc(keyLength));
+        if (key) {
+            std::memcpy(key, other.key, keyLength);
+        }
+    }
+
+    switch (type) {
+        case ValueType::String:
+            if (other.stringValue) {
+                const size_t stringLength = std::strlen(other.stringValue) + 1;
+                stringValue = static_cast<char*>(std::malloc(stringLength));
+                if (stringValue) {
+                    std::memcpy(stringValue, other.stringValue, stringLength);
+                }
+            }
+            break;
+        case ValueType::Number:
+            numberValue = other.numberValue;
+            break;
+        case ValueType::Bool:
+            boolValue = other.boolValue;
+            break;
+        case ValueType::Object:
+        case ValueType::Array:
+            if (other.children) {
+                children = new SimpleVector<Node>(*other.children);
+            }
+            break;
+        case ValueType::Null:
+        default:
+            boolValue = false;
+            break;
+    }
+}
+
+bool JSON::Node::operator==(const Node& other) const {
+    const bool keysEqual =
+        (key == nullptr && other.key == nullptr) ||
+        (key != nullptr && other.key != nullptr && std::strcmp(key, other.key) == 0);
+
+    if (!keysEqual || type != other.type) {
+        return false;
+    }
+
+    switch (type) {
+        case ValueType::Null:
+            return true;
+        case ValueType::Bool:
+            return boolValue == other.boolValue;
+        case ValueType::Number:
+            return numberValue == other.numberValue;
+        case ValueType::String:
+            return (stringValue == nullptr && other.stringValue == nullptr) ||
+                   (stringValue != nullptr && other.stringValue != nullptr &&
+                    std::strcmp(stringValue, other.stringValue) == 0);
+        case ValueType::Object:
+        case ValueType::Array:
+            if (children == nullptr || other.children == nullptr) {
+                return children == other.children;
+            }
+            if (children->elements() != other.children->elements()) {
+                return false;
+            }
+            for (size_t i = 0; i < children->elements(); ++i) {
+                if (!(children->get(i) == other.children->get(i))) {
+                    return false;
+                }
+            }
+            return true;
+        default:
+            return false;
+    }
+}
+
+JSON::JSON() {
+    resetRoot(ValueType::Object);
+    sdInstance.begin(SD_CS_PIN);
+}
+
+JSON::JSON(size_t cs_pin) {
+    resetRoot(ValueType::Object);
+    sdInstance.begin(static_cast<uint8_t>(cs_pin));
+}
+
+JSON::~JSON() {}
+
+bool JSON::hasKey(const char* path) const {
     return findNode(path) != nullptr;
 }
 
-bool JSON::isNull(const char*& path) const {
+bool JSON::isNull(const char* path) const {
     Node* node = findNode(path);
     return node && node->type == ValueType::Null;
 }
 
-
-// --------------------------------------------------------------------
-// Public Methods: File I/O
-// --------------------------------------------------------------------
 int JSON::readFromFile(const char* filename) {
-    FsFile file = sdInstance.open(filename, O_READ);
-    if (!file) {
-        return JSON_FILE_NOT_FOUND; // Error 119
+    if (!filename || !*filename) {
+        return JSON_FILE_NOT_FOUND;
     }
 
-    // Read the compressed file into a buffer
-    char compressedBuffer[1024];  // Adjust size as needed
-    int compressedSize = file.read(compressedBuffer, sizeof(compressedBuffer));
+    FsFile file = sdInstance.open(filename, O_READ);
+    if (!file) {
+        return JSON_FILE_NOT_FOUND;
+    }
+
+    std::string fileData;
+    char chunk[256];
+    int bytesRead = 0;
+    while ((bytesRead = file.read(chunk, sizeof(chunk))) > 0) {
+        fileData.append(chunk, static_cast<size_t>(bytesRead));
+    }
     file.close();
 
-    if (compressedSize <= 0) {
+    if (fileData.empty()) {
         return JSON_READ_ERROR;
     }
 
-    // Allocate buffer for decompressed data
-    char decompressedBuffer[2048];  // Adjust size based on expected JSON length
-    memset(decompressedBuffer, 0, sizeof(decompressedBuffer));
+    if (fileData.size() > sizeof(uint32_t)) {
+        const unsigned char* header = reinterpret_cast<const unsigned char*>(fileData.data());
+        const uint32_t expectedSize =
+            static_cast<uint32_t>(header[0]) |
+            (static_cast<uint32_t>(header[1]) << 8) |
+            (static_cast<uint32_t>(header[2]) << 16) |
+            (static_cast<uint32_t>(header[3]) << 24);
 
-    // Decompress the JSON data
-    int decompressedSize = LZ4_decompress_safe(compressedBuffer, decompressedBuffer, compressedSize, sizeof(decompressedBuffer));
-    if (decompressedSize < 0) {
-        return JSON_DECOMPRESSION_ERROR;
+        if (expectedSize > 0 && fileData.size() > sizeof(uint32_t)) {
+            static const uint32_t MAX_DECOMPRESSED_SIZE = 64u * 1024u * 1024u;
+            static const uint32_t MAX_COMPRESSION_RATIO = 256u;
+            const size_t compressedPayloadSize = fileData.size() - sizeof(uint32_t);
+            if (expectedSize <= MAX_DECOMPRESSED_SIZE && expectedSize <= compressedPayloadSize * MAX_COMPRESSION_RATIO) {
+                char* decompressedBuffer = static_cast<char*>(std::malloc(static_cast<size_t>(expectedSize) + 1));
+                if (!decompressedBuffer) {
+                    return JSON_DECOMPRESSION_ERROR;
+                }
+
+                const int decompressedSize = LZ4_decompress_safe(
+                    fileData.data() + sizeof(uint32_t),
+                    decompressedBuffer,
+                    static_cast<int>(fileData.size() - sizeof(uint32_t)),
+                    static_cast<int>(expectedSize)
+                );
+
+                if (decompressedSize >= 0) {
+                    decompressedBuffer[decompressedSize] = '\0';
+                    const bool parsed = readFromString(decompressedBuffer);
+                    std::free(decompressedBuffer);
+                    return parsed ? JSON_READ_SUCCESS : JSON_FILE_PARSE_ERROR;
+                }
+
+                std::free(decompressedBuffer);
+            }
+        }
     }
 
-    // Convert the decompressed buffer into a char* for parsing
-    const char* jsonStr = decompressedBuffer;
-    int parseResult = readFromString(jsonStr);
+    std::string plainText = fileData;
+    plainText.push_back('\0');
+    if (readFromString(plainText.c_str())) {
+        return JSON_READ_SUCCESS;
+    }
 
-    return parseResult;  // Return success or error from parsing
+    size_t outputCapacity = fileData.size() * 2;
+    if (outputCapacity == 0) {
+        outputCapacity = 256;
+    }
+
+    while (outputCapacity <= 1024 * 1024) {
+        char* decompressedBuffer = static_cast<char*>(std::malloc(outputCapacity + 1));
+        if (!decompressedBuffer) {
+            return JSON_DECOMPRESSION_ERROR;
+        }
+
+        const int decompressedSize = LZ4_decompress_safe(
+            fileData.data(),
+            decompressedBuffer,
+            static_cast<int>(fileData.size()),
+            static_cast<int>(outputCapacity)
+        );
+
+        if (decompressedSize >= 0) {
+            decompressedBuffer[decompressedSize] = '\0';
+            const bool parsed = readFromString(decompressedBuffer);
+            std::free(decompressedBuffer);
+            return parsed ? JSON_READ_SUCCESS : JSON_FILE_PARSE_ERROR;
+        }
+
+        std::free(decompressedBuffer);
+        outputCapacity *= 2;
+    }
+
+    return JSON_DECOMPRESSION_ERROR;
 }
-
-
-/*
-bool JSON::readFromFile(const FsFile& file) {
-    
-}
-*/
 
 int JSON::writeToFile(const char* filename, bool pretty) {
-    FsFile file = sdInstance.open(filename, O_CREAT | O_WRITE);
-    if (!file) return JSON_FILE_OPEN_ERROR;
+    if (!filename || !*filename) {
+        return JSON_FILE_OPEN_ERROR;
+    }
 
-    // Buffer for serialized JSON
-    char outBuffer[2048];  // Increased buffer size for larger JSON
-    memset(outBuffer, 0, sizeof(outBuffer));
+    FsFile file = sdInstance.open(filename, O_CREAT | O_WRITE | O_TRUNC);
+    if (!file) {
+        return JSON_FILE_OPEN_ERROR;
+    }
 
-    // Serialize JSON to string
-    serializeNode(root, outBuffer, sizeof(outBuffer), 0, pretty);
+    char* serialized = writeToString(pretty);
+    if (!serialized) {
+        file.close();
+        return JSON_WRITE_ERROR;
+    }
 
-    // Buffer for compressed data
-    char compressedBuffer[2048];
-    memset(compressedBuffer, 0, sizeof(compressedBuffer));
+    const int serializedLength = static_cast<int>(std::strlen(serialized));
+    const int compressedCapacity = LZ4_compressBound(serializedLength);
+    char* compressedBuffer = static_cast<char*>(std::malloc(static_cast<size_t>(compressedCapacity)));
+    if (!compressedBuffer) {
+        std::free(serialized);
+        file.close();
+        return JSON_WRITE_ERROR;
+    }
 
-    // Compress JSON using LZ4
-    int compressedSize = LZ4_compress_default(outBuffer, compressedBuffer, sizeof(outBuffer), sizeof(compressedBuffer));
+    const int compressedSize =
+        LZ4_compress_default(serialized, compressedBuffer, serializedLength, compressedCapacity);
+
+    std::free(serialized);
+
     if (compressedSize <= 0) {
+        std::free(compressedBuffer);
         file.close();
         return JSON_COMPRESSION_ERROR;
     }
 
-    // Write compressed data to file
-    if (file.write(compressedBuffer, compressedSize) != compressedSize) {
+    const unsigned char header[4] = {
+        static_cast<unsigned char>(serializedLength & 0xFF),
+        static_cast<unsigned char>((serializedLength >> 8) & 0xFF),
+        static_cast<unsigned char>((serializedLength >> 16) & 0xFF),
+        static_cast<unsigned char>((serializedLength >> 24) & 0xFF)
+    };
+
+    const bool wroteHeader = file.write(header, sizeof(header)) == sizeof(header);
+    const bool wrotePayload =
+        file.write(compressedBuffer, static_cast<size_t>(compressedSize)) == static_cast<size_t>(compressedSize);
+
+    std::free(compressedBuffer);
+
+    if (!wroteHeader || !wrotePayload) {
         file.close();
         return JSON_WRITE_ERROR;
     }
@@ -87,773 +301,1065 @@ int JSON::writeToFile(const char* filename, bool pretty) {
     return JSON_WRITE_SUCCESS;
 }
 
-
-
-/*
-bool JSON::writeToFile(const FsFile& file, bool pretty)  {
-    
-}
-*/
-
-bool JSON::readFromString(const char*& jsonStr) {
-    // Clear the current root
-    root.children->clear();
-    root.type = ValueType::Object; // default to object (or could be array if top-level is [ ])
+bool JSON::readFromString(const char* jsonStr) {
+    resetRoot(ValueType::Object);
     return parse(jsonStr);
 }
 
 char* JSON::writeToString(bool pretty) const {
-    size_t bufferSize = 2048;  // Set a larger default buffer size
-    char* out = (char*)malloc(bufferSize);
-    if (!out) return nullptr;  // Check for allocation failure
-    memset(out, 0, bufferSize);
+    const size_t bufferSize = measureSerializedNode(root, 0, pretty) + 1;
+    char* out = static_cast<char*>(std::malloc(bufferSize));
+    if (!out) {
+        return nullptr;
+    }
 
-    serializeNode(root, out, bufferSize, 0, pretty);
-
+    out[0] = '\0';
+    size_t offset = 0;
+    serializeNode(root, out, bufferSize, offset, 0, pretty);
+    out[offset] = '\0';
     return out;
 }
 
-
-
-// --------------------------------------------------------------------
-// Public Methods: Typed Setters
-// --------------------------------------------------------------------
 void JSON::setString(const char* path, const char* value) {
-    if (!path || strlen(path) == 0) return; // Prevent empty keys
-
     Node* node = findOrCreateNode(path, true);
-    if (!node) return; // Ensure node is valid
-
-    node->type = ValueType::String;
-    node->stringValue = strdupSafe(value);
-
-    if (!root.children) root.children = new SimpleVector<Node>(); // Ensure root has children
-
-    // Ensure the node is added to children
-    if (root.type != ValueType::Object) {
-        root.type = ValueType::Object;
-    }
-
-    bool exists = false;
-    for (size_t i = 0; i < root.children->elements(); i++) {
-        if (strcmp(root.children->get(i).key, path) == 0) {
-            exists = true;
-            break;
-        }
-    }
-
-    if (!exists) {
-        root.children->push_back(*node); // Ensure it's in the tree
-    }
-}
-
-
-void JSON::setNumber(const char* path, double value) {
-
-    Node* node = findOrCreateNode(path, true);
-    if (!node || node == &root) {
+    if (!node) {
         return;
     }
-    node->type = ValueType::Number;
-    node->numberValue = value;
 
-    if (!root.children) {
-        root.children = new SimpleVector<Node>();
-    }
-
-    bool exists = false;
-    for (size_t i = 0; i < root.children->elements(); i++) {
-        if (strcmp(root.children->get(i).key, path) == 0) {
-            exists = true;
-            break;
-        }
-    }
-
-    if (!exists) {
-        Serial.println("DEBUG: Adding node to root.children");
-        root.children->push_back(*node);
-
-        // Debugging: Print stored node key after push
-        Node& storedNode = root.children->get(root.children->elements() - 1);
-        Serial.print("DEBUG: Stored Node Key After Push: ");
-        Serial.println(storedNode.key ? storedNode.key : "(null)");
-    }
-
-    Serial.println("DEBUG: Value set successfully");
+    releaseNodeValue(*node);
+    node->type = ValueType::String;
+    node->stringValue = strdupSafe(value ? value : "");
 }
 
-
-
-void JSON::setBool(const char*& path, bool value) {
+void JSON::setNumber(const char* path, double value) {
     Node* node = findOrCreateNode(path, true);
-    if (!node) return;
+    if (!node) {
+        return;
+    }
+
+    releaseNodeValue(*node);
+    node->type = ValueType::Number;
+    node->numberValue = value;
+}
+
+void JSON::setBool(const char* path, bool value) {
+    Node* node = findOrCreateNode(path, true);
+    if (!node) {
+        return;
+    }
+
+    releaseNodeValue(*node);
     node->type = ValueType::Bool;
     node->boolValue = value;
 }
 
-void JSON::setNull(const char*& path) {
+void JSON::setNull(const char* path) {
     Node* node = findOrCreateNode(path, true);
-    if (!node) return;
+    if (!node) {
+        return;
+    }
+
+    releaseNodeValue(*node);
     node->type = ValueType::Null;
 }
 
-// For arrays: push a new element at the end
-void JSON::pushBack(const char*& path, const char*& value) {
+void JSON::pushBack(const char* path, const char* value) {
     Node* node = findOrCreateNode(path, true);
-    if (!node) return;
-    // If node isn't already an array, make it one
-    if (node->type != ValueType::Array) {
-        node->type = ValueType::Array;
-        node->children->clear();
+    if (!node) {
+        return;
     }
+
+    if (node->type != ValueType::Array) {
+        releaseNodeValue(*node);
+        node->type = ValueType::Array;
+        node->children = new SimpleVector<Node>();
+    } else if (!node->children) {
+        node->children = new SimpleVector<Node>();
+    }
+
     Node child;
     child.type = ValueType::String;
-    child.stringValue = strdupSafe(value);
+    child.stringValue = strdupSafe(value ? value : "");
     node->children->push_back(child);
 }
 
-void JSON::pushBack(const char*& path, double value) {
+void JSON::pushBack(const char* path, double value) {
     Node* node = findOrCreateNode(path, true);
-    if (!node) return;
-    if (node->type != ValueType::Array) {
-        node->type = ValueType::Array;
-        node->children->clear();
+    if (!node) {
+        return;
     }
+
+    if (node->type != ValueType::Array) {
+        releaseNodeValue(*node);
+        node->type = ValueType::Array;
+        node->children = new SimpleVector<Node>();
+    } else if (!node->children) {
+        node->children = new SimpleVector<Node>();
+    }
+
     Node child;
     child.type = ValueType::Number;
     child.numberValue = value;
     node->children->push_back(child);
 }
 
-void JSON::pushBack(const char*& path, bool value) {
+void JSON::pushBack(const char* path, bool value) {
     Node* node = findOrCreateNode(path, true);
-    if (!node) return;
-    if (node->type != ValueType::Array) {
-        node->type = ValueType::Array;
-        node->children->clear();
+    if (!node) {
+        return;
     }
+
+    if (node->type != ValueType::Array) {
+        releaseNodeValue(*node);
+        node->type = ValueType::Array;
+        node->children = new SimpleVector<Node>();
+    } else if (!node->children) {
+        node->children = new SimpleVector<Node>();
+    }
+
     Node child;
     child.type = ValueType::Bool;
     child.boolValue = value;
     node->children->push_back(child);
 }
 
-// --------------------------------------------------------------------
-// Public Methods: Typed Getters
-// --------------------------------------------------------------------
 String JSON::getString(const char* path, const char* defaultVal) const {
     Node* node = findNode(path);
-    if (!node) return String(defaultVal); // Convert `const char*` to `String`
-
-    if (node->type == ValueType::String) {
-        return String(node->stringValue); // Ensure `String` conversion
+    if (!node) {
+        return String(defaultVal ? defaultVal : "");
     }
 
-    // Convert Number to String safely
-    if (node->type == ValueType::Number) {
-        char temp[32]; // Buffer for number-to-string conversion
-        dtostrf(node->numberValue, 0, 6, temp); // Arduino-specific float-to-string
-        return String(temp);
+    switch (node->type) {
+        case ValueType::String:
+            return String(node->stringValue ? node->stringValue : "");
+        case ValueType::Number: {
+            char temp[32];
+            std::snprintf(temp, sizeof(temp), "%.15g", node->numberValue);
+            return String(temp);
+        }
+        case ValueType::Bool:
+            return node->boolValue ? String("true") : String("false");
+        case ValueType::Null:
+            return String("null");
+        default:
+            return String(defaultVal ? defaultVal : "");
     }
-
-    // Convert Boolean to "true"/"false" String
-    if (node->type == ValueType::Bool) {
-        return node->boolValue ? String("true") : String("false");
-    }
-
-    return String(defaultVal);
 }
-
 
 double JSON::getNumber(const char* path, double defaultVal) const {
     Node* node = findNode(path);
-    if (!node) return defaultVal;
-
-    if (node->type == ValueType::Number) {
-        return node->numberValue;
+    if (!node) {
+        return defaultVal;
     }
 
-    // If it's a string, attempt to parse as a number
-    if (node->type == ValueType::String) {
-        return (node->stringValue) ? atof(node->stringValue) : defaultVal;
+    switch (node->type) {
+        case ValueType::Number:
+            return node->numberValue;
+        case ValueType::String:
+            return node->stringValue ? std::strtod(node->stringValue, nullptr) : defaultVal;
+        case ValueType::Bool:
+            return node->boolValue ? 1.0 : 0.0;
+        default:
+            return defaultVal;
     }
-
-    // Convert boolean to 1.0 or 0.0
-    if (node->type == ValueType::Bool) {
-        return node->boolValue ? 1.0 : 0.0;
-    }
-
-    return defaultVal;
 }
 
-
-bool JSON::getBool(const char*& path, bool defaultVal) const {
+bool JSON::getBool(const char* path, bool defaultVal) const {
     Node* node = findNode(path);
-    if (!node) return defaultVal;
-    if (node->type == ValueType::Bool) {
-        return node->boolValue;
+    if (!node) {
+        return defaultVal;
     }
-    // Convert from number or char* if you'd like
-    if (node->type == ValueType::Number) {
-        return (node->numberValue != 0);
+
+    switch (node->type) {
+        case ValueType::Bool:
+            return node->boolValue;
+        case ValueType::Number:
+            return node->numberValue != 0.0;
+        case ValueType::String:
+            if (!node->stringValue) {
+                return defaultVal;
+            }
+            if (std::strcmp(node->stringValue, "true") == 0 || std::strcmp(node->stringValue, "1") == 0) {
+                return true;
+            }
+            if (std::strcmp(node->stringValue, "false") == 0 || std::strcmp(node->stringValue, "0") == 0) {
+                return false;
+            }
+            return defaultVal;
+        default:
+            return defaultVal;
     }
-    if (node->type == ValueType::String) {
-        return (node->stringValue == "true" || node->stringValue == "1");
-    }
-    return defaultVal;
 }
 
+#if JSON_ENABLE_OPTIONAL_RETURNS
+Optional<String> JSON::tryGetString(const char* path) const {
+    Node* node = findNode(path);
+    if (!node) {
+        return Optional<String>();
+    }
 
+    switch (node->type) {
+        case ValueType::String:
+            return Optional<String>(String(node->stringValue ? node->stringValue : ""));
+        case ValueType::Number: {
+            char temp[32];
+            std::snprintf(temp, sizeof(temp), "%.15g", node->numberValue);
+            return Optional<String>(String(temp));
+        }
+        case ValueType::Bool:
+            return Optional<String>(node->boolValue ? String("true") : String("false"));
+        case ValueType::Null:
+            return Optional<String>(String("null"));
+        default:
+            return Optional<String>();
+    }
+}
+
+Optional<double> JSON::tryGetNumber(const char* path) const {
+    Node* node = findNode(path);
+    if (!node) {
+        return Optional<double>();
+    }
+
+    switch (node->type) {
+        case ValueType::Number:
+            return Optional<double>(node->numberValue);
+        case ValueType::String:
+            if (node->stringValue && *node->stringValue) {
+                char* endPtr = nullptr;
+                const double parsed = std::strtod(node->stringValue, &endPtr);
+                if (*endPtr == '\0') {
+                    return Optional<double>(parsed);
+                }
+            }
+            return Optional<double>();
+        case ValueType::Bool:
+            return Optional<double>(node->boolValue ? 1.0 : 0.0);
+        default:
+            return Optional<double>();
+    }
+}
+
+Optional<bool> JSON::tryGetBool(const char* path) const {
+    Node* node = findNode(path);
+    if (!node) {
+        return Optional<bool>();
+    }
+
+    switch (node->type) {
+        case ValueType::Bool:
+            return Optional<bool>(node->boolValue);
+        case ValueType::Number:
+            return Optional<bool>(node->numberValue != 0.0);
+        case ValueType::String:
+            if (!node->stringValue) {
+                return Optional<bool>();
+            }
+            if (std::strcmp(node->stringValue, "true") == 0 || std::strcmp(node->stringValue, "1") == 0) {
+                return Optional<bool>(true);
+            }
+            if (std::strcmp(node->stringValue, "false") == 0 || std::strcmp(node->stringValue, "0") == 0) {
+                return Optional<bool>(false);
+            }
+            return Optional<bool>();
+        default:
+            return Optional<bool>();
+    }
+}
+#endif
 
 SimpleVector<char*> JSON::getKeys() const {
     SimpleVector<char*> keys;
-    
-    if (root.type != ValueType::Object) {
-        return keys;  // Return empty if root is not an object
+    if (root.type != ValueType::Object || !root.children) {
+        return keys;
     }
 
-    for (size_t i = 0; i < root.children->elements(); i++) {
+    for (size_t i = 0; i < root.children->elements(); ++i) {
         keys.put(root.children->get(i).key);
     }
 
     return keys;
 }
 
-// --------------------------------------------------------------------
-// Public Methods: Remove
-// --------------------------------------------------------------------
 bool JSON::remove(const char* path) {
-    if (!path || strlen(path) == 0) return false; // Ensure valid input
-
-    // Find the last dot in the path (to separate parent path and key/index)
-    int lastDot = -1;
-    size_t pathLen = strlen(path);
-    for (int i = pathLen - 1; i >= 0; i--) {
-        if (path[i] == '.') {
-            lastDot = i;
-            break;
-        }
+    if (!path || !*path) {
+        return false;
     }
 
-    if (lastDot < 0) {
-        // No dot found → Remove from the root's children
+    const char* lastDot = std::strrchr(path, '.');
+    if (!lastDot) {
         return removeChild(root, path);
-    } else {
-        // Declare character arrays for parentPath and keyOrIndex
-        char parentPath[128];  // Adjust buffer size as needed
-        char keyOrIndex[64];   // Buffer for the key/index
-
-        // Copy the parent path
-        if (lastDot < sizeof(parentPath)) {
-            strncpy(parentPath, path, lastDot);
-            parentPath[lastDot] = '\0'; // Null-terminate
-        } else {
-            return false; // Path too long, prevent buffer overflow
-        }
-
-        // Copy the key/index
-        size_t keyLen = pathLen - lastDot - 1;
-        if (keyLen < sizeof(keyOrIndex)) {
-            strncpy(keyOrIndex, path + lastDot + 1, keyLen);
-            keyOrIndex[keyLen] = '\0'; // Null-terminate
-        } else {
-            return false; // Key too long, prevent buffer overflow
-        }
-
-        // Pass `parentPath` as `char*` to `findNode` (safe because char[] decays to char*)
-        Node* parent = findNode(parentPath);
-        if (!parent) return false;
-
-        return removeChild(*parent, keyOrIndex);
     }
+
+    const size_t parentLength = static_cast<size_t>(lastDot - path);
+    char* parentPath = strdupSafe(path, parentLength);
+    if (!parentPath) {
+        return false;
+    }
+
+    Node* parent = findNode(parentPath);
+    std::free(parentPath);
+    if (!parent) {
+        return false;
+    }
+
+    return removeChild(*parent, lastDot + 1);
 }
 
-
-
-
-// --------------------------------------------------------------------
-// Parsing (Minimal JSON Parser)
-// --------------------------------------------------------------------
 bool JSON::parse(const char* json) {
-    if (!json) return false; // Handle null input
+    if (!json) {
+        return false;
+    }
 
     skipWhitespace(json);
 
-    // We expect either object '{' or array '[' as the top-level.
+    bool parsed = false;
     if (*json == '{') {
         root.type = ValueType::Object;
-        return parseObject(json, root);
+        if (!root.children) {
+            root.children = new SimpleVector<Node>();
+        }
+        parsed = parseObject(json, root);
     } else if (*json == '[') {
         root.type = ValueType::Array;
-        return parseArray(json, root);
-    } else {
-        return false; // Not valid JSON
+        if (!root.children) {
+            root.children = new SimpleVector<Node>();
+        }
+        parsed = parseArray(json, root);
     }
+
+    if (!parsed) {
+        return false;
+    }
+
+    skipWhitespace(json);
+    return *json == '\0';
 }
 
-
-bool JSON::parseValue(const char*& p, Node &node) {
+bool JSON::parseValue(const char*& p, Node& node) {
     skipWhitespace(p);
 
     if (*p == '{') {
         node.type = ValueType::Object;
+        if (!node.children) {
+            node.children = new SimpleVector<Node>();
+        }
         return parseObject(p, node);
     }
+
     if (*p == '[') {
         node.type = ValueType::Array;
+        if (!node.children) {
+            node.children = new SimpleVector<Node>();
+        }
         return parseArray(p, node);
     }
-    if (*p == '\"') {
-        node.type = ValueType::String;
 
-        char tempBuffer[256];  // Temporary buffer for the string
-        if (parseString(p, tempBuffer, sizeof(tempBuffer))) {
-            node.stringValue = strdupSafe(tempBuffer); // Allocate memory
-            return true;
+    if (*p == '\"') {
+        char tempBuffer[256];
+        if (!parseString(p, tempBuffer, sizeof(tempBuffer))) {
+            return false;
         }
-        return false; // String parsing failed
+        node.type = ValueType::String;
+        node.stringValue = strdupSafe(tempBuffer);
+        return true;
     }
+
     if (*p == 't' || *p == 'f') {
         node.type = ValueType::Bool;
         return parseBool(p, node.boolValue);
     }
+
     if (*p == 'n') {
         node.type = ValueType::Null;
         return parseNull(p);
     }
-    // Otherwise, assume number
+
     node.type = ValueType::Number;
     return parseNumber(p, node.numberValue);
 }
 
+bool JSON::parseObject(const char*& p, Node& node) {
+    if (*p != '{') {
+        return false;
+    }
 
-// Parse object: '{' <pair> (, <pair>)* '}'
-bool JSON::parseObject(const char* &p, Node &node) {
-    // Expect '{'
-    if (*p != '{') return false;
-    p++; // skip '{'
+    ++p;
     skipWhitespace(p);
 
-    node.children->clear();
+    if (!node.children) {
+        node.children = new SimpleVector<Node>();
+    } else {
+        node.children->clear();
+    }
 
     if (*p == '}') {
-        p++; // empty object
+        ++p;
         return true;
     }
 
     while (*p) {
-        // Parse a key
         Node child;
-        child.type = ValueType::Null;
-
-        // Key must be a char*
-        if (*p != '\"') return false;
-        p++; // skip quote
-        // read until next quote
-        while (*p && *p != '\"') {
-            child.key += *p;
-            p++;
+        char keyBuffer[256];
+        if (!parseString(p, keyBuffer, sizeof(keyBuffer))) {
+            return false;
         }
-        if (*p != '\"') return false; // missing closing quote
-        p++; // skip closing quote
+
+        child.key = strdupSafe(keyBuffer);
 
         skipWhitespace(p);
-        if (*p != ':') return false;
-        p++; // skip ':'
-        skipWhitespace(p);
+        if (*p != ':') {
+            return false;
+        }
 
-        // Parse value
-        if (!parseValue(p, child)) return false;
+        ++p;
+        if (!parseValue(p, child)) {
+            return false;
+        }
+
         node.children->push_back(child);
 
         skipWhitespace(p);
         if (*p == '}') {
-            p++; // end object
+            ++p;
             return true;
         }
-        if (*p != ',') return false;
-        p++; // skip comma
+
+        if (*p != ',') {
+            return false;
+        }
+
+        ++p;
         skipWhitespace(p);
     }
-    return false; // incomplete or error
+
+    return false;
 }
 
-// Parse array: '[' <value> (, <value>)* ']'
-bool JSON::parseArray(const char* &p, Node &node) {
-    if (*p != '[') return false;
-    p++; // skip '['
+bool JSON::parseArray(const char*& p, Node& node) {
+    if (*p != '[') {
+        return false;
+    }
+
+    ++p;
     skipWhitespace(p);
 
-    node.children->clear();
+    if (!node.children) {
+        node.children = new SimpleVector<Node>();
+    } else {
+        node.children->clear();
+    }
 
     if (*p == ']') {
-        p++; // empty array
+        ++p;
         return true;
     }
 
     while (*p) {
         Node child;
-        if (!parseValue(p, child)) return false;
+        if (!parseValue(p, child)) {
+            return false;
+        }
+
         node.children->push_back(child);
 
         skipWhitespace(p);
         if (*p == ']') {
-            p++; // end array
+            ++p;
             return true;
         }
-        if (*p != ',') return false;
-        p++; // skip comma
+
+        if (*p != ',') {
+            return false;
+        }
+
+        ++p;
         skipWhitespace(p);
     }
+
     return false;
 }
 
-// Parse char* in quotes (p points to opening quote)
 bool JSON::parseString(const char*& p, char* out, size_t outSize) {
-    if (*p != '\"') return false;
-    p++; // Skip opening quote
+    if (*p != '\"' || !out || outSize == 0) {
+        return false;
+    }
 
+    ++p;
     size_t index = 0;
-    while (*p && index < outSize - 1) { // Ensure space for null terminator
+    while (*p) {
         if (*p == '\"') {
-            p++; // Skip closing quote
-            out[index] = '\0'; // Null-terminate
+            ++p;
+            out[index] = '\0';
             return true;
         }
 
-        // Handle escape sequences (e.g., \n, \", \\)
+        char nextChar = *p;
         if (*p == '\\') {
-            p++; // Move past '\'
-            switch (*p) {
-                case 'n': out[index++] = '\n'; break;
-                case 't': out[index++] = '\t'; break;
-                case 'r': out[index++] = '\r'; break;
-                case '\\': out[index++] = '\\'; break;
-                case '\"': out[index++] = '\"'; break;
-                default: out[index++] = *p; break; // Copy unknown escape as-is
+            ++p;
+            if (*p == '\0') {
+                return false;
             }
-        } else {
-            out[index++] = *p; // Copy character
+
+            switch (*p) {
+                case 'n':
+                    nextChar = '\n';
+                    break;
+                case 'r':
+                    nextChar = '\r';
+                    break;
+                case 't':
+                    nextChar = '\t';
+                    break;
+                case '\\':
+                    nextChar = '\\';
+                    break;
+                case '\"':
+                    nextChar = '\"';
+                    break;
+                default:
+                    nextChar = *p;
+                    break;
+            }
         }
 
-        p++; // Move to next character
+        if (index + 1 >= outSize) {
+            return false;
+        }
+
+        out[index++] = nextChar;
+        ++p;
     }
 
-    return false; // Missing closing quote
+    return false;
 }
 
-// Parse bool: 'true' or 'false'
-bool JSON::parseBool(const char* &p, bool &out) {
-    if (strncmp(p, "true", 4) == 0) {
+bool JSON::parseBool(const char*& p, bool& out) {
+    if (std::strncmp(p, "true", 4) == 0) {
         out = true;
         p += 4;
         return true;
-    } else if (strncmp(p, "false", 5) == 0) {
+    }
+
+    if (std::strncmp(p, "false", 5) == 0) {
         out = false;
         p += 5;
         return true;
     }
+
     return false;
 }
 
-// Parse null
-bool JSON::parseNull(const char* &p) {
-    if (strncmp(p, "null", 4) == 0) {
-        p += 4;
-        return true;
-    }
-    return false;
-}
-
-// Parse number: minimal approach
-bool JSON::parseNumber(const char* &p, double &out) {
-    char buffer[32];
-    int i = 0;
-
-    // Optional sign
-    if (*p == '-' || *p == '+') {
-        if (i < 31) buffer[i++] = *p;
-        p++;
+bool JSON::parseNull(const char*& p) {
+    if (std::strncmp(p, "null", 4) != 0) {
+        return false;
     }
 
-    bool hasDot = false;
-    while ((*p >= '0' && *p <= '9') || (*p == '.' && !hasDot)) {
-        if (*p == '.') hasDot = true;
-        if (i < 31) {
-            buffer[i++] = *p;
-        }
-        p++;
-    }
-    buffer[i] = '\0';
-    out = atof(buffer);
+    p += 4;
     return true;
 }
 
-void JSON::skipWhitespace(const char* &p) {
+bool JSON::parseNumber(const char*& p, double& out) {
+    char* endPtr = nullptr;
+    out = std::strtod(p, &endPtr);
+    if (endPtr == p) {
+        return false;
+    }
+
+    p = endPtr;
+    return true;
+}
+
+void JSON::skipWhitespace(const char*& p) {
     while (*p == ' ' || *p == '\r' || *p == '\n' || *p == '\t') {
-        p++;
+        ++p;
     }
 }
 
-// --------------------------------------------------------------------
-// Serialization
-// --------------------------------------------------------------------
-void JSON::serializeNode(const Node &node, char* out, size_t outSize, int indentLevel, bool pretty) const {
-    Serial.println("DEBUG: serializeNode called");
+void JSON::serializeNode(const Node& node, char* out, size_t outSize, size_t& offset, int indentLevel, bool pretty) const {
+    if (node.type == ValueType::Array) {
+        appendCharToBuffer(out, outSize, offset, '[');
 
-    size_t currentLength = strlen(out);
-    if (node.type == ValueType::Object) {
-        Serial.println("DEBUG: Serializing an object.");
-        strncat(out, "{", outSize - currentLength - 1);
-        if (pretty) strncat(out, "\n", outSize - strlen(out) - 1);
-
-        if (!node.children) {
-            Serial.println("ERROR: node.children is null! Nothing to serialize.");
-            return;
+        const size_t childCount = node.children ? node.children->elements() : 0;
+        if (pretty && childCount > 0) {
+            appendCharToBuffer(out, outSize, offset, '\n');
         }
 
-        size_t numChildren = node.children->elements();
-        Serial.print("DEBUG: Number of children: ");
-        Serial.println(numChildren);
-
-        if (numChildren == 0) {
-            Serial.println("ERROR: No children found in object, serialization will be empty!");
-        }
-
-        bool firstEntry = true;
-        for (size_t i = 0; i < numChildren; i++) {
-            const Node& child = node.children->get(i);
-
-            Serial.print("DEBUG: Serializing child: ");
-            Serial.println(child.key ? child.key : "(null)");
-
-            if (!child.key || strlen(child.key) == 0) {
-                Serial.println("ERROR: Child node has no key! Skipping.");
-                continue;
+        for (size_t i = 0; i < childCount; ++i) {
+            if (pretty) {
+                appendIndent(out, outSize, offset, indentLevel + 2);
             }
 
-            if (!firstEntry) strncat(out, ",", outSize - strlen(out) - 1);
-            firstEntry = false;
+            serializeValue(node.children->get(i), out, outSize, offset, indentLevel + 2, pretty);
+
+            if (i + 1 < childCount) {
+                appendCharToBuffer(out, outSize, offset, ',');
+            }
 
             if (pretty) {
-                for (int s = 0; s < indentLevel + 2; s++) strncat(out, " ", outSize - strlen(out) - 1);
+                appendCharToBuffer(out, outSize, offset, '\n');
             }
-
-            char temp[512];
-            snprintf(temp, sizeof(temp), "\"%s\": ", child.key);
-            strncat(out, temp, outSize - strlen(out) - 1);
-
-            serializeValue(child, out, outSize, indentLevel + 2, pretty);
-
-            if (pretty) strncat(out, "\n", outSize - strlen(out) - 1);
         }
 
-        strncat(out, "}", outSize - strlen(out) - 1);
+        if (pretty && childCount > 0) {
+            appendIndent(out, outSize, offset, indentLevel);
+        }
+
+        appendCharToBuffer(out, outSize, offset, ']');
+        return;
     }
+
+    appendCharToBuffer(out, outSize, offset, '{');
+
+    const size_t childCount = node.children ? node.children->elements() : 0;
+    if (pretty && childCount > 0) {
+        appendCharToBuffer(out, outSize, offset, '\n');
+    }
+
+    for (size_t i = 0; i < childCount; ++i) {
+        const Node& child = node.children->get(i);
+
+        if (pretty) {
+            appendIndent(out, outSize, offset, indentLevel + 2);
+        }
+
+        appendEscapedString(out, outSize, offset, child.key ? child.key : "");
+        appendToBuffer(out, outSize, offset, pretty ? ": " : ":");
+        serializeValue(child, out, outSize, offset, indentLevel + 2, pretty);
+
+        if (i + 1 < childCount) {
+            appendCharToBuffer(out, outSize, offset, ',');
+        }
+
+        if (pretty) {
+            appendCharToBuffer(out, outSize, offset, '\n');
+        }
+    }
+
+    if (pretty && childCount > 0) {
+        appendIndent(out, outSize, offset, indentLevel);
+    }
+
+    appendCharToBuffer(out, outSize, offset, '}');
 }
 
-
-
-
-void JSON::serializeValue(const Node &node, char* out, size_t outSize, int indentLevel, bool pretty) const {
-    Serial.println("DEBUG: serializeValue called");
-    size_t currentLength = strlen(out);
-
+void JSON::serializeValue(const Node& node, char* out, size_t outSize, size_t& offset, int indentLevel, bool pretty) const {
     switch (node.type) {
         case ValueType::Null:
-            strncat(out, "null", outSize - currentLength - 1);
+            appendToBuffer(out, outSize, offset, "null");
             break;
         case ValueType::Bool:
-            strncat(out, (node.boolValue ? "true" : "false"), outSize - currentLength - 1);
+            appendToBuffer(out, outSize, offset, node.boolValue ? "true" : "false");
             break;
         case ValueType::Number: {
-            char buf[32];
-            dtostrf(node.numberValue, 0, 6, buf);  // Arduino function for double-to-string conversion
-            strncat(out, buf, outSize - strlen(out) - 1);
-        } break;
+            char buffer[32];
+            std::snprintf(buffer, sizeof(buffer), "%.15g", node.numberValue);
+            appendToBuffer(out, outSize, offset, buffer);
+            break;
+        }
         case ValueType::String:
-            if (node.stringValue && strlen(node.stringValue) > 0) {
-                strncat(out, "\"", outSize - strlen(out) - 1);
-                strncat(out, node.stringValue, outSize - strlen(out) - 1);
-                strncat(out, "\"", outSize - strlen(out) - 1);
-            } else {
-                strncat(out, "\"\"", outSize - strlen(out) - 1); // Empty string
-            }
+            appendEscapedString(out, outSize, offset, node.stringValue ? node.stringValue : "");
             break;
         case ValueType::Object:
         case ValueType::Array:
-            serializeNode(node, out, outSize, indentLevel, pretty);
+            serializeNode(node, out, outSize, offset, indentLevel, pretty);
             break;
     }
 }
 
+void JSON::appendToBuffer(char* out, size_t outSize, size_t& offset, const char* text) const {
+    if (!out || outSize == 0 || !text) {
+        return;
+    }
 
-// --------------------------------------------------------------------
-// Path-based Node Lookup (dot notation) 
-// --------------------------------------------------------------------
+    while (*text && offset + 1 < outSize) {
+        out[offset++] = *text++;
+    }
+
+    out[offset < outSize ? offset : outSize - 1] = '\0';
+}
+
+void JSON::appendCharToBuffer(char* out, size_t outSize, size_t& offset, char value) const {
+    if (!out || outSize == 0 || offset + 1 >= outSize) {
+        return;
+    }
+
+    out[offset++] = value;
+    out[offset] = '\0';
+}
+
+void JSON::appendIndent(char* out, size_t outSize, size_t& offset, int indentLevel) const {
+    for (int i = 0; i < indentLevel; ++i) {
+        appendCharToBuffer(out, outSize, offset, ' ');
+    }
+}
+
+void JSON::appendEscapedString(char* out, size_t outSize, size_t& offset, const char* text) const {
+    appendCharToBuffer(out, outSize, offset, '\"');
+
+    if (text) {
+        while (*text) {
+            switch (*text) {
+                case '\\':
+                    appendToBuffer(out, outSize, offset, "\\\\");
+                    break;
+                case '\"':
+                    appendToBuffer(out, outSize, offset, "\\\"");
+                    break;
+                case '\n':
+                    appendToBuffer(out, outSize, offset, "\\n");
+                    break;
+                case '\r':
+                    appendToBuffer(out, outSize, offset, "\\r");
+                    break;
+                case '\t':
+                    appendToBuffer(out, outSize, offset, "\\t");
+                    break;
+                default:
+                    appendCharToBuffer(out, outSize, offset, *text);
+                    break;
+            }
+            ++text;
+        }
+    }
+
+    appendCharToBuffer(out, outSize, offset, '\"');
+}
+
+size_t JSON::measureSerializedNode(const Node& node, int indentLevel, bool pretty) const {
+    if (node.type == ValueType::Array) {
+        size_t total = 2;
+        const size_t childCount = node.children ? node.children->elements() : 0;
+
+        if (pretty && childCount > 0) {
+            total += 1;
+        }
+
+        for (size_t i = 0; i < childCount; ++i) {
+            if (pretty) {
+                total += static_cast<size_t>(indentLevel + 2);
+            }
+
+            total += measureSerializedValue(node.children->get(i), indentLevel + 2, pretty);
+
+            if (i + 1 < childCount) {
+                total += 1;
+            }
+
+            if (pretty) {
+                total += 1;
+            }
+        }
+
+        if (pretty && childCount > 0) {
+            total += static_cast<size_t>(indentLevel);
+        }
+
+        return total;
+    }
+
+    size_t total = 2;
+    const size_t childCount = node.children ? node.children->elements() : 0;
+
+    if (pretty && childCount > 0) {
+        total += 1;
+    }
+
+    for (size_t i = 0; i < childCount; ++i) {
+        const Node& child = node.children->get(i);
+
+        if (pretty) {
+            total += static_cast<size_t>(indentLevel + 2);
+        }
+
+        total += measureEscapedString(child.key ? child.key : "");
+        total += pretty ? 2 : 1;
+        total += measureSerializedValue(child, indentLevel + 2, pretty);
+
+        if (i + 1 < childCount) {
+            total += 1;
+        }
+
+        if (pretty) {
+            total += 1;
+        }
+    }
+
+    if (pretty && childCount > 0) {
+        total += static_cast<size_t>(indentLevel);
+    }
+
+    return total;
+}
+
+size_t JSON::measureSerializedValue(const Node& node, int indentLevel, bool pretty) const {
+    switch (node.type) {
+        case ValueType::Null:
+            return 4;
+        case ValueType::Bool:
+            return node.boolValue ? 4 : 5;
+        case ValueType::Number: {
+            char buffer[32];
+            const int written = std::snprintf(buffer, sizeof(buffer), "%.15g", node.numberValue);
+            if (written < 0) {
+                return 0;
+            }
+            if (written >= static_cast<int>(sizeof(buffer))) {
+                return sizeof(buffer) - 1;
+            }
+            return static_cast<size_t>(written);
+        }
+        case ValueType::String:
+            return measureEscapedString(node.stringValue ? node.stringValue : "");
+        case ValueType::Object:
+        case ValueType::Array:
+            return measureSerializedNode(node, indentLevel, pretty);
+        default:
+            return 0;
+    }
+}
+
+size_t JSON::measureEscapedString(const char* text) const {
+    size_t total = 2;
+    if (!text) {
+        return total;
+    }
+
+    while (*text) {
+        switch (*text) {
+            case '\\':
+            case '\"':
+            case '\n':
+            case '\r':
+            case '\t':
+                total += 2;
+                break;
+            default:
+                total += 1;
+                break;
+        }
+        ++text;
+    }
+
+    return total;
+}
+
 JSON::Node* JSON::findOrCreateNode(const char* path, bool createIntermediate) {
-    if (!path || strlen(path) == 0) {
-        Serial.println("ERROR: Empty path in findOrCreateNode!");
+    if (!path || !*path) {
         return nullptr;
     }
 
-    Serial.print("DEBUG: Finding/Creating node for path: ");
-    Serial.println(path);
+    if (root.type != ValueType::Object && root.type != ValueType::Array) {
+        root.type = ValueType::Object;
+    }
 
     if (!root.children) {
-        Serial.println("DEBUG: Initializing root.children");
         root.children = new SimpleVector<Node>();
     }
 
-    // Check if node already exists
-    for (size_t i = 0; i < root.children->elements(); i++) {
-        if (strcmp(root.children->get(i).key, path) == 0) {
-            Serial.println("DEBUG: Node already exists, returning existing node.");
-            return &root.children->get(i);
-        }
-    }
-
-    // If not found, create and store a new node
-    Serial.println("DEBUG: Creating a new node.");
-    root.children->push_back(Node());  // Push an empty node first
-    Node& newNode = root.children->get(root.children->elements() - 1);  // Get reference to the new node
-    
-    newNode.key = strdupSafe(path);  // Assign key
-    newNode.type = ValueType::Object;
-    newNode.children = new SimpleVector<Node>();
-
-    Serial.print("DEBUG: Successfully assigned key: ");
-    Serial.println(newNode.key ? newNode.key : "(null)");
-
-    return &newNode;
+    return findNodeImpl(&root, path, 0, createIntermediate);
 }
 
-
-
-
 JSON::Node* JSON::findNode(const char* path) const {
-    // We cast away const here to reuse the same function,
-    // but we won't modify anything unless createIntermediate=true.
+    if (!path || !*path) {
+        return nullptr;
+    }
+
+    if ((root.type != ValueType::Object && root.type != ValueType::Array) || !root.children) {
+        return nullptr;
+    }
+
     return const_cast<JSON*>(this)->findNodeImpl(const_cast<Node*>(&root), path, 0, false);
 }
 
-// Recursive helper: path like "obj.arr.0.key"
 JSON::Node* JSON::findNodeImpl(Node* current, const char* path, size_t startIndex, bool createIntermediate) const {
     if (!current || !path) {
-        Serial.println("ERROR: findNodeImpl received null arguments!");
         return nullptr;
     }
 
-    if (startIndex >= strlen(path)) {
-        Serial.println("DEBUG: Reached end of path, returning node.");
+    if (path[startIndex] == '\0') {
         return current;
     }
 
-    Serial.print("DEBUG: Parsing path segment from index ");
-    Serial.println(startIndex);
+    size_t endIndex = startIndex;
+    while (path[endIndex] != '\0' && path[endIndex] != '.') {
+        ++endIndex;
+    }
 
-    const char* dotPos = strchr(path + startIndex, '.');
-    size_t tokenLength = (dotPos) ? (size_t)(dotPos - (path + startIndex)) : strlen(path + startIndex);
-
-    char token[64];
-    strncpy(token, path + startIndex, tokenLength);
-    token[tokenLength] = '\0';
-
-    Serial.print("DEBUG: Token found: ");
-    Serial.println(token);
-
-    char* dynamicToken = strdupSafe(token);
-    if (!dynamicToken) {
-        Serial.println("ERROR: strdupSafe failed!");
+    const size_t tokenLength = endIndex - startIndex;
+    if (tokenLength == 0) {
         return nullptr;
     }
 
-    size_t nextIndex = (dotPos) ? (size_t)(dotPos - path) + 1 : strlen(path);
+    char* token = strdupSafe(path + startIndex, tokenLength);
+    if (!token) {
+        return nullptr;
+    }
 
-    if (current->type == ValueType::Array) {
-        Serial.println("DEBUG: Node is an array, handling index lookup.");
-    } else if (current->type == ValueType::Object) {
-        Serial.println("DEBUG: Node is an object, searching for key.");
-    } else {
-        Serial.println("DEBUG: Node is neither object nor array, creating object.");
-        current->type = ValueType::Object;
+    Node* next = nullptr;
+    const bool tokenIsArrayIndex = isArrayIndex(token);
+
+    if (createIntermediate && tokenIsArrayIndex && current->type == ValueType::Null) {
+        current->type = ValueType::Array;
         current->children = new SimpleVector<Node>();
     }
 
-    free(dynamicToken);
-    return current;
+    if (current->type == ValueType::Array) {
+        if (!tokenIsArrayIndex || !current->children) {
+            std::free(token);
+            return nullptr;
+        }
+
+        const size_t index = static_cast<size_t>(std::strtoul(token, nullptr, 10));
+        if (index < current->children->elements()) {
+            next = &current->children->get(index);
+        } else if (createIntermediate) {
+            while (current->children->elements() <= index) {
+                current->children->push_back(Node());
+            }
+            next = &current->children->get(index);
+        }
+    } else {
+        if (current->type != ValueType::Object) {
+            if (!createIntermediate) {
+                std::free(token);
+                return nullptr;
+            }
+
+            if (current->type == ValueType::String && current->stringValue) {
+                std::free(current->stringValue);
+                current->stringValue = nullptr;
+            }
+
+            current->type = ValueType::Object;
+            if (!current->children) {
+                current->children = new SimpleVector<Node>();
+            } else {
+                current->children->clear();
+            }
+        }
+
+        if (!current->children) {
+            current->children = new SimpleVector<Node>();
+        }
+
+        for (size_t i = 0; i < current->children->elements(); ++i) {
+            Node& candidate = current->children->get(i);
+            if (candidate.key && std::strcmp(candidate.key, token) == 0) {
+                next = &candidate;
+                break;
+            }
+        }
+
+        if (!next && createIntermediate) {
+            Node child;
+            child.key = strdupSafe(token);
+            current->children->push_back(child);
+            next = &current->children->get(current->children->elements() - 1);
+        }
+    }
+
+    std::free(token);
+
+    if (!next) {
+        return nullptr;
+    }
+
+    if (path[endIndex] == '\0') {
+        return next;
+    }
+
+    return findNodeImpl(next, path, endIndex + 1, createIntermediate);
 }
 
-
-
-
-// --------------------------------------------------------------------
-// Remove Helpers
-// --------------------------------------------------------------------
-bool JSON::removeChild(JSON::Node &parent, const char* keyOrIndex) {
-    if (!parent.children || parent.children->elements() == 0) return false;
+bool JSON::removeChild(Node& parent, const char* keyOrIndex) {
+    if (!parent.children || parent.children->elements() == 0 || !keyOrIndex) {
+        return false;
+    }
 
     if (parent.type == ValueType::Object) {
-        for (size_t i = 0; i < parent.children->elements(); i++) {
-            if (strcmp(parent.children->get(i).key, keyOrIndex) == 0) {
-                // Free the key before deleting the node
-                free(parent.children->get(i).key);
-                parent.children->erase(i);
+        for (size_t i = 0; i < parent.children->elements(); ++i) {
+            if (parent.children->get(i).key && std::strcmp(parent.children->get(i).key, keyOrIndex) == 0) {
+                parent.children->erase(static_cast<int>(i));
                 return true;
             }
         }
-    } 
-    else if (parent.type == ValueType::Array) {
-        int index = toInt(keyOrIndex);
-        if (index < 0) return false; // Prevent negative indices
-        size_t newIndex = static_cast<size_t>(index);
+        return false;
+    }
 
-        if (newIndex >= parent.children->elements()) return false; // Prevent out-of-bounds access
+    if (parent.type == ValueType::Array) {
+        if (!isArrayIndex(keyOrIndex)) {
+            return false;
+        }
 
-        parent.children->erase(newIndex);
+        const size_t index = static_cast<size_t>(toInt(keyOrIndex));
+        if (index >= parent.children->elements()) {
+            return false;
+        }
+
+        parent.children->erase(static_cast<int>(index));
         return true;
     }
-    
+
     return false;
 }
 
+bool JSON::isArrayIndex(const char* token) const {
+    if (!token || !*token) {
+        return false;
+    }
 
+    for (const char* cursor = token; *cursor; ++cursor) {
+        if (*cursor < '0' || *cursor > '9') {
+            return false;
+        }
+    }
 
-// --------------------------------------------------------------------
-// Utility Functions
-// --------------------------------------------------------------------
+    return true;
+}
+
+void JSON::resetRoot(ValueType type) {
+    root.clear();
+    root.type = type;
+    if (type == ValueType::Object || type == ValueType::Array) {
+        root.children = new SimpleVector<Node>();
+    }
+}
+
+void JSON::releaseNodeValue(Node& node) {
+    if (node.type == ValueType::String && node.stringValue) {
+        std::free(node.stringValue);
+        node.stringValue = nullptr;
+    }
+
+    if ((node.type == ValueType::Object || node.type == ValueType::Array) && node.children) {
+        delete node.children;
+        node.children = nullptr;
+    }
+
+    node.type = ValueType::Null;
+    node.boolValue = false;
+}
+
 char* JSON::strdupSafe(const char* src) const {
-    if (!src) return nullptr;
-    size_t len = strlen(src) + 1;
-    char* copy = (char*)malloc(len);
-    if (copy) strcpy(copy, src);
+    if (!src) {
+        return nullptr;
+    }
+
+    return strdupSafe(src, std::strlen(src));
+}
+
+char* JSON::strdupSafe(const char* src, size_t length) const {
+    if (!src) {
+        return nullptr;
+    }
+
+    char* copy = static_cast<char*>(std::malloc(length + 1));
+    if (!copy) {
+        return nullptr;
+    }
+
+    std::memcpy(copy, src, length);
+    copy[length] = '\0';
     return copy;
 }
-
-
-// Overloaded version to handle `char[]`
-char* JSON::strdupSafe(const char src[], size_t length) {
-    if (!src || length == 0) return nullptr;
-    char* copy = (char*)malloc(length + 1);
-    if (copy) {
-        strncpy(copy, src, length);
-        copy[length] = '\0'; // Ensure null termination
-    }
-    return copy;
-}
-
-const char* JSON::valueTypeToString(ValueType type) const {
-    switch (type) {
-        case ValueType::Null: return "Null";
-        case ValueType::Bool: return "Bool";
-        case ValueType::Number: return "Number";
-        case ValueType::String: return "String";
-        case ValueType::Object: return "Object";
-        case ValueType::Array: return "Array";
-        default: return "Unknown";
-    }
-}
-
-
-
-

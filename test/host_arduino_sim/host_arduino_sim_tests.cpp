@@ -27,7 +27,9 @@
 
 #include "ArrayList.h"
 #include "Hashtable.h"
+#include "JSON.h"
 #include "SDList.h"
+#include "CustomString.h"
 
 std::size_t getPeakResidentBytes() {
 #if defined(__linux__) || defined(__APPLE__)
@@ -197,6 +199,120 @@ void testSDListFileIOMode(const std::filesystem::path& rootPath) {
            "SDList reader values mismatch");
 }
 
+void testCustomStringBehavior() {
+    Custom_String::String greeting("  hello world  ");
+    const Custom_String::String trimmed = greeting.Trim();
+
+    expect(trimmed == "hello world", "CustomString Trim should remove surrounding whitespace");
+    expect(trimmed.startsWith("hello"), "CustomString startsWith should match valid prefixes");
+    expect(!trimmed.startsWith("hello world!"), "CustomString startsWith should reject longer prefixes");
+    expect(trimmed.endsWith("world"), "CustomString endsWith should match valid suffixes");
+    expect(!trimmed.endsWith("hello world!!!"), "CustomString endsWith should reject longer suffixes");
+    expect(trimmed.Replace("missing", "value") == "hello world",
+           "CustomString Replace should leave the string unchanged when substring is absent");
+    expect(trimmed.remove("missing") == "hello world",
+           "CustomString remove should leave the string unchanged when substring is absent");
+
+    Custom_String::String builder;
+    builder += "ab";
+    builder += 'c';
+    builder.append("def");
+    expect(builder == "abcdef", "CustomString append and operator+= should preserve content");
+
+    Custom_String::String copied("copy me");
+    copied.clear();
+    copied.append("done");
+    expect(copied == "done", "CustomString clear should reset content and allow reuse");
+}
+
+void testJSONRoundTrip() {
+    JSON json;
+    json.setString("profile.name", "Brayden");
+    json.setNumber("profile.version", 2.5);
+    json.setBool("profile.active", true);
+    json.setNull("profile.empty");
+    json.pushBack("items", "alpha");
+    json.pushBack("items", "beta");
+    json.setString("createdItems.0", "first");
+    json.setString("createdItems.1", "second");
+    json.setString("profile.note", "quote \"test\"\nline");
+
+    expect(json.hasKey("profile.name"), "JSON should create nested keys with dot notation");
+    expect(json.getString("profile.name") == "Brayden", "JSON should return stored string values");
+    expect(json.getNumber("profile.version") == 2.5, "JSON should return stored numeric values");
+    expect(json.getBool("profile.active"), "JSON should return stored bool values");
+    expect(json.isNull("profile.empty"), "JSON should track null values");
+    expect(json.getString("items.0") == "alpha" && json.getString("items.1") == "beta",
+           "JSON array pushBack should preserve insertion order");
+    bool createdItemsIsArray = false;
+    const JSON::Node& root = json.getRoot();
+    if (root.children) {
+        for (size_t i = 0; i < root.children->elements(); ++i) {
+            const JSON::Node& child = root.children->get(i);
+            if (child.key && std::strcmp(child.key, "createdItems") == 0) {
+                createdItemsIsArray = child.type == JSON::ValueType::Array &&
+                                      child.children &&
+                                      child.children->elements() == 2;
+                break;
+            }
+        }
+    }
+    expect(createdItemsIsArray, "JSON dot-path creation should treat numeric segments as array indices");
+
+    char* serialized = json.writeToString(false);
+    expect(serialized != nullptr, "JSON serialization should allocate an output buffer");
+
+    JSON parsed;
+    expect(parsed.readFromString(serialized), "JSON should parse its own serialized output");
+    expect(parsed.getString("profile.note") == "quote \"test\"\nline",
+           "JSON should preserve escaped string content through a round trip");
+    expect(parsed.getString("items.1") == "beta", "JSON should parse serialized arrays correctly");
+    expect(parsed.remove("profile.version"), "JSON should remove nested object members");
+    expect(!parsed.hasKey("profile.version"), "JSON remove should make nested keys unavailable");
+
+#if JSON_ENABLE_OPTIONAL_RETURNS
+    const Optional<String> presentName = parsed.tryGetString("profile.name");
+    const Optional<double> presentBoolAsNumber = parsed.tryGetNumber("profile.active");
+    const Optional<bool> presentStringAsBool = parsed.tryGetBool("items.0");
+    const Optional<double> missingNumber = parsed.tryGetNumber("profile.version");
+
+    expect(presentName.hasValue() && presentName.getValue() == "Brayden",
+           "JSON optional getter should return present values when keys exist");
+    expect(presentBoolAsNumber.hasValue() && presentBoolAsNumber.getValue() == 1.0,
+           "JSON optional number getter should convert bool nodes");
+    expect(!presentStringAsBool.hasValue(),
+           "JSON optional bool getter should return empty for unsupported string values");
+    expect(!missingNumber.hasValue(),
+           "JSON optional getter should return empty when keys are missing");
+#endif
+
+    std::free(serialized);
+}
+
+void testJSONFileRoundTrip(const std::filesystem::path& rootPath) {
+    const std::filesystem::path filePath = rootPath / "json_host_sim.bin";
+    std::error_code ec;
+    std::filesystem::remove(filePath, ec);
+
+    JSON writer;
+    writer.setString("metadata.name", "host-json");
+    writer.setNumber("metadata.revision", 7);
+    writer.pushBack("values", "one");
+    writer.pushBack("values", "two");
+
+    expect(writer.writeToFile(filePath.string().c_str()) == JSON::JSON_WRITE_SUCCESS,
+           "JSON writeToFile should persist serialized content");
+    expect(std::filesystem::exists(filePath), "JSON writeToFile should create an output file");
+
+    JSON reader;
+    expect(reader.readFromFile(filePath.string().c_str()) == JSON::JSON_READ_SUCCESS,
+           "JSON readFromFile should restore serialized content");
+    expect(reader.getString("metadata.name") == "host-json", "JSON file read should restore string fields");
+    expect(reader.getNumber("metadata.revision") == 7.0, "JSON file read should restore numeric fields");
+    expect(reader.getString("values.0") == "one" && reader.getString("values.1") == "two",
+           "JSON file read should restore array values");
+}
+
 void writeReport(const std::filesystem::path& reportPath,
                  bool success,
                  std::size_t peakBytes,
@@ -244,6 +360,9 @@ int main() {
         testHashtableBasicBehavior();
         testSDListMemoryMode();
         testSDListFileIOMode(fsRoot);
+        testCustomStringBehavior();
+        testJSONRoundTrip();
+        testJSONFileRoundTrip(fsRoot);
 
         peak = getPeakResidentBytes();
         expect(peak <= memoryLimitBytes, "Host memory peak exceeded expected budget");

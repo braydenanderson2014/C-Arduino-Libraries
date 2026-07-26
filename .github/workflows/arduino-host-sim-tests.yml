@@ -765,9 +765,13 @@ jobs:
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
             -Ilib/Hashtable/src \
+            -Ilib/Json/src \
+            -Ilib/MathLib/src \
             -Ilib/SimpleVector/src \
             -Ilib/SDList/src \
+            -Ilib/String/src \
             -Ilib/TypeTraits/src \
+            lib/Json/src/JSON.cpp \
             test/host_arduino_sim/host_arduino_sim_tests.cpp \
             -o test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.backend }}
 
@@ -790,12 +794,69 @@ jobs:
           HOST_SIM_FS_ROOT="${FS_ROOT}" \
           ./test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.backend }}
 
+      - name: Build host simulation runner (optional returns)
+        if: steps.precheck.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          EXTRA_FLAGS=""
+          if [ "${{ matrix.backend }}" = "littlefs" ]; then
+            EXTRA_FLAGS="-DUSE_LITTLEFS"
+          fi
+
+          ARCH_FLAGS="-D_AVR_ATmega2560_"
+
+          g++ -std=c++17 -O2 \
+            -DAL_NO_SERIAL ${EXTRA_FLAGS} ${ARCH_FLAGS} \
+            -DJSON_ENABLE_OPTIONAL_RETURNS=1 \
+            -Itest/host_arduino_sim/include \
+            -Ilib/ArrayList/src \
+            -Ilib/Hashtable/src \
+            -Ilib/Json/src \
+            -Ilib/MathLib/src \
+            -Ilib/Optional/src \
+            -Ilib/SimpleVector/src \
+            -Ilib/SDList/src \
+            -Ilib/String/src \
+            -Ilib/TypeTraits/src \
+            lib/Json/src/JSON.cpp \
+            test/host_arduino_sim/host_arduino_sim_tests.cpp \
+            -o test/host_arduino_sim/out/bin/host_arduino_sim_optional_${{ matrix.backend }}
+
+      - name: Run host simulation tests (optional returns)
+        if: steps.precheck.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          MEM_LIMIT="${{ github.event.inputs.memory_limit_bytes || '' }}"
+          if [ -z "${MEM_LIMIT}" ]; then
+            MEM_LIMIT="8388608"
+          fi
+
+          REPORT_PATH="test/host_arduino_sim/out/report-optional-${{ matrix.backend }}.json"
+          FS_ROOT="test/host_arduino_sim/out/fs-optional-${{ matrix.backend }}"
+
+          HOST_MEM_LIMIT_BYTES="${MEM_LIMIT}" \
+          HOST_SIM_REPORT="${REPORT_PATH}" \
+          HOST_SIM_FS_ROOT="${FS_ROOT}" \
+          ./test/host_arduino_sim/out/bin/host_arduino_sim_optional_${{ matrix.backend }}
+
       - name: Upload host simulation report
         if: always() && steps.precheck.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: host-arduino-sim-${{ matrix.backend }}
           path: test/host_arduino_sim/out/report-${{ matrix.backend }}.json
+          if-no-files-found: error
+
+      - name: Upload host simulation report (optional returns)
+        if: always() && steps.precheck.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-arduino-sim-optional-${{ matrix.backend }}
+          path: test/host_arduino_sim/out/report-optional-${{ matrix.backend }}.json
           if-no-files-found: error
 
   sync-systemcommands-status-labels:

@@ -29,14 +29,26 @@ struct Custom_String {
          * @param newSize - The new size of the Buffer
         */
         void Reallocate(unsigned int newSize) {
+            if (newSize == 0) {
+                newSize = 1;
+            }
+
             char* newBuffer = new char[newSize];
-            for (unsigned int i = 0; i < Length && i < newSize; ++i) {
+            unsigned int copyLength = 0;
+            if (Buffer) {
+                copyLength = (Length < (newSize - 1)) ? Length : (newSize - 1);
+            }
+
+            for (unsigned int i = 0; i < copyLength; ++i) {
                 newBuffer[i] = Buffer[i];
             }
+
+            newBuffer[copyLength] = '\0';
+
             delete[] Buffer;
             Buffer = newBuffer;
-            Buffer[newSize - 1] = '\0'; // Ensure null termination
-            Length = newSize - 1; // Update Length excluding the null terminator
+            capacity = newSize;
+            Length = copyLength;
         }
 
         // Utility function to Copy String
@@ -47,11 +59,17 @@ struct Custom_String {
          * @param src - The source STRing to copy
         */
         void Copy(const char* src) {
+            if (!src) {
+                clear();
+                return;
+            }
+
             unsigned int srcLength = STR_LEN(src);
             Reallocate(srcLength + 1); // +1 for the null terminator
             for (unsigned int i = 0; i < srcLength; ++i) {
                 Buffer[i] = src[i];
             }
+            Buffer[srcLength] = '\0';
             Length = srcLength; // Update Length excluding the null terminator
         }
 
@@ -204,7 +222,7 @@ struct Custom_String {
          * 
          * This conSTRuctor creates an empty STRing by allocating a Buffer of size 1 and null-terminating it.
         */        
-        String() : Buffer(new char[1]), Length(0) {
+        String() : Buffer(new char[1]), Length(0), capacity(1) {
             Buffer[0] = '\0'; // Ensure null termination
         }
 
@@ -216,8 +234,21 @@ struct Custom_String {
          * 
          * This constructor creates a STRing from a C-style STRing by copying the STRing into a newly allocated Buffer and null-terminating it.
         */
-        String(const char* str) : Buffer(nullptr), Length(0) {
-            if (str) Copy(str);
+        String(const char* str) : Buffer(nullptr), Length(0), capacity(0) {
+            if (str) {
+                const unsigned int strLength = STR_LEN(str);
+                capacity = strLength + 1;
+                Buffer = new char[capacity];
+                for (unsigned int i = 0; i < strLength; ++i) {
+                    Buffer[i] = str[i];
+                }
+                Buffer[strLength] = '\0';
+                Length = strLength;
+            } else {
+                capacity = 1;
+                Buffer = new char[capacity];
+                Buffer[0] = '\0';
+            }
         }
 
         
@@ -229,8 +260,12 @@ struct Custom_String {
          * 
          * This constructor creates a STRing by copying another STRing. It allocates a Buffer of the same size as the source STRing, copies the source STRing into the Buffer, and null-terminates the STRing.
         */
-        String(const String& other) : Buffer(nullptr), Length(0) {
-            Copy(other.Buffer);
+        String(const String& other) : Buffer(nullptr), Length(other.Length), capacity(other.Length + 1) {
+            Buffer = new char[capacity];
+            for (unsigned int i = 0; i < Length; ++i) {
+                Buffer[i] = other.Buffer[i];
+            }
+            Buffer[Length] = '\0';
         }
 
         /**
@@ -238,8 +273,12 @@ struct Custom_String {
          * 
          * @param other - The STRing to copy
         */
-        String(String& other) : Buffer(nullptr), Length(0) {
-            Copy(other.Buffer);
+        String(String& other) : Buffer(nullptr), Length(other.Length), capacity(other.Length + 1) {
+            Buffer = new char[capacity];
+            for (unsigned int i = 0; i < Length; ++i) {
+                Buffer[i] = other.Buffer[i];
+            }
+            Buffer[Length] = '\0';
         }
 
         // ConSTRuctor with character
@@ -355,11 +394,19 @@ struct Custom_String {
          * @return String& - The concatenated STRing
         */
         String& operator+=(const char* rhs) {
+            if (!rhs) {
+                return *this;
+            }
             unsigned int rhsLength = strlen(rhs);
             ensureCapacity(Length + rhsLength); // Ensure there is enough space for the concatenated string
             memcpy(Buffer + Length, rhs, rhsLength); // Append the new string
             Length += rhsLength;
             Buffer[Length] = '\0'; // Re-null-terminate
+            return *this;
+        }
+
+        String& operator+=(char rhs) {
+            append(rhs);
             return *this;
         }
 
@@ -389,6 +436,19 @@ struct Custom_String {
                 return false;
             }
             return strncmp(this->Buffer, other.Buffer, this->size()) == 0;
+        }
+
+        bool operator==(const char* STR) const {
+            if (!STR) {
+                return Length == 0;
+            }
+
+            const unsigned int otherLength = STR_LEN(STR);
+            if (Length != otherLength) {
+                return false;
+            }
+
+            return strncmp(Buffer, STR, Length) == 0;
         }
 
        // Copy assignment operator from String
@@ -497,11 +557,14 @@ struct Custom_String {
         */
         void append(const char* STR) {
             if (STR) {
-                unsigned int newLength = Length + STR_LEN(STR);
-                Reallocate(newLength + 1); // +1 for null terminator
-                for (unsigned int i = 0; i < STR_LEN(STR); ++i) {
-                    Buffer[Length++] = STR[i];
+                const unsigned int appendLength = STR_LEN(STR);
+                ensureCapacity(Length + appendLength);
+                if (!Buffer || capacity <= Length + appendLength) {
+                    return;
                 }
+                memcpy(Buffer + Length, STR, appendLength);
+                Length += appendLength;
+                Buffer[Length] = '\0';
             }
         }
 
@@ -522,12 +585,7 @@ struct Custom_String {
          * @param string - The STRing to trim
         */
         void trim(String& string){
-            if (string.Buffer[0] == ' '){
-                string.Buffer++;
-            }
-            if (string.Buffer[string.Length - 1] == ' '){
-                string.Buffer[string.Length - 1] = '\0';
-            }
+            string = string.Trim();
         }
 
         
@@ -772,13 +830,23 @@ struct Custom_String {
          * @return String - The replaced STRing
         */
         String Replace(const char* subSTR, const char* Replacement) const {
+            if (!subSTR || !Replacement) {
+                return *this;
+            }
             String result;
             unsigned int start = 0;
-            unsigned int found;
-            while ((found = STRSTR(Buffer + start, subSTR) - Buffer) != (unsigned int)-1) {
+            const unsigned int subLength = STR_LEN(subSTR);
+
+            if (subLength == 0) {
+                return *this;
+            }
+
+            char* foundPtr = nullptr;
+            while ((foundPtr = STRSTR(Buffer + start, subSTR)) != nullptr) {
+                const unsigned int found = foundPtr - Buffer;
                 result += Sub_String(start, found - 1);
                 result += Replacement;
-                start = found + STR_LEN(subSTR);
+                start = found + subLength;
             }
             result += Sub_String(start, Length - 1);
             return result;
@@ -809,12 +877,22 @@ struct Custom_String {
          * @return String - The STRing with the Sub_String removed
         */
         String remove(const char* subSTR) const {
+            if (!subSTR) {
+                return *this;
+            }
             String result;
             unsigned int start = 0;
-            unsigned int found;
-            while ((found = STRSTR(Buffer + start, subSTR) - Buffer) != (unsigned int)-1) {
+            const unsigned int subLength = STR_LEN(subSTR);
+
+            if (subLength == 0) {
+                return *this;
+            }
+
+            char* foundPtr = nullptr;
+            while ((foundPtr = STRSTR(Buffer + start, subSTR)) != nullptr) {
+                const unsigned int found = foundPtr - Buffer;
                 result += Sub_String(start, found - 1);
-                start = found + STR_LEN(subSTR);
+                start = found + subLength;
             }
             result += Sub_String(start, Length - 1);
             return result;
@@ -859,10 +937,19 @@ struct Custom_String {
          * @return String - The trimmed STRing
         */
         String Trim() const {
+            if (Length == 0) {
+                return String();
+            }
+
             unsigned int start = 0;
             while (start < Length && (Buffer[start] == ' ' || Buffer[start] == '\t' || Buffer[start] == '\n' || Buffer[start] == '\r')) {
                 ++start;
             }
+
+            if (start == Length) {
+                return String();
+            }
+
             unsigned int end = Length - 1;
             while (end > start && (Buffer[end] == ' ' || Buffer[end] == '\t' || Buffer[end] == '\n' || Buffer[end] == '\r')) {
                 --end;
@@ -988,6 +1075,15 @@ struct Custom_String {
          * @return bool - If the STRing starts with the Sub_String
         */
         bool startsWith(const char* subSTR) const {
+            if (!subSTR) {
+                return false;
+            }
+
+            const unsigned int subLength = STR_LEN(subSTR);
+            if (subLength > Length) {
+                return false;
+            }
+
             unsigned int i = 0;
             while (subSTR[i] != '\0') {
                 if (Buffer[i] != subSTR[i]) {
@@ -1006,8 +1102,17 @@ struct Custom_String {
          * @return bool - If the STRing ends with the Sub_String
         */
         bool endsWith(const char* subSTR) const {
+            if (!subSTR) {
+                return false;
+            }
+
+            const unsigned int subLength = STR_LEN(subSTR);
+            if (subLength > Length) {
+                return false;
+            }
+
             unsigned int i = 0;
-            unsigned int j = Length - STR_LEN(subSTR);
+            unsigned int j = Length - subLength;
             while (subSTR[i] != '\0') {
                 if (Buffer[j] != subSTR[i]) {
                     return false;
