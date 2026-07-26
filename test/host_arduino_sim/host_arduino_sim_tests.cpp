@@ -12,6 +12,7 @@
 
 #if defined(__linux__) || defined(__APPLE__)
 #include <sys/resource.h>
+#include <unistd.h>
 #endif
 
 #if defined(_WIN32)
@@ -30,6 +31,25 @@
 #include "JSON.h"
 #include "SDList.h"
 #include "CustomString.h"
+
+struct TestMemoryStat {
+    std::string name;
+    std::size_t beforeCurrentBytes;
+    std::size_t afterCurrentBytes;
+    std::size_t deltaCurrentBytes;
+    std::size_t peakBytesAfterTest;
+    bool passed;
+    std::string error;
+};
+
+struct MemoryCapacityProbeResult {
+    bool enabled;
+    bool limitReached;
+    std::size_t maxElementsChecked;
+    std::size_t elementsAtStop;
+    std::size_t currentBytesAtStop;
+    std::size_t limitBytes;
+};
 
 std::size_t getPeakResidentBytes() {
 #if defined(__linux__) || defined(__APPLE__)
@@ -53,6 +73,38 @@ std::size_t getPeakResidentBytes() {
 #endif
 }
 
+std::size_t getCurrentResidentBytes() {
+#if defined(__linux__)
+    std::ifstream statm("/proc/self/statm");
+    std::size_t totalPages = 0;
+    std::size_t residentPages = 0;
+    if (!(statm >> totalPages >> residentPages)) {
+        return 0;
+    }
+
+    const long pageSize = sysconf(_SC_PAGESIZE);
+    if (pageSize <= 0) {
+        return 0;
+    }
+
+    return residentPages * static_cast<std::size_t>(pageSize);
+#elif defined(_WIN32)
+    PROCESS_MEMORY_COUNTERS_EX counters {};
+    if (GetProcessMemoryInfo(GetCurrentProcess(), reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&counters), sizeof(counters)) == 0) {
+        return 0;
+    }
+    return static_cast<std::size_t>(counters.WorkingSetSize);
+#elif defined(__APPLE__)
+    struct rusage usage {};
+    if (getrusage(RUSAGE_SELF, &usage) != 0) {
+        return 0;
+    }
+    return static_cast<std::size_t>(usage.ru_maxrss);
+#else
+    return 0;
+#endif
+}
+
 std::size_t envToSizeOrDefault(const char* key, std::size_t fallback) {
     const char* raw = std::getenv(key);
     if (!raw || !*raw) {
@@ -67,6 +119,35 @@ std::size_t envToSizeOrDefault(const char* key, std::size_t fallback) {
     return static_cast<std::size_t>(parsed);
 }
 
+bool envToBoolOrDefault(const char* key, bool fallback) {
+    const char* raw = std::getenv(key);
+    if (!raw || !*raw) {
+        return fallback;
+    }
+
+    if (std::strcmp(raw, "1") == 0 ||
+        std::strcmp(raw, "true") == 0 ||
+        std::strcmp(raw, "TRUE") == 0 ||
+        std::strcmp(raw, "yes") == 0 ||
+        std::strcmp(raw, "YES") == 0 ||
+        std::strcmp(raw, "on") == 0 ||
+        std::strcmp(raw, "ON") == 0) {
+        return true;
+    }
+
+    if (std::strcmp(raw, "0") == 0 ||
+        std::strcmp(raw, "false") == 0 ||
+        std::strcmp(raw, "FALSE") == 0 ||
+        std::strcmp(raw, "no") == 0 ||
+        std::strcmp(raw, "NO") == 0 ||
+        std::strcmp(raw, "off") == 0 ||
+        std::strcmp(raw, "OFF") == 0) {
+        return false;
+    }
+
+    return fallback;
+}
+
 std::string envToStringOrDefault(const char* key, const std::string& fallback) {
     const char* raw = std::getenv(key);
     if (!raw || !*raw) {
@@ -79,6 +160,78 @@ void expect(bool condition, const std::string& message) {
     if (!condition) {
         throw std::runtime_error(message);
     }
+}
+
+std::string escapeJsonString(const std::string& input) {
+    std::string escaped;
+    escaped.reserve(input.size());
+
+    for (char ch : input) {
+        switch (ch) {
+            case '\\':
+                escaped += "\\\\";
+                break;
+            case '"':
+                escaped += "\\\"";
+                break;
+            case '\n':
+                escaped += "\\n";
+                break;
+            case '\r':
+                escaped += "\\r";
+                break;
+            case '\t':
+                escaped += "\\t";
+                break;
+            default:
+                escaped += ch;
+                break;
+        }
+    }
+
+    return escaped;
+}
+
+template <typename Func>
+void runTestWithMemoryStats(const char* testName, Func&& fn, std::vector<TestMemoryStat>& memoryStats) {
+    TestMemoryStat stat {};
+    stat.name = testName;
+    stat.beforeCurrentBytes = getCurrentResidentBytes();
+
+    try {
+        fn();
+        stat.passed = true;
+    } catch (const std::exception& ex) {
+        stat.passed = false;
+        stat.error = ex.what();
+        stat.afterCurrentBytes = getCurrentResidentBytes();
+        stat.deltaCurrentBytes =
+            (stat.afterCurrentBytes >= stat.beforeCurrentBytes)
+                ? (stat.afterCurrentBytes - stat.beforeCurrentBytes)
+                : 0;
+        stat.peakBytesAfterTest = getPeakResidentBytes();
+        memoryStats.push_back(stat);
+        throw;
+    } catch (...) {
+        stat.passed = false;
+        stat.error = "Unknown failure";
+        stat.afterCurrentBytes = getCurrentResidentBytes();
+        stat.deltaCurrentBytes =
+            (stat.afterCurrentBytes >= stat.beforeCurrentBytes)
+                ? (stat.afterCurrentBytes - stat.beforeCurrentBytes)
+                : 0;
+        stat.peakBytesAfterTest = getPeakResidentBytes();
+        memoryStats.push_back(stat);
+        throw;
+    }
+
+    stat.afterCurrentBytes = getCurrentResidentBytes();
+    stat.deltaCurrentBytes =
+        (stat.afterCurrentBytes >= stat.beforeCurrentBytes)
+            ? (stat.afterCurrentBytes - stat.beforeCurrentBytes)
+            : 0;
+    stat.peakBytesAfterTest = getPeakResidentBytes();
+    memoryStats.push_back(stat);
 }
 
 std::vector<std::uint8_t> readAllBytes(const std::filesystem::path& path) {
@@ -289,48 +442,48 @@ void testJSONRoundTrip() {
     std::free(serialized);
 }
 
-    void testJSONOptionalFeatureGateBehavior() {
-        JSON json;
-        json.setString("coercion.numericText", "42.5");
-        json.setString("coercion.boolTextTrue", "true");
-        json.setString("coercion.boolTextFalse", "0");
-        json.setString("coercion.invalidBoolText", "not-a-bool");
-        json.setNumber("coercion.number", 0.0);
-        json.setBool("coercion.bool", true);
+void testJSONOptionalFeatureGateBehavior() {
+    JSON json;
+    json.setString("coercion.numericText", "42.5");
+    json.setString("coercion.boolTextTrue", "true");
+    json.setString("coercion.boolTextFalse", "0");
+    json.setString("coercion.invalidBoolText", "not-a-bool");
+    json.setNumber("coercion.number", 0.0);
+    json.setBool("coercion.bool", true);
 
-    #if JSON_ENABLE_OPTIONAL_RETURNS
-        const Optional<String> asStringFromNumber = json.tryGetString("coercion.number");
-        const Optional<double> asNumberFromString = json.tryGetNumber("coercion.numericText");
-        const Optional<bool> asBoolTrue = json.tryGetBool("coercion.boolTextTrue");
-        const Optional<bool> asBoolFalse = json.tryGetBool("coercion.boolTextFalse");
-        const Optional<bool> invalidBool = json.tryGetBool("coercion.invalidBoolText");
-        const Optional<double> missingNumber = json.tryGetNumber("coercion.missing");
+#if JSON_ENABLE_OPTIONAL_RETURNS
+    const Optional<String> asStringFromNumber = json.tryGetString("coercion.number");
+    const Optional<double> asNumberFromString = json.tryGetNumber("coercion.numericText");
+    const Optional<bool> asBoolTrue = json.tryGetBool("coercion.boolTextTrue");
+    const Optional<bool> asBoolFalse = json.tryGetBool("coercion.boolTextFalse");
+    const Optional<bool> invalidBool = json.tryGetBool("coercion.invalidBoolText");
+    const Optional<double> missingNumber = json.tryGetNumber("coercion.missing");
 
-        expect(asStringFromNumber.hasValue() && asStringFromNumber.getValue() == "0",
-            "JSON optional string getter should convert numbers");
-        expect(asNumberFromString.hasValue() && asNumberFromString.getValue() == 42.5,
-            "JSON optional number getter should parse numeric strings");
-        expect(asBoolTrue.hasValue() && asBoolTrue.getValue(),
-            "JSON optional bool getter should parse true-like strings");
-        expect(asBoolFalse.hasValue() && !asBoolFalse.getValue(),
-            "JSON optional bool getter should parse false-like strings");
-        expect(!invalidBool.hasValue(),
-            "JSON optional bool getter should reject unsupported strings");
-        expect(!missingNumber.hasValue(),
-            "JSON optional getters should return empty for missing keys");
-    #else
-        expect(json.getString("coercion.missing", "fallback") == "fallback",
-            "JSON non-optional string getter should return provided default for missing keys");
-        expect(json.getNumber("coercion.missing", 123.0) == 123.0,
-            "JSON non-optional number getter should return provided default for missing keys");
-        expect(json.getBool("coercion.missing", true),
-            "JSON non-optional bool getter should return provided default for missing keys");
-        expect(json.getBool("coercion.boolTextTrue", false),
-            "JSON non-optional bool getter should still parse true-like strings");
-        expect(!json.getBool("coercion.boolTextFalse", true),
-            "JSON non-optional bool getter should still parse false-like strings");
-    #endif
-    }
+    expect(asStringFromNumber.hasValue() && asStringFromNumber.getValue() == "0",
+           "JSON optional string getter should convert numbers");
+    expect(asNumberFromString.hasValue() && asNumberFromString.getValue() == 42.5,
+           "JSON optional number getter should parse numeric strings");
+    expect(asBoolTrue.hasValue() && asBoolTrue.getValue(),
+           "JSON optional bool getter should parse true-like strings");
+    expect(asBoolFalse.hasValue() && !asBoolFalse.getValue(),
+           "JSON optional bool getter should parse false-like strings");
+    expect(!invalidBool.hasValue(),
+           "JSON optional bool getter should reject unsupported strings");
+    expect(!missingNumber.hasValue(),
+           "JSON optional getters should return empty for missing keys");
+#else
+    expect(json.getString("coercion.missing", "fallback") == "fallback",
+           "JSON non-optional string getter should return provided default for missing keys");
+    expect(json.getNumber("coercion.missing", 123.0) == 123.0,
+           "JSON non-optional number getter should return provided default for missing keys");
+    expect(json.getBool("coercion.missing", true),
+           "JSON non-optional bool getter should return provided default for missing keys");
+    expect(json.getBool("coercion.boolTextTrue", false),
+           "JSON non-optional bool getter should still parse true-like strings");
+    expect(!json.getBool("coercion.boolTextFalse", true),
+           "JSON non-optional bool getter should still parse false-like strings");
+#endif
+}
 
 void testJSONFileRoundTrip(const std::filesystem::path& rootPath) {
     const std::filesystem::path filePath = rootPath / "json_host_sim.bin";
@@ -378,16 +531,117 @@ void writeReport(const std::filesystem::path& reportPath,
     report << "}\n";
 }
 
+void writeMemoryStatsReport(const std::filesystem::path& statsPath,
+                            const std::vector<TestMemoryStat>& memoryStats,
+                            bool success,
+                            std::size_t peakBytes,
+                            std::size_t limitBytes,
+                            const std::string& backend,
+                            const std::string& errorMessage,
+                            bool memoryLimitExceeded,
+                            bool memoryLimitEnforced,
+                            const MemoryCapacityProbeResult& probeResult) {
+    std::ofstream report(statsPath, std::ios::binary);
+    if (!report.good()) {
+        return;
+    }
+
+    report << "{\n";
+    report << "  \"success\": " << (success ? "true" : "false") << ",\n";
+    report << "  \"backend\": \"" << escapeJsonString(backend) << "\",\n";
+    report << "  \"memory\": {\n";
+    report << "    \"peakBytes\": " << peakBytes << ",\n";
+    report << "    \"limitBytes\": " << limitBytes << ",\n";
+    report << "    \"limitExceeded\": " << (memoryLimitExceeded ? "true" : "false") << ",\n";
+    report << "    \"limitEnforced\": " << (memoryLimitEnforced ? "true" : "false") << "\n";
+    report << "  },\n";
+    report << "  \"capacityProbe\": {\n";
+    report << "    \"enabled\": " << (probeResult.enabled ? "true" : "false") << ",\n";
+    report << "    \"limitReached\": " << (probeResult.limitReached ? "true" : "false") << ",\n";
+    report << "    \"maxElementsChecked\": " << probeResult.maxElementsChecked << ",\n";
+    report << "    \"elementsAtStop\": " << probeResult.elementsAtStop << ",\n";
+    report << "    \"currentBytesAtStop\": " << probeResult.currentBytesAtStop << ",\n";
+    report << "    \"limitBytes\": " << probeResult.limitBytes << "\n";
+    report << "  },\n";
+    report << "  \"tests\": [\n";
+
+    for (std::size_t i = 0; i < memoryStats.size(); ++i) {
+        const TestMemoryStat& stat = memoryStats[i];
+        report << "    {\n";
+        report << "      \"name\": \"" << escapeJsonString(stat.name) << "\",\n";
+        report << "      \"passed\": " << (stat.passed ? "true" : "false") << ",\n";
+        report << "      \"beforeCurrentBytes\": " << stat.beforeCurrentBytes << ",\n";
+        report << "      \"afterCurrentBytes\": " << stat.afterCurrentBytes << ",\n";
+        report << "      \"deltaCurrentBytes\": " << stat.deltaCurrentBytes << ",\n";
+        report << "      \"peakBytesAfterTest\": " << stat.peakBytesAfterTest << ",\n";
+        report << "      \"error\": \"" << escapeJsonString(stat.error) << "\"\n";
+        report << "    }";
+        if (i + 1 < memoryStats.size()) {
+            report << ",";
+        }
+        report << "\n";
+    }
+
+    report << "  ],\n";
+    report << "  \"error\": \"" << escapeJsonString(errorMessage) << "\"\n";
+    report << "}\n";
+}
+
+MemoryCapacityProbeResult runMemoryCapacityProbe(std::size_t limitBytes, bool enabled, std::size_t maxElementsChecked) {
+    MemoryCapacityProbeResult result {};
+    result.enabled = enabled;
+    result.limitReached = false;
+    result.maxElementsChecked = maxElementsChecked;
+    result.elementsAtStop = 0;
+    result.currentBytesAtStop = getCurrentResidentBytes();
+    result.limitBytes = limitBytes;
+
+    if (!enabled || maxElementsChecked == 0) {
+        return result;
+    }
+
+    ArrayList<int> list(ArrayList<int>::DYNAMIC2, 8);
+    std::size_t checked = 0;
+
+    while (checked < maxElementsChecked) {
+        list.add(static_cast<int>(checked & 0x7fffffff));
+        ++checked;
+
+        if ((checked % 128u) == 0u) {
+            const std::size_t currentBytes = getCurrentResidentBytes();
+            if (currentBytes >= limitBytes) {
+                result.limitReached = true;
+                result.elementsAtStop = checked;
+                result.currentBytesAtStop = currentBytes;
+                return result;
+            }
+        }
+    }
+
+    result.elementsAtStop = checked;
+    result.currentBytesAtStop = getCurrentResidentBytes();
+    result.limitReached = result.currentBytesAtStop >= limitBytes;
+    return result;
+}
+
 int main() {
     const std::size_t memoryLimitBytes = envToSizeOrDefault("HOST_MEM_LIMIT_BYTES", 8u * 1024u * 1024u);
+    const bool enforceMemoryLimit = envToBoolOrDefault("HOST_MEM_ENFORCE_LIMIT", true);
+    const bool enableCapacityProbe = envToBoolOrDefault("HOST_MEM_ENABLE_CAPACITY_PROBE", false);
+    const std::size_t capacityProbeMaxElements = envToSizeOrDefault("HOST_MEM_CAPACITY_PROBE_MAX_ELEMENTS", 250000u);
     const std::filesystem::path fsRoot = envToStringOrDefault("HOST_SIM_FS_ROOT", "test/host_arduino_sim/out/fs");
     const std::filesystem::path reportPath = envToStringOrDefault(
         "HOST_SIM_REPORT",
         "test/host_arduino_sim/out/host-arduino-sim-report.json"
     );
+    const std::filesystem::path statsReportPath = envToStringOrDefault(
+        "HOST_SIM_STATS_REPORT",
+        "test/host_arduino_sim/out/host-arduino-sim-stats.json"
+    );
 
     std::filesystem::create_directories(fsRoot);
     std::filesystem::create_directories(reportPath.parent_path());
+    std::filesystem::create_directories(statsReportPath.parent_path());
 
     SD.setRoot(fsRoot.string());
 #if defined(USE_LITTLEFS)
@@ -397,23 +651,53 @@ int main() {
     bool success = false;
     std::string error;
     std::size_t peak = 0;
+    std::vector<TestMemoryStat> memoryStats;
+    bool memoryLimitExceeded = false;
+    MemoryCapacityProbeResult probeResult {};
 
     try {
-        testArrayListBasicBehavior();
-        testHashtableBasicBehavior();
-        testSDListMemoryMode();
-        testSDListFileIOMode(fsRoot);
-        testCustomStringBehavior();
-        testJSONRoundTrip();
-        testJSONOptionalFeatureGateBehavior();
-        testJSONFileRoundTrip(fsRoot);
+        runTestWithMemoryStats("testArrayListBasicBehavior", testArrayListBasicBehavior, memoryStats);
+        runTestWithMemoryStats("testHashtableBasicBehavior", testHashtableBasicBehavior, memoryStats);
+        runTestWithMemoryStats("testSDListMemoryMode", testSDListMemoryMode, memoryStats);
+        runTestWithMemoryStats(
+            "testSDListFileIOMode",
+            [&]() { testSDListFileIOMode(fsRoot); },
+            memoryStats
+        );
+        runTestWithMemoryStats("testCustomStringBehavior", testCustomStringBehavior, memoryStats);
+        runTestWithMemoryStats("testJSONRoundTrip", testJSONRoundTrip, memoryStats);
+        runTestWithMemoryStats(
+            "testJSONOptionalFeatureGateBehavior",
+            testJSONOptionalFeatureGateBehavior,
+            memoryStats
+        );
+        runTestWithMemoryStats(
+            "testJSONFileRoundTrip",
+            [&]() { testJSONFileRoundTrip(fsRoot); },
+            memoryStats
+        );
 
         peak = getPeakResidentBytes();
-        expect(peak <= memoryLimitBytes, "Host memory peak exceeded expected budget");
+        memoryLimitExceeded = peak > memoryLimitBytes;
+        if (memoryLimitExceeded && enforceMemoryLimit) {
+            expect(false, "Host memory peak exceeded expected budget");
+        }
+
+        probeResult = runMemoryCapacityProbe(memoryLimitBytes, enableCapacityProbe, capacityProbeMaxElements);
 
         success = true;
         std::cout << "Host simulation tests passed." << std::endl;
         std::cout << "Memory peak bytes: " << peak << " (limit " << memoryLimitBytes << ")" << std::endl;
+        if (memoryLimitExceeded) {
+            std::cout << "Memory limit exceeded; continuing because HOST_MEM_ENFORCE_LIMIT="
+                      << (enforceMemoryLimit ? "1" : "0") << std::endl;
+        }
+        if (probeResult.enabled) {
+            std::cout << "Capacity probe: elementsAtStop=" << probeResult.elementsAtStop
+                      << ", currentBytesAtStop=" << probeResult.currentBytesAtStop
+                      << ", limitReached=" << (probeResult.limitReached ? "true" : "false")
+                      << std::endl;
+        }
     } catch (const std::exception& ex) {
         error = ex.what();
         std::cerr << "Host simulation tests failed: " << error << std::endl;
@@ -433,6 +717,18 @@ int main() {
 #endif
 
     writeReport(reportPath, success, peak, memoryLimitBytes, backend, error);
+    writeMemoryStatsReport(
+        statsReportPath,
+        memoryStats,
+        success,
+        peak,
+        memoryLimitBytes,
+        backend,
+        error,
+        memoryLimitExceeded,
+        enforceMemoryLimit,
+        probeResult
+    );
 
     return success ? 0 : 1;
 }

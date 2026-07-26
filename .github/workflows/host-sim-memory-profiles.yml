@@ -1,0 +1,125 @@
+name: Host Simulation Memory Profiles
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  host-memory-profiles:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - board: uno
+            sramBytes: 2048
+            backend: sd
+            optional: off
+          - board: uno
+            sramBytes: 2048
+            backend: sd
+            optional: on
+          - board: mega2560
+            sramBytes: 8192
+            backend: sd
+            optional: off
+          - board: mega2560
+            sramBytes: 8192
+            backend: sd
+            optional: on
+          - board: leonardo
+            sramBytes: 2560
+            backend: sd
+            optional: off
+          - board: leonardo
+            sramBytes: 2560
+            backend: sd
+            optional: on
+          - board: due
+            sramBytes: 98304
+            backend: sd
+            optional: off
+          - board: due
+            sramBytes: 98304
+            backend: sd
+            optional: on
+
+    name: Memory profile (${{ matrix.board }}, ${{ matrix.backend }}, optional-${{ matrix.optional }})
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build host simulation runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test/host_arduino_sim/out/bin
+
+          EXTRA_FLAGS=""
+          if [ "${{ matrix.backend }}" = "littlefs" ]; then
+            EXTRA_FLAGS="${EXTRA_FLAGS} -DUSE_LITTLEFS"
+          fi
+          if [ "${{ matrix.optional }}" = "on" ]; then
+            EXTRA_FLAGS="${EXTRA_FLAGS} -DJSON_ENABLE_OPTIONAL_RETURNS=1 -Ilib/Optional/src"
+          fi
+
+          g++ -std=c++17 -O2 \
+            -DAL_NO_SERIAL -D_AVR_ATmega2560_ ${EXTRA_FLAGS} \
+            -Itest/host_arduino_sim/include \
+            -Ilib/ArrayList/src \
+            -Ilib/Hashtable/src \
+            -Ilib/Json/src \
+            -Ilib/MathLib/src \
+            -Ilib/SimpleVector/src \
+            -Ilib/SDList/src \
+            -Ilib/String/src \
+            -Ilib/TypeTraits/src \
+            lib/Json/src/JSON.cpp \
+            test/host_arduino_sim/host_arduino_sim_tests.cpp \
+            -o test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.board }}_${{ matrix.backend }}_${{ matrix.optional }}
+
+      - name: Run memory profile tests
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Scale physical SRAM to a host-process budget by 1024x.
+          MEM_LIMIT_BYTES=$(( ${{ matrix.sramBytes }} * 1024 ))
+
+          REPORT_PATH="test/host_arduino_sim/out/report-memory-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json"
+          STATS_PATH="test/host_arduino_sim/out/stats-memory-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json"
+          FS_ROOT="test/host_arduino_sim/out/fs-memory-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}"
+
+          echo "Board: ${{ matrix.board }}"
+          echo "SRAM bytes: ${{ matrix.sramBytes }}"
+          echo "Host memory limit bytes: ${MEM_LIMIT_BYTES}"
+
+          HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
+          HOST_MEM_ENFORCE_LIMIT="0" \
+          HOST_MEM_ENABLE_CAPACITY_PROBE="1" \
+          HOST_MEM_CAPACITY_PROBE_MAX_ELEMENTS="500000" \
+          HOST_SIM_REPORT="${REPORT_PATH}" \
+          HOST_SIM_STATS_REPORT="${STATS_PATH}" \
+          HOST_SIM_FS_ROOT="${FS_ROOT}" \
+          ./test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.board }}_${{ matrix.backend }}_${{ matrix.optional }}
+
+      - name: Upload memory profile report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-memory-report-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}
+          path: test/host_arduino_sim/out/report-memory-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json
+          if-no-files-found: error
+
+      - name: Upload memory profile stats
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-memory-stats-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}
+          path: test/host_arduino_sim/out/stats-memory-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json
+          if-no-files-found: error

@@ -98,3 +98,40 @@ Examples:
 - `16777216` for 16 MB
 
 If omitted, the runner defaults to 8 MB.
+
+## Per-test memory stats output
+
+The host simulator now writes a per-test memory stats JSON report.
+
+- Default path: `test/host_arduino_sim/out/host-arduino-sim-stats.json`
+- Override with env var: `HOST_SIM_STATS_REPORT`
+
+Each entry includes:
+
+- `beforeCurrentBytes`
+- `afterCurrentBytes`
+- `deltaCurrentBytes`
+- `peakBytesAfterTest`
+- `passed` and `error`
+
+Optional memory-run controls:
+
+- `HOST_MEM_ENFORCE_LIMIT=0` to continue and report even when memory exceeds the limit
+- `HOST_MEM_ENABLE_CAPACITY_PROBE=1` to run a rough capacity probe
+- `HOST_MEM_CAPACITY_PROBE_MAX_ELEMENTS` to cap probe iteration count
+
+When the probe is enabled, stats JSON includes a `capacityProbe` object with:
+
+- `elementsAtStop`
+- `currentBytesAtStop`
+- `limitReached`
+
+## Periodic board-profile memory checks
+
+The workflow `Host Simulation Memory Profiles` in `.github/workflows/host-sim-memory-profiles.yml`
+runs on a weekly schedule and manual dispatch, not on every push.
+
+It executes host simulation with board-oriented SRAM profiles (for example Uno, Leonardo,
+Mega2560, Due) and scales each SRAM target to a host-process memory budget via:
+
+- `HOST_MEM_LIMIT_BYTES = SRAM_BYTES * 1024`

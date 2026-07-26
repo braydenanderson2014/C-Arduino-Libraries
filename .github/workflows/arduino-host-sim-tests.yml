@@ -789,10 +789,12 @@ jobs:
           fi
 
           REPORT_PATH="test/host_arduino_sim/out/report-${{ matrix.backend }}.json"
+          STATS_PATH="test/host_arduino_sim/out/stats-${{ matrix.backend }}.json"
           FS_ROOT="test/host_arduino_sim/out/fs-${{ matrix.backend }}"
 
           HOST_MEM_LIMIT_BYTES="${MEM_LIMIT}" \
           HOST_SIM_REPORT="${REPORT_PATH}" \
+          HOST_SIM_STATS_REPORT="${STATS_PATH}" \
           HOST_SIM_FS_ROOT="${FS_ROOT}" \
           ./test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.backend }}
 
@@ -838,10 +840,12 @@ jobs:
           fi
 
           REPORT_PATH="test/host_arduino_sim/out/report-optional-${{ matrix.backend }}.json"
+          STATS_PATH="test/host_arduino_sim/out/stats-optional-${{ matrix.backend }}.json"
           FS_ROOT="test/host_arduino_sim/out/fs-optional-${{ matrix.backend }}"
 
           HOST_MEM_LIMIT_BYTES="${MEM_LIMIT}" \
           HOST_SIM_REPORT="${REPORT_PATH}" \
+          HOST_SIM_STATS_REPORT="${STATS_PATH}" \
           HOST_SIM_FS_ROOT="${FS_ROOT}" \
           ./test/host_arduino_sim/out/bin/host_arduino_sim_optional_${{ matrix.backend }}
 
@@ -859,6 +863,22 @@ jobs:
         with:
           name: host-arduino-sim-optional-${{ matrix.backend }}
           path: test/host_arduino_sim/out/report-optional-${{ matrix.backend }}.json
+          if-no-files-found: error
+
+      - name: Upload host simulation memory stats
+        if: always() && steps.precheck.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-arduino-sim-stats-${{ matrix.backend }}
+          path: test/host_arduino_sim/out/stats-${{ matrix.backend }}.json
+          if-no-files-found: error
+
+      - name: Upload host simulation memory stats (optional returns)
+        if: always() && steps.precheck.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-arduino-sim-stats-optional-${{ matrix.backend }}
+          path: test/host_arduino_sim/out/stats-optional-${{ matrix.backend }}.json
           if-no-files-found: error
 
   sync-systemcommands-status-labels:
