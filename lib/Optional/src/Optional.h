@@ -35,10 +35,6 @@ public:
      * @return The stored value or the internal default value if no value is present.
      */
     T& getValue() {
-        if (!has_value) {
-            static T default_value = T();
-            return default_value;
-        }
         return value;
     }
     #ifndef MINIMUM_IMPLEMENTATION // Optional methods for advanced usage
@@ -228,11 +224,7 @@ public:
      *         to the internal default-constructed value of type T.
      */
     T& ref() {
-        if (!has_value) {
-            static T default_value = T();
-            return default_value;
-        }
-        return value;
+        return getValue();
     }
 
     const T& ref() const {
