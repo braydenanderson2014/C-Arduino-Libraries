@@ -491,6 +491,83 @@ bool JSON::getBool(const char* path, bool defaultVal) const {
     }
 }
 
+#if JSON_ENABLE_OPTIONAL_RETURNS
+Optional<String> JSON::tryGetString(const char* path) const {
+    Node* node = findNode(path);
+    if (!node) {
+        return Optional<String>();
+    }
+
+    switch (node->type) {
+        case ValueType::String:
+            return Optional<String>(String(node->stringValue ? node->stringValue : ""));
+        case ValueType::Number: {
+            char temp[32];
+            std::snprintf(temp, sizeof(temp), "%.15g", node->numberValue);
+            return Optional<String>(String(temp));
+        }
+        case ValueType::Bool:
+            return Optional<String>(node->boolValue ? String("true") : String("false"));
+        case ValueType::Null:
+            return Optional<String>(String("null"));
+        default:
+            return Optional<String>();
+    }
+}
+
+Optional<double> JSON::tryGetNumber(const char* path) const {
+    Node* node = findNode(path);
+    if (!node) {
+        return Optional<double>();
+    }
+
+    switch (node->type) {
+        case ValueType::Number:
+            return Optional<double>(node->numberValue);
+        case ValueType::String:
+            if (node->stringValue && *node->stringValue) {
+                char* endPtr = nullptr;
+                const double parsed = std::strtod(node->stringValue, &endPtr);
+                if (endPtr && *endPtr == '\0') {
+                    return Optional<double>(parsed);
+                }
+            }
+            return Optional<double>();
+        case ValueType::Bool:
+            return Optional<double>(node->boolValue ? 1.0 : 0.0);
+        default:
+            return Optional<double>();
+    }
+}
+
+Optional<bool> JSON::tryGetBool(const char* path) const {
+    Node* node = findNode(path);
+    if (!node) {
+        return Optional<bool>();
+    }
+
+    switch (node->type) {
+        case ValueType::Bool:
+            return Optional<bool>(node->boolValue);
+        case ValueType::Number:
+            return Optional<bool>(node->numberValue != 0.0);
+        case ValueType::String:
+            if (!node->stringValue) {
+                return Optional<bool>();
+            }
+            if (std::strcmp(node->stringValue, "true") == 0 || std::strcmp(node->stringValue, "1") == 0) {
+                return Optional<bool>(true);
+            }
+            if (std::strcmp(node->stringValue, "false") == 0 || std::strcmp(node->stringValue, "0") == 0) {
+                return Optional<bool>(false);
+            }
+            return Optional<bool>();
+        default:
+            return Optional<bool>();
+    }
+}
+#endif
+
 SimpleVector<char*> JSON::getKeys() const {
     SimpleVector<char*> keys;
     if (root.type != ValueType::Object || !root.children) {

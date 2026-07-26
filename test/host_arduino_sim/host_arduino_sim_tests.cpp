@@ -270,6 +270,22 @@ void testJSONRoundTrip() {
     expect(parsed.remove("profile.version"), "JSON should remove nested object members");
     expect(!parsed.hasKey("profile.version"), "JSON remove should make nested keys unavailable");
 
+#if JSON_ENABLE_OPTIONAL_RETURNS
+    const Optional<String> presentName = parsed.tryGetString("profile.name");
+    const Optional<double> presentBoolAsNumber = parsed.tryGetNumber("profile.active");
+    const Optional<bool> presentStringAsBool = parsed.tryGetBool("items.0");
+    const Optional<double> missingNumber = parsed.tryGetNumber("profile.version");
+
+    expect(presentName.hasValue() && presentName.getValue() == "Brayden",
+           "JSON optional getter should return present values when keys exist");
+    expect(presentBoolAsNumber.hasValue() && presentBoolAsNumber.getValue() == 1.0,
+           "JSON optional number getter should convert bool nodes");
+    expect(!presentStringAsBool.hasValue(),
+           "JSON optional bool getter should return empty for unsupported string values");
+    expect(!missingNumber.hasValue(),
+           "JSON optional getter should return empty when keys are missing");
+#endif
+
     std::free(serialized);
 }
 

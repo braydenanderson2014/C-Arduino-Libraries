@@ -6,6 +6,15 @@
 #include <SimpleVector.h>
 #include <lz4.h>
 
+#ifndef JSON_ENABLE_OPTIONAL_RETURNS
+#define JSON_ENABLE_OPTIONAL_RETURNS 0
+#endif
+
+#if JSON_ENABLE_OPTIONAL_RETURNS
+// Enable with -DJSON_ENABLE_OPTIONAL_RETURNS=1 to expose Optional<T> JSON getters.
+#include <Optional.h>
+#endif
+
 #define SD_CS_PIN 4
 
 #define JSON_ERROR_CODE_MULTIPLIER 17
@@ -111,6 +120,17 @@ public:
 
     bool getBool(const char* path, bool defaultVal = false) const;
     bool getBool(const String& path, bool defaultVal = false) const { return getBool(path.c_str(), defaultVal); }
+
+#if JSON_ENABLE_OPTIONAL_RETURNS
+    Optional<String> tryGetString(const char* path) const;
+    Optional<String> tryGetString(const String& path) const { return tryGetString(path.c_str()); }
+
+    Optional<double> tryGetNumber(const char* path) const;
+    Optional<double> tryGetNumber(const String& path) const { return tryGetNumber(path.c_str()); }
+
+    Optional<bool> tryGetBool(const char* path) const;
+    Optional<bool> tryGetBool(const String& path) const { return tryGetBool(path.c_str()); }
+#endif
 
     bool isNull(const char* path) const;
     bool isNull(const String& path) const { return isNull(path.c_str()); }
