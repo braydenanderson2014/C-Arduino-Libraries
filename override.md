@@ -9,6 +9,7 @@ Rules:
 - Tested and Not Tested are separate from health buckets; any library not listed under Tested is treated as Not Tested.
 - Add a row to the manual count table to override issue counts for legacy issues.
 - If source issues plus PlatformIO produce an unstable lock, category override is ignored and the library stays Unstable.
+- When confirmed issues exist for a library, overrides to less-severe buckets (e.g. Stable, Unsure) are ignored and the library is locked to Potentially Unhealthy. An override to Unstable is preserved because Unstable is the more severe state.
 - Library names must match existing label names in the private repository.
 
 ## Stable
