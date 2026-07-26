@@ -765,9 +765,13 @@ jobs:
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
             -Ilib/Hashtable/src \
+            -Ilib/Json/src \
+            -Ilib/MathLib/src \
             -Ilib/SimpleVector/src \
             -Ilib/SDList/src \
+            -Ilib/String/src \
             -Ilib/TypeTraits/src \
+            lib/Json/src/JSON.cpp \
             test/host_arduino_sim/host_arduino_sim_tests.cpp \
             -o test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.backend }}
 

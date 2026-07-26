@@ -6,6 +6,8 @@ This test platform runs selected Arduino-style library behavior on a Linux host 
 
 - Header-level compilation of core libraries used by the test runner
 - Dynamic structure behavior for ArrayList and Hashtable
+- CustomString safety-critical string behavior
+- Json path lookup, serialization, parsing, and file round-trips
 - SDList behavior in memory mode
 - File-backed SDList behavior in host mode (file creation, write, readback, header verification)
 - Peak process heap usage against a configurable byte limit
@@ -28,9 +30,13 @@ g++ -std=c++17 -O2 \
   -Itest/host_arduino_sim/include \
   -Ilib/ArrayList/src \
   -Ilib/Hashtable/src \
+  -Ilib/Json/src \
+  -Ilib/MathLib/src \
   -Ilib/SimpleVector/src \
   -Ilib/SDList/src \
+  -Ilib/String/src \
   -Ilib/TypeTraits/src \
+  lib/Json/src/JSON.cpp \
   test/host_arduino_sim/host_arduino_sim_tests.cpp \
   -o test/host_arduino_sim/out/bin/host_arduino_sim
 

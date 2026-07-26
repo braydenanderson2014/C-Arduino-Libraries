@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "backend": "SD",
+  "memory": {
+    "peakBytes": 3751936,
+    "limitBytes": 8388608
+  },
+  "error": ""
+}
