@@ -1010,7 +1010,14 @@ size_t JSON::measureSerializedValue(const Node& node, int indentLevel, bool pret
             return node.boolValue ? 4 : 5;
         case ValueType::Number: {
             char buffer[32];
-            return static_cast<size_t>(std::snprintf(buffer, sizeof(buffer), "%.15g", node.numberValue));
+            const int written = std::snprintf(buffer, sizeof(buffer), "%.15g", node.numberValue);
+            if (written < 0) {
+                return 0;
+            }
+            if (written >= static_cast<int>(sizeof(buffer))) {
+                return sizeof(buffer) - 1;
+            }
+            return static_cast<size_t>(written);
         }
         case ValueType::String:
             return measureEscapedString(node.stringValue ? node.stringValue : "");

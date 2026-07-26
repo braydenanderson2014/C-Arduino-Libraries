@@ -257,7 +257,7 @@ void testJSONRoundTrip() {
     std::free(serialized);
 }
 
-void testJSONFileIOMode(const std::filesystem::path& rootPath) {
+void testJSONFileRoundTrip(const std::filesystem::path& rootPath) {
     const std::filesystem::path filePath = rootPath / "json_host_sim.bin";
     std::error_code ec;
     std::filesystem::remove(filePath, ec);
@@ -330,7 +330,7 @@ int main() {
         testSDListFileIOMode(fsRoot);
         testCustomStringBehavior();
         testJSONRoundTrip();
-        testJSONFileIOMode(fsRoot);
+        testJSONFileRoundTrip(fsRoot);
 
         peak = getPeakResidentBytes();
         expect(peak <= memoryLimitBytes, "Host memory peak exceeded expected budget");

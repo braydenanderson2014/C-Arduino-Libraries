@@ -559,6 +559,9 @@ struct Custom_String {
             if (STR) {
                 const unsigned int appendLength = STR_LEN(STR);
                 ensureCapacity(Length + appendLength);
+                if (!Buffer || capacity <= Length + appendLength) {
+                    return;
+                }
                 memcpy(Buffer + Length, STR, appendLength);
                 Length += appendLength;
                 Buffer[Length] = '\0';
