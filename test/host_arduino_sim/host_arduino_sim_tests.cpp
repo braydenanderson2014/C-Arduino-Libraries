@@ -233,6 +233,8 @@ void testJSONRoundTrip() {
     json.setNull("profile.empty");
     json.pushBack("items", "alpha");
     json.pushBack("items", "beta");
+    json.setString("createdItems.0", "first");
+    json.setString("createdItems.1", "second");
     json.setString("profile.note", "quote \"test\"\nline");
 
     expect(json.hasKey("profile.name"), "JSON should create nested keys with dot notation");
@@ -242,6 +244,20 @@ void testJSONRoundTrip() {
     expect(json.isNull("profile.empty"), "JSON should track null values");
     expect(json.getString("items.0") == "alpha" && json.getString("items.1") == "beta",
            "JSON array pushBack should preserve insertion order");
+    bool createdItemsIsArray = false;
+    const JSON::Node& root = json.getRoot();
+    if (root.children) {
+        for (size_t i = 0; i < root.children->elements(); ++i) {
+            const JSON::Node& child = root.children->get(i);
+            if (child.key && std::strcmp(child.key, "createdItems") == 0) {
+                createdItemsIsArray = child.type == JSON::ValueType::Array &&
+                                      child.children &&
+                                      child.children->elements() == 2;
+                break;
+            }
+        }
+    }
+    expect(createdItemsIsArray, "JSON dot-path creation should treat numeric segments as array indices");
 
     char* serialized = json.writeToString(false);
     expect(serialized != nullptr, "JSON serialization should allocate an output buffer");

@@ -1120,9 +1120,15 @@ JSON::Node* JSON::findNodeImpl(Node* current, const char* path, size_t startInde
     }
 
     Node* next = nullptr;
+    const bool tokenIsArrayIndex = isArrayIndex(token);
+
+    if (createIntermediate && tokenIsArrayIndex && current->type == ValueType::Null) {
+        current->type = ValueType::Array;
+        current->children = new SimpleVector<Node>();
+    }
 
     if (current->type == ValueType::Array) {
-        if (!isArrayIndex(token) || !current->children) {
+        if (!tokenIsArrayIndex || !current->children) {
             std::free(token);
             return nullptr;
         }
