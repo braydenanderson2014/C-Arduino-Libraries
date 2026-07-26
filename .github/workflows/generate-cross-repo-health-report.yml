@@ -575,6 +575,20 @@ jobs:
               return map[compilationKey] || map.unknown;
             }
 
+            function statusLabel(status) {
+              return status === 'passed' ? 'Passed' : status === 'failed' ? 'Failed' : 'Unknown';
+            }
+
+            function issueRef(issueNumber) {
+              return issueNumber != null ? `#${issueNumber}` : 'N/A';
+            }
+
+            function statusToIssueNumber(status, passedKey, failedKey) {
+              if (status === 'failed') return statusIssueNumbers[failedKey];
+              if (status === 'passed') return statusIssueNumbers[passedKey];
+              return null;
+            }
+
             core.info(`Reading library list from ${libraryTemplateSourcePath}...`);
             const issueTemplateContent = await readSourceFile(libraryTemplateSourcePath);
             const templateLibraryLabels = parseLibraryLabelsFromIssueTemplate(issueTemplateContent);
@@ -798,17 +812,9 @@ jobs:
                 testingStatus,
                 testingIssueNumber: bucketIssueNumbers[testingStatus],
                 lintStatus,
-                lintIssueNumber: lintStatus === 'failed'
-                  ? statusIssueNumbers.lint_failed
-                  : lintStatus === 'passed'
-                    ? statusIssueNumbers.lint_passed
-                    : null,
+                lintIssueNumber: statusToIssueNumber(lintStatus, 'lint_passed', 'lint_failed'),
                 compilationStatus,
-                compilationIssueNumber: compilationStatus === 'failed'
-                  ? statusIssueNumbers.compilation_failed
-                  : compilationStatus === 'passed'
-                    ? statusIssueNumbers.compilation_passed
-                    : null,
+                compilationIssueNumber: statusToIssueNumber(compilationStatus, 'compilation_passed', 'compilation_failed'),
                 testingFailureStatus,
                 testingFailureIssueNumber: statusIssueNumbers.testing_failed,
                 manualCountOverrideApplied,
@@ -930,15 +936,13 @@ jobs:
             lines.push('|---|---:|---:|---|---|---|---|---|---:|---:|---:|---:|');
 
             for (const row of reportRows) {
-              const lintRef = row.lintIssueNumber != null ? `#${row.lintIssueNumber}` : 'N/A';
-              const compRef = row.compilationIssueNumber != null ? `#${row.compilationIssueNumber}` : 'N/A';
               lines.push(
                 `| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount}` +
                 ` | ${row.platformVerdict} | ${healthBadge(row.final)}` +
                 ` | ${testingBadge(row.testingStatus)} | ${lintBadge(row.lintStatus)}` +
                 ` | ${compilationBadge(row.compilationStatus)}` +
                 ` | #${row.bucketIssueNumber} | #${row.testingIssueNumber}` +
-                ` | ${lintRef} | ${compRef} |`
+                ` | ${issueRef(row.lintIssueNumber)} | ${issueRef(row.compilationIssueNumber)} |`
               );
             }
 
@@ -972,13 +976,11 @@ jobs:
               lines.push(`- Health badge: ${healthBadge(row.final)}`);
               lines.push(`- Testing status: ${bucketDisplay(row.testingStatus)} (#${row.testingIssueNumber})`);
               lines.push(`- Testing badge: ${testingBadge(row.testingStatus)}`);
-              const lintLabel = row.lintStatus === 'passed' ? 'Passed' : row.lintStatus === 'failed' ? 'Failed' : 'Unknown';
-              const lintDetail = row.lintIssueNumber != null ? ` (#${row.lintIssueNumber})` : '';
-              lines.push(`- Lint status: ${lintLabel}${lintDetail}`);
+              const lintIssueDetail = row.lintIssueNumber != null ? ` (#${row.lintIssueNumber})` : '';
+              lines.push(`- Lint status: ${statusLabel(row.lintStatus)}${lintIssueDetail}`);
               lines.push(`- Lint badge: ${lintBadge(row.lintStatus)}`);
-              const compLabel = row.compilationStatus === 'passed' ? 'Passed' : row.compilationStatus === 'failed' ? 'Failed' : 'Unknown';
-              const compDetail = row.compilationIssueNumber != null ? ` (#${row.compilationIssueNumber})` : '';
-              lines.push(`- Compilation status: ${compLabel}${compDetail}`);
+              const compIssueDetail = row.compilationIssueNumber != null ? ` (#${row.compilationIssueNumber})` : '';
+              lines.push(`- Compilation status: ${statusLabel(row.compilationStatus)}${compIssueDetail}`);
               lines.push(`- Compilation badge: ${compilationBadge(row.compilationStatus)}`);
               lines.push(`- Failed testing bucket (#${row.testingFailureIssueNumber}): ${row.testingFailureStatus === 'failed' ? 'Yes' : 'No'}`);
               lines.push(`- Computed bucket before override: ${bucketDisplay(row.computedBucket)}`);
