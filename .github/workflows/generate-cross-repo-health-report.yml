@@ -775,7 +775,12 @@ jobs:
                   // Confirmed issues lock the bucket to the most severe state:
                   // 'unstable' override is preserved (it is more severe than
                   // potentially_unhealthy); all other overrides are ignored.
-                  finalBucket = categoryOverride === 'unstable' ? 'unstable' : 'potentially_unhealthy';
+                  if (categoryOverride === 'unstable') {
+                    finalBucket = 'unstable';
+                    manualCategoryOverrideApplied = true;
+                  } else {
+                    finalBucket = 'potentially_unhealthy';
+                  }
                 } else {
                   finalBucket = categoryOverride;
                   manualCategoryOverrideApplied = true;
