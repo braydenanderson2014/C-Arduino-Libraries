@@ -692,7 +692,9 @@ jobs:
           if-no-files-found: warn
 
   host-sim-integration:
-    needs: discover-libraries
+    needs:
+      - discover-libraries
+      - host-library-compile
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
