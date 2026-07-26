@@ -123,3 +123,43 @@ jobs:
           name: host-memory-stats-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}
           path: test/host_arduino_sim/out/stats-memory-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json
           if-no-files-found: error
+
+  host-sim-memory-report:
+    needs: host-memory-profiles
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download memory profile artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: host-memory-*
+          merge-multiple: true
+          path: .artifacts/host-memory
+
+      - name: Generate consolidated memory profile report
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 scripts/generate_host_sim_report.py \
+            --mode memory-profiles \
+            --artifacts-dir .artifacts \
+            --output-md reports/host-sim-memory-profile-report.md \
+            --output-json reports/host-sim-memory-profile-report.json \
+            --compile-backend-count 2
+
+          cat reports/host-sim-memory-profile-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload consolidated memory profile report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-sim-memory-profile-report
+          path: |
+            reports/host-sim-memory-profile-report.md
+            reports/host-sim-memory-profile-report.json
+          if-no-files-found: error

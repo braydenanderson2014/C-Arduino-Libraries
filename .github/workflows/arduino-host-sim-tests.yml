@@ -881,11 +881,64 @@ jobs:
           path: test/host_arduino_sim/out/stats-optional-${{ matrix.backend }}.json
           if-no-files-found: error
 
+  host-sim-report:
+    needs:
+      - discover-libraries
+      - host-library-compile
+      - host-sim-integration
+    if: always() && needs.discover-libraries.outputs.has_targets == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download host simulation artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: host-arduino-sim*
+          merge-multiple: true
+          path: .artifacts/host-sim
+
+      - name: Download compile smoke artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: host-library-compile-*
+          merge-multiple: true
+          path: .artifacts/host-compile
+
+      - name: Generate consolidated host simulation report
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 scripts/generate_host_sim_report.py \
+            --mode standard \
+            --artifacts-dir .artifacts \
+            --output-md reports/host-sim-test-report.md \
+            --output-json reports/host-sim-test-report.json \
+            --expected-library-count "${{ needs.discover-libraries.outputs.count }}" \
+            --compile-backend-count 2
+
+          cat reports/host-sim-test-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload consolidated host simulation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-sim-test-report
+          path: |
+            reports/host-sim-test-report.md
+            reports/host-sim-test-report.json
+          if-no-files-found: error
+
   sync-systemcommands-status-labels:
     needs:
       - discover-libraries
       - host-library-compile
       - host-sim-integration
+      - host-sim-report
     if: always() && github.event_name != 'pull_request' && needs.discover-libraries.outputs.has_targets == 'true'
     runs-on: ubuntu-latest
     steps:
