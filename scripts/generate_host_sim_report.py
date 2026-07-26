@@ -204,6 +204,8 @@ def generate_markdown(
     lines.append("")
     lines.append("- This report only summarizes artifacts downloaded into this workflow run.")
     lines.append("- PeakBytes is process-level peak memory for the full run.")
+    lines.append("- Per-test RSS fields (BeforeRSS/AfterRSS) are process resident memory snapshots and may be page-granular.")
+    lines.append("- Per-test heap fields (BeforeHeap/AfterHeap) track allocator-managed heap bytes and are better for small test-to-test differences.")
     lines.append("- LimitExceeded means run peak was above LimitBytes.")
     lines.append("- LimitEnforced tells whether exceeding the limit should fail the run.")
     lines.append("- ProbeElementsAtStop and ProbeCurrentBytesAtStop come from the optional capacity probe.")
@@ -268,8 +270,8 @@ def generate_markdown(
         lines.append("")
         lines.append(f"### Per-test Memory Stats: {key}")
         lines.append("")
-        lines.append("| Test | Passed | BeforeBytes | AfterBytes | DeltaBytes | PeakAfterTest | Error |")
-        lines.append("| --- | --- | ---: | ---: | ---: | ---: | --- |")
+        lines.append("| Test | Passed | BeforeRSS | AfterRSS | DeltaRSS | BeforeHeap | AfterHeap | DeltaHeap | PeakAfterTest | Error |")
+        lines.append("| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |")
 
         for test in tests:
             name = test.get("name", "")
@@ -277,9 +279,12 @@ def generate_markdown(
             before = test.get("beforeCurrentBytes", 0)
             after = test.get("afterCurrentBytes", 0)
             delta = test.get("deltaCurrentBytes", 0)
+            before_heap = test.get("beforeHeapBytes", 0)
+            after_heap = test.get("afterHeapBytes", 0)
+            delta_heap = test.get("deltaHeapBytes", 0)
             peak_after = test.get("peakBytesAfterTest", 0)
             error = str(test.get("error", "")).replace("|", " ")
-            lines.append(f"| {name} | {passed} | {before} | {after} | {delta} | {peak_after} | {error} |")
+            lines.append(f"| {name} | {passed} | {before} | {after} | {delta} | {before_heap} | {after_heap} | {delta_heap} | {peak_after} | {error} |")
 
     lines.append("")
     return "\n".join(lines)

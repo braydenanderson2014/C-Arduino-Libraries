@@ -15,6 +15,10 @@
 #include <unistd.h>
 #endif
 
+#if defined(__linux__)
+#include <malloc.h>
+#endif
+
 #if defined(_WIN32)
 #include <windows.h>
 #include <psapi.h>
@@ -37,6 +41,9 @@ struct TestMemoryStat {
     std::size_t beforeCurrentBytes;
     std::size_t afterCurrentBytes;
     std::size_t deltaCurrentBytes;
+    std::size_t beforeHeapBytes;
+    std::size_t afterHeapBytes;
+    std::size_t deltaHeapBytes;
     std::size_t peakBytesAfterTest;
     bool passed;
     std::string error;
@@ -100,6 +107,20 @@ std::size_t getCurrentResidentBytes() {
         return 0;
     }
     return static_cast<std::size_t>(usage.ru_maxrss);
+#else
+    return 0;
+#endif
+}
+
+std::size_t getCurrentHeapBytes() {
+#if defined(__linux__)
+#if defined(__GLIBC__) && (__GLIBC__ >= 2)
+    struct mallinfo2 info = mallinfo2();
+    return static_cast<std::size_t>(info.uordblks);
+#else
+    struct mallinfo info = mallinfo();
+    return static_cast<std::size_t>(info.uordblks);
+#endif
 #else
     return 0;
 #endif
@@ -197,6 +218,7 @@ void runTestWithMemoryStats(const char* testName, Func&& fn, std::vector<TestMem
     TestMemoryStat stat {};
     stat.name = testName;
     stat.beforeCurrentBytes = getCurrentResidentBytes();
+    stat.beforeHeapBytes = getCurrentHeapBytes();
 
     try {
         fn();
@@ -209,6 +231,11 @@ void runTestWithMemoryStats(const char* testName, Func&& fn, std::vector<TestMem
             (stat.afterCurrentBytes >= stat.beforeCurrentBytes)
                 ? (stat.afterCurrentBytes - stat.beforeCurrentBytes)
                 : 0;
+        stat.afterHeapBytes = getCurrentHeapBytes();
+        stat.deltaHeapBytes =
+            (stat.afterHeapBytes >= stat.beforeHeapBytes)
+                ? (stat.afterHeapBytes - stat.beforeHeapBytes)
+                : 0;
         stat.peakBytesAfterTest = getPeakResidentBytes();
         memoryStats.push_back(stat);
         throw;
@@ -220,6 +247,11 @@ void runTestWithMemoryStats(const char* testName, Func&& fn, std::vector<TestMem
             (stat.afterCurrentBytes >= stat.beforeCurrentBytes)
                 ? (stat.afterCurrentBytes - stat.beforeCurrentBytes)
                 : 0;
+        stat.afterHeapBytes = getCurrentHeapBytes();
+        stat.deltaHeapBytes =
+            (stat.afterHeapBytes >= stat.beforeHeapBytes)
+                ? (stat.afterHeapBytes - stat.beforeHeapBytes)
+                : 0;
         stat.peakBytesAfterTest = getPeakResidentBytes();
         memoryStats.push_back(stat);
         throw;
@@ -229,6 +261,11 @@ void runTestWithMemoryStats(const char* testName, Func&& fn, std::vector<TestMem
     stat.deltaCurrentBytes =
         (stat.afterCurrentBytes >= stat.beforeCurrentBytes)
             ? (stat.afterCurrentBytes - stat.beforeCurrentBytes)
+            : 0;
+    stat.afterHeapBytes = getCurrentHeapBytes();
+    stat.deltaHeapBytes =
+        (stat.afterHeapBytes >= stat.beforeHeapBytes)
+            ? (stat.afterHeapBytes - stat.beforeHeapBytes)
             : 0;
     stat.peakBytesAfterTest = getPeakResidentBytes();
     memoryStats.push_back(stat);
@@ -573,6 +610,9 @@ void writeMemoryStatsReport(const std::filesystem::path& statsPath,
         report << "      \"beforeCurrentBytes\": " << stat.beforeCurrentBytes << ",\n";
         report << "      \"afterCurrentBytes\": " << stat.afterCurrentBytes << ",\n";
         report << "      \"deltaCurrentBytes\": " << stat.deltaCurrentBytes << ",\n";
+        report << "      \"beforeHeapBytes\": " << stat.beforeHeapBytes << ",\n";
+        report << "      \"afterHeapBytes\": " << stat.afterHeapBytes << ",\n";
+        report << "      \"deltaHeapBytes\": " << stat.deltaHeapBytes << ",\n";
         report << "      \"peakBytesAfterTest\": " << stat.peakBytesAfterTest << ",\n";
         report << "      \"error\": \"" << escapeJsonString(stat.error) << "\"\n";
         report << "    }";
