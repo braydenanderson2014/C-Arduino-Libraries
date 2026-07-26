@@ -1,6 +1,6 @@
 # **C-Arduino-Libraries**  
 🚀 **A collection of optimized C++ libraries for Arduino and embedded systems**  
-
+[![Arduino Host Simulation Tests](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml)
 ## 📑 **Table of Contents**
 
 - [Project Structure](#-project-structure)
