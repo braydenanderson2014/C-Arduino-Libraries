@@ -35,6 +35,9 @@ public:
      * @return The stored value or the internal default value if no value is present.
      */
     T& getValue() {
+        if (!has_value) {
+            value = T();
+        }
         return value;
     }
     #ifndef MINIMUM_IMPLEMENTATION // Optional methods for advanced usage
@@ -45,7 +48,6 @@ public:
      * that it does not contain a value.
      */
     void reset() {
-        value = T();
         has_value = false;
     }
     
@@ -211,7 +213,6 @@ public:
      * This function sets the Optional to indicate that it does not contain a value.
      */
     void clear() {
-        value = T();
         has_value = false;
     }
 
