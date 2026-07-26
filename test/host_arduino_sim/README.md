@@ -132,6 +132,9 @@ The workflow `Host Simulation Memory Profiles` in `.github/workflows/host-sim-me
 runs on a weekly schedule and manual dispatch, not on every push.
 
 It executes host simulation with board-oriented SRAM profiles (for example Uno, Leonardo,
-Mega2560, Due) and scales each SRAM target to a host-process memory budget via:
+Mega2560, Due, MKR1000, ESP8266, ESP32, ESP32-S3) and scales each SRAM target to a host-process memory budget via:
 
 - `HOST_MEM_LIMIT_BYTES = SRAM_BYTES * 1024`
+
+The profile matrix also runs both storage backends (`sd` and `littlefs`) and both JSON modes
+(`optional` on/off), so each profile run still exercises the full host test setup.

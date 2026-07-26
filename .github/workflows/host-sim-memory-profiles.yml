@@ -14,41 +14,37 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
+        boardProfile:
           - board: uno
             sramBytes: 2048
-            backend: sd
-            optional: off
-          - board: uno
+          - board: nano
             sramBytes: 2048
-            backend: sd
-            optional: on
-          - board: mega2560
-            sramBytes: 8192
-            backend: sd
-            optional: off
-          - board: mega2560
-            sramBytes: 8192
-            backend: sd
-            optional: on
+          - board: micro
+            sramBytes: 2560
           - board: leonardo
             sramBytes: 2560
-            backend: sd
-            optional: off
-          - board: leonardo
-            sramBytes: 2560
-            backend: sd
-            optional: on
+          - board: mega2560
+            sramBytes: 8192
           - board: due
             sramBytes: 98304
-            backend: sd
-            optional: off
-          - board: due
-            sramBytes: 98304
-            backend: sd
-            optional: on
+          - board: zero
+            sramBytes: 32768
+          - board: uno_r4
+            sramBytes: 32768
+          - board: mkr1000
+            sramBytes: 32768
+          - board: esp8266
+            sramBytes: 81920
+          - board: esp32
+            sramBytes: 532480
+          - board: esp32s3
+            sramBytes: 524288
+          - board: esp32c3
+            sramBytes: 400000
+        backend: [sd, littlefs]
+        optional: [off, on]
 
-    name: Memory profile (${{ matrix.board }}, ${{ matrix.backend }}, optional-${{ matrix.optional }})
+    name: Memory profile (${{ matrix.boardProfile.board }}, ${{ matrix.backend }}, optional-${{ matrix.optional }})
 
     steps:
       - name: Checkout repository
@@ -81,7 +77,7 @@ jobs:
             -Ilib/TypeTraits/src \
             lib/Json/src/JSON.cpp \
             test/host_arduino_sim/host_arduino_sim_tests.cpp \
-            -o test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.board }}_${{ matrix.backend }}_${{ matrix.optional }}
+            -o test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.boardProfile.board }}_${{ matrix.backend }}_${{ matrix.optional }}
 
       - name: Run memory profile tests
         shell: bash
@@ -89,14 +85,14 @@ jobs:
           set -euo pipefail
 
           # Scale physical SRAM to a host-process budget by 1024x.
-          MEM_LIMIT_BYTES=$(( ${{ matrix.sramBytes }} * 1024 ))
+          MEM_LIMIT_BYTES=$(( ${{ matrix.boardProfile.sramBytes }} * 1024 ))
 
-          REPORT_PATH="test/host_arduino_sim/out/report-memory-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json"
-          STATS_PATH="test/host_arduino_sim/out/stats-memory-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json"
-          FS_ROOT="test/host_arduino_sim/out/fs-memory-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}"
+          REPORT_PATH="test/host_arduino_sim/out/report-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json"
+          STATS_PATH="test/host_arduino_sim/out/stats-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json"
+          FS_ROOT="test/host_arduino_sim/out/fs-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}"
 
-          echo "Board: ${{ matrix.board }}"
-          echo "SRAM bytes: ${{ matrix.sramBytes }}"
+          echo "Board: ${{ matrix.boardProfile.board }}"
+          echo "SRAM bytes: ${{ matrix.boardProfile.sramBytes }}"
           echo "Host memory limit bytes: ${MEM_LIMIT_BYTES}"
 
           HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
@@ -106,22 +102,39 @@ jobs:
           HOST_SIM_REPORT="${REPORT_PATH}" \
           HOST_SIM_STATS_REPORT="${STATS_PATH}" \
           HOST_SIM_FS_ROOT="${FS_ROOT}" \
-          ./test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.board }}_${{ matrix.backend }}_${{ matrix.optional }}
+          ./test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.boardProfile.board }}_${{ matrix.backend }}_${{ matrix.optional }}
+
+      - name: Verify all host tests were recorded in stats
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          STATS_PATH="test/host_arduino_sim/out/stats-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json"
+          TEST_COUNT="$(jq '.tests | length' "${STATS_PATH}")"
+
+          # Keep this aligned with the host test runner's full test list.
+          MIN_EXPECTED_TESTS=8
+
+          echo "Recorded tests in stats: ${TEST_COUNT}"
+          if [ "${TEST_COUNT}" -lt "${MIN_EXPECTED_TESTS}" ]; then
+            echo "Expected at least ${MIN_EXPECTED_TESTS} tests in memory profile stats, got ${TEST_COUNT}."
+            exit 1
+          fi
 
       - name: Upload memory profile report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: host-memory-report-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}
-          path: test/host_arduino_sim/out/report-memory-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json
+          name: host-memory-report-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}
+          path: test/host_arduino_sim/out/report-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json
           if-no-files-found: error
 
       - name: Upload memory profile stats
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: host-memory-stats-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}
-          path: test/host_arduino_sim/out/stats-memory-${{ matrix.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json
+          name: host-memory-stats-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}
+          path: test/host_arduino_sim/out/stats-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json
           if-no-files-found: error
 
   host-sim-memory-report:
