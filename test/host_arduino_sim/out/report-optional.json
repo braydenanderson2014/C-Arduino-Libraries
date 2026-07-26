@@ -2,7 +2,7 @@
   "success": true,
   "backend": "SD",
   "memory": {
-    "peakBytes": 173174784,
+    "peakBytes": 173404160,
     "limitBytes": 2147483648
   },
   "error": ""

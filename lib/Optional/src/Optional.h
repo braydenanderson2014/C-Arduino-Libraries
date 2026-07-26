@@ -17,6 +17,7 @@ public:
      * @brief Retrieves the stored value.
      * 
      * If the Optional does not contain a value, the internal default-constructed value is returned.
+     * In this non-const overload, the Optional is marked as containing that default value.
      * CONST
      * @return The stored value or the internal default value if no value is present.
      */
@@ -32,6 +33,10 @@ public:
      * @return The stored value or the internal default value if no value is present.
      */
     T& getValue() {
+        if (!has_value) {
+            value = T();
+            has_value = true;
+        }
         return value;
     }
     #ifndef MINIMUM_IMPLEMENTATION // Optional methods for advanced usage
@@ -223,7 +228,7 @@ public:
      *         to the internal default-constructed value of type T.
      */
     T& ref() {
-        return value;
+        return getValue();
     }
 
     const T& ref() const {

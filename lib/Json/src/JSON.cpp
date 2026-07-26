@@ -528,7 +528,7 @@ Optional<double> JSON::tryGetNumber(const char* path) const {
             if (node->stringValue && *node->stringValue) {
                 char* endPtr = nullptr;
                 const double parsed = std::strtod(node->stringValue, &endPtr);
-                if (endPtr && *endPtr == '\0') {
+                if (*endPtr == '\0') {
                     return Optional<double>(parsed);
                 }
             }
