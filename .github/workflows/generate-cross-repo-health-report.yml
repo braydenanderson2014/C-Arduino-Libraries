@@ -2,6 +2,7 @@ name: Generate Cross-Repo Library Health Report
 
 on:
   schedule:
+    # Runs daily at 01:30 UTC - picks up overnight PlatformIO metrics updates.
     - cron: "30 1 * * *"
   workflow_dispatch:
     inputs:
@@ -757,13 +758,9 @@ jobs:
               const categoryOverride = overrides.categoryOverride.get(libraryLabel);
               if (categoryOverride) {
                 if (confirmedIssueLocked) {
-                  // When confirmed issues exist, lock to the more severe of
-                  // potentially_unhealthy or the override.  An override of
-                  // 'unstable' is treated as more severe and is preserved so
-                  // that a library known to be Unstable stays there even when
-                  // confirmed issues appear (per override.md: "library stays
-                  // Unstable").  Any override trying to move to a less severe
-                  // bucket (e.g. stable, unsure) is ignored.
+                  // Confirmed issues lock the bucket to the most severe state:
+                  // 'unstable' override is preserved (it is more severe than
+                  // potentially_unhealthy); all other overrides are ignored.
                   finalBucket = categoryOverride === 'unstable' ? 'unstable' : 'potentially_unhealthy';
                 } else {
                   finalBucket = categoryOverride;
@@ -933,7 +930,16 @@ jobs:
             lines.push('|---|---:|---:|---|---|---|---|---|---:|---:|---:|---:|');
 
             for (const row of reportRows) {
-              lines.push(`| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount} | ${row.platformVerdict} | ${healthBadge(row.final)} | ${testingBadge(row.testingStatus)} | ${lintBadge(row.lintStatus)} | ${compilationBadge(row.compilationStatus)} | #${row.bucketIssueNumber} | #${row.testingIssueNumber} | ${row.lintIssueNumber != null ? '#' + row.lintIssueNumber : 'N/A'} | ${row.compilationIssueNumber != null ? '#' + row.compilationIssueNumber : 'N/A'} |`);
+              const lintRef = row.lintIssueNumber != null ? `#${row.lintIssueNumber}` : 'N/A';
+              const compRef = row.compilationIssueNumber != null ? `#${row.compilationIssueNumber}` : 'N/A';
+              lines.push(
+                `| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount}` +
+                ` | ${row.platformVerdict} | ${healthBadge(row.final)}` +
+                ` | ${testingBadge(row.testingStatus)} | ${lintBadge(row.lintStatus)}` +
+                ` | ${compilationBadge(row.compilationStatus)}` +
+                ` | #${row.bucketIssueNumber} | #${row.testingIssueNumber}` +
+                ` | ${lintRef} | ${compRef} |`
+              );
             }
 
             lines.push('');
