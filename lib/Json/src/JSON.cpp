@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 
 JSON::Node::Node() : key(nullptr), type(ValueType::Null), stringValue(nullptr), children(nullptr) {}
 
@@ -155,24 +156,86 @@ int JSON::readFromFile(const char* filename) {
         return JSON_FILE_NOT_FOUND;
     }
 
-    char compressedBuffer[4096];
-    const int compressedSize = file.read(compressedBuffer, sizeof(compressedBuffer));
+    std::string fileData;
+    char chunk[256];
+    int bytesRead = 0;
+    while ((bytesRead = file.read(chunk, sizeof(chunk))) > 0) {
+        fileData.append(chunk, static_cast<size_t>(bytesRead));
+    }
     file.close();
 
-    if (compressedSize <= 0) {
+    if (fileData.empty()) {
         return JSON_READ_ERROR;
     }
 
-    char decompressedBuffer[4096];
-    const int decompressedSize =
-        LZ4_decompress_safe(compressedBuffer, decompressedBuffer, compressedSize, sizeof(decompressedBuffer) - 1);
+    if (fileData.size() > sizeof(uint32_t)) {
+        const unsigned char* header = reinterpret_cast<const unsigned char*>(fileData.data());
+        const uint32_t expectedSize =
+            static_cast<uint32_t>(header[0]) |
+            (static_cast<uint32_t>(header[1]) << 8) |
+            (static_cast<uint32_t>(header[2]) << 16) |
+            (static_cast<uint32_t>(header[3]) << 24);
 
-    if (decompressedSize < 0) {
-        return JSON_DECOMPRESSION_ERROR;
+        if (expectedSize > 0 && fileData.size() > sizeof(uint32_t)) {
+            char* decompressedBuffer = static_cast<char*>(std::malloc(static_cast<size_t>(expectedSize) + 1));
+            if (!decompressedBuffer) {
+                return JSON_DECOMPRESSION_ERROR;
+            }
+
+            const int decompressedSize = LZ4_decompress_safe(
+                fileData.data() + sizeof(uint32_t),
+                decompressedBuffer,
+                static_cast<int>(fileData.size() - sizeof(uint32_t)),
+                static_cast<int>(expectedSize)
+            );
+
+            if (decompressedSize >= 0) {
+                decompressedBuffer[decompressedSize] = '\0';
+                const bool parsed = readFromString(decompressedBuffer);
+                std::free(decompressedBuffer);
+                return parsed ? JSON_READ_SUCCESS : JSON_FILE_PARSE_ERROR;
+            }
+
+            std::free(decompressedBuffer);
+        }
     }
 
-    decompressedBuffer[decompressedSize] = '\0';
-    return readFromString(decompressedBuffer) ? JSON_READ_SUCCESS : JSON_FILE_PARSE_ERROR;
+    std::string plainText = fileData;
+    plainText.push_back('\0');
+    if (readFromString(plainText.c_str())) {
+        return JSON_READ_SUCCESS;
+    }
+
+    size_t outputCapacity = fileData.size() * 2;
+    if (outputCapacity == 0) {
+        outputCapacity = 256;
+    }
+
+    while (outputCapacity <= 1024 * 1024) {
+        char* decompressedBuffer = static_cast<char*>(std::malloc(outputCapacity + 1));
+        if (!decompressedBuffer) {
+            return JSON_DECOMPRESSION_ERROR;
+        }
+
+        const int decompressedSize = LZ4_decompress_safe(
+            fileData.data(),
+            decompressedBuffer,
+            static_cast<int>(fileData.size()),
+            static_cast<int>(outputCapacity)
+        );
+
+        if (decompressedSize >= 0) {
+            decompressedBuffer[decompressedSize] = '\0';
+            const bool parsed = readFromString(decompressedBuffer);
+            std::free(decompressedBuffer);
+            return parsed ? JSON_READ_SUCCESS : JSON_FILE_PARSE_ERROR;
+        }
+
+        std::free(decompressedBuffer);
+        outputCapacity *= 2;
+    }
+
+    return JSON_DECOMPRESSION_ERROR;
 }
 
 int JSON::writeToFile(const char* filename, bool pretty) {
@@ -192,18 +255,39 @@ int JSON::writeToFile(const char* filename, bool pretty) {
     }
 
     const int serializedLength = static_cast<int>(std::strlen(serialized));
-    char compressedBuffer[4096];
+    const int compressedCapacity = LZ4_compressBound(serializedLength);
+    char* compressedBuffer = static_cast<char*>(std::malloc(static_cast<size_t>(compressedCapacity)));
+    if (!compressedBuffer) {
+        std::free(serialized);
+        file.close();
+        return JSON_WRITE_ERROR;
+    }
+
     const int compressedSize =
-        LZ4_compress_default(serialized, compressedBuffer, serializedLength, sizeof(compressedBuffer));
+        LZ4_compress_default(serialized, compressedBuffer, serializedLength, compressedCapacity);
 
     std::free(serialized);
 
     if (compressedSize <= 0) {
+        std::free(compressedBuffer);
         file.close();
         return JSON_COMPRESSION_ERROR;
     }
 
-    if (file.write(compressedBuffer, static_cast<size_t>(compressedSize)) != static_cast<size_t>(compressedSize)) {
+    const unsigned char header[4] = {
+        static_cast<unsigned char>(serializedLength & 0xFF),
+        static_cast<unsigned char>((serializedLength >> 8) & 0xFF),
+        static_cast<unsigned char>((serializedLength >> 16) & 0xFF),
+        static_cast<unsigned char>((serializedLength >> 24) & 0xFF)
+    };
+
+    const bool wroteHeader = file.write(header, sizeof(header)) == sizeof(header);
+    const bool wrotePayload =
+        file.write(compressedBuffer, static_cast<size_t>(compressedSize)) == static_cast<size_t>(compressedSize);
+
+    std::free(compressedBuffer);
+
+    if (!wroteHeader || !wrotePayload) {
         file.close();
         return JSON_WRITE_ERROR;
     }
@@ -218,7 +302,7 @@ bool JSON::readFromString(const char* jsonStr) {
 }
 
 char* JSON::writeToString(bool pretty) const {
-    const size_t bufferSize = 4096;
+    const size_t bufferSize = measureSerializedNode(root, 0, pretty) + 1;
     char* out = static_cast<char*>(std::malloc(bufferSize));
     if (!out) {
         return nullptr;
@@ -850,6 +934,117 @@ void JSON::appendEscapedString(char* out, size_t outSize, size_t& offset, const 
     }
 
     appendCharToBuffer(out, outSize, offset, '\"');
+}
+
+size_t JSON::measureSerializedNode(const Node& node, int indentLevel, bool pretty) const {
+    if (node.type == ValueType::Array) {
+        size_t total = 2;
+        const size_t childCount = node.children ? node.children->elements() : 0;
+
+        if (pretty && childCount > 0) {
+            total += 1;
+        }
+
+        for (size_t i = 0; i < childCount; ++i) {
+            if (pretty) {
+                total += static_cast<size_t>(indentLevel + 2);
+            }
+
+            total += measureSerializedValue(node.children->get(i), indentLevel + 2, pretty);
+
+            if (i + 1 < childCount) {
+                total += 1;
+            }
+
+            if (pretty) {
+                total += 1;
+            }
+        }
+
+        if (pretty && childCount > 0) {
+            total += static_cast<size_t>(indentLevel);
+        }
+
+        return total;
+    }
+
+    size_t total = 2;
+    const size_t childCount = node.children ? node.children->elements() : 0;
+
+    if (pretty && childCount > 0) {
+        total += 1;
+    }
+
+    for (size_t i = 0; i < childCount; ++i) {
+        const Node& child = node.children->get(i);
+
+        if (pretty) {
+            total += static_cast<size_t>(indentLevel + 2);
+        }
+
+        total += measureEscapedString(child.key ? child.key : "");
+        total += pretty ? 2 : 1;
+        total += measureSerializedValue(child, indentLevel + 2, pretty);
+
+        if (i + 1 < childCount) {
+            total += 1;
+        }
+
+        if (pretty) {
+            total += 1;
+        }
+    }
+
+    if (pretty && childCount > 0) {
+        total += static_cast<size_t>(indentLevel);
+    }
+
+    return total;
+}
+
+size_t JSON::measureSerializedValue(const Node& node, int indentLevel, bool pretty) const {
+    switch (node.type) {
+        case ValueType::Null:
+            return 4;
+        case ValueType::Bool:
+            return node.boolValue ? 4 : 5;
+        case ValueType::Number: {
+            char buffer[32];
+            return static_cast<size_t>(std::snprintf(buffer, sizeof(buffer), "%.15g", node.numberValue));
+        }
+        case ValueType::String:
+            return measureEscapedString(node.stringValue ? node.stringValue : "");
+        case ValueType::Object:
+        case ValueType::Array:
+            return measureSerializedNode(node, indentLevel, pretty);
+        default:
+            return 0;
+    }
+}
+
+size_t JSON::measureEscapedString(const char* text) const {
+    size_t total = 2;
+    if (!text) {
+        return total;
+    }
+
+    while (*text) {
+        switch (*text) {
+            case '\\':
+            case '\"':
+            case '\n':
+            case '\r':
+            case '\t':
+                total += 2;
+                break;
+            default:
+                total += 1;
+                break;
+        }
+        ++text;
+    }
+
+    return total;
 }
 
 JSON::Node* JSON::findOrCreateNode(const char* path, bool createIntermediate) {

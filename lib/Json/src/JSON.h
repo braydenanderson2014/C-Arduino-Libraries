@@ -144,6 +144,9 @@ private:
     void appendCharToBuffer(char* out, size_t outSize, size_t& offset, char value) const;
     void appendIndent(char* out, size_t outSize, size_t& offset, int indentLevel) const;
     void appendEscapedString(char* out, size_t outSize, size_t& offset, const char* text) const;
+    size_t measureSerializedNode(const Node& node, int indentLevel, bool pretty) const;
+    size_t measureSerializedValue(const Node& node, int indentLevel, bool pretty) const;
+    size_t measureEscapedString(const char* text) const;
 
     Node* findOrCreateNode(const char* path, bool createIntermediate);
     Node* findNode(const char* path) const;

@@ -234,9 +234,21 @@ struct Custom_String {
          * 
          * This constructor creates a STRing from a C-style STRing by copying the STRing into a newly allocated Buffer and null-terminating it.
         */
-        String(const char* str) : Buffer(new char[1]), Length(0), capacity(1) {
-            Buffer[0] = '\0';
-            if (str) Copy(str);
+        String(const char* str) : Buffer(nullptr), Length(0), capacity(0) {
+            if (str) {
+                const unsigned int strLength = STR_LEN(str);
+                capacity = strLength + 1;
+                Buffer = new char[capacity];
+                for (unsigned int i = 0; i < strLength; ++i) {
+                    Buffer[i] = str[i];
+                }
+                Buffer[strLength] = '\0';
+                Length = strLength;
+            } else {
+                capacity = 1;
+                Buffer = new char[capacity];
+                Buffer[0] = '\0';
+            }
         }
 
         
@@ -248,9 +260,12 @@ struct Custom_String {
          * 
          * This constructor creates a STRing by copying another STRing. It allocates a Buffer of the same size as the source STRing, copies the source STRing into the Buffer, and null-terminates the STRing.
         */
-        String(const String& other) : Buffer(new char[1]), Length(0), capacity(1) {
-            Buffer[0] = '\0';
-            Copy(other.Buffer);
+        String(const String& other) : Buffer(nullptr), Length(other.Length), capacity(other.Length + 1) {
+            Buffer = new char[capacity];
+            for (unsigned int i = 0; i < Length; ++i) {
+                Buffer[i] = other.Buffer[i];
+            }
+            Buffer[Length] = '\0';
         }
 
         /**
@@ -258,9 +273,12 @@ struct Custom_String {
          * 
          * @param other - The STRing to copy
         */
-        String(String& other) : Buffer(new char[1]), Length(0), capacity(1) {
-            Buffer[0] = '\0';
-            Copy(other.Buffer);
+        String(String& other) : Buffer(nullptr), Length(other.Length), capacity(other.Length + 1) {
+            Buffer = new char[capacity];
+            for (unsigned int i = 0; i < Length; ++i) {
+                Buffer[i] = other.Buffer[i];
+            }
+            Buffer[Length] = '\0';
         }
 
         // ConSTRuctor with character
@@ -541,9 +559,8 @@ struct Custom_String {
             if (STR) {
                 const unsigned int appendLength = STR_LEN(STR);
                 ensureCapacity(Length + appendLength);
-                for (unsigned int i = 0; i < appendLength; ++i) {
-                    Buffer[Length++] = STR[i];
-                }
+                memcpy(Buffer + Length, STR, appendLength);
+                Length += appendLength;
                 Buffer[Length] = '\0';
             }
         }
