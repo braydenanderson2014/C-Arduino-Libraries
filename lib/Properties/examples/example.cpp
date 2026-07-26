@@ -5,6 +5,7 @@ void setup() {
 
     // Create a Properties object
     Properties properties;
+    properties.begin(4);
 
     // Set properties
     properties.setProperty("name", "John");
@@ -33,7 +34,7 @@ void setup() {
     Serial.println("Properties Current Capacity: " + String(properties.size()));
     Serial.println("Properties Current Size: " + String(properties.elements()));
 
-    for(Properties:PropertiesIterator it = properties.begin(); it != properties.end(); ++it) {
+    for (Properties::PropertiesIterator it = properties.begin(); it != properties.end(); ++it) {
         Serial.println("Key: " + it.key() + ", Value: " + it.value());
     }
     
@@ -48,6 +49,8 @@ void setup() {
     Serial.println("Properties is empty: " + String(isEmpty));
 
     // Load Properties
-    Properties.loadFromSD("test.txt");
+    properties.loadFromSD("test.txt");
 
 }
+
+void loop() {}

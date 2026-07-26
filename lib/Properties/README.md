@@ -26,10 +26,12 @@ git clone "https://github.com/braydenanderson2014/SimpleVector.git"
 ```
 ## Header
 
-If you want to Utilize this Library. Please include the 
+If you want to utilize this library, please include the 
 ```cpp 
 #include <Properties.h> 
 ```
+
+`Properties` now supports SD by default and can also target LittleFS or any other `fs::FS` backend directly.
 
 If you use the Properties library outside of platformio, please also add the 
 ```cpp
@@ -42,15 +44,6 @@ You may also need:
 * RTCLib
 * LiquidCrystal
 * LiquidCrystal_I2C
-
-# LITTLEFSPROPERTIES:
-## ChangeLog
-### UNOFFICIAL RELEASE 1
-* Initital Untested/Unpublished Release
-### UNOFFICIAL RELEASE 2
-* Added Support for new MbedLittleFSWrapper Library (Also Unpublished as of 03/28/2024) [NOTE]: If you want to use the new LITTLEFSPROPERTIES library, you will need to download the necessary files from the github repository. You will need the littlefs-master and MbedLittleFSWrapper libraries contained inside the main repository: C-Arduino-Libraries.
-* Added new ChipSelect pin customizability to match Original Properties Library.
-
 
 # PROPERTIES
 
@@ -121,12 +114,35 @@ You may also need:
 * This Version moves the library back out of Beta status. Though the library may still have issues... If you spot any bugs, please do not hesitate to file an issue report.
 
             
-## NEW ALPHA FEATURE
-* If you include the 
-```cpp 
-#include LittleFSProperties.h
-```     
-header file, you can use the new Features.. (This library now supports the LITTLE FS library. It is only an Alpha Build and may not work.) Must use the LittleFSProperties header in order for it to work. And you will lose normal sd functions. [WARNING]: Please do not include LittleFSProperties.h if you already have Properties.h included. This may cause unintended concequences. 
+## LittleFS support
+Use `Properties.h` for both SD and LittleFS.
+
+### SD example
+```cpp
+#include <Properties.h>
+
+Properties properties;
+
+void setup() {
+    properties.begin(4);
+}
+```
+
+### LittleFS example
+```cpp
+#include <Properties.h>
+#include <LittleFS.h>
+
+Properties properties;
+
+void setup() {
+    if (LittleFS.begin()) {
+        properties.begin(LittleFS);
+    }
+}
+```
+
+`LittleFSProperties.h` is kept only as a backwards-compatible shim for older sketches.
 
 Here's an example of how to use the `Properties` class:
 
