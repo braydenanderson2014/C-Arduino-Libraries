@@ -4,9 +4,6 @@ on:
   schedule:
     # Runs daily at 01:30 UTC - picks up overnight PlatformIO metrics updates.
     - cron: "30 1 * * *"
-  schedule:
-    # Runs daily at 01:30 UTC - picks up overnight PlatformIO metrics updates.
-    - cron: "30 1 * * *"
   workflow_dispatch:
     inputs:
       source_repo:
@@ -582,10 +579,6 @@ jobs:
               return status === 'passed' ? 'Passed' : status === 'failed' ? 'Failed' : 'Unknown';
             }
 
-            function issueRef(issueNumber) {
-              return issueNumber != null ? `#${issueNumber}` : 'N/A';
-            }
-
             function statusToIssueNumber(status, passedKey, failedKey) {
               if (status === 'failed') return statusIssueNumbers[failedKey];
               if (status === 'passed') return statusIssueNumbers[passedKey];
@@ -784,15 +777,6 @@ jobs:
                   } else {
                     finalBucket = 'potentially_unhealthy';
                   }
-                  // Confirmed issues lock the bucket to the most severe state:
-                  // 'unstable' override is preserved (it is more severe than
-                  // potentially_unhealthy); all other overrides are ignored.
-                  if (categoryOverride === 'unstable') {
-                    finalBucket = 'unstable';
-                    manualCategoryOverrideApplied = true;
-                  } else {
-                    finalBucket = 'potentially_unhealthy';
-                  }
                 } else {
                   finalBucket = categoryOverride;
                   manualCategoryOverrideApplied = true;
@@ -830,9 +814,7 @@ jobs:
                 testingIssueNumber: bucketIssueNumbers[testingStatus],
                 lintStatus,
                 lintIssueNumber: statusToIssueNumber(lintStatus, 'lint_passed', 'lint_failed'),
-                lintIssueNumber: statusToIssueNumber(lintStatus, 'lint_passed', 'lint_failed'),
                 compilationStatus,
-                compilationIssueNumber: statusToIssueNumber(compilationStatus, 'compilation_passed', 'compilation_failed'),
                 compilationIssueNumber: statusToIssueNumber(compilationStatus, 'compilation_passed', 'compilation_failed'),
                 testingFailureStatus,
                 testingFailureIssueNumber: statusIssueNumbers.testing_failed,
@@ -1013,11 +995,7 @@ jobs:
               lines.push(`- Testing badge: ${testingBadge(row.testingStatus)}`);
               const lintIssueDetail = row.lintIssueNumber != null ? ` (#${row.lintIssueNumber})` : '';
               lines.push(`- Lint status: ${statusLabel(row.lintStatus)}${lintIssueDetail}`);
-              const lintIssueDetail = row.lintIssueNumber != null ? ` (#${row.lintIssueNumber})` : '';
-              lines.push(`- Lint status: ${statusLabel(row.lintStatus)}${lintIssueDetail}`);
               lines.push(`- Lint badge: ${lintBadge(row.lintStatus)}`);
-              const compIssueDetail = row.compilationIssueNumber != null ? ` (#${row.compilationIssueNumber})` : '';
-              lines.push(`- Compilation status: ${statusLabel(row.compilationStatus)}${compIssueDetail}`);
               const compIssueDetail = row.compilationIssueNumber != null ? ` (#${row.compilationIssueNumber})` : '';
               lines.push(`- Compilation status: ${statusLabel(row.compilationStatus)}${compIssueDetail}`);
               lines.push(`- Compilation badge: ${compilationBadge(row.compilationStatus)}`);
