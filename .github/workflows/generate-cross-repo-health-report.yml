@@ -79,21 +79,21 @@ jobs:
         uses: actions/github-script@v7
         env:
           GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
-          SOURCE_REPO: ${{ github.event.inputs.source_repo }}
-          OUTPUT_PATH: ${{ github.event.inputs.output_path }}
-          CONFIRMED_LABELS: ${{ github.event.inputs.confirmed_labels }}
-          STABLE_ISSUE_NUMBER: ${{ github.event.inputs.stable_issue_number }}
-          UNSTABLE_ISSUE_NUMBER: ${{ github.event.inputs.unstable_issue_number }}
-          TESTED_ISSUE_NUMBER: ${{ github.event.inputs.tested_issue_number }}
-          NOT_TESTED_ISSUE_NUMBER: ${{ github.event.inputs.not_tested_issue_number }}
-          UNSURE_ISSUE_NUMBER: ${{ github.event.inputs.unsure_issue_number }}
-          POTENTIALLY_UNHEALTHY_ISSUE_NUMBER: ${{ github.event.inputs.potentially_unhealthy_issue_number }}
-          PASSING_LINT_ISSUE_NUMBER: ${{ github.event.inputs.passing_lint_issue_number }}
-          FAILED_LINT_ISSUE_NUMBER: ${{ github.event.inputs.failed_lint_issue_number }}
-          COMPILATION_PASSED_ISSUE_NUMBER: ${{ github.event.inputs.compilation_passed_issue_number }}
-          COMPILATION_FAILED_ISSUE_NUMBER: ${{ github.event.inputs.compilation_failed_issue_number }}
-          FAILED_TESTING_ISSUE_NUMBER: ${{ github.event.inputs.failed_testing_issue_number }}
-          OVERRIDE_PATH: ${{ github.event.inputs.override_path }}
+          SOURCE_REPO: ${{ github.event.inputs.source_repo || 'braydenanderson2014/C-Arduino-Libraries' }}
+          OUTPUT_PATH: ${{ github.event.inputs.output_path || 'library-health-report.md' }}
+          CONFIRMED_LABELS: ${{ github.event.inputs.confirmed_labels || 'Confirmed' }}
+          STABLE_ISSUE_NUMBER: ${{ github.event.inputs.stable_issue_number || '21' }}
+          UNSTABLE_ISSUE_NUMBER: ${{ github.event.inputs.unstable_issue_number || '20' }}
+          TESTED_ISSUE_NUMBER: ${{ github.event.inputs.tested_issue_number || '22' }}
+          NOT_TESTED_ISSUE_NUMBER: ${{ github.event.inputs.not_tested_issue_number || '23' }}
+          UNSURE_ISSUE_NUMBER: ${{ github.event.inputs.unsure_issue_number || '24' }}
+          POTENTIALLY_UNHEALTHY_ISSUE_NUMBER: ${{ github.event.inputs.potentially_unhealthy_issue_number || '25' }}
+          PASSING_LINT_ISSUE_NUMBER: ${{ github.event.inputs.passing_lint_issue_number || '26' }}
+          FAILED_LINT_ISSUE_NUMBER: ${{ github.event.inputs.failed_lint_issue_number || '27' }}
+          COMPILATION_PASSED_ISSUE_NUMBER: ${{ github.event.inputs.compilation_passed_issue_number || '28' }}
+          COMPILATION_FAILED_ISSUE_NUMBER: ${{ github.event.inputs.compilation_failed_issue_number || '29' }}
+          FAILED_TESTING_ISSUE_NUMBER: ${{ github.event.inputs.failed_testing_issue_number || '33' }}
+          OVERRIDE_PATH: ${{ github.event.inputs.override_path || 'override.md' }}
         with:
           script: |
             const sourceRepoInput = process.env.SOURCE_REPO;
