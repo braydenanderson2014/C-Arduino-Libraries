@@ -3,7 +3,7 @@ import argparse
 import json
 from pathlib import Path
 from statistics import mean
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 
 def load_json(path: Path) -> Dict[str, Any]:
@@ -56,11 +56,70 @@ def build_run_index(report_files: List[Path], stats_files: List[Path]) -> Dict[s
     return runs
 
 
+def find_first_limit_crossing_test(tests: Any, limit_bytes: int) -> Optional[Dict[str, Any]]:
+    if not isinstance(tests, list) or limit_bytes <= 0:
+        return None
+
+    for test in tests:
+        if not isinstance(test, dict):
+            continue
+        peak_after = test.get("peakBytesAfterTest", 0)
+        after_current = test.get("afterCurrentBytes", 0)
+        if isinstance(peak_after, int) and peak_after >= limit_bytes:
+            return {
+                "name": str(test.get("name", "")),
+                "peakBytesAfterTest": peak_after,
+                "afterCurrentBytes": after_current if isinstance(after_current, int) else 0,
+            }
+        if isinstance(after_current, int) and after_current >= limit_bytes:
+            return {
+                "name": str(test.get("name", "")),
+                "peakBytesAfterTest": peak_after if isinstance(peak_after, int) else 0,
+                "afterCurrentBytes": after_current,
+            }
+
+    return None
+
+
+def analyze_runs(runs: Dict[str, Dict[str, Any]]) -> None:
+    for key in sorted(runs.keys()):
+        run_data = runs[key]
+        report = run_data.get("report", {})
+        stats = run_data.get("stats", {})
+
+        report_memory = report.get("memory", {}) if isinstance(report, dict) else {}
+        stats_memory = stats.get("memory", {}) if isinstance(stats, dict) else {}
+        probe = stats.get("capacityProbe", {}) if isinstance(stats, dict) else {}
+
+        limit_bytes = report_memory.get("limitBytes", stats_memory.get("limitBytes", 0))
+        if not isinstance(limit_bytes, int):
+            limit_bytes = 0
+
+        tests = stats.get("tests", []) if isinstance(stats, dict) else []
+        first_crossing = find_first_limit_crossing_test(tests, limit_bytes)
+
+        run_data["analysis"] = {
+            "isMemoryProfileRun": key.startswith("memory-") or bool(probe.get("enabled", False)),
+            "hasPerTestStats": isinstance(tests, list) and len(tests) > 0,
+            "firstLimitCrossingTest": first_crossing,
+            "limitExceeded": bool(stats_memory.get("limitExceeded", False)),
+            "limitEnforced": bool(stats_memory.get("limitEnforced", True)),
+            "capacityProbeEnabled": bool(probe.get("enabled", False)),
+            "capacityProbeLimitReached": bool(probe.get("limitReached", False)),
+        }
+
+
 def summarize(runs: Dict[str, Dict[str, Any]], smoke_count: int) -> Dict[str, Any]:
     total = len(runs)
     passed = 0
     failed = 0
     peaks: List[int] = []
+    limit_exceeded_runs = 0
+    limit_enforced_runs = 0
+    memory_profile_runs = 0
+    probe_enabled_runs = 0
+    probe_limit_reached_runs = 0
+    first_crossing_runs = 0
 
     for run_data in runs.values():
         report = run_data.get("report", {})
@@ -75,6 +134,20 @@ def summarize(runs: Dict[str, Dict[str, Any]], smoke_count: int) -> Dict[str, An
         if isinstance(peak, int):
             peaks.append(peak)
 
+        analysis = run_data.get("analysis", {})
+        if bool(analysis.get("isMemoryProfileRun", False)):
+            memory_profile_runs += 1
+        if bool(analysis.get("limitExceeded", False)):
+            limit_exceeded_runs += 1
+        if bool(analysis.get("limitEnforced", False)):
+            limit_enforced_runs += 1
+        if bool(analysis.get("capacityProbeEnabled", False)):
+            probe_enabled_runs += 1
+        if bool(analysis.get("capacityProbeLimitReached", False)):
+            probe_limit_reached_runs += 1
+        if analysis.get("firstLimitCrossingTest"):
+            first_crossing_runs += 1
+
     return {
         "totalRuns": total,
         "passedRuns": passed,
@@ -82,6 +155,12 @@ def summarize(runs: Dict[str, Dict[str, Any]], smoke_count: int) -> Dict[str, An
         "maxPeakBytes": max(peaks) if peaks else 0,
         "avgPeakBytes": int(mean(peaks)) if peaks else 0,
         "compileSmokeObjectCount": smoke_count,
+        "memoryProfileRuns": memory_profile_runs,
+        "limitExceededRuns": limit_exceeded_runs,
+        "limitEnforcedRuns": limit_enforced_runs,
+        "capacityProbeEnabledRuns": probe_enabled_runs,
+        "capacityProbeLimitReachedRuns": probe_limit_reached_runs,
+        "runsWithFirstLimitCrossingTest": first_crossing_runs,
     }
 
 
@@ -109,16 +188,47 @@ def generate_markdown(
     lines.append(f"- Max peak bytes: {summary['maxPeakBytes']}")
     lines.append(f"- Avg peak bytes: {summary['avgPeakBytes']}")
     lines.append(f"- Compile smoke objects found: {summary['compileSmokeObjectCount']}")
+    lines.append(f"- Memory profile runs: {summary['memoryProfileRuns']}")
+    lines.append(f"- Runs that exceeded limit: {summary['limitExceededRuns']}")
+    lines.append(f"- Runs with limit enforcement enabled: {summary['limitEnforcedRuns']}")
+    lines.append(f"- Runs with capacity probe enabled: {summary['capacityProbeEnabledRuns']}")
+    lines.append(f"- Runs where capacity probe reached limit: {summary['capacityProbeLimitReachedRuns']}")
+    lines.append(f"- Runs with first limit-crossing test identified: {summary['runsWithFirstLimitCrossingTest']}")
 
     if expected_library_count > 0:
         expected_smoke = expected_library_count * max(compile_backend_count, 1)
         lines.append(f"- Expected compile smoke objects: {expected_smoke}")
 
     lines.append("")
+    lines.append("## Understanding")
+    lines.append("")
+    lines.append("- This report only summarizes artifacts downloaded into this workflow run.")
+    lines.append("- PeakBytes is process-level peak memory for the full run.")
+    lines.append("- LimitExceeded means run peak was above LimitBytes.")
+    lines.append("- LimitEnforced tells whether exceeding the limit should fail the run.")
+    lines.append("- ProbeElementsAtStop and ProbeCurrentBytesAtStop come from the optional capacity probe.")
+    lines.append("- FirstLimitCrossingTest is the first test whose per-test memory reached or exceeded the run limit.")
+    lines.append("- If FirstLimitCrossingTest is blank, no per-test crossing was found (or no per-test stats were present).")
+
+    lines.append("")
+    lines.append("## Memory Profile Coverage")
+    lines.append("")
+    lines.append("| Run | MemoryProfileRun | ProbeEnabled | ProbeLimitReached | FirstLimitCrossingTest |")
+    lines.append("| --- | --- | --- | --- | --- |")
+
+    for key in sorted(runs.keys()):
+        analysis = runs[key].get("analysis", {})
+        first = analysis.get("firstLimitCrossingTest") or {}
+        first_name = str(first.get("name", ""))
+        lines.append(
+            f"| {key} | {fmt_bool(analysis.get('isMemoryProfileRun', False))} | {fmt_bool(analysis.get('capacityProbeEnabled', False))} | {fmt_bool(analysis.get('capacityProbeLimitReached', False))} | {first_name} |"
+        )
+
+    lines.append("")
     lines.append("## Run Results")
     lines.append("")
-    lines.append("| Run | Success | Backend | PeakBytes | LimitBytes | LimitExceeded | LimitEnforced | ProbeElementsAtStop | ProbeCurrentBytesAtStop |")
-    lines.append("| --- | --- | --- | ---: | ---: | --- | --- | ---: | ---: |")
+    lines.append("| Run | Success | Backend | PeakBytes | LimitBytes | LimitExceeded | LimitEnforced | FirstLimitCrossingTest | CrossingPeakBytes | ProbeElementsAtStop | ProbeCurrentBytesAtStop |")
+    lines.append("| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: |")
 
     for key in sorted(runs.keys()):
         report = runs[key].get("report", {})
@@ -138,8 +248,15 @@ def generate_markdown(
         probe_elements = probe.get("elementsAtStop", 0)
         probe_bytes = probe.get("currentBytesAtStop", 0)
 
+        analysis = runs[key].get("analysis", {})
+        first_crossing = analysis.get("firstLimitCrossingTest") or {}
+        first_crossing_name = str(first_crossing.get("name", ""))
+        first_crossing_peak = first_crossing.get("peakBytesAfterTest", 0)
+        if not isinstance(first_crossing_peak, int):
+            first_crossing_peak = 0
+
         lines.append(
-            f"| {key} | {fmt_bool(success)} | {backend} | {peak} | {limit} | {fmt_bool(limit_exceeded)} | {fmt_bool(limit_enforced)} | {probe_elements} | {probe_bytes} |"
+            f"| {key} | {fmt_bool(success)} | {backend} | {peak} | {limit} | {fmt_bool(limit_exceeded)} | {fmt_bool(limit_enforced)} | {first_crossing_name} | {first_crossing_peak} | {probe_elements} | {probe_bytes} |"
         )
 
     for key in sorted(runs.keys()):
@@ -184,6 +301,7 @@ def main() -> int:
 
     report_files, stats_files, smoke_objects = classify_paths(artifacts_dir)
     runs = build_run_index(report_files, stats_files)
+    analyze_runs(runs)
     summary = summarize(runs, len(smoke_objects))
 
     payload = {
