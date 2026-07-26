@@ -476,8 +476,16 @@ bool JSON::getBool(const char* path, bool defaultVal) const {
         case ValueType::Number:
             return node->numberValue != 0.0;
         case ValueType::String:
-            return node->stringValue &&
-                   (std::strcmp(node->stringValue, "true") == 0 || std::strcmp(node->stringValue, "1") == 0);
+            if (!node->stringValue) {
+                return defaultVal;
+            }
+            if (std::strcmp(node->stringValue, "true") == 0 || std::strcmp(node->stringValue, "1") == 0) {
+                return true;
+            }
+            if (std::strcmp(node->stringValue, "false") == 0 || std::strcmp(node->stringValue, "0") == 0) {
+                return false;
+            }
+            return defaultVal;
         default:
             return defaultVal;
     }
