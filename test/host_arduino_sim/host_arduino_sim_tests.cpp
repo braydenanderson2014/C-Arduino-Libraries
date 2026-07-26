@@ -289,6 +289,49 @@ void testJSONRoundTrip() {
     std::free(serialized);
 }
 
+    void testJSONOptionalFeatureGateBehavior() {
+        JSON json;
+        json.setString("coercion.numericText", "42.5");
+        json.setString("coercion.boolTextTrue", "true");
+        json.setString("coercion.boolTextFalse", "0");
+        json.setString("coercion.invalidBoolText", "not-a-bool");
+        json.setNumber("coercion.number", 0.0);
+        json.setBool("coercion.bool", true);
+
+    #if JSON_ENABLE_OPTIONAL_RETURNS
+        const Optional<String> asStringFromNumber = json.tryGetString("coercion.number");
+        const Optional<double> asNumberFromString = json.tryGetNumber("coercion.numericText");
+        const Optional<bool> asBoolTrue = json.tryGetBool("coercion.boolTextTrue");
+        const Optional<bool> asBoolFalse = json.tryGetBool("coercion.boolTextFalse");
+        const Optional<bool> invalidBool = json.tryGetBool("coercion.invalidBoolText");
+        const Optional<double> missingNumber = json.tryGetNumber("coercion.missing");
+
+        expect(asStringFromNumber.hasValue() && asStringFromNumber.getValue() == "0",
+            "JSON optional string getter should convert numbers");
+        expect(asNumberFromString.hasValue() && asNumberFromString.getValue() == 42.5,
+            "JSON optional number getter should parse numeric strings");
+        expect(asBoolTrue.hasValue() && asBoolTrue.getValue(),
+            "JSON optional bool getter should parse true-like strings");
+        expect(asBoolFalse.hasValue() && !asBoolFalse.getValue(),
+            "JSON optional bool getter should parse false-like strings");
+        expect(!invalidBool.hasValue(),
+            "JSON optional bool getter should reject unsupported strings");
+        expect(!missingNumber.hasValue(),
+            "JSON optional getters should return empty for missing keys");
+    #else
+        expect(json.getString("coercion.missing", "fallback") == "fallback",
+            "JSON non-optional string getter should return provided default for missing keys");
+        expect(json.getNumber("coercion.missing", 123.0) == 123.0,
+            "JSON non-optional number getter should return provided default for missing keys");
+        expect(json.getBool("coercion.missing", true),
+            "JSON non-optional bool getter should return provided default for missing keys");
+        expect(json.getBool("coercion.boolTextTrue", false),
+            "JSON non-optional bool getter should still parse true-like strings");
+        expect(!json.getBool("coercion.boolTextFalse", true),
+            "JSON non-optional bool getter should still parse false-like strings");
+    #endif
+    }
+
 void testJSONFileRoundTrip(const std::filesystem::path& rootPath) {
     const std::filesystem::path filePath = rootPath / "json_host_sim.bin";
     std::error_code ec;
@@ -362,6 +405,7 @@ int main() {
         testSDListFileIOMode(fsRoot);
         testCustomStringBehavior();
         testJSONRoundTrip();
+        testJSONOptionalFeatureGateBehavior();
         testJSONFileRoundTrip(fsRoot);
 
         peak = getPeakResidentBytes();
