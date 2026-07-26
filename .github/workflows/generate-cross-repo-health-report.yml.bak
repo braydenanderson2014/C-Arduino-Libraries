@@ -1,6 +1,9 @@
 name: Generate Cross-Repo Library Health Report
 
 on:
+  schedule:
+    # Runs daily at 01:30 UTC - picks up overnight PlatformIO metrics updates.
+    - cron: "30 1 * * *"
   workflow_dispatch:
     inputs:
       source_repo:
@@ -76,21 +79,21 @@ jobs:
         uses: actions/github-script@v7
         env:
           GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
-          SOURCE_REPO: ${{ github.event.inputs.source_repo }}
-          OUTPUT_PATH: ${{ github.event.inputs.output_path }}
-          CONFIRMED_LABELS: ${{ github.event.inputs.confirmed_labels }}
-          STABLE_ISSUE_NUMBER: ${{ github.event.inputs.stable_issue_number }}
-          UNSTABLE_ISSUE_NUMBER: ${{ github.event.inputs.unstable_issue_number }}
-          TESTED_ISSUE_NUMBER: ${{ github.event.inputs.tested_issue_number }}
-          NOT_TESTED_ISSUE_NUMBER: ${{ github.event.inputs.not_tested_issue_number }}
-          UNSURE_ISSUE_NUMBER: ${{ github.event.inputs.unsure_issue_number }}
-          POTENTIALLY_UNHEALTHY_ISSUE_NUMBER: ${{ github.event.inputs.potentially_unhealthy_issue_number }}
-          PASSING_LINT_ISSUE_NUMBER: ${{ github.event.inputs.passing_lint_issue_number }}
-          FAILED_LINT_ISSUE_NUMBER: ${{ github.event.inputs.failed_lint_issue_number }}
-          COMPILATION_PASSED_ISSUE_NUMBER: ${{ github.event.inputs.compilation_passed_issue_number }}
-          COMPILATION_FAILED_ISSUE_NUMBER: ${{ github.event.inputs.compilation_failed_issue_number }}
-          FAILED_TESTING_ISSUE_NUMBER: ${{ github.event.inputs.failed_testing_issue_number }}
-          OVERRIDE_PATH: ${{ github.event.inputs.override_path }}
+          SOURCE_REPO: ${{ github.event.inputs.source_repo || 'braydenanderson2014/C-Arduino-Libraries' }}
+          OUTPUT_PATH: ${{ github.event.inputs.output_path || 'library-health-report.md' }}
+          CONFIRMED_LABELS: ${{ github.event.inputs.confirmed_labels || 'Confirmed' }}
+          STABLE_ISSUE_NUMBER: ${{ github.event.inputs.stable_issue_number || '21' }}
+          UNSTABLE_ISSUE_NUMBER: ${{ github.event.inputs.unstable_issue_number || '20' }}
+          TESTED_ISSUE_NUMBER: ${{ github.event.inputs.tested_issue_number || '22' }}
+          NOT_TESTED_ISSUE_NUMBER: ${{ github.event.inputs.not_tested_issue_number || '23' }}
+          UNSURE_ISSUE_NUMBER: ${{ github.event.inputs.unsure_issue_number || '24' }}
+          POTENTIALLY_UNHEALTHY_ISSUE_NUMBER: ${{ github.event.inputs.potentially_unhealthy_issue_number || '25' }}
+          PASSING_LINT_ISSUE_NUMBER: ${{ github.event.inputs.passing_lint_issue_number || '26' }}
+          FAILED_LINT_ISSUE_NUMBER: ${{ github.event.inputs.failed_lint_issue_number || '27' }}
+          COMPILATION_PASSED_ISSUE_NUMBER: ${{ github.event.inputs.compilation_passed_issue_number || '28' }}
+          COMPILATION_FAILED_ISSUE_NUMBER: ${{ github.event.inputs.compilation_failed_issue_number || '29' }}
+          FAILED_TESTING_ISSUE_NUMBER: ${{ github.event.inputs.failed_testing_issue_number || '33' }}
+          OVERRIDE_PATH: ${{ github.event.inputs.override_path || 'override.md' }}
         with:
           script: |
             const sourceRepoInput = process.env.SOURCE_REPO;
@@ -572,6 +575,20 @@ jobs:
               return map[compilationKey] || map.unknown;
             }
 
+            function statusLabel(status) {
+              return status === 'passed' ? 'Passed' : status === 'failed' ? 'Failed' : 'Unknown';
+            }
+
+            function issueRef(issueNumber) {
+              return issueNumber != null ? `#${issueNumber}` : 'N/A';
+            }
+
+            function statusToIssueNumber(status, passedKey, failedKey) {
+              if (status === 'failed') return statusIssueNumbers[failedKey];
+              if (status === 'passed') return statusIssueNumbers[passedKey];
+              return null;
+            }
+
             core.info(`Reading library list from ${libraryTemplateSourcePath}...`);
             const issueTemplateContent = await readSourceFile(libraryTemplateSourcePath);
             const templateLibraryLabels = parseLibraryLabelsFromIssueTemplate(issueTemplateContent);
@@ -755,7 +772,15 @@ jobs:
               const categoryOverride = overrides.categoryOverride.get(libraryLabel);
               if (categoryOverride) {
                 if (confirmedIssueLocked) {
-                  finalBucket = 'potentially_unhealthy';
+                  // Confirmed issues lock the bucket to the most severe state:
+                  // 'unstable' override is preserved (it is more severe than
+                  // potentially_unhealthy); all other overrides are ignored.
+                  if (categoryOverride === 'unstable') {
+                    finalBucket = 'unstable';
+                    manualCategoryOverrideApplied = true;
+                  } else {
+                    finalBucket = 'potentially_unhealthy';
+                  }
                 } else {
                   finalBucket = categoryOverride;
                   manualCategoryOverrideApplied = true;
@@ -792,9 +817,9 @@ jobs:
                 testingStatus,
                 testingIssueNumber: bucketIssueNumbers[testingStatus],
                 lintStatus,
-                lintIssueNumber: statusIssueNumbers[lintStatus === 'failed' ? 'lint_failed' : 'lint_passed'],
+                lintIssueNumber: statusToIssueNumber(lintStatus, 'lint_passed', 'lint_failed'),
                 compilationStatus,
-                compilationIssueNumber: statusIssueNumbers[compilationStatus === 'failed' ? 'compilation_failed' : 'compilation_passed'],
+                compilationIssueNumber: statusToIssueNumber(compilationStatus, 'compilation_passed', 'compilation_failed'),
                 testingFailureStatus,
                 testingFailureIssueNumber: statusIssueNumbers.testing_failed,
                 manualCountOverrideApplied,
@@ -916,7 +941,14 @@ jobs:
             lines.push('|---|---:|---:|---|---|---|---|---|---:|---:|---:|---:|');
 
             for (const row of reportRows) {
-              lines.push(`| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount} | ${row.platformVerdict} | ${healthBadge(row.final)} | ${testingBadge(row.testingStatus)} | ${lintBadge(row.lintStatus)} | ${compilationBadge(row.compilationStatus)} | #${row.bucketIssueNumber} | #${row.testingIssueNumber} | #${row.lintIssueNumber} | #${row.compilationIssueNumber} |`);
+              lines.push(
+                `| ${row.library} | ${row.confirmedCount} | ${row.unconfirmedOpenCount}` +
+                ` | ${row.platformVerdict} | ${healthBadge(row.final)}` +
+                ` | ${testingBadge(row.testingStatus)} | ${lintBadge(row.lintStatus)}` +
+                ` | ${compilationBadge(row.compilationStatus)}` +
+                ` | #${row.bucketIssueNumber} | #${row.testingIssueNumber}` +
+                ` | ${issueRef(row.lintIssueNumber)} | ${issueRef(row.compilationIssueNumber)} |`
+              );
             }
 
             lines.push('');
@@ -949,9 +981,11 @@ jobs:
               lines.push(`- Health badge: ${healthBadge(row.final)}`);
               lines.push(`- Testing status: ${bucketDisplay(row.testingStatus)} (#${row.testingIssueNumber})`);
               lines.push(`- Testing badge: ${testingBadge(row.testingStatus)}`);
-              lines.push(`- Lint status: ${row.lintStatus === 'passed' ? 'Passed' : row.lintStatus === 'failed' ? 'Failed' : 'Unknown'} (#${row.lintIssueNumber})`);
+              const lintIssueDetail = row.lintIssueNumber != null ? ` (#${row.lintIssueNumber})` : '';
+              lines.push(`- Lint status: ${statusLabel(row.lintStatus)}${lintIssueDetail}`);
               lines.push(`- Lint badge: ${lintBadge(row.lintStatus)}`);
-              lines.push(`- Compilation status: ${row.compilationStatus === 'passed' ? 'Passed' : row.compilationStatus === 'failed' ? 'Failed' : 'Unknown'} (#${row.compilationIssueNumber})`);
+              const compIssueDetail = row.compilationIssueNumber != null ? ` (#${row.compilationIssueNumber})` : '';
+              lines.push(`- Compilation status: ${statusLabel(row.compilationStatus)}${compIssueDetail}`);
               lines.push(`- Compilation badge: ${compilationBadge(row.compilationStatus)}`);
               lines.push(`- Failed testing bucket (#${row.testingFailureIssueNumber}): ${row.testingFailureStatus === 'failed' ? 'Yes' : 'No'}`);
               lines.push(`- Computed bucket before override: ${bucketDisplay(row.computedBucket)}`);

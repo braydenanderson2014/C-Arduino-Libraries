@@ -2,6 +2,16 @@
 #include <unity.h>
 #include "../../lib/Hashtable/src/Hashtable.h"
 
+struct IteratorValueType {
+    int id;
+
+    IteratorValueType(int value = 0) : id(value) {}
+
+    bool operator==(const IteratorValueType& other) const {
+        return id == other.id;
+    }
+};
+
 void test_is_empty_tracks_element_count() {
     Hashtable<int, int> table;
 
@@ -41,6 +51,20 @@ void test_get_element_with_null_output_pointer_returns_false() {
     TEST_ASSERT_FALSE(table.getElement(1, nullptr));
 }
 
+void test_iterator_operator_star_supports_non_string_value_types() {
+    Hashtable<String, IteratorValueType> table;
+
+    table.put("alpha", IteratorValueType(7));
+
+    auto it = table.begin();
+    TEST_ASSERT_TRUE(it != table.end());
+
+    auto kv = *it;
+
+    TEST_ASSERT_EQUAL_STRING("alpha", kv.key.c_str());
+    TEST_ASSERT_EQUAL_INT(7, kv.value.id);
+}
+
 void setup() {
     Serial.begin(115200);
     delay(1000);
@@ -52,6 +76,7 @@ void setup() {
     RUN_TEST(test_operator_brackets_returns_inserted_value_after_resize);
     RUN_TEST(test_zero_capacity_constructor_uses_safe_default_size);
     RUN_TEST(test_get_element_with_null_output_pointer_returns_false);
+    RUN_TEST(test_iterator_operator_star_supports_non_string_value_types);
     UNITY_END();
 
     Serial.println("Hashtable Tests Completed!");
