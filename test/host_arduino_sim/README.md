@@ -19,6 +19,7 @@ This test platform runs selected Arduino-style library behavior on a Linux host 
 - `include/LittleFS.h`: LittleFS alias backed by the same host file mock
 - `include/SPI.h`: minimal SPI placeholder
 - `host_arduino_sim_tests.cpp`: executable test runner and memory tracker
+- `host_json_mode_tests.cpp`: JSON-focused runner for optional-off and optional-on modes
 
 ## Run locally
 
@@ -44,6 +45,46 @@ HOST_MEM_LIMIT_BYTES=8388608 \
 HOST_SIM_REPORT=test/host_arduino_sim/out/report-local.json \
 HOST_SIM_FS_ROOT=test/host_arduino_sim/out/fs-local \
 ./test/host_arduino_sim/out/bin/host_arduino_sim
+```
+
+## Run JSON mode checks locally
+
+From repository root:
+
+```bash
+g++ -std=c++17 -O2 \
+  -DAL_NO_SERIAL \
+  -Itest/host_arduino_sim/include \
+  -Ilib/Json/src \
+  -Ilib/SimpleVector/src \
+  -Ilib/MathLib/src \
+  -Ilib/String/src \
+  -Ilib/TypeTraits/src \
+  lib/Json/src/JSON.cpp \
+  test/host_arduino_sim/host_json_mode_tests.cpp \
+  -o test/host_arduino_sim/out/bin/json_mode_optional_off
+
+g++ -std=c++17 -O2 \
+  -DAL_NO_SERIAL \
+  -DJSON_ENABLE_OPTIONAL_RETURNS=1 \
+  -Itest/host_arduino_sim/include \
+  -Ilib/Json/src \
+  -Ilib/Optional/src \
+  -Ilib/SimpleVector/src \
+  -Ilib/MathLib/src \
+  -Ilib/String/src \
+  -Ilib/TypeTraits/src \
+  lib/Json/src/JSON.cpp \
+  test/host_arduino_sim/host_json_mode_tests.cpp \
+  -o test/host_arduino_sim/out/bin/json_mode_optional_on
+
+HOST_JSON_MODE_REPORT=test/host_arduino_sim/out/report-json-optional-off-local.json \
+HOST_SIM_FS_ROOT=test/host_arduino_sim/out/fs-json-optional-off-local \
+./test/host_arduino_sim/out/bin/json_mode_optional_off
+
+HOST_JSON_MODE_REPORT=test/host_arduino_sim/out/report-json-optional-on-local.json \
+HOST_SIM_FS_ROOT=test/host_arduino_sim/out/fs-json-optional-on-local \
+./test/host_arduino_sim/out/bin/json_mode_optional_on
 ```
 
 ## Configure memory budget
