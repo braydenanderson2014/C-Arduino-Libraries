@@ -110,8 +110,8 @@ def generate_markdown_stress(runs: List[Dict[str, Any]]) -> str:
     lines.append("- Counts shown are the **minimum** across all run variants for that board (most conservative).")
     lines.append("- Heap delta from baseline is used for measurement (not absolute process RSS).")
     lines.append("- ✓ means the probe stopped because the configured budget was reached.")
-    lines.append("- A count equal to `MAX` means the probe finished without hitting the limit.")
-    lines.append("- Budget = `sramBytes × 1024` (host process heap delta).")
+    lines.append("- A count equal to the configured cap (HOST_STRESS_MAX_INSTANCES / HOST_STRESS_MAX_ELEMENTS) means the probe finished without hitting the budget.")
+    lines.append("- Budget is taken from each run's `limitBytes` field (CI typically sets it to `sramBytes × 1024`).")
     lines.append("")
 
     # Instance count table
