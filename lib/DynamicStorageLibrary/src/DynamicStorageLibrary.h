@@ -47,7 +47,8 @@ public:
 
     void changeMode(Mode newMode) {
         if (mode == newMode) return;
-        if (useSD()) {
+        const bool targetUsesSD = (newMode == SD) || (newMode == AUTO && sdInitialized);
+        if (targetUsesSD) {
             loadBlocksFromSD();
         }
         mode = newMode;
