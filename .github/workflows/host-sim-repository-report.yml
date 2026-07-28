@@ -32,7 +32,7 @@ jobs:
           if_no_artifact_found: warn
           path: .artifacts/standard
 
-      - name: Download latest memory profile report artifact
+      - name: Download latest stress report artifact
         uses: dawidd6/action-download-artifact@v6
         continue-on-error: true
         with:
@@ -40,9 +40,9 @@ jobs:
           workflow: host-sim-memory-profiles.yml
           workflow_conclusion: success
           branch: main
-          name: host-sim-memory-profile-report
+          name: host-sim-stress-report
           if_no_artifact_found: warn
-          path: .artifacts/memory
+          path: .artifacts/stress
 
       - name: Generate repository-level host simulation report
         shell: bash
@@ -51,7 +51,7 @@ jobs:
 
           python3 scripts/generate_host_sim_repository_report.py \
             --standard-dir .artifacts/standard \
-            --memory-dir .artifacts/memory \
+            --stress-dir .artifacts/stress \
             --output-md reports/host-sim-repository-report.md \
             --output-json reports/host-sim-repository-report.json
 

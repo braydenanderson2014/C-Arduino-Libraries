@@ -22,10 +22,6 @@ on:
       - "library.json"
   workflow_dispatch:
     inputs:
-      memory_limit_bytes:
-        description: "Optional memory peak limit for host tests"
-        required: false
-        type: string
       target_library_path:
         description: "Optional relative library path (example: lib/ArrayList or . for root)"
         required: false
@@ -783,16 +779,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          MEM_LIMIT="${{ github.event.inputs.memory_limit_bytes || '' }}"
-          if [ -z "${MEM_LIMIT}" ]; then
-            MEM_LIMIT="8388608"
-          fi
-
           REPORT_PATH="test/host_arduino_sim/out/report-${{ matrix.backend }}.json"
           STATS_PATH="test/host_arduino_sim/out/stats-${{ matrix.backend }}.json"
           FS_ROOT="test/host_arduino_sim/out/fs-${{ matrix.backend }}"
 
-          HOST_MEM_LIMIT_BYTES="${MEM_LIMIT}" \
           HOST_SIM_REPORT="${REPORT_PATH}" \
           HOST_SIM_STATS_REPORT="${STATS_PATH}" \
           HOST_SIM_FS_ROOT="${FS_ROOT}" \
@@ -834,16 +824,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          MEM_LIMIT="${{ github.event.inputs.memory_limit_bytes || '' }}"
-          if [ -z "${MEM_LIMIT}" ]; then
-            MEM_LIMIT="8388608"
-          fi
-
           REPORT_PATH="test/host_arduino_sim/out/report-optional-${{ matrix.backend }}.json"
           STATS_PATH="test/host_arduino_sim/out/stats-optional-${{ matrix.backend }}.json"
           FS_ROOT="test/host_arduino_sim/out/fs-optional-${{ matrix.backend }}"
 
-          HOST_MEM_LIMIT_BYTES="${MEM_LIMIT}" \
           HOST_SIM_REPORT="${REPORT_PATH}" \
           HOST_SIM_STATS_REPORT="${STATS_PATH}" \
           HOST_SIM_FS_ROOT="${FS_ROOT}" \

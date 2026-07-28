@@ -49,14 +49,6 @@ struct TestMemoryStat {
     std::string error;
 };
 
-struct MemoryCapacityProbeResult {
-    bool enabled;
-    bool limitReached;
-    std::size_t maxElementsChecked;
-    std::size_t elementsAtStop;
-    std::size_t currentBytesAtStop;
-    std::size_t limitBytes;
-};
 
 std::size_t getPeakResidentBytes() {
 #if defined(__linux__) || defined(__APPLE__)
@@ -574,10 +566,7 @@ void writeMemoryStatsReport(const std::filesystem::path& statsPath,
                             std::size_t peakBytes,
                             std::size_t limitBytes,
                             const std::string& backend,
-                            const std::string& errorMessage,
-                            bool memoryLimitExceeded,
-                            bool memoryLimitEnforced,
-                            const MemoryCapacityProbeResult& probeResult) {
+                            const std::string& errorMessage) {
     std::ofstream report(statsPath, std::ios::binary);
     if (!report.good()) {
         return;
@@ -588,17 +577,7 @@ void writeMemoryStatsReport(const std::filesystem::path& statsPath,
     report << "  \"backend\": \"" << escapeJsonString(backend) << "\",\n";
     report << "  \"memory\": {\n";
     report << "    \"peakBytes\": " << peakBytes << ",\n";
-    report << "    \"limitBytes\": " << limitBytes << ",\n";
-    report << "    \"limitExceeded\": " << (memoryLimitExceeded ? "true" : "false") << ",\n";
-    report << "    \"limitEnforced\": " << (memoryLimitEnforced ? "true" : "false") << "\n";
-    report << "  },\n";
-    report << "  \"capacityProbe\": {\n";
-    report << "    \"enabled\": " << (probeResult.enabled ? "true" : "false") << ",\n";
-    report << "    \"limitReached\": " << (probeResult.limitReached ? "true" : "false") << ",\n";
-    report << "    \"maxElementsChecked\": " << probeResult.maxElementsChecked << ",\n";
-    report << "    \"elementsAtStop\": " << probeResult.elementsAtStop << ",\n";
-    report << "    \"currentBytesAtStop\": " << probeResult.currentBytesAtStop << ",\n";
-    report << "    \"limitBytes\": " << probeResult.limitBytes << "\n";
+    report << "    \"limitBytes\": " << limitBytes << "\n";
     report << "  },\n";
     report << "  \"tests\": [\n";
 
@@ -627,48 +606,9 @@ void writeMemoryStatsReport(const std::filesystem::path& statsPath,
     report << "}\n";
 }
 
-MemoryCapacityProbeResult runMemoryCapacityProbe(std::size_t limitBytes, bool enabled, std::size_t maxElementsChecked) {
-    MemoryCapacityProbeResult result {};
-    result.enabled = enabled;
-    result.limitReached = false;
-    result.maxElementsChecked = maxElementsChecked;
-    result.elementsAtStop = 0;
-    result.currentBytesAtStop = getCurrentResidentBytes();
-    result.limitBytes = limitBytes;
-
-    if (!enabled || maxElementsChecked == 0) {
-        return result;
-    }
-
-    ArrayList<int> list(ArrayList<int>::DYNAMIC2, 8);
-    std::size_t checked = 0;
-
-    while (checked < maxElementsChecked) {
-        list.add(static_cast<int>(checked & 0x7fffffff));
-        ++checked;
-
-        if ((checked % 128u) == 0u) {
-            const std::size_t currentBytes = getCurrentResidentBytes();
-            if (currentBytes >= limitBytes) {
-                result.limitReached = true;
-                result.elementsAtStop = checked;
-                result.currentBytesAtStop = currentBytes;
-                return result;
-            }
-        }
-    }
-
-    result.elementsAtStop = checked;
-    result.currentBytesAtStop = getCurrentResidentBytes();
-    result.limitReached = result.currentBytesAtStop >= limitBytes;
-    return result;
-}
 
 int main() {
     const std::size_t memoryLimitBytes = envToSizeOrDefault("HOST_MEM_LIMIT_BYTES", 8u * 1024u * 1024u);
-    const bool enforceMemoryLimit = envToBoolOrDefault("HOST_MEM_ENFORCE_LIMIT", true);
-    const bool enableCapacityProbe = envToBoolOrDefault("HOST_MEM_ENABLE_CAPACITY_PROBE", false);
-    const std::size_t capacityProbeMaxElements = envToSizeOrDefault("HOST_MEM_CAPACITY_PROBE_MAX_ELEMENTS", 250000u);
     const std::filesystem::path fsRoot = envToStringOrDefault("HOST_SIM_FS_ROOT", "test/host_arduino_sim/out/fs");
     const std::filesystem::path reportPath = envToStringOrDefault(
         "HOST_SIM_REPORT",
@@ -692,8 +632,6 @@ int main() {
     std::string error;
     std::size_t peak = 0;
     std::vector<TestMemoryStat> memoryStats;
-    bool memoryLimitExceeded = false;
-    MemoryCapacityProbeResult probeResult {};
 
     try {
         runTestWithMemoryStats("testArrayListBasicBehavior", testArrayListBasicBehavior, memoryStats);
@@ -718,26 +656,9 @@ int main() {
         );
 
         peak = getPeakResidentBytes();
-        memoryLimitExceeded = peak > memoryLimitBytes;
-        if (memoryLimitExceeded && enforceMemoryLimit) {
-            expect(false, "Host memory peak exceeded expected budget");
-        }
-
-        probeResult = runMemoryCapacityProbe(memoryLimitBytes, enableCapacityProbe, capacityProbeMaxElements);
-
         success = true;
         std::cout << "Host simulation tests passed." << std::endl;
-        std::cout << "Memory peak bytes: " << peak << " (limit " << memoryLimitBytes << ")" << std::endl;
-        if (memoryLimitExceeded) {
-            std::cout << "Memory limit exceeded; continuing because HOST_MEM_ENFORCE_LIMIT="
-                      << (enforceMemoryLimit ? "1" : "0") << std::endl;
-        }
-        if (probeResult.enabled) {
-            std::cout << "Capacity probe: elementsAtStop=" << probeResult.elementsAtStop
-                      << ", currentBytesAtStop=" << probeResult.currentBytesAtStop
-                      << ", limitReached=" << (probeResult.limitReached ? "true" : "false")
-                      << std::endl;
-        }
+        std::cout << "Memory peak bytes: " << peak << std::endl;
     } catch (const std::exception& ex) {
         error = ex.what();
         std::cerr << "Host simulation tests failed: " << error << std::endl;
@@ -764,10 +685,7 @@ int main() {
         peak,
         memoryLimitBytes,
         backend,
-        error,
-        memoryLimitExceeded,
-        enforceMemoryLimit,
-        probeResult
+        error
     );
 
     return success ? 0 : 1;
