@@ -47,6 +47,7 @@ public:
     bool contains(const KeyType& key) const; // Check if the given key is present in the map
     bool remove(const KeyType& key); // Remove the key-value pair with the given key
     void clear(); // Remove all key-value pairs from the map
+    void resize(); // Resize the hash table when load factor is exceeded
     size_t size() const; // Get the number of key-value pairs in the map
     size_t getSize() const; // Alias for size
     bool isEmpty() const; // Check if the map is empty
@@ -123,7 +124,7 @@ UnorderedMap<KeyType, ValueType>::~UnorderedMap() {
 
 template <typename KeyType, typename ValueType>
 size_t UnorderedMap<KeyType, ValueType>::hash(const KeyType& key) const {
-    return hashFunction(key) % capacity;
+    return hashKey(key) % capacity;
 }
 
 template <typename KeyType, typename ValueType>
@@ -138,7 +139,7 @@ void UnorderedMap<KeyType, ValueType>::resize() {
         Node* node = table[i];
         while (node) {
             Node* next = node->next;
-            size_t newIndex = hashFunction(node->key) % newCapacity;
+            size_t newIndex = hashKey(node->key) % newCapacity;
             node->next = newTable[newIndex];
             newTable[newIndex] = node;
             node = next;

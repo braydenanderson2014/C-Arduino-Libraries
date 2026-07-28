@@ -457,10 +457,10 @@ class Map {
                 }
 
                 /**
-                 * @brief Overloads the arrow operator (->) to create a new pair object and return a pointer to it.
+                 * @brief Overloads the arrow operator (->) to provide member access to the current pair.
                  * 
-                 * This operator is used to access the members of the current pair in the Map class.
-                 * It creates a new pair object with the same key and value as the current pair, and returns a pointer to it.
+                 * This operator returns a pointer to the iterator's internally cached pair object.
+                 * No allocation is performed; the returned pointer is valid as long as the iterator remains alive.
                  * 
                  * @tparam K The type of the key in the pair.
                  * @tparam V The type of the value in the pair.
