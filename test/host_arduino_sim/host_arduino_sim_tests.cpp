@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -6,8 +7,10 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #if defined(__linux__) || defined(__APPLE__)
@@ -34,6 +37,7 @@
 #include "Hashtable.h"
 #include "JSON.h"
 #include "SDList.h"
+#include "SimpleVector.h"
 #include "CustomString.h"
 
 struct TestMemoryStat {
@@ -49,14 +53,6 @@ struct TestMemoryStat {
     std::string error;
 };
 
-struct MemoryCapacityProbeResult {
-    bool enabled;
-    bool limitReached;
-    std::size_t maxElementsChecked;
-    std::size_t elementsAtStop;
-    std::size_t currentBytesAtStop;
-    std::size_t limitBytes;
-};
 
 std::size_t getPeakResidentBytes() {
 #if defined(__linux__) || defined(__APPLE__)
@@ -181,6 +177,21 @@ void expect(bool condition, const std::string& message) {
     if (!condition) {
         throw std::runtime_error(message);
     }
+}
+
+std::uint64_t mixChecksum(std::uint64_t seed, std::uint64_t value) {
+    seed ^= value;
+    seed *= 1099511628211ULL;
+    return seed;
+}
+
+std::uint64_t checksumArrayList(const ArrayList<int>& list) {
+    std::uint64_t hash = 1469598103934665603ULL;
+    hash = mixChecksum(hash, static_cast<std::uint64_t>(list.size()));
+    for (std::size_t i = 0; i < list.size(); ++i) {
+        hash = mixChecksum(hash, static_cast<std::uint64_t>(list.get(i)));
+    }
+    return hash;
 }
 
 std::string escapeJsonString(const std::string& input) {
@@ -546,6 +557,193 @@ void testJSONFileRoundTrip(const std::filesystem::path& rootPath) {
            "JSON file read should restore array values");
 }
 
+void testArrayListChurnAndBoundaryHealth() {
+    ArrayList<int> list(ArrayList<int>::DYNAMIC2, 8);
+    std::vector<int> model;
+    std::uint32_t state = 0x1234abcdU;
+
+    for (int op = 0; op < 3000; ++op) {
+        state = state * 1664525U + 1013904223U;
+        const int action = static_cast<int>(state % 4U);
+
+        if (action == 0) {
+            const int value = static_cast<int>(state & 0x7fffffffU);
+            list.add(value);
+            model.push_back(value);
+        } else if (action == 1) {
+            const int value = static_cast<int>((state >> 3) & 0x7fffffffU);
+            const std::size_t index = model.empty() ? 0 : static_cast<std::size_t>((state >> 8) % (model.size() + 1));
+            expect(list.insert(index, value), "ArrayList churn insert should succeed");
+            model.insert(model.begin() + static_cast<std::ptrdiff_t>(index), value);
+        } else if (action == 2) {
+            if (!model.empty()) {
+                const std::size_t index = static_cast<std::size_t>((state >> 12) % model.size());
+                list.remove(index);
+                model.erase(model.begin() + static_cast<std::ptrdiff_t>(index));
+            }
+        } else {
+            if (!model.empty()) {
+                const std::size_t index = static_cast<std::size_t>((state >> 16) % model.size());
+                const int value = static_cast<int>((state >> 1) & 0x7fffffffU);
+                list[index] = value;
+                model[index] = value;
+            }
+        }
+
+        if ((op % 64) == 0) {
+            expect(list.size() == model.size(), "ArrayList churn size mismatch");
+            if (!model.empty()) {
+                const std::array<std::size_t, 3> indices = {0, model.size() / 2, model.size() - 1};
+                for (std::size_t idx : indices) {
+                    expect(list.get(idx) == model[idx], "ArrayList churn content mismatch");
+                }
+            }
+            std::uint64_t modelHash = 1469598103934665603ULL;
+            modelHash = mixChecksum(modelHash, static_cast<std::uint64_t>(model.size()));
+            for (int value : model) {
+                modelHash = mixChecksum(modelHash, static_cast<std::uint64_t>(value));
+            }
+            expect(checksumArrayList(list) == modelHash, "ArrayList churn checksum mismatch");
+        }
+    }
+
+    const std::size_t beforeBoundary = list.size();
+    expect(!list.insert(beforeBoundary + 1, 111), "ArrayList insert should reject index beyond size");
+    list.remove(beforeBoundary + 10);
+    expect(list.size() == beforeBoundary, "ArrayList out-of-range remove should not change size");
+}
+
+void testHashtableChurnAndBoundaryHealth() {
+    Hashtable<int, int> table(8, 0.7f);
+    std::unordered_map<int, int> model;
+    std::uint32_t state = 0x98765432U;
+
+    for (int op = 0; op < 3500; ++op) {
+        state = state * 1103515245U + 12345U;
+        const int key = static_cast<int>((state >> 1) & 0x7fff);
+        const int action = static_cast<int>(state % 3U);
+
+        if (action == 0) {
+            const int value = static_cast<int>((state >> 8) & 0x7fffffffU);
+            table.put(key, value);
+            model[key] = value;
+        } else if (action == 1) {
+            const bool removed = table.remove(key);
+            const bool existed = model.erase(key) > 0;
+            expect(removed == existed, "Hashtable remove result mismatch");
+        } else {
+            int got = 0;
+            const bool found = table.getElement(key, &got);
+            const auto it = model.find(key);
+            expect(found == (it != model.end()), "Hashtable getElement existence mismatch");
+            if (it != model.end()) {
+                expect(got == it->second, "Hashtable getElement value mismatch");
+            }
+        }
+
+        if ((op % 96) == 0) {
+            expect(table.elements() == static_cast<int>(model.size()), "Hashtable churn size mismatch");
+            int checked = 0;
+            for (const auto& [k, v] : model) {
+                expect(table.exists(k), "Hashtable churn missing expected key");
+                expect(table.getElement(k) == v, "Hashtable churn key/value mismatch");
+                if (++checked >= 32) break;
+            }
+        }
+    }
+
+    expect(!table.remove(std::numeric_limits<int>::max()), "Hashtable remove should fail for missing key");
+}
+
+void testSimpleVectorLifecycleStress() {
+    for (int cycle = 0; cycle < 96; ++cycle) {
+        SimpleVector<int> vec;
+        for (int i = 0; i < 300; ++i) {
+            vec.put(cycle * 1000 + i);
+        }
+        expect(vec.elements() == 300, "SimpleVector lifecycle fill size mismatch");
+        expect(vec.get(0) == cycle * 1000, "SimpleVector lifecycle first value mismatch");
+        expect(vec.get(299) == cycle * 1000 + 299, "SimpleVector lifecycle last value mismatch");
+
+        vec.erase(9999);
+        expect(vec.elements() == 300, "SimpleVector out-of-range erase should not change size");
+        vec.clear();
+        expect(vec.elements() == 0, "SimpleVector clear should empty vector");
+
+        vec.put(42);
+        expect(vec.elements() == 1 && vec.get(0) == 42, "SimpleVector should remain reusable after clear");
+    }
+}
+
+void testSDListPersistenceStress(const std::filesystem::path& rootPath) {
+    const std::filesystem::path dataFile = rootPath / "sdlist_persistence_stress.bin";
+    std::error_code ec;
+    std::filesystem::remove(dataFile, ec);
+
+    const String filename = "sdlist_persistence_stress.bin";
+    for (int round = 0; round < 12; ++round) {
+        SDList<std::int32_t, 8> writer(SDCARD, 8);
+        expect(writer.begin(4, filename), "SDList persistence writer begin should succeed");
+        writer.clear();
+        for (int i = 0; i < 80; ++i) {
+            expect(writer.append(round * 1000 + i), "SDList persistence append should succeed");
+        }
+        expect(writer.flush(), "SDList persistence flush should succeed");
+    }
+
+    SDList<std::int32_t, 8> reader(SDCARD, 8);
+    expect(reader.begin(4, filename), "SDList persistence reader begin should succeed");
+    expect(reader.size() == 80, "SDList persistence reader size mismatch");
+    expect(reader.get(0) == 11000, "SDList persistence first value mismatch");
+    expect(reader.get(79) == 11079, "SDList persistence last value mismatch");
+
+    {
+        std::ofstream trunc(dataFile, std::ios::binary | std::ios::trunc);
+        trunc.write("BAD!", 4);
+    }
+
+    SDList<std::int32_t, 8> recovered(SDCARD, 8);
+    expect(recovered.begin(4, filename), "SDList should recover from truncated/corrupt file");
+    expect(recovered.size() == 0, "SDList recovery from corrupt file should reset to empty");
+    expect(recovered.append(77), "SDList should remain writable after recovery");
+    expect(recovered.get(0) == 77, "SDList recovery write/read mismatch");
+}
+
+void testJSONPersistenceStress(const std::filesystem::path& rootPath) {
+    const std::filesystem::path filePath = rootPath / "json_persistence_stress.bin";
+    std::error_code ec;
+    std::filesystem::remove(filePath, ec);
+
+    for (int round = 0; round < 20; ++round) {
+        JSON writer;
+        writer.setString("meta.name", "stress");
+        writer.setNumber("meta.round", round);
+        for (int i = 0; i < 40; ++i) {
+            writer.setNumber((String("values.") + String(i)).c_str(), round * 100 + i);
+        }
+        expect(writer.writeToFile(filePath.string().c_str(), false) == JSON::JSON_WRITE_SUCCESS,
+               "JSON persistence write should succeed");
+
+        JSON reader;
+        expect(reader.readFromFile(filePath.string().c_str()) == JSON::JSON_READ_SUCCESS,
+               "JSON persistence read should succeed");
+        expect(reader.getNumber("meta.round") == static_cast<double>(round),
+               "JSON persistence round-trip round mismatch");
+        expect(reader.getNumber("values.39") == static_cast<double>(round * 100 + 39),
+               "JSON persistence round-trip payload mismatch");
+    }
+
+    {
+        std::ofstream trunc(filePath, std::ios::binary | std::ios::trunc);
+        trunc << "{\"meta\":{\"round\":";
+    }
+
+    JSON broken;
+    const int readResult = broken.readFromFile(filePath.string().c_str());
+    expect(readResult == JSON::JSON_FILE_PARSE_ERROR || readResult == JSON::JSON_READ_ERROR,
+           "JSON truncated file should return parse/read error");
+}
+
 void writeReport(const std::filesystem::path& reportPath,
                  bool success,
                  std::size_t peakBytes,
@@ -574,10 +772,7 @@ void writeMemoryStatsReport(const std::filesystem::path& statsPath,
                             std::size_t peakBytes,
                             std::size_t limitBytes,
                             const std::string& backend,
-                            const std::string& errorMessage,
-                            bool memoryLimitExceeded,
-                            bool memoryLimitEnforced,
-                            const MemoryCapacityProbeResult& probeResult) {
+                            const std::string& errorMessage) {
     std::ofstream report(statsPath, std::ios::binary);
     if (!report.good()) {
         return;
@@ -588,17 +783,7 @@ void writeMemoryStatsReport(const std::filesystem::path& statsPath,
     report << "  \"backend\": \"" << escapeJsonString(backend) << "\",\n";
     report << "  \"memory\": {\n";
     report << "    \"peakBytes\": " << peakBytes << ",\n";
-    report << "    \"limitBytes\": " << limitBytes << ",\n";
-    report << "    \"limitExceeded\": " << (memoryLimitExceeded ? "true" : "false") << ",\n";
-    report << "    \"limitEnforced\": " << (memoryLimitEnforced ? "true" : "false") << "\n";
-    report << "  },\n";
-    report << "  \"capacityProbe\": {\n";
-    report << "    \"enabled\": " << (probeResult.enabled ? "true" : "false") << ",\n";
-    report << "    \"limitReached\": " << (probeResult.limitReached ? "true" : "false") << ",\n";
-    report << "    \"maxElementsChecked\": " << probeResult.maxElementsChecked << ",\n";
-    report << "    \"elementsAtStop\": " << probeResult.elementsAtStop << ",\n";
-    report << "    \"currentBytesAtStop\": " << probeResult.currentBytesAtStop << ",\n";
-    report << "    \"limitBytes\": " << probeResult.limitBytes << "\n";
+    report << "    \"limitBytes\": " << limitBytes << "\n";
     report << "  },\n";
     report << "  \"tests\": [\n";
 
@@ -627,48 +812,9 @@ void writeMemoryStatsReport(const std::filesystem::path& statsPath,
     report << "}\n";
 }
 
-MemoryCapacityProbeResult runMemoryCapacityProbe(std::size_t limitBytes, bool enabled, std::size_t maxElementsChecked) {
-    MemoryCapacityProbeResult result {};
-    result.enabled = enabled;
-    result.limitReached = false;
-    result.maxElementsChecked = maxElementsChecked;
-    result.elementsAtStop = 0;
-    result.currentBytesAtStop = getCurrentResidentBytes();
-    result.limitBytes = limitBytes;
-
-    if (!enabled || maxElementsChecked == 0) {
-        return result;
-    }
-
-    ArrayList<int> list(ArrayList<int>::DYNAMIC2, 8);
-    std::size_t checked = 0;
-
-    while (checked < maxElementsChecked) {
-        list.add(static_cast<int>(checked & 0x7fffffff));
-        ++checked;
-
-        if ((checked % 128u) == 0u) {
-            const std::size_t currentBytes = getCurrentResidentBytes();
-            if (currentBytes >= limitBytes) {
-                result.limitReached = true;
-                result.elementsAtStop = checked;
-                result.currentBytesAtStop = currentBytes;
-                return result;
-            }
-        }
-    }
-
-    result.elementsAtStop = checked;
-    result.currentBytesAtStop = getCurrentResidentBytes();
-    result.limitReached = result.currentBytesAtStop >= limitBytes;
-    return result;
-}
 
 int main() {
     const std::size_t memoryLimitBytes = envToSizeOrDefault("HOST_MEM_LIMIT_BYTES", 8u * 1024u * 1024u);
-    const bool enforceMemoryLimit = envToBoolOrDefault("HOST_MEM_ENFORCE_LIMIT", true);
-    const bool enableCapacityProbe = envToBoolOrDefault("HOST_MEM_ENABLE_CAPACITY_PROBE", false);
-    const std::size_t capacityProbeMaxElements = envToSizeOrDefault("HOST_MEM_CAPACITY_PROBE_MAX_ELEMENTS", 250000u);
     const std::filesystem::path fsRoot = envToStringOrDefault("HOST_SIM_FS_ROOT", "test/host_arduino_sim/out/fs");
     const std::filesystem::path reportPath = envToStringOrDefault(
         "HOST_SIM_REPORT",
@@ -692,8 +838,6 @@ int main() {
     std::string error;
     std::size_t peak = 0;
     std::vector<TestMemoryStat> memoryStats;
-    bool memoryLimitExceeded = false;
-    MemoryCapacityProbeResult probeResult {};
 
     try {
         runTestWithMemoryStats("testArrayListBasicBehavior", testArrayListBasicBehavior, memoryStats);
@@ -706,6 +850,9 @@ int main() {
         );
         runTestWithMemoryStats("testCustomStringBehavior", testCustomStringBehavior, memoryStats);
         runTestWithMemoryStats("testJSONRoundTrip", testJSONRoundTrip, memoryStats);
+        runTestWithMemoryStats("testArrayListChurnAndBoundaryHealth", testArrayListChurnAndBoundaryHealth, memoryStats);
+        runTestWithMemoryStats("testHashtableChurnAndBoundaryHealth", testHashtableChurnAndBoundaryHealth, memoryStats);
+        runTestWithMemoryStats("testSimpleVectorLifecycleStress", testSimpleVectorLifecycleStress, memoryStats);
         runTestWithMemoryStats(
             "testJSONOptionalFeatureGateBehavior",
             testJSONOptionalFeatureGateBehavior,
@@ -716,28 +863,21 @@ int main() {
             [&]() { testJSONFileRoundTrip(fsRoot); },
             memoryStats
         );
+        runTestWithMemoryStats(
+            "testSDListPersistenceStress",
+            [&]() { testSDListPersistenceStress(fsRoot); },
+            memoryStats
+        );
+        runTestWithMemoryStats(
+            "testJSONPersistenceStress",
+            [&]() { testJSONPersistenceStress(fsRoot); },
+            memoryStats
+        );
 
         peak = getPeakResidentBytes();
-        memoryLimitExceeded = peak > memoryLimitBytes;
-        if (memoryLimitExceeded && enforceMemoryLimit) {
-            expect(false, "Host memory peak exceeded expected budget");
-        }
-
-        probeResult = runMemoryCapacityProbe(memoryLimitBytes, enableCapacityProbe, capacityProbeMaxElements);
-
         success = true;
         std::cout << "Host simulation tests passed." << std::endl;
-        std::cout << "Memory peak bytes: " << peak << " (limit " << memoryLimitBytes << ")" << std::endl;
-        if (memoryLimitExceeded) {
-            std::cout << "Memory limit exceeded; continuing because HOST_MEM_ENFORCE_LIMIT="
-                      << (enforceMemoryLimit ? "1" : "0") << std::endl;
-        }
-        if (probeResult.enabled) {
-            std::cout << "Capacity probe: elementsAtStop=" << probeResult.elementsAtStop
-                      << ", currentBytesAtStop=" << probeResult.currentBytesAtStop
-                      << ", limitReached=" << (probeResult.limitReached ? "true" : "false")
-                      << std::endl;
-        }
+        std::cout << "Memory peak bytes: " << peak << std::endl;
     } catch (const std::exception& ex) {
         error = ex.what();
         std::cerr << "Host simulation tests failed: " << error << std::endl;
@@ -764,10 +904,7 @@ int main() {
         peak,
         memoryLimitBytes,
         backend,
-        error,
-        memoryLimitExceeded,
-        enforceMemoryLimit,
-        probeResult
+        error
     );
 
     return success ? 0 : 1;

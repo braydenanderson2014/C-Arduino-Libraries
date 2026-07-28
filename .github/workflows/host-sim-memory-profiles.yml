@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  host-memory-profiles:
+  host-stress-profiles:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -41,31 +41,21 @@ jobs:
             sramBytes: 524288
           - board: esp32c3
             sramBytes: 400000
-        backend: [sd, littlefs]
-        optional: [off, on]
 
-    name: Memory profile (${{ matrix.boardProfile.board }}, ${{ matrix.backend }}, optional-${{ matrix.optional }})
+    name: Stress profile (${{ matrix.boardProfile.board }})
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build host simulation runner
+      - name: Build host stress runner
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p test/host_arduino_sim/out/bin
 
-          EXTRA_FLAGS=""
-          if [ "${{ matrix.backend }}" = "littlefs" ]; then
-            EXTRA_FLAGS="${EXTRA_FLAGS} -DUSE_LITTLEFS"
-          fi
-          if [ "${{ matrix.optional }}" = "on" ]; then
-            EXTRA_FLAGS="${EXTRA_FLAGS} -DJSON_ENABLE_OPTIONAL_RETURNS=1 -Ilib/Optional/src"
-          fi
-
           g++ -std=c++17 -O2 \
-            -DAL_NO_SERIAL -D_AVR_ATmega2560_ ${EXTRA_FLAGS} \
+            -DAL_NO_SERIAL -D_AVR_ATmega2560_ \
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
             -Ilib/Hashtable/src \
@@ -76,103 +66,95 @@ jobs:
             -Ilib/String/src \
             -Ilib/TypeTraits/src \
             lib/Json/src/JSON.cpp \
-            test/host_arduino_sim/host_arduino_sim_tests.cpp \
-            -o test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.boardProfile.board }}_${{ matrix.backend }}_${{ matrix.optional }}
+            test/host_arduino_sim/host_stress_tests.cpp \
+            -o test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}
 
-      - name: Run memory profile tests
+      - name: Run stress probes
         shell: bash
         run: |
           set -euo pipefail
 
-          # Scale physical SRAM to a host-process budget by 1024x.
+          # Scale physical SRAM to a host-process heap-delta budget by 1024x.
           MEM_LIMIT_BYTES=$(( ${{ matrix.boardProfile.sramBytes }} * 1024 ))
 
-          REPORT_PATH="test/host_arduino_sim/out/report-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json"
-          STATS_PATH="test/host_arduino_sim/out/stats-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json"
-          FS_ROOT="test/host_arduino_sim/out/fs-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}"
+          REPORT_PATH="test/host_arduino_sim/out/stress-${{ matrix.boardProfile.board }}.json"
 
           echo "Board: ${{ matrix.boardProfile.board }}"
           echo "SRAM bytes: ${{ matrix.boardProfile.sramBytes }}"
-          echo "Host memory limit bytes: ${MEM_LIMIT_BYTES}"
+          echo "Host heap-delta limit bytes: ${MEM_LIMIT_BYTES}"
 
           HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
-          HOST_MEM_ENFORCE_LIMIT="0" \
-          HOST_MEM_ENABLE_CAPACITY_PROBE="1" \
-          HOST_MEM_CAPACITY_PROBE_MAX_ELEMENTS="500000" \
-          HOST_SIM_REPORT="${REPORT_PATH}" \
-          HOST_SIM_STATS_REPORT="${STATS_PATH}" \
-          HOST_SIM_FS_ROOT="${FS_ROOT}" \
-          ./test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.boardProfile.board }}_${{ matrix.backend }}_${{ matrix.optional }}
+          HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
+          HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
+          HOST_STRESS_REPORT="${REPORT_PATH}" \
+          ./test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}
 
-      - name: Verify all host tests were recorded in stats
+      - name: Verify stress report was produced
         shell: bash
         run: |
           set -euo pipefail
 
-          STATS_PATH="test/host_arduino_sim/out/stats-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json"
-          TEST_COUNT="$(jq '.tests | length' "${STATS_PATH}")"
+          REPORT_PATH="test/host_arduino_sim/out/stress-${{ matrix.boardProfile.board }}.json"
 
-          # Keep this aligned with the host test runner's full test list.
-          MIN_EXPECTED_TESTS=8
-
-          echo "Recorded tests in stats: ${TEST_COUNT}"
-          if [ "${TEST_COUNT}" -lt "${MIN_EXPECTED_TESTS}" ]; then
-            echo "Expected at least ${MIN_EXPECTED_TESTS} tests in memory profile stats, got ${TEST_COUNT}."
+          if [ ! -f "${REPORT_PATH}" ]; then
+            echo "Stress report not found: ${REPORT_PATH}"
             exit 1
           fi
 
-      - name: Upload memory profile report
+          INSTANCE_COUNT="$(jq '.instanceCountProbes | length' "${REPORT_PATH}")"
+          FILL_COUNT="$(jq '.elementFillProbes | length' "${REPORT_PATH}")"
+
+          echo "Instance probes: ${INSTANCE_COUNT}"
+          echo "Element fill probes: ${FILL_COUNT}"
+
+          if [ "${INSTANCE_COUNT}" -lt 1 ] || [ "${FILL_COUNT}" -lt 1 ]; then
+            echo "Stress report appears empty."
+            exit 1
+          fi
+
+      - name: Upload stress profile report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: host-memory-report-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}
-          path: test/host_arduino_sim/out/report-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json
+          name: host-stress-report-${{ matrix.boardProfile.board }}
+          path: test/host_arduino_sim/out/stress-${{ matrix.boardProfile.board }}.json
           if-no-files-found: error
 
-      - name: Upload memory profile stats
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: host-memory-stats-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}
-          path: test/host_arduino_sim/out/stats-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json
-          if-no-files-found: error
-
-  host-sim-memory-report:
-    needs: host-memory-profiles
+  host-sim-stress-report:
+    needs: host-stress-profiles
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download memory profile artifacts
+      - name: Download stress profile artifacts
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
-          pattern: host-memory-*
+          pattern: host-stress-report-*
           merge-multiple: true
-          path: .artifacts/host-memory
+          path: .artifacts/host-stress
 
-      - name: Generate consolidated memory profile report
+      - name: Generate consolidated stress report
         shell: bash
         run: |
           set -euo pipefail
 
           python3 scripts/generate_host_sim_report.py \
-            --mode memory-profiles \
+            --mode stress \
             --artifacts-dir .artifacts \
-            --output-md reports/host-sim-memory-profile-report.md \
-            --output-json reports/host-sim-memory-profile-report.json \
-            --compile-backend-count 2
+            --output-md reports/host-sim-stress-report.md \
+            --output-json reports/host-sim-stress-report.json
 
-          cat reports/host-sim-memory-profile-report.md >> "$GITHUB_STEP_SUMMARY"
+          cat reports/host-sim-stress-report.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload consolidated memory profile report
+      - name: Upload consolidated stress report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: host-sim-memory-profile-report
+          name: host-sim-stress-report
           path: |
-            reports/host-sim-memory-profile-report.md
-            reports/host-sim-memory-profile-report.json
+            reports/host-sim-stress-report.md
+            reports/host-sim-stress-report.json
           if-no-files-found: error

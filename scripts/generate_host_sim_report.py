@@ -13,6 +13,173 @@ def load_json(path: Path) -> Dict[str, Any]:
         return {}
 
 
+# ─── Stress-mode helpers ──────────────────────────────────────────────────────
+
+def load_stress_runs(artifacts_dir: Path) -> List[Dict[str, Any]]:
+    """Load all stress-*.json files from any subdirectory of artifacts_dir."""
+    runs: List[Dict[str, Any]] = []
+    for path in sorted(artifacts_dir.rglob("stress-*.json")):
+        if path.is_file():
+            data = load_json(path)
+            if data:
+                runs.append(data)
+    return runs
+
+
+def _aggregate_stress_by_board(runs: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    """Per-board: keep the minimum (most conservative) count across all variants."""
+    board_data: Dict[str, Dict[str, Any]] = {}
+    for run in runs:
+        board     = str(run.get("board", "unknown"))
+        sram      = int(run.get("sramBytes", 0))
+        limit     = int(run.get("limitBytes", 0))
+
+        if board not in board_data:
+            board_data[board] = {
+                "sramBytes":           sram,
+                "limitBytes":          limit,
+                "instanceCounts":      {},
+                "instanceLimitReached":{},
+                "fillCounts":          {},
+                "fillLimitReached":    {},
+            }
+
+        for p in run.get("instanceCountProbes", []):
+            t   = str(p.get("type", ""))
+            cnt = int(p.get("maxInstances", 0))
+            if not t:
+                continue
+            existing = board_data[board]["instanceCounts"].get(t)
+            if existing is None or cnt < existing:
+                board_data[board]["instanceCounts"][t]       = cnt
+                board_data[board]["instanceLimitReached"][t] = bool(p.get("limitReached", False))
+
+        for p in run.get("elementFillProbes", []):
+            container = str(p.get("container", ""))
+            elem      = str(p.get("elementType", ""))
+            key       = f"{container}[{elem}]"
+            cnt       = int(p.get("maxElements", 0))
+            if not (container and elem):
+                continue
+            existing = board_data[board]["fillCounts"].get(key)
+            if existing is None or cnt < existing:
+                board_data[board]["fillCounts"][key]       = cnt
+                board_data[board]["fillLimitReached"][key] = bool(p.get("limitReached", False))
+
+    return board_data
+
+
+def generate_markdown_stress(runs: List[Dict[str, Any]]) -> str:
+    lines: List[str] = []
+    lines.append("# Host Simulation Stress Test Report")
+    lines.append("")
+
+    if not runs:
+        lines.append("_No stress test results found._")
+        lines.append("")
+        return "\n".join(lines)
+
+    board_data = _aggregate_stress_by_board(runs)
+    boards     = sorted(board_data.keys())
+
+    # Collect probe type lists in insertion order, deduped.
+    instance_types: List[str] = []
+    fill_keys:      List[str] = []
+    for run in runs:
+        for p in run.get("instanceCountProbes", []):
+            t = str(p.get("type", ""))
+            if t and t not in instance_types:
+                instance_types.append(t)
+        for p in run.get("elementFillProbes", []):
+            container = str(p.get("container", ""))
+            elem      = str(p.get("elementType", ""))
+            key       = f"{container}[{elem}]"
+            if container and elem and key not in fill_keys:
+                fill_keys.append(key)
+
+    # Summary
+    lines.append("## Summary")
+    lines.append("")
+    lines.append(f"- Boards profiled: {len(boards)}")
+    lines.append(f"- Total runs processed: {len(runs)}")
+    lines.append(f"- Instance probe types: {len(instance_types)}")
+    lines.append(f"- Element fill probe types: {len(fill_keys)}")
+    lines.append("")
+    lines.append("## Understanding")
+    lines.append("")
+    lines.append("- Counts shown are the **minimum** across all run variants for that board (most conservative).")
+    lines.append("- Heap delta from baseline is used for measurement (not absolute process RSS).")
+    lines.append("- ✓ means the probe stopped because the configured budget was reached.")
+    lines.append("- A count equal to the configured cap (HOST_STRESS_MAX_INSTANCES / HOST_STRESS_MAX_ELEMENTS) means the probe finished without hitting the budget.")
+    lines.append("- Budget is taken from each run's `limitBytes` field (CI typically sets it to `sramBytes × 1024`).")
+    lines.append("")
+
+    # Instance count table
+    if instance_types:
+        lines.append("## Instance Count Probes")
+        lines.append("")
+        lines.append("_How many simultaneously-alive empty instances fit within each board's SRAM budget._")
+        lines.append("")
+        header = "| Board | SRAM (bytes) |"
+        sep    = "| --- | ---: |"
+        for t in instance_types:
+            header += f" {t} |"
+            sep    += " ---: |"
+        lines.append(header)
+        lines.append(sep)
+        for board in boards:
+            bd  = board_data[board]
+            row = f"| {board} | {bd['sramBytes']} |"
+            for t in instance_types:
+                cnt     = bd["instanceCounts"].get(t)
+                reached = bd["instanceLimitReached"].get(t, False)
+                marker  = " ✓" if reached else ""
+                row    += f" {cnt}{marker} |" if cnt is not None else " — |"
+            lines.append(row)
+        lines.append("")
+        lines.append("✓ = budget reached during probe (count is the boundary value)")
+        lines.append("")
+
+    # Element fill table
+    if fill_keys:
+        lines.append("## Element Fill Probes")
+        lines.append("")
+        lines.append("_How many elements fit in a single container instance within each board's SRAM budget._")
+        lines.append("")
+        header = "| Board | SRAM (bytes) |"
+        sep    = "| --- | ---: |"
+        for k in fill_keys:
+            header += f" {k} |"
+            sep    += " ---: |"
+        lines.append(header)
+        lines.append(sep)
+        for board in boards:
+            bd  = board_data[board]
+            row = f"| {board} | {bd['sramBytes']} |"
+            for k in fill_keys:
+                cnt     = bd["fillCounts"].get(k)
+                reached = bd["fillLimitReached"].get(k, False)
+                marker  = " ✓" if reached else ""
+                row    += f" {cnt}{marker} |" if cnt is not None else " — |"
+            lines.append(row)
+        lines.append("")
+        lines.append("✓ = budget reached during probe (count is the boundary value)")
+        lines.append("")
+
+    # Per-board detail
+    lines.append("## Per-Board Details")
+    lines.append("")
+    for board in boards:
+        bd = board_data[board]
+        lines.append(f"### {board}")
+        lines.append("")
+        lines.append(f"- SRAM: {bd['sramBytes']} bytes")
+        lines.append(f"- Host budget: {bd['limitBytes']} bytes ({bd['sramBytes']} × 1024)")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def classify_paths(root: Path) -> Tuple[List[Path], List[Path], List[Path]]:
     report_files: List[Path] = []
     stats_files: List[Path] = []
@@ -174,6 +341,7 @@ def generate_markdown(
     runs: Dict[str, Dict[str, Any]],
     expected_library_count: int,
     compile_backend_count: int,
+    expected_compile_smoke_count: int,
 ) -> str:
     lines: List[str] = []
 
@@ -195,7 +363,9 @@ def generate_markdown(
     lines.append(f"- Runs where capacity probe reached limit: {summary['capacityProbeLimitReachedRuns']}")
     lines.append(f"- Runs with first limit-crossing test identified: {summary['runsWithFirstLimitCrossingTest']}")
 
-    if expected_library_count > 0:
+    if expected_compile_smoke_count >= 0:
+        lines.append(f"- Expected compile smoke objects: {expected_compile_smoke_count}")
+    elif expected_library_count > 0:
         expected_smoke = expected_library_count * max(compile_backend_count, 1)
         lines.append(f"- Expected compile smoke objects: {expected_smoke}")
 
@@ -292,18 +462,46 @@ def generate_markdown(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Generate host simulation test and memory report")
-    parser.add_argument("--mode", choices=["standard", "memory-profiles"], required=True)
+    parser.add_argument("--mode", choices=["standard", "memory-profiles", "stress"], required=True)
     parser.add_argument("--artifacts-dir", required=True)
     parser.add_argument("--output-md", required=True)
     parser.add_argument("--output-json", required=True)
     parser.add_argument("--expected-library-count", type=int, default=0)
     parser.add_argument("--compile-backend-count", type=int, default=2)
+    parser.add_argument("--expected-compile-smoke-count", type=int, default=-1)
     args = parser.parse_args()
 
     artifacts_dir = Path(args.artifacts_dir)
-    output_md = Path(args.output_md)
-    output_json = Path(args.output_json)
+    output_md     = Path(args.output_md)
+    output_json   = Path(args.output_json)
 
+    if args.mode == "stress":
+        stress_runs = load_stress_runs(artifacts_dir)
+
+        boards                  = sorted({str(r.get("board", "unknown")) for r in stress_runs})
+        total_instance_results  = sum(len(r.get("instanceCountProbes", [])) for r in stress_runs)
+        total_fill_results      = sum(len(r.get("elementFillProbes",   [])) for r in stress_runs)
+
+        summary = {
+            "totalRuns":                  len(stress_runs),
+            "boardsProfiled":             len(boards),
+            "totalInstanceProbeResults":  total_instance_results,
+            "totalElementFillResults":    total_fill_results,
+        }
+
+        payload  = {"mode": "stress", "summary": summary, "runs": stress_runs}
+        markdown = generate_markdown_stress(stress_runs)
+
+        output_md.parent.mkdir(parents=True, exist_ok=True)
+        output_json.parent.mkdir(parents=True, exist_ok=True)
+        output_md.write_text(markdown, encoding="utf-8")
+        output_json.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+        print(f"Wrote stress markdown report: {output_md.as_posix()}")
+        print(f"Wrote stress json report:     {output_json.as_posix()}")
+        return 0
+
+    # Standard and memory-profiles modes use the existing artifact-based path.
     report_files, stats_files, smoke_objects = classify_paths(artifacts_dir)
     runs = build_run_index(report_files, stats_files)
     analyze_runs(runs)
@@ -318,6 +516,7 @@ def main() -> int:
         "compileSmokeObjects": [p.as_posix() for p in smoke_objects],
         "expectedLibraryCount": args.expected_library_count,
         "compileBackendCount": args.compile_backend_count,
+        "expectedCompileSmokeCount": args.expected_compile_smoke_count,
     }
 
     markdown = generate_markdown(
@@ -326,6 +525,7 @@ def main() -> int:
         runs,
         expected_library_count=args.expected_library_count,
         compile_backend_count=args.compile_backend_count,
+        expected_compile_smoke_count=args.expected_compile_smoke_count,
     )
 
     output_md.parent.mkdir(parents=True, exist_ok=True)
