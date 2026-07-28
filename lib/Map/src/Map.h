@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include <SimpleVector.h>
-#include <new>
 
 template <typename K, typename V>
 class Map {
@@ -386,7 +385,7 @@ class Map {
                  */
                 template<class First, class Second>
                 struct pair{
-                    const First first;    /**< The first value of the pair. */
+                    First first;    /**< The first value of the pair. */
                     Second second;  /**< The second value of the pair. */
                 };
                 pair<K, V> pr; // Cached key/value pair for dereference and arrow operators.
@@ -395,11 +394,10 @@ class Map {
                  * @brief Synchronizes the cached pair with the current iterator node.
                  */
                 void syncPair() {
-                    pr.~pair<K, V>();
                     if (current != nullptr) {
-                        new (&pr) pair<K, V>{current->key, current->value};
+                        pr = pair<K, V>{current->key, current->value};
                     } else {
-                        new (&pr) pair<K, V>{K(), V()};
+                        pr = pair<K, V>{K(), V()};
                     }
                 }
             public:
@@ -468,8 +466,7 @@ class Map {
                  * @tparam V The type of the value in the pair.
                  * @return A pointer to the iterator's cached pair; valid while the iterator object remains alive.
                  */
-                pair<K, V>* operator->() {
-                    syncPair();
+                const pair<K, V>* operator->() {
                     return &pr;
                 }
 
@@ -480,8 +477,7 @@ class Map {
                  * 
                  * @return A reference to the key-value pair.
                  */
-                pair<K, V>& operator*() {
-                    syncPair();
+                const pair<K, V>& operator*() {
                     return pr;
                 }
         };
