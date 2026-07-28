@@ -131,8 +131,9 @@ public:
         if(isEmpty()){
             return T();
         }
+        T val = queue[front++];
         elements--;
-        return queue[front++];
+        return val;
     }
 
     /**
