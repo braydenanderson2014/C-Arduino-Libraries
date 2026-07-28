@@ -23,7 +23,14 @@ public:
     enum Mode { RAM, SD, AUTO };
 
     DynamicStorage(Mode initialMode = AUTO, const String& customFilename = "storage.json")
-        : mode(initialMode), filename(customFilename) {}
+        : mode(initialMode),
+          blockSize(4),
+          listStorage(),
+          mapStorage(),
+          filename(customFilename),
+          sdInstance(),
+          sdInitialized(false),
+          sdCsPin(4) {}
 
     void setFilename(const String& newFilename) { filename = newFilename; }
     String getFilename() const { return filename; }
