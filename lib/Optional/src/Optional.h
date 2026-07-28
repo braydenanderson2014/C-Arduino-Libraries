@@ -2,6 +2,8 @@
 #define OPTIONAL_H
 
 //#define MINIMUM_IMPLEMENTATION
+#include <utility>
+
 template <typename T>
 class Optional {
 public:
@@ -14,14 +16,13 @@ public:
     /**
      * @brief Retrieves the stored value.
      * 
-     * If the Optional does not contain a value, a static default value is returned.
+     * If the Optional does not contain a value, an immutable default-constructed value is returned.
      * CONST
-     * @return The stored value or a static default value if no value is present.
+     * @return The stored value or the internal default value if no value is present.
      */
     const T& getValue() const {
         if (!has_value) {
-            static T default_value = T(); // ✅ Safe default value
-            return default_value;
+            return emptyValue();
         }
         return value;
     }
@@ -29,15 +30,11 @@ public:
     /**
      * @brief Retrieves the stored value.
      * 
-     * If the Optional does not contain a value, a static default value is returned.
+     * If the Optional does not contain a value, the internal default-constructed value is returned.
      * 
-     * @return The stored value or a static default value if no value is present.
+     * @return The stored value or the internal default value if no value is present.
      */
     T& getValue() {
-        if (!has_value) {
-            static T default_value = T(); // ✅ Safe default value
-            return default_value;
-        }
         return value;
     }
     #ifndef MINIMUM_IMPLEMENTATION // Optional methods for advanced usage
@@ -201,8 +198,8 @@ public:
      * @param args The arguments to pass to the constructor of T.
      */
     template<typename... Args>
-    void emplace(Args... args) {
-        value = T(args...);  // Construct new value in place
+    void emplace(Args&&... args) {
+        value = T(std::forward<Args>(args)...);  // Construct new value in place
         has_value = true;
     }
 
@@ -220,18 +217,18 @@ public:
      * @brief Returns a reference to the stored value.
      * 
      * If the Optional contains a value, this function returns a reference to the stored value.
-     * If the Optional does not contain a value, this function returns a reference to a statically
-     * allocated default-constructed value of type T.
+     * If the Optional does not contain a value, this function returns a reference to the
+     * internal default-constructed value of type T.
      * 
      * @return A reference to the stored value if the Optional contains a value, otherwise a reference
-     *         to a statically allocated default-constructed value of type T.
+     *         to the internal default-constructed value of type T.
      */
     T& ref() {
-        if (!has_value) {
-            static T default_value = T();
-            return default_value;
-        }
-        return value;
+        return getValue();
+    }
+
+    const T& ref() const {
+        return getValue();
     }
     
     /**
@@ -258,6 +255,11 @@ public:
     }
     #endif // MINIMUM_IMPLEMENTATION
 private:
+    static const T& emptyValue() {
+        static const T default_value = T();
+        return default_value;
+    }
+
     bool has_value;
     T value;
 };

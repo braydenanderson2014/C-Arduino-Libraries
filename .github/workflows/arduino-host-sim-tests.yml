@@ -22,10 +22,6 @@ on:
       - "library.json"
   workflow_dispatch:
     inputs:
-      memory_limit_bytes:
-        description: "Optional memory peak limit for host tests"
-        required: false
-        type: string
       target_library_path:
         description: "Optional relative library path (example: lib/ArrayList or . for root)"
         required: false
@@ -40,13 +36,15 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.discover.outputs.matrix }}
+      compile_matrix: ${{ steps.discover.outputs.compile_matrix }}
       has_targets: ${{ steps.discover.outputs.has_targets }}
       count: ${{ steps.discover.outputs.count }}
+      compile_count: ${{ steps.discover.outputs.compile_count }}
       targets_display: ${{ steps.discover.outputs.targets_display }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Discover Arduino-style libraries
         id: discover
@@ -62,6 +60,7 @@ jobs:
           from pathlib import Path
 
           target = os.environ.get("TARGET_INPUT", "").strip()
+          config_path = Path("test/host_arduino_sim/host_test_matrix.json")
           root = Path(".")
 
           def is_arduino_library(path: Path) -> bool:
@@ -96,8 +95,38 @@ jobs:
               seen.add(item)
               deduped.append(item)
 
+          compile_defaults = {
+            "backends": ["sd", "littlefs"],
+            "optionalModes": ["off"]
+          }
+          config = {}
+          if config_path.is_file():
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+            compile_defaults = config.get("defaults", {}).get("compile", compile_defaults)
+
+          backends_default = compile_defaults.get("backends", ["sd", "littlefs"])
+          optional_default = compile_defaults.get("optionalModes", ["off"])
+          per_library = config.get("libraries", {})
+
+          compile_targets = []
+          for library_path in deduped:
+            library_cfg = per_library.get(library_path, {})
+            compile_cfg = library_cfg.get("compile", {})
+            backends = compile_cfg.get("backends", backends_default)
+            optional_modes = compile_cfg.get("optionalModes", optional_default)
+
+            for backend in backends:
+              for optional in optional_modes:
+                compile_targets.append({
+                  "libraryPath": library_path,
+                  "backend": backend,
+                  "optional": optional
+                })
+
           print(json.dumps({
             "matrix": deduped,
+            "compile_matrix": compile_targets,
+            "compile_count": len(compile_targets),
             "count": len(deduped),
             "has_targets": bool(deduped),
             "targets_display": ", ".join(deduped) if deduped else "(none)",
@@ -108,12 +137,16 @@ jobs:
           echo "Discovery payload: ${DISCOVERY_JSON}"
 
           MATRIX_JSON="$(printf '%s' "${DISCOVERY_JSON}" | jq -c '.matrix')"
+          COMPILE_MATRIX_JSON="$(printf '%s' "${DISCOVERY_JSON}" | jq -c '.compile_matrix')"
+          COMPILE_COUNT_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.compile_count')"
           COUNT_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.count')"
           HAS_TARGETS_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.has_targets')"
           TARGETS_DISPLAY_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.targets_display')"
 
           {
             echo "matrix=${MATRIX_JSON}"
+            echo "compile_matrix=${COMPILE_MATRIX_JSON}"
+            echo "compile_count=${COMPILE_COUNT_VALUE}"
             echo "count=${COUNT_VALUE}"
             echo "has_targets=${HAS_TARGETS_VALUE}"
             echo "targets_display=${TARGETS_DISPLAY_VALUE}"
@@ -128,26 +161,29 @@ jobs:
           echo "Discovered library has_targets: ${{ steps.discover.outputs.has_targets }}"
           echo "Discovered library targets: ${{ steps.discover.outputs.targets_display }}"
           echo "Discovered library matrix: ${{ steps.discover.outputs.matrix }}"
+          echo "Discovered compile matrix count: ${{ steps.discover.outputs.compile_count }}"
+          echo "Discovered compile matrix: ${{ steps.discover.outputs.compile_matrix }}"
 
   host-library-compile:
+    name: host-library-compile (${{ matrix.target.libraryPath }}, ${{ matrix.target.backend }}, ${{ matrix.target.optional }})
     needs: discover-libraries
     if: needs.discover-libraries.outputs.has_targets == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        libraryPath: ${{ fromJson(needs.discover-libraries.outputs.matrix) }}
-        backend: [sd, littlefs]
+        target: ${{ fromJson(needs.discover-libraries.outputs.compile_matrix) }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Log current matrix target
         shell: bash
         run: |
-          echo "Compiling host smoke target for library path: ${{ matrix.libraryPath }}"
-          echo "Backend: ${{ matrix.backend }}"
+          echo "Compiling host smoke target for library path: ${{ matrix.target.libraryPath }}"
+          echo "Backend: ${{ matrix.target.backend }}"
+          echo "Optional mode: ${{ matrix.target.optional }}"
 
       - name: Prepare host shim headers
         id: shim
@@ -502,7 +538,7 @@ jobs:
           import sys
           from pathlib import Path
 
-          lib_path = Path("${{ matrix.libraryPath }}")
+          lib_path = Path("${{ matrix.target.libraryPath }}")
           src_dir = lib_path / "src"
           props = lib_path / "library.properties"
 
@@ -601,7 +637,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          LIB_PATH="${{ matrix.libraryPath }}"
+          LIB_PATH="${{ matrix.target.libraryPath }}"
           LIB_NAME="$(basename "${LIB_PATH}")"
           if [ "${LIB_PATH}" = "." ]; then
             LIB_NAME="root"
@@ -612,15 +648,18 @@ jobs:
             LIB_SLUG="root"
           fi
 
-          OUT_DIR="test/host_arduino_sim/out/library-smoke/${LIB_SLUG}/${{ matrix.backend }}"
+          OUT_DIR="test/host_arduino_sim/out/library-smoke/${LIB_SLUG}/${{ matrix.target.backend }}/${{ matrix.target.optional }}"
           mkdir -p "${OUT_DIR}"
 
           echo "lib_slug=${LIB_SLUG}" >> "$GITHUB_OUTPUT"
           echo "out_dir=${OUT_DIR}" >> "$GITHUB_OUTPUT"
 
-          EXTRA_FLAGS=""
-          if [ "${{ matrix.backend }}" = "littlefs" ]; then
-            EXTRA_FLAGS="-DUSE_LITTLEFS"
+          EXTRA_FLAGS=()
+          if [ "${{ matrix.target.backend }}" = "littlefs" ]; then
+            EXTRA_FLAGS+=("-DUSE_LITTLEFS")
+          fi
+          if [ "${{ matrix.target.optional }}" = "on" ]; then
+            EXTRA_FLAGS+=("-DJSON_ENABLE_OPTIONAL_RETURNS=1")
           fi
 
           ARCH_FLAGS="-D_AVR_ATmega2560_"
@@ -676,23 +715,25 @@ jobs:
           print('int main() { return 0; }')
           PY
 
-          g++ -std=c++17 -O2 -DAL_NO_SERIAL ${EXTRA_FLAGS} ${ARCH_FLAGS} \
+          g++ -std=c++17 -O2 -DAL_NO_SERIAL "${EXTRA_FLAGS[@]}" ${ARCH_FLAGS} \
             "${INCLUDE_FLAGS[@]}" \
             "${OUT_DIR}/smoke.cpp" \
             -c -o "${OUT_DIR}/smoke.o"
         env:
-          LIB_PATH: ${{ matrix.libraryPath }}
+          LIB_PATH: ${{ matrix.target.libraryPath }}
 
       - name: Upload per-library compile artifact
         if: always() && steps.smoke.outputs.out_dir != ''
         uses: actions/upload-artifact@v4
         with:
-          name: host-library-compile-${{ steps.smoke.outputs.lib_slug }}-${{ matrix.backend }}
+          name: host-library-compile-${{ steps.smoke.outputs.lib_slug }}-${{ matrix.target.backend }}-${{ matrix.target.optional }}
           path: ${{ steps.smoke.outputs.out_dir }}
           if-no-files-found: warn
 
   host-sim-integration:
-    needs: discover-libraries
+    needs:
+      - discover-libraries
+      - host-library-compile
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -701,7 +742,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Check integration prerequisites
         id: precheck
@@ -765,9 +806,13 @@ jobs:
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
             -Ilib/Hashtable/src \
+            -Ilib/Json/src \
+            -Ilib/MathLib/src \
             -Ilib/SimpleVector/src \
             -Ilib/SDList/src \
+            -Ilib/String/src \
             -Ilib/TypeTraits/src \
+            lib/Json/src/JSON.cpp \
             test/host_arduino_sim/host_arduino_sim_tests.cpp \
             -o test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.backend }}
 
@@ -777,18 +822,59 @@ jobs:
         run: |
           set -euo pipefail
 
-          MEM_LIMIT="${{ github.event.inputs.memory_limit_bytes || '' }}"
-          if [ -z "${MEM_LIMIT}" ]; then
-            MEM_LIMIT="8388608"
-          fi
-
           REPORT_PATH="test/host_arduino_sim/out/report-${{ matrix.backend }}.json"
+          STATS_PATH="test/host_arduino_sim/out/stats-${{ matrix.backend }}.json"
           FS_ROOT="test/host_arduino_sim/out/fs-${{ matrix.backend }}"
 
-          HOST_MEM_LIMIT_BYTES="${MEM_LIMIT}" \
           HOST_SIM_REPORT="${REPORT_PATH}" \
+          HOST_SIM_STATS_REPORT="${STATS_PATH}" \
           HOST_SIM_FS_ROOT="${FS_ROOT}" \
           ./test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.backend }}
+
+      - name: Build host simulation runner (optional returns)
+        if: steps.precheck.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          EXTRA_FLAGS=""
+          if [ "${{ matrix.backend }}" = "littlefs" ]; then
+            EXTRA_FLAGS="-DUSE_LITTLEFS"
+          fi
+
+          ARCH_FLAGS="-D_AVR_ATmega2560_"
+
+          g++ -std=c++17 -O2 \
+            -DAL_NO_SERIAL ${EXTRA_FLAGS} ${ARCH_FLAGS} \
+            -DJSON_ENABLE_OPTIONAL_RETURNS=1 \
+            -Itest/host_arduino_sim/include \
+            -Ilib/ArrayList/src \
+            -Ilib/Hashtable/src \
+            -Ilib/Json/src \
+            -Ilib/MathLib/src \
+            -Ilib/Optional/src \
+            -Ilib/SimpleVector/src \
+            -Ilib/SDList/src \
+            -Ilib/String/src \
+            -Ilib/TypeTraits/src \
+            lib/Json/src/JSON.cpp \
+            test/host_arduino_sim/host_arduino_sim_tests.cpp \
+            -o test/host_arduino_sim/out/bin/host_arduino_sim_optional_${{ matrix.backend }}
+
+      - name: Run host simulation tests (optional returns)
+        if: steps.precheck.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REPORT_PATH="test/host_arduino_sim/out/report-optional-${{ matrix.backend }}.json"
+          STATS_PATH="test/host_arduino_sim/out/stats-optional-${{ matrix.backend }}.json"
+          FS_ROOT="test/host_arduino_sim/out/fs-optional-${{ matrix.backend }}"
+
+          HOST_SIM_REPORT="${REPORT_PATH}" \
+          HOST_SIM_STATS_REPORT="${STATS_PATH}" \
+          HOST_SIM_FS_ROOT="${FS_ROOT}" \
+          ./test/host_arduino_sim/out/bin/host_arduino_sim_optional_${{ matrix.backend }}
 
       - name: Upload host simulation report
         if: always() && steps.precheck.outputs.run == 'true'
@@ -798,11 +884,88 @@ jobs:
           path: test/host_arduino_sim/out/report-${{ matrix.backend }}.json
           if-no-files-found: error
 
+      - name: Upload host simulation report (optional returns)
+        if: always() && steps.precheck.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-arduino-sim-optional-${{ matrix.backend }}
+          path: test/host_arduino_sim/out/report-optional-${{ matrix.backend }}.json
+          if-no-files-found: error
+
+      - name: Upload host simulation memory stats
+        if: always() && steps.precheck.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-arduino-sim-stats-${{ matrix.backend }}
+          path: test/host_arduino_sim/out/stats-${{ matrix.backend }}.json
+          if-no-files-found: error
+
+      - name: Upload host simulation memory stats (optional returns)
+        if: always() && steps.precheck.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-arduino-sim-stats-optional-${{ matrix.backend }}
+          path: test/host_arduino_sim/out/stats-optional-${{ matrix.backend }}.json
+          if-no-files-found: error
+
+  host-sim-report:
+    needs:
+      - discover-libraries
+      - host-library-compile
+      - host-sim-integration
+    if: always() && needs.discover-libraries.outputs.has_targets == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Download host simulation artifacts
+        uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          pattern: host-arduino-sim*
+          merge-multiple: true
+          path: .artifacts/host-sim
+
+      - name: Download compile smoke artifacts
+        uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          pattern: host-library-compile-*
+          merge-multiple: true
+          path: .artifacts/host-compile
+
+      - name: Generate consolidated host simulation report
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 scripts/generate_host_sim_report.py \
+            --mode standard \
+            --artifacts-dir .artifacts \
+            --output-md reports/host-sim-test-report.md \
+            --output-json reports/host-sim-test-report.json \
+            --expected-library-count "${{ needs.discover-libraries.outputs.count }}" \
+            --expected-compile-smoke-count "${{ needs.discover-libraries.outputs.compile_count }}"
+
+          cat reports/host-sim-test-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload consolidated host simulation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-sim-test-report
+          path: |
+            reports/host-sim-test-report.md
+            reports/host-sim-test-report.json
+          if-no-files-found: error
+
   sync-systemcommands-status-labels:
     needs:
       - discover-libraries
       - host-library-compile
       - host-sim-integration
+      - host-sim-report
     if: always() && github.event_name != 'pull_request' && needs.discover-libraries.outputs.has_targets == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -811,6 +974,7 @@ jobs:
         env:
           GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
           DISCOVERED_MATRIX_JSON: ${{ needs.discover-libraries.outputs.matrix }}
+          COMPILE_MATRIX_JSON: ${{ needs.discover-libraries.outputs.compile_matrix }}
         with:
           github-token: ${{ secrets.GH_PROJECT_TOKEN }}
           script: |
@@ -827,7 +991,6 @@ jobs:
             const ISSUE_COMPILATION_PASSED = 28;
             const ISSUE_COMPILATION_FAILED = 29;
             const ISSUE_TESTING_FAILED = 33;
-            const EXPECTED_BACKENDS = ['sd', 'littlefs'];
 
             const normalize = (value) => String(value || '')
               .toLowerCase()
@@ -849,6 +1012,7 @@ jobs:
               core.info('No discovered targets found, nothing to sync.');
               return;
             }
+            const compileTargets = parseJsonArray(process.env.COMPILE_MATRIX_JSON);
 
             const basename = (path) => {
               if (!path || path === '.') return 'root';
@@ -914,7 +1078,8 @@ jobs:
 
               return {
                 libraryPath: parts[0],
-                backend: parts[1]
+                backend: parts[1],
+                optional: parts[2] || 'off'
               };
             };
 
@@ -928,11 +1093,24 @@ jobs:
               }
 
               const backendStates = compileByLibrary.get(parsed.libraryPath);
-              backendStates.set(parsed.backend, job.conclusion || 'unknown');
+              backendStates.set(`${parsed.backend}|${parsed.optional}`, job.conclusion || 'unknown');
             }
 
             const compilePassed = new Set();
             const compileFailed = new Set();
+
+            const expectedByLibrary = new Map();
+            for (const target of compileTargets) {
+              const libraryPath = String(target.libraryPath || '');
+              const backend = String(target.backend || '');
+              if (!libraryPath || !backend) continue;
+              const optional = String(target.optional || 'off');
+              const key = `${backend}|${optional}`;
+              if (!expectedByLibrary.has(libraryPath)) {
+                expectedByLibrary.set(libraryPath, new Set());
+              }
+              expectedByLibrary.get(libraryPath).add(key);
+            }
 
             for (const target of discoveredTargets) {
               if (target === '.') continue;
@@ -941,7 +1119,13 @@ jobs:
               if (!label) continue;
 
               const backendStates = compileByLibrary.get(target) || new Map();
-              const conclusions = EXPECTED_BACKENDS.map((backend) => backendStates.get(backend) || 'missing');
+              const expectedCombos = expectedByLibrary.get(target) || new Set();
+              const conclusions = Array.from(expectedCombos).map((combo) => {
+                return backendStates.get(combo) || 'missing';
+              });
+              if (!conclusions.length) {
+                conclusions.push('missing');
+              }
               const allSuccess = conclusions.every((state) => state === 'success');
 
               if (allSuccess) {

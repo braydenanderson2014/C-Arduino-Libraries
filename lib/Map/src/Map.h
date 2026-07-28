@@ -110,8 +110,8 @@ class Map {
             } else {
                 MapNode* newNode = new MapNode{key, value, nullptr};
                 *pp = newNode;
+                Count++;
             }
-            Count++;
         }
 
         /**
@@ -253,7 +253,8 @@ class Map {
                 MapNode* temp = head;
                 head = head->next;
                 delete temp;
-            }    
+            }
+            Count = 0;
         }
 
         /**
@@ -387,7 +388,18 @@ class Map {
                     First first;    /**< The first value of the pair. */
                     Second second;  /**< The second value of the pair. */
                 };
-                pair<const K, V> pr; // The pair of key and value
+                pair<K, V> pr; // Cached key/value pair for dereference and arrow operators.
+
+                /**
+                 * @brief Synchronizes the cached pair with the current iterator node.
+                 */
+                void syncPair() {
+                    if (current != nullptr) {
+                        pr = pair<K, V>{current->key, current->value};
+                    } else {
+                        pr = pair<K, V>{K(), V()};
+                    }
+                }
             public:
 
                 /**
@@ -397,7 +409,9 @@ class Map {
                  *
                  * @param start A pointer to the start node of the map.
                  */
-                MapIterator(MapNode* start) : current(start), pr{start != nullptr ? start->key : K(), start != nullptr ? start->value : V()}  {}
+                MapIterator(MapNode* start) : current(start), pr{K(), V()}  {
+                    syncPair();
+                }
                 /**
                  * @brief Overloaded inequality operator for comparing two MapIterator objects.
                  *
@@ -418,7 +432,10 @@ class Map {
                  * @note If the iterator is already pointing to the last element, it will become invalid after calling this operator.
                  */
                 void operator++() {
-                    current = current->next;
+                    if (current != nullptr) {
+                        current = current->next;
+                    }
+                    syncPair();
                 }
                 
                 /**
@@ -440,18 +457,17 @@ class Map {
                 }
 
                 /**
-                 * @brief Overloads the arrow operator (->) to create a new pair object and return a pointer to it.
+                 * @brief Overloads the arrow operator (->) to provide member access to the current pair.
                  * 
-                 * This operator is used to access the members of the current pair in the Map class.
-                 * It creates a new pair object with the same key and value as the current pair, and returns a pointer to it.
+                 * This operator returns a pointer to the iterator's internally cached pair object.
+                 * No allocation is performed; the returned pointer is valid as long as the iterator remains alive.
                  * 
                  * @tparam K The type of the key in the pair.
                  * @tparam V The type of the value in the pair.
-                 * @return A pointer to a new pair object with the same key and value as the current pair.
+                 * @return A pointer to the iterator's cached pair; valid while the iterator object remains alive.
                  */
-                pair<K, V>* operator->() {
-                    pair<K, V>* temp = new pair<K, V>{current->key, current->value};
-                    return temp;
+                const pair<K, V>* operator->() {
+                    return &pr;
                 }
 
                 /**
@@ -461,7 +477,7 @@ class Map {
                  * 
                  * @return A reference to the key-value pair.
                  */
-                pair<const K, V>& operator*() {
+                const pair<K, V>& operator*() {
                     return pr;
                 }
         };

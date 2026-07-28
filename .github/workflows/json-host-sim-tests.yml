@@ -1,0 +1,82 @@
+name: JSON Host Mode Tests
+
+on:
+  push:
+    paths:
+      - ".github/workflows/json-host-sim-tests.yml"
+      - "test/host_arduino_sim/host_json_mode_tests.cpp"
+      - "test/host_arduino_sim/include/**"
+      - "lib/Json/**"
+      - "lib/Optional/**"
+  pull_request:
+    paths:
+      - ".github/workflows/json-host-sim-tests.yml"
+      - "test/host_arduino_sim/host_json_mode_tests.cpp"
+      - "test/host_arduino_sim/include/**"
+      - "lib/Json/**"
+      - "lib/Optional/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  json-host-mode-tests:
+    name: JSON mode tests (${{ matrix.mode }}, ${{ matrix.backend }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mode: optional-off
+            backend: sd
+            extraFlags: ""
+          - mode: optional-on
+            backend: sd
+            extraFlags: "-DJSON_ENABLE_OPTIONAL_RETURNS=1 -Ilib/Optional/src"
+          - mode: optional-off
+            backend: littlefs
+            extraFlags: "-DUSE_LITTLEFS"
+          - mode: optional-on
+            backend: littlefs
+            extraFlags: "-DUSE_LITTLEFS -DJSON_ENABLE_OPTIONAL_RETURNS=1 -Ilib/Optional/src"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Build JSON host mode test runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test/host_arduino_sim/out/bin
+
+          g++ -std=c++17 -O2 \
+            -DAL_NO_SERIAL -D_AVR_ATmega2560_ ${{ matrix.extraFlags }} \
+            -Itest/host_arduino_sim/include \
+            -Ilib/Json/src \
+            -Ilib/SimpleVector/src \
+            -Ilib/MathLib/src \
+            -Ilib/String/src \
+            -Ilib/TypeTraits/src \
+            lib/Json/src/JSON.cpp \
+            test/host_arduino_sim/host_json_mode_tests.cpp \
+            -o test/host_arduino_sim/out/bin/json_mode_${{ matrix.mode }}_${{ matrix.backend }}
+
+      - name: Run JSON host mode tests
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REPORT_PATH="test/host_arduino_sim/out/report-json-${{ matrix.mode }}-${{ matrix.backend }}.json"
+          FS_ROOT="test/host_arduino_sim/out/fs-json-${{ matrix.mode }}-${{ matrix.backend }}"
+
+          HOST_JSON_MODE_REPORT="${REPORT_PATH}" \
+          HOST_SIM_FS_ROOT="${FS_ROOT}" \
+          ./test/host_arduino_sim/out/bin/json_mode_${{ matrix.mode }}_${{ matrix.backend }}
+
+      - name: Upload JSON host mode report
+        uses: actions/upload-artifact@v4
+        with:
+          name: json-mode-report-${{ matrix.mode }}-${{ matrix.backend }}
+          path: test/host_arduino_sim/out/report-json-${{ matrix.mode }}-${{ matrix.backend }}.json

@@ -19,6 +19,10 @@ inline int LZ4_compress_default(const char* src, char* dst, int srcSize, int dst
     return srcSize;
 }
 
+inline int LZ4_compressBound(int srcSize) {
+    return srcSize;
+}
+
 inline int LZ4_decompress_safe(const char* src, char* dst, int compressedSize, int dstCapacity) {
     if (!src || !dst || compressedSize < 0 || dstCapacity < 0) {
         return -1;

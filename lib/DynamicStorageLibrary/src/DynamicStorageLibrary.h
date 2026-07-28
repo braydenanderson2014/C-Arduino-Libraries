@@ -1,297 +1,321 @@
 #ifndef DYNAMIC_STORAGE_H
 #define DYNAMIC_STORAGE_H
 
-#include "ArrayList.h"
 #include "Hashtable.h"
 #include "JSON.h"
-#include <SdFat.h>
+#include "SimpleVector.h"
 #include "TypeTraits.h"
-#include "ExtremeVariant.h"
-#include "Optional.h"
+#include <SdFat.h>
+#include <stdlib.h>
 
-#define DS_SUCCESS "DS0"             // Operation successful
-#define DS_SD_ERROR "DS5"            // SD card failure
-#define DS_FILE_NOT_FOUND "DS6"      // File not found
-#define DS_FILE_OPEN_ERROR "DS7"     // Error opening file
-#define DS_FILE_WRITE_ERROR "DS8"    // Error writing to file
-#define DS_FILE_READ_ERROR "DS9"     // Error reading from file
-#define DS_FILE_PARSE_ERROR "DS10"   // Error parsing JSON
-#define DS_FILE_WRITE_SUCCESS "DS11" // File write successful
-#define DS_FILE_READ_SUCCESS "DS12"  // File read successful
-
-SdFat sdInstance;  // Use SdFat instead of Arduino's SD library
+#define DS_SUCCESS "DS0"
+#define DS_SD_ERROR "DS5"
+#define DS_FILE_NOT_FOUND "DS6"
+#define DS_FILE_OPEN_ERROR "DS7"
+#define DS_FILE_WRITE_ERROR "DS8"
+#define DS_FILE_READ_ERROR "DS9"
+#define DS_FILE_PARSE_ERROR "DS10"
+#define DS_FILE_WRITE_SUCCESS "DS11"
+#define DS_FILE_READ_SUCCESS "DS12"
 
 template <typename K, typename T>
 class DynamicStorage {
 public:
     enum Mode { RAM, SD, AUTO };
 
-    void add(const T& value) {
-        if (useSD()) {
-            loadBlocksFromSD();
-
-            if (!listBlocks.getList().hasValue()) {
-                listBlocks.setList(SimpleVector<Block>());
-            }
-
-            auto& blockList = listBlocks.getList().getValue();
-            if (blockList.isEmpty() || blockList.get(blockList.size() - 1).elements.getList().getValue().elements() >= blockSize) {
-                blockList.put(Block(blockList.size()));
-            }
-
-            blockList.get(blockList.size() - 1).elements.getList().getValue().put(value);
-            saveBlocksToSD();
-        } else {
-            if (!listBlocks.getList().hasValue()) {
-                listBlocks.setList(SimpleVector<Block>());
-            }
-
-            auto& blockList = listBlocks.getList().getValue();
-            if (blockList.isEmpty() || blockList.get(blockList.size() - 1).elements.getList().getValue().elements() >= blockSize) {
-                blockList.put(Block(blockList.size()));
-            }
-
-            blockList.get(blockList.size() - 1).elements.getList().getValue().put(value);
-        }
-    }
-
-    void put(const K& key, const T& value) {
-        JSON json;
-        
-        // Handle JSON storage if using SD
-        if (useSD()) {
-            json.setString("map." + key, serialize(value));
-            json.writeToFile(filename);
-            return;
-        }   
-
-        // Ensure `mapBlocks` has key-value pairs initialized
-        if (!mapBlocks.getKeyValuePairs().hasValue()) {
-            Hashtable<K, Optional<ExtremeVariant<K, Block>>> newTable;
-            ExtremeVariant<K, Block> initialVariant;
-            initialVariant.setSingle(Block(0));  // Set initial single block    
-
-            newTable.put(key, Optional<ExtremeVariant<K, Block>>(initialVariant));
-            mapBlocks.setKeyValuePairs(newTable);
-        }   
-
-        // Retrieve the key-value table
-        auto& keyValueMap = mapBlocks.getKeyValuePairs().getValue();    
-
-        // If the key doesn't exist, add an initial value
-        if (!keyValueMap.exists(key)) {
-            ExtremeVariant<K, Block> newVariant;
-            newVariant.setSingle(Block(1));
-            keyValueMap.put(key, Optional<ExtremeVariant<K, Block>>(newVariant));
-            return;
-        }   
-
-        // Retrieve the existing value (optional ExtremeVariant<K, Block>)
-        auto* optVariant = keyValueMap.get(key); // Pointer to Optional<ExtremeVariant<K, Block>>   
-
-        // Ensure the optional has a value before using it
-        if (optVariant && optVariant->hasValue()) {
-            auto& blockVariant = optVariant->getValue(); // Reference to ExtremeVariant<K, Block>   
-
-            // If currently storing a single block, convert it into a list
-            if (blockVariant.getType() == SINGLE_ELEMENT) {
-                SimpleVector<Block> blockList;
-                blockList.put(blockVariant.getSingle().getValue()); // Add existing block
-                blockList.put(Block(3)); // Add new block   
-
-                // Correctly capture `blockList` inside the lambda
-                *optVariant = Optional<ExtremeVariant<K, Block>>(
-                    [blockList]() mutable {
-                        ExtremeVariant<K, Block> newVariant;
-                        newVariant.setList(blockList);
-                        return newVariant;
-                    }()
-                );
-            }
-        }
-    }
-
-
-
-private:
-    struct Block {
-        int id;
-        ExtremeVariant<K, T> elements;
-        Block(int blockID = 0) : id(blockID) {}
-    };
-
-    Mode mode;
-    int blockSize = 4;
-    ExtremeVariant<K, Block> listBlocks;
-    ExtremeVariant<K, Optional<ExtremeVariant<K, Block>>> mapBlocks;
-    String filename = "storage.json";
-
-    bool useSD() { return mode == SD; }
-
-public:
-    DynamicStorage(Mode initialMode = AUTO, String customFilename = "storage.json")
-        : mode(initialMode), filename(customFilename) {}
+    DynamicStorage(Mode initialMode = AUTO, const String& customFilename = "storage.json")
+        : mode(initialMode),
+          blockSize(4),
+          listStorage(),
+          mapStorage(),
+          filename(customFilename),
+          sdInstance(),
+          sdInitialized(false),
+          sdCsPin(4) {}
 
     void setFilename(const String& newFilename) { filename = newFilename; }
     String getFilename() const { return filename; }
 
     bool beginSD(uint8_t csPin) {
-        return sdInstance.begin(csPin);
+        sdCsPin = csPin;
+        sdInitialized = sdInstance.begin(csPin);
+        if (sdInitialized && mode == AUTO) {
+            loadBlocksFromSD();
+        }
+        return sdInitialized;
+    }
+
+    void changeMode(Mode newMode) {
+        if (mode == newMode) return;
+        const bool targetUsesSD = (newMode == SD) || (newMode == AUTO && sdInitialized);
+        if (targetUsesSD) {
+            loadBlocksFromSD();
+        }
+        mode = newMode;
+        if (useSD()) {
+            saveBlocksToSD();
+        }
+    }
+
+    void clear() {
+        listStorage.clear();
+        mapStorage.clear();
+        if (useSD()) {
+            saveBlocksToSD();
+        }
+    }
+
+    void add(const T& value) {
+        syncFromSDIfNeeded();
+        listStorage.put(value);
+        syncToSDIfNeeded();
+    }
+
+    void put(const K& key, const T& value) {
+        syncFromSDIfNeeded();
+
+        StoredValue* existing = mapStorage.get(key);
+        if (!existing) {
+            StoredValue holder;
+            holder.isList = false;
+            holder.singleValue = value;
+            mapStorage.put(key, holder);
+            syncToSDIfNeeded();
+            return;
+        }
+
+        if (!existing->isList) {
+            existing->listValues.clear();
+            existing->listValues.put(existing->singleValue);
+            existing->listValues.put(value);
+            existing->isList = true;
+        } else {
+            existing->listValues.put(value);
+        }
+
+        syncToSDIfNeeded();
+    }
+
+    void put(const K& key, const SimpleVector<T>& values) {
+        syncFromSDIfNeeded();
+        StoredValue holder;
+        holder.isList = true;
+        holder.listValues = values;
+        mapStorage.put(key, holder);
+        syncToSDIfNeeded();
+    }
+
+    T get(size_t index) {
+        syncFromSDIfNeeded();
+        if (index >= listStorage.elements()) return T();
+        return listStorage[index];
+    }
+
+    T get(const K& key) {
+        syncFromSDIfNeeded();
+        StoredValue* value = mapStorage.get(key);
+        if (!value) return T();
+        if (!value->isList) return value->singleValue;
+        if (value->listValues.isEmpty()) return T();
+        // For dynamic keys that have accumulated multiple values, return the newest one.
+        return value->listValues[value->listValues.elements() - 1];
+    }
+
+    SimpleVector<T> getList(const K& key) {
+        syncFromSDIfNeeded();
+        StoredValue* value = mapStorage.get(key);
+        if (!value) return SimpleVector<T>();
+        if (value->isList) return value->listValues;
+
+        SimpleVector<T> singleAsList;
+        singleAsList.put(value->singleValue);
+        return singleAsList;
+    }
+
+    size_t size() {
+        syncFromSDIfNeeded();
+        return listStorage.elements();
+    }
+
+    bool hasKey(const K& key) {
+        syncFromSDIfNeeded();
+        return mapStorage.exists(key);
     }
 
     String saveBlocksToSD() {
-        if (!sdInstance.begin()) return DS_SD_ERROR;
-    
-        JSON json;
-    
-        // ✅ Save `listBlocks` if available
-        if (listBlocks.getList().hasValue()) {
-            auto& blockList = listBlocks.getList().getValue();
-            for (size_t i = 0; i < blockList.elements(); i++) {
-                json.setString("blocks." + String(blockList[i].id), serialize(blockList[i].elements));
-            }
+        if (!ensureSDReady()) return DS_SD_ERROR;
+
+        JSON json(sdCsPin);
+        json.setNumber("meta.blockSize", blockSize);
+
+        json.setNumber("list.count", listStorage.elements());
+        for (size_t i = 0; i < listStorage.elements(); ++i) {
+            writeTypedValue(json, "list.values." + String(i), listStorage[i]);
         }
-    
-        // ✅ Save `mapBlocks` if available
-        if (mapBlocks.getKeyValuePairs().hasValue()) {
-            auto& keyValueMap = mapBlocks.getKeyValuePairs().getValue();
-    
-            // ✅ Iterate over `mapBlocks` and serialize each key-value pair
-            SimpleVector<K> keys = keyValueMap.keys();  // Get all keys
-            for (size_t i = 0; i < keys.elements(); i++) {
-                K key = keys[i];
-    
-                // Get the optional variant
-                auto* optVariant = keyValueMap.get(key);
-                if (optVariant && optVariant->hasValue()) {
-                    json.setString("map." + key, serialize(*optVariant));  // ✅ Now works!
+
+        SimpleVector<K> keys = mapStorage.keys();
+        json.setNumber("map.count", keys.elements());
+        for (size_t i = 0; i < keys.elements(); ++i) {
+            const K& key = keys[i];
+            const StoredValue* value = mapStorage.get(key);
+            if (!value) continue;
+
+            const String base = "map.entries." + String(i);
+            json.setString(base + ".key", keyToString(key));
+            json.setBool(base + ".isList", value->isList);
+
+            if (value->isList) {
+                json.setNumber(base + ".count", value->listValues.elements());
+                for (size_t j = 0; j < value->listValues.elements(); ++j) {
+                    writeTypedValue(json, base + ".values." + String(j), value->listValues[j]);
                 }
+            } else {
+                writeTypedValue(json, base + ".single", value->singleValue);
             }
         }
-    
-        // ✅ Write to file
-        if (!json.writeToFile(filename)) return DS_FILE_WRITE_ERROR;
-        return DS_FILE_WRITE_SUCCESS;
+
+        int status = json.writeToFile(filename);
+        return status == JSON::JSON_WRITE_SUCCESS ? DS_FILE_WRITE_SUCCESS : DS_FILE_WRITE_ERROR;
     }
-    
 
     String loadBlocksFromSD() {
+        if (!ensureSDReady()) return DS_SD_ERROR;
+
         JSON json;
-        if (!sdInstance.begin()) return DS_SD_ERROR;
-        listBlocks.clear();
+        int status = json.readFromFile(filename);
+        if (status == JSON::JSON_FILE_NOT_FOUND) {
+            listStorage.clear();
+            mapStorage.clear();
+            return DS_FILE_NOT_FOUND;
+        }
+        if (status == JSON::JSON_FILE_PARSE_ERROR) return DS_FILE_PARSE_ERROR;
+        if (status != JSON::JSON_READ_SUCCESS) return DS_FILE_READ_ERROR;
 
-        if (!json.readFromFile(filename)) return DS_FILE_READ_ERROR;
+        listStorage.clear();
+        mapStorage.clear();
 
-        int blockID = 0;
-        SimpleVector<Block> newList;
-        while (true) {
-            String data = json.getString("blocks." + String(blockID), "");
-            if (data == "") break;
+        blockSize = static_cast<int>(json.getNumber("meta.blockSize", blockSize));
 
-            newList.put(Block(blockID));
-            newList[newList.elements() - 1].elements = deserializeExtremeVariant(data);
-            blockID++;
+        size_t listCount = static_cast<size_t>(json.getNumber("list.count", 0));
+        for (size_t i = 0; i < listCount; ++i) {
+            listStorage.put(readTypedValue(json, "list.values." + String(i), T()));
         }
 
-        listBlocks.setList(newList);
+        size_t mapCount = static_cast<size_t>(json.getNumber("map.count", 0));
+        for (size_t i = 0; i < mapCount; ++i) {
+            const String base = "map.entries." + String(i);
+            if (!json.hasKey(base + ".key")) continue;
+
+            K key = stringToKey(json.getString(base + ".key", ""));
+            StoredValue holder;
+            holder.isList = json.getBool(base + ".isList", false);
+
+            if (holder.isList) {
+                size_t count = static_cast<size_t>(json.getNumber(base + ".count", 0));
+                for (size_t j = 0; j < count; ++j) {
+                    holder.listValues.put(readTypedValue(json, base + ".values." + String(j), T()));
+                }
+            } else {
+                holder.singleValue = readTypedValue(json, base + ".single", T());
+            }
+
+            mapStorage.put(key, holder);
+        }
+
         return DS_FILE_READ_SUCCESS;
     }
 
 private:
-    String serialize(const ExtremeVariant<K, T>& variant) {
-        JSON json;
+    template <typename U>
+    String encodeValue(const U&) const { static_assert(sizeof(U) == 0, "DynamicStorage: unsupported value type for SD persistence"); return ""; }
+    String encodeValue(const String& value) const { return value; }
+    String encodeValue(const int& value) const { return String(value); }
+    String encodeValue(const long& value) const { return String(value); }
+    String encodeValue(const float& value) const { return String(value); }
+    String encodeValue(const double& value) const { return String(value); }
+    String encodeValue(const bool& value) const { return value ? "true" : "false"; }
 
-        switch (variant.getType()) {
-            case SINGLE_ELEMENT:
-                json.setString("single", serialize(variant.getSingle().getValue()));
-                break;
+    template <typename U>
+    U decodeValueAs(const String&, const U& defaultValue) const { return defaultValue; }
+    String decodeValueAs(const String& value, const String&) const { return value; }
+    int decodeValueAs(const String& value, const int&) const { return value.toInt(); }
+    long decodeValueAs(const String& value, const long&) const { return atol(value.c_str()); }
+    float decodeValueAs(const String& value, const float&) const { return value.toFloat(); }
+    double decodeValueAs(const String& value, const double&) const { return atof(value.c_str()); }
+    bool decodeValueAs(const String& value, const bool&) const { return value == "true"; }
 
-            case SINGLE_LIST: {
-                auto list = variant.getList().getValue();
-                for (size_t i = 0; i < list.elements(); i++) {
-                    json.setString("list." + String(i), serialize(list[i]));
-                }
-                break;
-            }
+    template <typename U>
+    String encodeKey(const U&) const { static_assert(sizeof(U) == 0, "DynamicStorage: unsupported key type for SD persistence"); return ""; }
+    String encodeKey(const String& value) const { return value; }
+    String encodeKey(const int& value) const { return String(value); }
+    String encodeKey(const long& value) const { return String(value); }
+    String encodeKey(const float& value) const { return String(value); }
+    String encodeKey(const double& value) const { return String(value); }
+    String encodeKey(const bool& value) const { return value ? "true" : "false"; }
+    // Pointer key types cannot be round-tripped safely (no owned storage / lifetime).
+    // Require String (or another value type) for SD persistence.
+    String encodeKey(char* const&) const { static_assert(!is_pointer<K>::value, "DynamicStorage: pointer key types cannot be persisted; use String"); return ""; }
+    String encodeKey(const char* const&) const { static_assert(!is_pointer<K>::value, "DynamicStorage: pointer key types cannot be persisted; use String"); return ""; }
 
-            case KEY_VALUE_PAIRS: {
-                auto table = variant.getKeyValuePairs().getValue();
-                SimpleVector<K> keys = table.keys();  // Get all keys
-                for (size_t i = 0; i < keys.elements(); i++) {
-                    K key = keys[i];
-                    json.setString("map." + key, serialize(table.getElement(key)));
-                }
-                break;
-            }
+    template <typename U>
+    U decodeKeyAs(const String&, const U& defaultValue) const { return defaultValue; }
+    String decodeKeyAs(const String& value, const String&) const { return value; }
+    int decodeKeyAs(const String& value, const int&) const { return value.toInt(); }
+    long decodeKeyAs(const String& value, const long&) const { return atol(value.c_str()); }
+    float decodeKeyAs(const String& value, const float&) const { return value.toFloat(); }
+    double decodeKeyAs(const String& value, const double&) const { return atof(value.c_str()); }
+    bool decodeKeyAs(const String& value, const bool&) const { return value == "true"; }
+    char* decodeKeyAs(const String&, char* const& defaultValue) const { static_assert(!is_pointer<K>::value, "DynamicStorage: pointer key types cannot be persisted; use String"); return defaultValue; }
+    const char* decodeKeyAs(const String&, const char* const& defaultValue) const { static_assert(!is_pointer<K>::value, "DynamicStorage: pointer key types cannot be persisted; use String"); return defaultValue; }
 
-            default:
-                break;  // Do nothing for NONE type
+    struct StoredValue {
+        bool isList = false;
+        T singleValue = T();
+        SimpleVector<T> listValues;
+    };
+
+    Mode mode;
+    int blockSize;
+    SimpleVector<T> listStorage;
+    Hashtable<K, StoredValue> mapStorage;
+    String filename;
+    SdFat sdInstance;
+    bool sdInitialized;
+    uint8_t sdCsPin;
+
+    bool useSD() const {
+        return mode == SD || (mode == AUTO && sdInitialized);
+    }
+
+    bool ensureSDReady() {
+        if (sdInitialized) return true;
+        sdInitialized = sdInstance.begin(sdCsPin);
+        return sdInitialized;
+    }
+
+    void syncFromSDIfNeeded() {
+        if (useSD()) {
+            loadBlocksFromSD();
         }
-
-        return json.writeToString();
     }
 
-
-    String serialize(const Block& block) {
-        JSON json;
-        json.setNumber("id", block.id);
-        json.setString("elements", serialize(block.elements));
-        return json.writeToString();
-    }
-
-    String serialize(const Optional<ExtremeVariant<K, Block>>& optVariant) {
-        if (!optVariant.hasValue()) return "null";
-        return serialize(optVariant.getValue());
-    }
-
-
-    ExtremeVariant<K, T> deserializeExtremeVariant(const String& jsonString) {
-        ExtremeVariant<K, T> result;
-        JSON json;
-        json.readFromString(jsonString);
-    
-        if (json.hasKey("single")) {
-            result.setSingle(deserialize(json.getString("single")));
-        } 
-        else if (json.hasKey("list")) {
-            SimpleVector<T> list;
-            int index = 0;
-            while (true) {
-                String data = json.getString(String(index), "");
-                if (data == "") break;
-                list.put(deserialize(data));
-                index++;
-            }
-            result.setList(list);
-        } 
-        else if (json.hasKey("map")) {
-            Hashtable<K, T> map;
-    
-            // ✅ Instead of iterating, manually extract key-value pairs
-            SimpleVector<K> keys = json.getKeys();  // Assuming `getKeys()` is implemented in JSON
-            for (int i = 0; i < keys.elements(); i++) {
-                K key = keys[i];
-                T value = deserialize(json.getString(key));
-                map.put(key, value);
-            }
-    
-            result.setKeyValuePairs(map);
+    void syncToSDIfNeeded() {
+        if (useSD()) {
+            saveBlocksToSD();
         }
-    
-        return result;
     }
 
+    String keyToString(const K& key) const { return encodeKey(key); }
 
-    String serialize(const String& value) {
-        return "\"" + value + "\"";  // Ensure it's properly quoted for JSON
+    K stringToKey(const String& key) const { return decodeKeyAs(key, K()); }
+
+    void writeTypedValue(JSON& json, const String& base, const T& value) const {
+        json.setString(base + ".value", encodeValue(value));
     }
 
-    T deserialize(const String& value) {
-        if constexpr (is_same<T, int>::value) return value.toInt();
-        if constexpr (is_same<T, float>::value) return value.toFloat();
-        if constexpr (is_same<T, bool>::value) return (value == "true");
-        if constexpr (is_same<T, String>::value) return value;
-        return T();
+    T readTypedValue(const JSON& json, const String& base, const T& defaultValue) const {
+        if (!json.hasKey(base + ".value")) return defaultValue;
+        return decodeValueAs(json.getString(base + ".value", ""), defaultValue);
     }
 };
 
