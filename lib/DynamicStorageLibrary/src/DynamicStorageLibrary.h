@@ -226,7 +226,7 @@ public:
 
 private:
     template <typename U>
-    String encodeValue(const U&) const { return ""; }
+    String encodeValue(const U&) const { static_assert(sizeof(U) == 0, "DynamicStorage: unsupported value type for SD persistence"); return ""; }
     String encodeValue(const String& value) const { return value; }
     String encodeValue(const int& value) const { return String(value); }
     String encodeValue(const long& value) const { return String(value); }
