@@ -106,6 +106,10 @@ public:
             if(elements == size){
                 // Backing array is truly full — expand and compact.
                 resize();
+                if(elements == size){
+                    Serial.println("Queue: enqueue failed (out of memory).");
+                    return;
+                }
             } else {
                 // There is room at the front; compact in-place to avoid allocation.
                 for(int i = 0; i < elements; i++){
