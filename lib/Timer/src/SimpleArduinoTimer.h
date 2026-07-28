@@ -16,6 +16,7 @@ private:
     bool isRunning;
     bool isPaused;
     bool useRTC;
+    bool rtcInitialized;
     bool debug;
     unsigned long remainingTimeOnTimer;
     enum mode { Seconds, Minutes, Hours };

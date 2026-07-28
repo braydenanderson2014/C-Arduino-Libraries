@@ -5,7 +5,7 @@
 // ---------------------------------------------------------------------------
 Timer::Timer(bool debug)
     : startTime(0), elapsedTime(0), pauseTime(0), targetDuration(0),
-      isRunning(false), isPaused(false), useRTC(false),
+      isRunning(false), isPaused(false), useRTC(false), rtcInitialized(false),
       debug(debug), remainingTimeOnTimer(0), timerMode(Seconds)
 {
     setTimerName("Timer");
@@ -29,11 +29,13 @@ void Timer::begin() {
 #ifdef useRTCModule
     if (!rtc.begin()) {
         useRTC = false;
+        rtcInitialized = false;
         if (debug) {
-            Serial.println("[" + TimerName + "]: RTC not found – falling back to millis()");
+            Serial.println("[" + TimerName + "]: RTC not found - falling back to millis()");
         }
     } else {
         useRTC = true;
+        rtcInitialized = true;
         if (debug) {
             Serial.println("[" + TimerName + "]: RTC initialised");
         }
@@ -49,7 +51,26 @@ void Timer::setUseRTC(bool useRTC) {
     if (debug) {
         Serial.println("[" + TimerName + "]: Setting useRTC: " + String(useRTC));
     }
-    this->useRTC = useRTC;
+    if (useRTC) {
+        // Initialise the RTC only if it has not been successfully initialised yet.
+        if (!rtcInitialized) {
+            if (rtc.begin()) {
+                rtcInitialized = true;
+            } else {
+                rtcInitialized = false; // RTC left in failed state; do not use it
+            }
+        }
+        if (rtcInitialized) {
+            this->useRTC = true;
+        } else {
+            this->useRTC = false;
+            if (debug) {
+                Serial.println("[" + TimerName + "]: RTC not found - cannot enable RTC mode");
+            }
+        }
+    } else {
+        this->useRTC = false;
+    }
 }
 
 bool Timer::getUseRTC() const {
@@ -57,6 +78,12 @@ bool Timer::getUseRTC() const {
 }
 
 void Timer::syncWithRTC() {
+    if (!useRTC) {
+        if (debug) {
+            Serial.println("[" + TimerName + "]: syncWithRTC() ignored - useRTC is false");
+        }
+        return;
+    }
     // Re-anchor the start reference so that an external RTC adjustment does
     // not cause a time-jump.  Accumulated elapsed time is preserved.
     if (isRunning) {
