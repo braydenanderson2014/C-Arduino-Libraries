@@ -94,6 +94,10 @@ public:
         if(!stack) return;
         if(isFull()){
             resize();
+            if(isFull()){
+                Serial.println("Stack: push failed (out of memory).");
+                return;
+            }
         }
         stack[++top] = value;
     }
