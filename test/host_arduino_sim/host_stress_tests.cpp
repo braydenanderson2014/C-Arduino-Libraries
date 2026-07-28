@@ -44,6 +44,10 @@
 #include "JSON.h"
 #include "SimpleVector.h"
 
+// Mask applied to std::size_t loop counters before casting to int/key, keeping
+// the value non-negative regardless of the platform's int width.
+static constexpr unsigned int MAX_POSITIVE_INT_MASK = 0x7fffffffu;
+
 // ─── Memory measurement ──────────────────────────────────────────────────────
 
 // Returns current allocator-managed heap bytes (Linux glibc only).
@@ -345,7 +349,7 @@ int main() {
     fillProbes.push_back(probeElementFill<ArrayList<int>>(
         "ArrayList", "int", limitBytes, maxElements,
         []() { return ArrayList<int>(ArrayList<int>::DYNAMIC2, 8); },
-        [](ArrayList<int>& c, std::size_t i) { c.add(static_cast<int>(i & 0x7fffffffu)); }
+        [](ArrayList<int>& c, std::size_t i) { c.add(static_cast<int>(i & MAX_POSITIVE_INT_MASK)); }
     ));
 
     // ArrayList<float>
@@ -373,7 +377,7 @@ int main() {
     fillProbes.push_back(probeElementFill<SimpleVector<int>>(
         "SimpleVector", "int", limitBytes, maxElements,
         []() { return SimpleVector<int>(); },
-        [](SimpleVector<int>& c, std::size_t i) { c.put(static_cast<int>(i & 0x7fffffffu)); }
+        [](SimpleVector<int>& c, std::size_t i) { c.put(static_cast<int>(i & MAX_POSITIVE_INT_MASK)); }
     ));
 
     // SimpleVector<float>
@@ -395,7 +399,7 @@ int main() {
         "Hashtable", "int_int", limitBytes, maxElements,
         []() { return Hashtable<int, int>(); },
         [](Hashtable<int, int>& c, std::size_t i) {
-            const int k = static_cast<int>(i & 0x7fffffffu);
+            const int k = static_cast<int>(i & MAX_POSITIVE_INT_MASK);
             c.put(k, k);
         }
     ));
