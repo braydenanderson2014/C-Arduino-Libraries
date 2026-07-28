@@ -311,7 +311,6 @@ void Timer::printTimeRemaining() {
             Serial.println(seconds);
             break;
         case Seconds:
-        default:
             Serial.println(seconds);
             break;
     }
@@ -335,10 +334,6 @@ bool Timer::hasReachedTarget() {
     return elapsed() >= targetDuration;
 }
 
-bool Timer::checkTimer(unsigned long durationMs) const {
-    // Returns true when the timer has been running for at least durationMs.
-    // Calls are non-const internally only if RTC is involved; for millis() path
-    // elapsed() is effectively const-safe since millis() is a free function.
-    // Cast away const to call elapsed() which has no externally visible side effects.
-    return const_cast<Timer*>(this)->elapsed() >= durationMs;
+bool Timer::checkTimer(unsigned long durationMs) {
+    return elapsed() >= durationMs;
 }

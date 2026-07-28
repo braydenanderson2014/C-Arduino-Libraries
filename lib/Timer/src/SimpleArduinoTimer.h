@@ -52,7 +52,7 @@ public:
     bool isTimerRunning() const;
     bool isTimerPaused() const;
     bool hasReachedTarget();
-    bool checkTimer(unsigned long durationMs) const;
+    bool checkTimer(unsigned long durationMs);
 
 #ifdef useRTCModule
     void setUseRTC(bool useRTC);
