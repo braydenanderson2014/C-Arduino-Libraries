@@ -38,7 +38,6 @@ jobs:
             const path = require("path");
 
             const configPath = process.env.CONFIG_PATH;
-            const issueMarker = "<!-- library-sync-request -->";
             const issueNumberInput = context.eventName === "workflow_dispatch"
               ? String(context.payload?.inputs?.issue_number || "").trim()
               : "";
@@ -110,6 +109,39 @@ jobs:
               return sections;
             };
 
+            const extractSectionValue = (body, heading) => {
+              const normalized = String(body || "").replace(/\r/g, "");
+              const lines = normalized.split("\n");
+              const targetHeading = heading.toLowerCase();
+              let collecting = false;
+              const collected = [];
+
+              for (const rawLine of lines) {
+                const line = rawLine.trim();
+
+                if (!collecting) {
+                  if (line.toLowerCase() === `### ${targetHeading}`) {
+                    collecting = true;
+                  }
+                  continue;
+                }
+
+                if (/^###\s+.+/.test(line)) {
+                  break;
+                }
+
+                if (line === "_No response_") {
+                  return "";
+                }
+
+                if (line) {
+                  collected.push(rawLine);
+                }
+              }
+
+              return collected.join("\n").trim();
+            };
+
             const slugify = (value) => String(value || "")
               .toLowerCase()
               .replace(/[^a-z0-9]+/g, "-")
@@ -129,7 +161,17 @@ jobs:
 
             const body = String(issue.body || "");
             const labels = (issue.labels || []).map((label) => label.name);
-            if (!body.includes(issueMarker) || !labels.includes("library-sync-request")) {
+            const sections = parseIssueSections(body);
+            const librarySection = sections.Library || extractSectionValue(body, "Library");
+            const looksLikeSyncRequest = Boolean(
+              librarySection ||
+              sections["Sync summary"] ||
+              sections["Pull request title"] ||
+              sections["Pull request notes"] ||
+              sections["Target branch override"]
+            );
+
+            if (!labels.includes("library-sync-request") && !looksLikeSyncRequest) {
               core.info("Issue is not a library sync request. Skipping.");
               core.setOutput("should_run", "false");
               return;
@@ -171,8 +213,7 @@ jobs:
             }
 
             const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-            const sections = parseIssueSections(body);
-            const library = (sections["Library"] || "").trim();
+            const library = (librarySection || "").trim();
             const syncSummary = (sections["Sync summary"] || "").trim();
             const pullRequestTitleOverride = (sections["Pull request title"] || "").trim();
             const pullRequestNotes = (sections["Pull request notes"] || "").trim();

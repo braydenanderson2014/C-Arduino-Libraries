@@ -75,17 +75,27 @@ public:
     void setSingle(const T& value) {
         isList = false;
         singleValue = value;
+        listValues.clear();
     }
 
     /**
-     * @brief Sets the value of the Variant to an ArrayList
+     * @brief Sets the value of the Variant to a list
      * 
-     * @param values The ArrayList of values to set
+     * Uses ArrayList<T> by default, or SimpleVector<T> when useSimpleVector is defined.
+     * 
+     * @param values The list of values to set (ArrayList<T> or SimpleVector<T> depending on configuration)
      */
+    #ifdef useSimpleVector
+    void setList(const SimpleVector<T>& values) {
+        isList = true;
+        listValues = values;
+    }
+    #else
     void setList(const ArrayList<T>& values) {
         isList = true;
         listValues = values;
     }
+    #endif
 
     /**
      * @brief Gets the single value of the Variant
@@ -149,6 +159,7 @@ public:
      */
     void addValue(const T& value) {
         if (!isList) {
+            listValues.clear();
             listValues.add(singleValue);
             isList = true;
         }

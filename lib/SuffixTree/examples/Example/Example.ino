@@ -19,7 +19,7 @@
 */
 
 #include <Arduino.h>
-#include <SuffixTree.h>
+#include <suffixTree.h>
 
 
 void setup() {

@@ -1,6 +1,9 @@
 #ifndef MATHLIB_h
 #define MATHLIB_h
 
+#include <cmath>
+#include <cstdlib>
+
 #define MYPI 3.14159265358979323846
 #define MYMAX_ITERATIONS 150
 
@@ -157,7 +160,7 @@ double Csch(double x) {
 
 //REFRACTORED to not use Factorial... this is to ensure no overflow occurs.
 double Arcsinh(double x) {
-    return log(x + sqrt(x*x + 1));
+    return std::log(x + std::sqrt(x*x + 1));
 }
 
 double Log(double x) {
@@ -228,11 +231,11 @@ double Floor(double x) {
 }
 
 int Random(int min, int max) {
-    return min + static_cast<int>(static_cast<long long>(rand()) % (static_cast<long long>(max) - min + 1));
+    return min + static_cast<int>(static_cast<long long>(std::rand()) % (static_cast<long long>(max) - min + 1));
 }
 
 double Random(double min, double max) {
-    return min + (max - min) * (static_cast<double>(rand()) / RAND_MAX);
+    return min + (max - min) * (static_cast<double>(std::rand()) / RAND_MAX);
 }
 
 

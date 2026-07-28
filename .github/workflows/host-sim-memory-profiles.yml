@@ -1,0 +1,160 @@
+name: Host Simulation Memory Profiles
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  host-stress-profiles:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        boardProfile:
+          - board: uno
+            sramBytes: 2048
+          - board: nano
+            sramBytes: 2048
+          - board: micro
+            sramBytes: 2560
+          - board: leonardo
+            sramBytes: 2560
+          - board: mega2560
+            sramBytes: 8192
+          - board: due
+            sramBytes: 98304
+          - board: zero
+            sramBytes: 32768
+          - board: uno_r4
+            sramBytes: 32768
+          - board: mkr1000
+            sramBytes: 32768
+          - board: esp8266
+            sramBytes: 81920
+          - board: esp32
+            sramBytes: 532480
+          - board: esp32s3
+            sramBytes: 524288
+          - board: esp32c3
+            sramBytes: 400000
+
+    name: Stress profile (${{ matrix.boardProfile.board }})
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build host stress runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test/host_arduino_sim/out/bin
+
+          g++ -std=c++17 -O2 \
+            -DAL_NO_SERIAL -D_AVR_ATmega2560_ \
+            -Itest/host_arduino_sim/include \
+            -Ilib/ArrayList/src \
+            -Ilib/Hashtable/src \
+            -Ilib/Json/src \
+            -Ilib/MathLib/src \
+            -Ilib/SimpleVector/src \
+            -Ilib/SDList/src \
+            -Ilib/String/src \
+            -Ilib/TypeTraits/src \
+            lib/Json/src/JSON.cpp \
+            test/host_arduino_sim/host_stress_tests.cpp \
+            -o test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}
+
+      - name: Run stress probes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Scale physical SRAM to a host-process heap-delta budget by 1024x.
+          MEM_LIMIT_BYTES=$(( ${{ matrix.boardProfile.sramBytes }} * 1024 ))
+
+          REPORT_PATH="test/host_arduino_sim/out/stress-${{ matrix.boardProfile.board }}.json"
+
+          echo "Board: ${{ matrix.boardProfile.board }}"
+          echo "SRAM bytes: ${{ matrix.boardProfile.sramBytes }}"
+          echo "Host heap-delta limit bytes: ${MEM_LIMIT_BYTES}"
+
+          HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
+          HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
+          HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
+          HOST_STRESS_REPORT="${REPORT_PATH}" \
+          ./test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}
+
+      - name: Verify stress report was produced
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REPORT_PATH="test/host_arduino_sim/out/stress-${{ matrix.boardProfile.board }}.json"
+
+          if [ ! -f "${REPORT_PATH}" ]; then
+            echo "Stress report not found: ${REPORT_PATH}"
+            exit 1
+          fi
+
+          INSTANCE_COUNT="$(jq '.instanceCountProbes | length' "${REPORT_PATH}")"
+          FILL_COUNT="$(jq '.elementFillProbes | length' "${REPORT_PATH}")"
+
+          echo "Instance probes: ${INSTANCE_COUNT}"
+          echo "Element fill probes: ${FILL_COUNT}"
+
+          if [ "${INSTANCE_COUNT}" -lt 1 ] || [ "${FILL_COUNT}" -lt 1 ]; then
+            echo "Stress report appears empty."
+            exit 1
+          fi
+
+      - name: Upload stress profile report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-stress-report-${{ matrix.boardProfile.board }}
+          path: test/host_arduino_sim/out/stress-${{ matrix.boardProfile.board }}.json
+          if-no-files-found: error
+
+  host-sim-stress-report:
+    needs: host-stress-profiles
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download stress profile artifacts
+        uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          pattern: host-stress-report-*
+          merge-multiple: true
+          path: .artifacts/host-stress
+
+      - name: Generate consolidated stress report
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 scripts/generate_host_sim_report.py \
+            --mode stress \
+            --artifacts-dir .artifacts \
+            --output-md reports/host-sim-stress-report.md \
+            --output-json reports/host-sim-stress-report.json
+
+          cat reports/host-sim-stress-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload consolidated stress report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-sim-stress-report
+          path: |
+            reports/host-sim-stress-report.md
+            reports/host-sim-stress-report.json
+          if-no-files-found: error

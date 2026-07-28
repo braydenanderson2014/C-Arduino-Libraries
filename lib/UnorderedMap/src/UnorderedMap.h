@@ -3,10 +3,13 @@
 
 #include <Arduino.h>
 #include <stddef.h>
+#include <Hashtable.h>
 
 template <typename KeyType, typename ValueType>
 class UnorderedMap {
 private:
+    static const size_t DEFAULT_CAPACITY = 16;
+
     struct Node {
         KeyType key;
         ValueType value;
@@ -17,20 +20,36 @@ private:
     size_t capacity; // Size of the table
     size_t count; // Number of key-value pairs in the map
     float loadFactor; // Maximum load factor before resizing
+    mutable Node fallbackNode; // Safe fallback return for out-of-range operator[] access.
+
+    template <typename T>
+    static auto hashKeyImpl(const T& key, int) -> decltype(KeyHash<T>()(key)) {
+        return KeyHash<T>()(key);
+    }
+    template <typename T>
+    static size_t hashKeyImpl(const T& key, long) {
+        return static_cast<size_t>(key);
+    }
+    static size_t hashKey(const KeyType& key) {
+        return static_cast<size_t>(hashKeyImpl<KeyType>(key, 0));
+    }
 
     size_t hash(const KeyType& key) const; // Hash function
-    void resize(); // Resize the hashtable
 
 public:
     UnorderedMap(size_t initialCapacity = 16, float loadFactor = 0.75); // Constructor
     ~UnorderedMap(); // Destructor
 
     void put(const KeyType& key, const ValueType& value); // Add or update a key-value pair
+    void insert(const KeyType& key, const ValueType& value); // Alias for put
     ValueType getValue(const KeyType& key) const; // Get the value associated with the given key
+    bool get(const KeyType& key, ValueType& value) const; // Get value with success flag
     bool contains(const KeyType& key) const; // Check if the given key is present in the map
     bool remove(const KeyType& key); // Remove the key-value pair with the given key
     void clear(); // Remove all key-value pairs from the map
+    void resize(); // Resize the hash table when load factor is exceeded
     size_t size() const; // Get the number of key-value pairs in the map
+    size_t getSize() const; // Alias for size
     bool isEmpty() const; // Check if the map is empty
 
     // Indexing support
@@ -87,7 +106,10 @@ public:
 
 template <typename KeyType, typename ValueType>
 UnorderedMap<KeyType, ValueType>::UnorderedMap(size_t initialCapacity, float loadFactor)
-    : capacity(initialCapacity), count(0), loadFactor(loadFactor) {
+    : capacity(initialCapacity == 0 ? DEFAULT_CAPACITY : initialCapacity),
+      count(0),
+      loadFactor(loadFactor),
+      fallbackNode{KeyType(), ValueType(), nullptr} {
     table = new Node*[capacity];
     for (size_t i = 0; i < capacity; ++i) {
         table[i] = nullptr;
@@ -102,7 +124,7 @@ UnorderedMap<KeyType, ValueType>::~UnorderedMap() {
 
 template <typename KeyType, typename ValueType>
 size_t UnorderedMap<KeyType, ValueType>::hash(const KeyType& key) const {
-    return static_cast<size_t>(key) % capacity; // Replace with an appropriate hash function
+    return hashKey(key) % capacity;
 }
 
 template <typename KeyType, typename ValueType>
@@ -117,7 +139,7 @@ void UnorderedMap<KeyType, ValueType>::resize() {
         Node* node = table[i];
         while (node) {
             Node* next = node->next;
-            size_t newIndex = static_cast<size_t>(node->key) % newCapacity;
+            size_t newIndex = hashKey(node->key) % newCapacity;
             node->next = newTable[newIndex];
             newTable[newIndex] = node;
             node = next;
@@ -151,6 +173,11 @@ void UnorderedMap<KeyType, ValueType>::put(const KeyType& key, const ValueType& 
 }
 
 template <typename KeyType, typename ValueType>
+void UnorderedMap<KeyType, ValueType>::insert(const KeyType& key, const ValueType& value) {
+    put(key, value);
+}
+
+template <typename KeyType, typename ValueType>
 ValueType UnorderedMap<KeyType, ValueType>::getValue(const KeyType& key) const {
     size_t index = hash(key);
     Node* node = table[index];
@@ -161,6 +188,20 @@ ValueType UnorderedMap<KeyType, ValueType>::getValue(const KeyType& key) const {
         node = node->next;
     }
     return ValueType();
+}
+
+template <typename KeyType, typename ValueType>
+bool UnorderedMap<KeyType, ValueType>::get(const KeyType& key, ValueType& value) const {
+    size_t index = hash(key);
+    Node* node = table[index];
+    while (node) {
+        if (node->key == key) {
+            value = node->value;
+            return true;
+        }
+        node = node->next;
+    }
+    return false;
 }
 
 template <typename KeyType, typename ValueType>
@@ -218,6 +259,11 @@ size_t UnorderedMap<KeyType, ValueType>::size() const {
 }
 
 template <typename KeyType, typename ValueType>
+size_t UnorderedMap<KeyType, ValueType>::getSize() const {
+    return size();
+}
+
+template <typename KeyType, typename ValueType>
 bool UnorderedMap<KeyType, ValueType>::isEmpty() const {
     return count == 0;
 }
@@ -235,7 +281,7 @@ typename UnorderedMap<KeyType, ValueType>::Node& UnorderedMap<KeyType, ValueType
             current++;
         }
     }
-    return *table[0]; // Return the first element if index is out of bounds
+    return fallbackNode;
 }
 
 #endif // UNORDERED_MAP_H

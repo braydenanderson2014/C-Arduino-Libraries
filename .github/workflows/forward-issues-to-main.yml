@@ -95,6 +95,14 @@ jobs:
             const ENFORCE_TRANSFER_STATUS_GATE = parseBool(core.getInput("enforce_transfer_status_gate"), false);
             const REQUIRED_TRANSFER_STATUS = (core.getInput("required_transfer_status") || TRANSFER_STATUS_PENDING).trim() || TRANSFER_STATUS_PENDING;
             const projectCache = new Map();
+            const SYNC_PULL_REQUEST_TITLE_REGEX = /^Sync\s+.+\s+from monorepo\s*\(#\d+\)$/i;
+            const SYNC_PULL_REQUEST_BRANCH_REGEX = /^sync-library\//i;
+
+            const isSyncGeneratedPullRequest = (pullRequest) => {
+              const title = String(pullRequest?.title || "");
+              const headRef = String(pullRequest?.head?.ref || "");
+              return SYNC_PULL_REQUEST_TITLE_REGEX.test(title) || SYNC_PULL_REQUEST_BRANCH_REGEX.test(headRef);
+            };
 
             const getProjectNode = async (owner, projectNumber) => {
               const userQuery = `
@@ -368,6 +376,11 @@ jobs:
 
             if (isPullRequestEvent) {
               const pullRequest = context.payload.pull_request;
+              if (isSyncGeneratedPullRequest(pullRequest)) {
+                core.info(`Pull request #${pullRequest.number} matches sync-generated patterns. Skipping forward operation.`);
+                return;
+              }
+
               workItems.push({
                 sourceTypeLabel: "pull request",
                 isIssueFlow: false,
@@ -410,6 +423,11 @@ jobs:
                   return;
                 }
 
+                if (isSyncGeneratedPullRequest(pullRequest)) {
+                  core.info(`Pull request #${requestedPrNumber} matches sync-generated patterns. Skipping forward operation.`);
+                  return;
+                }
+
                 workItems.push({
                   sourceTypeLabel: "pull request",
                   isIssueFlow: false,
@@ -438,6 +456,11 @@ jobs:
                 });
 
                 for (const pullRequest of openPullRequests) {
+                  if (isSyncGeneratedPullRequest(pullRequest)) {
+                    core.info(`Pull request #${pullRequest.number} matches sync-generated patterns. Skipping forward operation.`);
+                    continue;
+                  }
+
                   workItems.push({
                     sourceTypeLabel: "pull request",
                     isIssueFlow: false,

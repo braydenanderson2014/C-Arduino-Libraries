@@ -289,7 +289,7 @@ class ForwardIterator {
         ListNode<T>* current = head;
         for (size_t i = 0; i < position; i++) {
             if (!current) {
-                static String error_value = static_cast<String>(LL_OUT_OF_BOUNDS); // Static variable to hold the error code
+                static String error_value = String("LL_OUT_OF_BOUNDS");
                 return error_value; // Out of bounds
             }
             current = current->next;
@@ -297,7 +297,7 @@ class ForwardIterator {
         if (current) {
             return String(current->data);
         } else {
-            return nullptr;
+            return String("");
         }
     }
     // Check if the list contains a specific element

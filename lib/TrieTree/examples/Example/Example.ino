@@ -16,7 +16,7 @@
 */
 
 #include <Arduino.h>
-#include <TrieTree.h>
+#include <trieTree.h>
 
 TrieTree trie; // Create a TrieTree object
 
