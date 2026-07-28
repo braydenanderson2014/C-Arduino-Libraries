@@ -144,7 +144,7 @@ public:
     String saveBlocksToSD() {
         if (!ensureSDReady()) return DS_SD_ERROR;
 
-        JSON json;
+        JSON json(sdCsPin);
         json.setNumber("meta.blockSize", blockSize);
 
         json.setNumber("list.count", listStorage.elements());
