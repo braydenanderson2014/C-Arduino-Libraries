@@ -187,6 +187,7 @@ public:
             mapStorage.clear();
             return DS_FILE_NOT_FOUND;
         }
+        if (status == JSON::JSON_FILE_PARSE_ERROR) return DS_FILE_PARSE_ERROR;
         if (status != JSON::JSON_READ_SUCCESS) return DS_FILE_READ_ERROR;
 
         listStorage.clear();
