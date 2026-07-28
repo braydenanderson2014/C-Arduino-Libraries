@@ -252,8 +252,10 @@ private:
     String encodeKey(const float& value) const { return String(value); }
     String encodeKey(const double& value) const { return String(value); }
     String encodeKey(const bool& value) const { return value ? "true" : "false"; }
-    String encodeKey(char* const& value) const { return String(value); }
-    String encodeKey(const char* const& value) const { return String(value); }
+    // Pointer key types cannot be round-tripped safely (no owned storage / lifetime).
+    // Require String (or another value type) for SD persistence.
+    String encodeKey(char* const&) const { static_assert(!is_pointer<K>::value, "DynamicStorage: pointer key types cannot be persisted; use String"); return ""; }
+    String encodeKey(const char* const&) const { static_assert(!is_pointer<K>::value, "DynamicStorage: pointer key types cannot be persisted; use String"); return ""; }
 
     template <typename U>
     U decodeKeyAs(const String&, const U& defaultValue) const { return defaultValue; }
@@ -263,8 +265,8 @@ private:
     float decodeKeyAs(const String& value, const float&) const { return value.toFloat(); }
     double decodeKeyAs(const String& value, const double&) const { return atof(value.c_str()); }
     bool decodeKeyAs(const String& value, const bool&) const { return value == "true"; }
-    char* decodeKeyAs(const String&, char* const&) const { return nullptr; }
-    const char* decodeKeyAs(const String&, const char* const&) const { return ""; }
+    char* decodeKeyAs(const String&, char* const& defaultValue) const { static_assert(!is_pointer<K>::value, "DynamicStorage: pointer key types cannot be persisted; use String"); return defaultValue; }
+    const char* decodeKeyAs(const String&, const char* const& defaultValue) const { static_assert(!is_pointer<K>::value, "DynamicStorage: pointer key types cannot be persisted; use String"); return defaultValue; }
 
     struct StoredValue {
         bool isList = false;
