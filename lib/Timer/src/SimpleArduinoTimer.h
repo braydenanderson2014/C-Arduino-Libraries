@@ -2,7 +2,10 @@
 #define SIMPLEARDUINOTIMER_h
 
 #include <Arduino.h>
-#include <RTClib.h>
+
+#ifdef useRTCModule
+    #include <RTClib.h>
+#endif
 
 class Timer {
 private:
@@ -13,41 +16,51 @@ private:
     bool isRunning;
     bool isPaused;
     bool useRTC;
-    mutable RTC_DS3231 rtc;
     bool debug;
     unsigned long remainingTimeOnTimer;
-    enum mode {Seconds, Minutes, Hours};
-    mode timerMode = Minutes;
+    enum mode { Seconds, Minutes, Hours };
+    mode timerMode;
     String TimerName;
+#ifdef useRTCModule
+    mutable RTC_DS3231 rtc;
+#endif
+
 public:
-    Timer(bool debug);
+    Timer(bool debug = false);
     void setTimerName(String timerName);
     String getTimerName() const;
-    void updateRemainingTime();
+
     void start();
     void stop();
     void reset();
     void clear();
     void pause();
     void resume();
-    void setUseRTC(bool useRTC);
     void begin();
-    void printTimeRemaining();
-    unsigned long elapsed();
-    bool isTimerRunning() const;
-    bool hasReachedTarget();
-    bool getUseRTC() const;
-    unsigned long remainingTime();
 
-    void syncWithRTC();
-    DateTime getRTCTime() const;
-    bool isTimerPaused() const;
-    void setRTCTime(int year, int month, int day, int hour, int minute, int second);
-    void setTargetDuration(unsigned long duration);
+    void setTargetDuration(unsigned long durationMs);
     void setTargetSeconds(unsigned long seconds);
     void setTargetMinutes(unsigned long minutes);
     void setTargetHours(unsigned long hours);
-    bool checkTimer(unsigned long duration);
+
+    unsigned long elapsed();
+    unsigned long remainingTime();
+    unsigned long remainingTimeMillis();
+    void updateRemainingTime();
+    void printTimeRemaining();
+
+    bool isTimerRunning() const;
+    bool isTimerPaused() const;
+    bool hasReachedTarget();
+    bool checkTimer(unsigned long durationMs) const;
+
+#ifdef useRTCModule
+    void setUseRTC(bool useRTC);
+    bool getUseRTC() const;
+    void syncWithRTC();
+    DateTime getRTCTime() const;
+    void setRTCTime(int year, int month, int day, int hour, int minute, int second);
+#endif
 };
 
 #endif // SIMPLEARDUINOTIMER_h
