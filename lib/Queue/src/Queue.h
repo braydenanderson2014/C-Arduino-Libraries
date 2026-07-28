@@ -35,7 +35,9 @@ public:
     /**
      * @brief Construct a new Queue with a default initial capacity of 10.
      */
-    Queue() : queue(new T[10]), front(0), rear(-1), size(10), elements(0) {}
+    Queue() : queue(new T[10]), front(0), rear(-1), size(10), elements(0) {
+        if(!queue){ Serial.println("Queue: memory allocation failed."); }
+    }
 
     /**
      * @brief Construct a new Queue with the specified initial capacity.
@@ -44,6 +46,7 @@ public:
     Queue(int initialCapacity) : front(0), rear(-1), elements(0) {
         size = initialCapacity > 0 ? initialCapacity : 10;
         queue = new T[size];
+        if(!queue){ Serial.println("Queue: memory allocation failed."); }
     }
 
     /**
@@ -51,6 +54,7 @@ public:
      */
     Queue(const Queue &other) : front(0), rear(other.elements - 1), size(other.size), elements(other.elements) {
         queue = new T[size];
+        if(!queue){ Serial.println("Queue: memory allocation failed."); return; }
         for(int i = 0; i < elements; i++){
             queue[i] = other.queue[other.front + i];
         }
@@ -61,12 +65,14 @@ public:
      */
     Queue &operator=(const Queue &other){
         if(this != &other){
+            T *newQueue = new T[other.size];
+            if(!newQueue){ Serial.println("Queue: memory allocation failed."); return *this; }
             delete[] queue;
             size = other.size;
             elements = other.elements;
             front = 0;
             rear = elements - 1;
-            queue = new T[size];
+            queue = newQueue;
             for(int i = 0; i < elements; i++){
                 queue[i] = other.queue[other.front + i];
             }

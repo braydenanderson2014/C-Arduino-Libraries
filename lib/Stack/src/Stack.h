@@ -31,7 +31,9 @@ public:
     /**
      * @brief Construct a new Stack with a default initial capacity of 10.
      */
-    Stack() : stack(new T[10]), top(-1), size(10) {}
+    Stack() : stack(new T[10]), top(-1), size(10) {
+        if(!stack){ Serial.println("Stack: memory allocation failed."); }
+    }
 
     /**
      * @brief Construct a new Stack with the specified initial capacity.
@@ -39,6 +41,7 @@ public:
      */
     Stack(int initialCapacity) : top(-1), size(initialCapacity > 0 ? initialCapacity : 10) {
         stack = new T[size];
+        if(!stack){ Serial.println("Stack: memory allocation failed."); }
     }
 
     /**
@@ -46,6 +49,7 @@ public:
      */
     Stack(const Stack &other) : top(other.top), size(other.size) {
         stack = new T[size];
+        if(!stack){ Serial.println("Stack: memory allocation failed."); return; }
         for(int i = 0; i <= top; i++){
             stack[i] = other.stack[i];
         }
@@ -56,10 +60,12 @@ public:
      */
     Stack &operator=(const Stack &other){
         if(this != &other){
+            T *newStack = new T[other.size];
+            if(!newStack){ Serial.println("Stack: memory allocation failed."); return *this; }
             delete[] stack;
             top = other.top;
             size = other.size;
-            stack = new T[size];
+            stack = newStack;
             for(int i = 0; i <= top; i++){
                 stack[i] = other.stack[i];
             }
