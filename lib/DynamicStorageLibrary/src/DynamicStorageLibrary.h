@@ -6,6 +6,7 @@
 #include "SimpleVector.h"
 #include "TypeTraits.h"
 #include <SdFat.h>
+#include <stdlib.h>
 
 #define DS_SUCCESS "DS0"
 #define DS_SD_ERROR "DS5"
@@ -24,10 +25,13 @@ public:
 
     DynamicStorage(Mode initialMode = AUTO, const String& customFilename = "storage.json")
         : mode(initialMode),
+          blockSize(4),
           listStorage(),
           mapStorage(),
           filename(customFilename),
-          sdInstance() {}
+          sdInstance(),
+          sdInitialized(false),
+          sdCsPin(4) {}
 
     void setFilename(const String& newFilename) { filename = newFilename; }
     String getFilename() const { return filename; }
@@ -112,6 +116,7 @@ public:
         if (!value) return T();
         if (!value->isList) return value->singleValue;
         if (value->listValues.isEmpty()) return T();
+        // For dynamic keys that have accumulated multiple values, return the newest one.
         return value->listValues[value->listValues.elements() - 1];
     }
 
@@ -234,7 +239,7 @@ private:
     int decodeValueAs(const String& value, const int&) const { return value.toInt(); }
     long decodeValueAs(const String& value, const long&) const { return atol(value.c_str()); }
     float decodeValueAs(const String& value, const float&) const { return value.toFloat(); }
-    double decodeValueAs(const String& value, const double&) const { return value.toFloat(); }
+    double decodeValueAs(const String& value, const double&) const { return atof(value.c_str()); }
     bool decodeValueAs(const String& value, const bool&) const { return value == "true"; }
 
     template <typename U>
@@ -254,7 +259,7 @@ private:
     int decodeKeyAs(const String& value, const int&) const { return value.toInt(); }
     long decodeKeyAs(const String& value, const long&) const { return atol(value.c_str()); }
     float decodeKeyAs(const String& value, const float&) const { return value.toFloat(); }
-    double decodeKeyAs(const String& value, const double&) const { return value.toFloat(); }
+    double decodeKeyAs(const String& value, const double&) const { return atof(value.c_str()); }
     bool decodeKeyAs(const String& value, const bool&) const { return value == "true"; }
     char* decodeKeyAs(const String&, char* const&) const { return nullptr; }
     const char* decodeKeyAs(const String&, const char* const&) const { return ""; }
@@ -265,14 +270,14 @@ private:
         SimpleVector<T> listValues;
     };
 
-    Mode mode = AUTO;
-    int blockSize = 4;
+    Mode mode;
+    int blockSize;
     SimpleVector<T> listStorage;
     Hashtable<K, StoredValue> mapStorage;
-    String filename = "storage.json";
+    String filename;
     SdFat sdInstance;
-    bool sdInitialized = false;
-    uint8_t sdCsPin = 4;
+    bool sdInitialized;
+    uint8_t sdCsPin;
 
     bool useSD() const {
         return mode == SD || (mode == AUTO && sdInitialized);
