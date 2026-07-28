@@ -14,6 +14,7 @@
 - [Unpublished Libraries (In Development)](#-unpublished-libraries-in-development)
 - [Libraries Published on Arduino Library Manager](#-libraries-published-on-arduino-library-manager)
 - [Contributing & Issues](#-contributing--issues)
+- [Discussions](#-discussions)
 - [Automation, Templates, and Cross-Repo Intake](#-automation-templates-and-cross-repo-intake)
 - [Automation: What Gets Copied Here From Other Library Repositories](#-what-gets-copied-here-from-other-library-repositories)
 - [Automation: Issue Templates In This Repository](#-issue-templates-in-this-repository)
@@ -186,6 +187,19 @@ Total Libraries: (51)
 
 ---
 
+## 💬 **Discussions**
+Have a general question, idea, or just want to chat about the libraries? Head over to the **[GitHub Discussions](https://github.com/braydenanderson2014/C-Arduino-Libraries/discussions)** page!
+
+Discussions are a great place to:
+- 🙋 **Ask questions** that aren't necessarily bugs or feature requests
+- 💡 **Share ideas** for new libraries or improvements
+- 📣 **Show off** projects you've built using these libraries
+- 🤝 **Connect** with other users and contributors
+
+👉 **[Open a Discussion](https://github.com/braydenanderson2014/C-Arduino-Libraries/discussions)**
+
+---
+
 ## 🤖 **Automation, Templates, and Cross-Repo Intake**
 
 This repository is the **main tracker** for issues and pull-request intake across related library repositories.
@@ -312,6 +326,7 @@ When a label/comment action is confusing (for example duplicate detection):
 🔗 **[Patreon - Support My Work!](https://www.patreon.com/posts/support-my-open-122298248?utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=postshare_creator&utm_content=join_link)**  
 🔗 **[Platformio Registry](https://registry.platformio.org/search?q=owner%3Abraydenanderson2014)**  
 🔗 **[GitHub Repository](https://github.com/braydenanderson2014/C-Arduino-Libraries)**  
+🔗 **[GitHub Discussions](https://github.com/braydenanderson2014/C-Arduino-Libraries/discussions)**  
 🔗 **[Arduino Library Manager](https://docs.arduino.cc/software/ide-v1/tutorials/installing-libraries/#using-the-library-manager)** 
  
 
