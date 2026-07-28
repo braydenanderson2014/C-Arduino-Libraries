@@ -215,6 +215,46 @@ public:
     }
 
 private:
+    template <typename U>
+    String encodeValue(const U&) const { return ""; }
+    String encodeValue(const String& value) const { return value; }
+    String encodeValue(const int& value) const { return String(value); }
+    String encodeValue(const long& value) const { return String(value); }
+    String encodeValue(const float& value) const { return String(value); }
+    String encodeValue(const double& value) const { return String(value); }
+    String encodeValue(const bool& value) const { return value ? "true" : "false"; }
+
+    template <typename U>
+    U decodeValueAs(const String&, const U& defaultValue) const { return defaultValue; }
+    String decodeValueAs(const String& value, const String&) const { return value; }
+    int decodeValueAs(const String& value, const int&) const { return value.toInt(); }
+    long decodeValueAs(const String& value, const long&) const { return value.toInt(); }
+    float decodeValueAs(const String& value, const float&) const { return value.toFloat(); }
+    double decodeValueAs(const String& value, const double&) const { return value.toFloat(); }
+    bool decodeValueAs(const String& value, const bool&) const { return value == "true"; }
+
+    template <typename U>
+    String encodeKey(const U&) const { return ""; }
+    String encodeKey(const String& value) const { return value; }
+    String encodeKey(const int& value) const { return String(value); }
+    String encodeKey(const long& value) const { return String(value); }
+    String encodeKey(const float& value) const { return String(value); }
+    String encodeKey(const double& value) const { return String(value); }
+    String encodeKey(const bool& value) const { return value ? "true" : "false"; }
+    String encodeKey(char* const& value) const { return String(value); }
+    String encodeKey(const char* const& value) const { return String(value); }
+
+    template <typename U>
+    U decodeKeyAs(const String&, const U& defaultValue) const { return defaultValue; }
+    String decodeKeyAs(const String& value, const String&) const { return value; }
+    int decodeKeyAs(const String& value, const int&) const { return value.toInt(); }
+    long decodeKeyAs(const String& value, const long&) const { return value.toInt(); }
+    float decodeKeyAs(const String& value, const float&) const { return value.toFloat(); }
+    double decodeKeyAs(const String& value, const double&) const { return value.toFloat(); }
+    bool decodeKeyAs(const String& value, const bool&) const { return value == "true"; }
+    char* decodeKeyAs(const String&, char* const&) const { return nullptr; }
+    const char* decodeKeyAs(const String&, const char* const&) const { return ""; }
+
     struct StoredValue {
         bool isList = false;
         T singleValue = T();
@@ -252,64 +292,17 @@ private:
         }
     }
 
-    String keyToString(const K& key) const {
-        if constexpr (is_same<K, String>::value) return key;
-        if constexpr (is_same<K, const char*>::value || is_same<K, char*>::value) return String(key);
-        if constexpr (is_same<K, bool>::value) return key ? "true" : "false";
-        return String(key);
-    }
+    String keyToString(const K& key) const { return encodeKey(key); }
 
-    K stringToKey(const String& key) const {
-        if constexpr (is_same<K, String>::value) return key;
-        if constexpr (is_same<K, int>::value) return key.toInt();
-        if constexpr (is_same<K, long>::value) return key.toInt();
-        if constexpr (is_same<K, float>::value) return key.toFloat();
-        if constexpr (is_same<K, double>::value) return key.toFloat();
-        if constexpr (is_same<K, bool>::value) return key == "true";
-        return K();
-    }
+    K stringToKey(const String& key) const { return decodeKeyAs(key, K()); }
 
     void writeTypedValue(JSON& json, const String& base, const T& value) const {
-        if constexpr (is_same<T, String>::value) {
-            json.setString(base + ".type", "string");
-            json.setString(base + ".value", value);
-        } else if constexpr (is_same<T, bool>::value) {
-            json.setString(base + ".type", "bool");
-            json.setBool(base + ".value", value);
-        } else if constexpr (is_arithmetic<T>::value) {
-            json.setString(base + ".type", "number");
-            json.setNumber(base + ".value", value);
-        } else {
-            json.setString(base + ".type", "string");
-            json.setString(base + ".value", String(value));
-        }
+        json.setString(base + ".value", encodeValue(value));
     }
 
     T readTypedValue(const JSON& json, const String& base, const T& defaultValue) const {
-        if (!json.hasKey(base + ".type")) return defaultValue;
-
-        String type = json.getString(base + ".type", "");
-        if (type == "string") {
-            if constexpr (is_same<T, String>::value) {
-                return json.getString(base + ".value", "");
-            } else {
-                return defaultValue;
-            }
-        }
-        if (type == "bool") {
-            if constexpr (is_same<T, bool>::value) {
-                return json.getBool(base + ".value", false);
-            } else {
-                return defaultValue;
-            }
-        }
-        if (type == "number") {
-            if constexpr (is_same<T, int>::value) return static_cast<int>(json.getNumber(base + ".value", 0));
-            if constexpr (is_same<T, long>::value) return static_cast<long>(json.getNumber(base + ".value", 0));
-            if constexpr (is_same<T, float>::value) return static_cast<float>(json.getNumber(base + ".value", 0));
-            if constexpr (is_same<T, double>::value) return static_cast<double>(json.getNumber(base + ".value", 0));
-        }
-        return defaultValue;
+        if (!json.hasKey(base + ".value")) return defaultValue;
+        return decodeValueAs(json.getString(base + ".value", ""), defaultValue);
     }
 };
 
