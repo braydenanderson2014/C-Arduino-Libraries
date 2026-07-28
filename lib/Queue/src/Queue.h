@@ -115,7 +115,8 @@ public:
                 rear = elements - 1;
             }
         }
-        if(queue){ queue[++rear] = value; elements++; }
+        queue[++rear] = value;
+        elements++;
     }
 
     /**

@@ -95,7 +95,7 @@ public:
         if(isFull()){
             resize();
         }
-        if(stack){ stack[++top] = value; }
+        stack[++top] = value;
     }
 
     /**
