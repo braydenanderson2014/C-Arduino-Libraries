@@ -24,13 +24,10 @@ public:
 
     DynamicStorage(Mode initialMode = AUTO, const String& customFilename = "storage.json")
         : mode(initialMode),
-          blockSize(4),
           listStorage(),
           mapStorage(),
           filename(customFilename),
-          sdInstance(),
-          sdInitialized(false),
-          sdCsPin(4) {}
+          sdInstance() {}
 
     void setFilename(const String& newFilename) { filename = newFilename; }
     String getFilename() const { return filename; }
@@ -235,7 +232,7 @@ private:
     U decodeValueAs(const String&, const U& defaultValue) const { return defaultValue; }
     String decodeValueAs(const String& value, const String&) const { return value; }
     int decodeValueAs(const String& value, const int&) const { return value.toInt(); }
-    long decodeValueAs(const String& value, const long&) const { return value.toInt(); }
+    long decodeValueAs(const String& value, const long&) const { return atol(value.c_str()); }
     float decodeValueAs(const String& value, const float&) const { return value.toFloat(); }
     double decodeValueAs(const String& value, const double&) const { return value.toFloat(); }
     bool decodeValueAs(const String& value, const bool&) const { return value == "true"; }
@@ -255,7 +252,7 @@ private:
     U decodeKeyAs(const String&, const U& defaultValue) const { return defaultValue; }
     String decodeKeyAs(const String& value, const String&) const { return value; }
     int decodeKeyAs(const String& value, const int&) const { return value.toInt(); }
-    long decodeKeyAs(const String& value, const long&) const { return value.toInt(); }
+    long decodeKeyAs(const String& value, const long&) const { return atol(value.c_str()); }
     float decodeKeyAs(const String& value, const float&) const { return value.toFloat(); }
     double decodeKeyAs(const String& value, const double&) const { return value.toFloat(); }
     bool decodeKeyAs(const String& value, const bool&) const { return value == "true"; }
