@@ -19,6 +19,7 @@ private:
     void resize(){
         T *newQueue = new T[size * 2];
         if(!newQueue){
+            Serial.println("Queue: memory allocation failed during resize.");
             return;
         }
         for(int i = 0; i < elements; i++){
@@ -88,10 +89,19 @@ public:
     }
 
     /**
+     * @brief Check if the backing array was successfully allocated.
+     * @return true if the queue is usable, false if allocation failed.
+     */
+    bool isValid() const {
+        return queue != nullptr;
+    }
+
+    /**
      * @brief Add an element to the back of the queue.
      * @param value The value to add.
      */
     void enqueue(const T &value){
+        if(!queue) return;
         if(rear == size - 1){
             if(elements == size){
                 // Backing array is truly full — expand and compact.
@@ -105,8 +115,7 @@ public:
                 rear = elements - 1;
             }
         }
-        queue[++rear] = value;
-        elements++;
+        if(queue){ queue[++rear] = value; elements++; }
     }
 
     /**
@@ -137,7 +146,7 @@ public:
      * @return true if the queue has no elements, false otherwise.
      */
     bool isEmpty() const {
-        return elements == 0;
+        return elements == 0 || !queue;
     }
 
     /**
@@ -153,6 +162,7 @@ public:
      * @brief Print all elements in the queue (front to back).
      */
     void print() const {
+        if(!queue) return;
         for(int i = 0; i < elements; i++){
             Serial.println(queue[front + i]);
         }
@@ -170,8 +180,8 @@ public:
     /**
      * @brief Return the number of elements in the queue.
      */
-    size_t count() const {
-        return (size_t)elements;
+    int count() const {
+        return elements;
     }
 };
 #endif // QUEUE_h

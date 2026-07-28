@@ -13,6 +13,7 @@ private:
     void resize(){
         T *newStack = new T[size * 2];
         if(!newStack){
+            Serial.println("Stack: memory allocation failed during resize.");
             return;
         }
         copy(newStack);
@@ -78,14 +79,23 @@ public:
     }
 
     /**
+     * @brief Check if the backing array was successfully allocated.
+     * @return true if the stack is usable, false if allocation failed.
+     */
+    bool isValid() const {
+        return stack != nullptr;
+    }
+
+    /**
      * @brief Push a value onto the top of the stack.
      * @param value The value to push.
      */
     void push(const T &value){
+        if(!stack) return;
         if(isFull()){
             resize();
         }
-        stack[++top] = value;
+        if(stack){ stack[++top] = value; }
     }
 
     /**
@@ -115,7 +125,7 @@ public:
      * @return true if the stack has no elements, false otherwise.
      */
     bool isEmpty() const {
-        return top == -1;
+        return top == -1 || !stack;
     }
 
     /**
@@ -131,6 +141,7 @@ public:
      * @brief Print all elements in the stack (bottom to top).
      */
     void print() const {
+        if(!stack) return;
         for(int i = 0; i <= top; i++){
             Serial.println(stack[i]);
         }
@@ -140,8 +151,8 @@ public:
     /**
      * @brief Return the number of elements in the stack.
      */
-    uint16_t count() const {
-        return (uint16_t)(top + 1);
+    int count() const {
+        return top + 1;
     }
 
     /**
