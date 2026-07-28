@@ -244,7 +244,7 @@ private:
     bool decodeValueAs(const String& value, const bool&) const { return value == "true"; }
 
     template <typename U>
-    String encodeKey(const U&) const { return ""; }
+    String encodeKey(const U&) const { static_assert(sizeof(U) == 0, "DynamicStorage: unsupported key type for SD persistence"); return ""; }
     String encodeKey(const String& value) const { return value; }
     String encodeKey(const int& value) const { return String(value); }
     String encodeKey(const long& value) const { return String(value); }
