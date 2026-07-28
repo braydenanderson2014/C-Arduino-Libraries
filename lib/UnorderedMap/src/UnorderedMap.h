@@ -20,11 +20,21 @@ private:
     size_t capacity; // Size of the table
     size_t count; // Number of key-value pairs in the map
     float loadFactor; // Maximum load factor before resizing
-    KeyHash<KeyType> hashFunction; // Hash functor used to hash keys by type.
     mutable Node fallbackNode; // Safe fallback return for out-of-range operator[] access.
 
+    template <typename T>
+    static auto hashKeyImpl(const T& key, int) -> decltype(KeyHash<T>()(key)) {
+        return KeyHash<T>()(key);
+    }
+    template <typename T>
+    static size_t hashKeyImpl(const T& key, long) {
+        return static_cast<size_t>(key);
+    }
+    static size_t hashKey(const KeyType& key) {
+        return static_cast<size_t>(hashKeyImpl<KeyType>(key, 0));
+    }
+
     size_t hash(const KeyType& key) const; // Hash function
-    void resize(); // Resize the hashtable
 
 public:
     UnorderedMap(size_t initialCapacity = 16, float loadFactor = 0.75); // Constructor
