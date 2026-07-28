@@ -15,8 +15,9 @@ This test platform runs selected Arduino-style library behavior on a Linux host 
 ## What the stress tester measures (separate workflow)
 
 The dedicated stress binary (`host_stress_tests.cpp`) runs in `host-sim-memory-profiles.yml`
-on a weekly schedule.  It measures capacity metrics — not correctness — against each board's
-SRAM budget scaled to a host heap-delta limit (`sramBytes × 1024`).
+on a weekly schedule. It measures capacity metrics against each board's SRAM budget scaled to
+a host heap-delta limit (`sramBytes × 1024`) and now includes periodic data-health checks while
+containers are being filled.
 
 Probes currently run:
 
@@ -24,6 +25,7 @@ Probes currently run:
 |---|---|
 | Instance count | How many simultaneously-alive empty container instances fit within the budget |
 | Element fill | How many elements fit in a single container instance before the budget is exhausted |
+| Health/recovery metadata | Checkpointed invariants/checksums, post-limit recovery checks, and post-cleanup deltas |
 
 Container and type combinations:
 - Instance count: `ArrayList<int>`, `SimpleVector<int>`, `Hashtable<int,int>`, `JSON`
@@ -45,6 +47,16 @@ not a failure.
 - `host_arduino_sim_tests.cpp`: correctness test runner (pass/fail on assertions only)
 - `host_json_mode_tests.cpp`: JSON-focused runner for optional-off and optional-on modes
 - `host_stress_tests.cpp`: memory stress / capacity measurement runner
+- `host_test_matrix.json`: per-library host compile matrix (backend/optional combinations)
+
+## Config-driven host compile matrix
+
+`test/host_arduino_sim/host_test_matrix.json` controls which compile-time host options are
+tested for each discovered library in `arduino-host-sim-tests.yml`.
+
+- `defaults.compile.backends` / `defaults.compile.optionalModes` apply to all libraries.
+- `libraries.<path>.compile.backends` / `optionalModes` override defaults per library path.
+- This allows skipping irrelevant permutations (for example, ArrayList with LittleFS/optional).
 
 ## Run the correctness tests locally
 

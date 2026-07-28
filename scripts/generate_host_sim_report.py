@@ -341,6 +341,7 @@ def generate_markdown(
     runs: Dict[str, Dict[str, Any]],
     expected_library_count: int,
     compile_backend_count: int,
+    expected_compile_smoke_count: int,
 ) -> str:
     lines: List[str] = []
 
@@ -362,7 +363,9 @@ def generate_markdown(
     lines.append(f"- Runs where capacity probe reached limit: {summary['capacityProbeLimitReachedRuns']}")
     lines.append(f"- Runs with first limit-crossing test identified: {summary['runsWithFirstLimitCrossingTest']}")
 
-    if expected_library_count > 0:
+    if expected_compile_smoke_count >= 0:
+        lines.append(f"- Expected compile smoke objects: {expected_compile_smoke_count}")
+    elif expected_library_count > 0:
         expected_smoke = expected_library_count * max(compile_backend_count, 1)
         lines.append(f"- Expected compile smoke objects: {expected_smoke}")
 
@@ -465,6 +468,7 @@ def main() -> int:
     parser.add_argument("--output-json", required=True)
     parser.add_argument("--expected-library-count", type=int, default=0)
     parser.add_argument("--compile-backend-count", type=int, default=2)
+    parser.add_argument("--expected-compile-smoke-count", type=int, default=-1)
     args = parser.parse_args()
 
     artifacts_dir = Path(args.artifacts_dir)
@@ -512,6 +516,7 @@ def main() -> int:
         "compileSmokeObjects": [p.as_posix() for p in smoke_objects],
         "expectedLibraryCount": args.expected_library_count,
         "compileBackendCount": args.compile_backend_count,
+        "expectedCompileSmokeCount": args.expected_compile_smoke_count,
     }
 
     markdown = generate_markdown(
@@ -520,6 +525,7 @@ def main() -> int:
         runs,
         expected_library_count=args.expected_library_count,
         compile_backend_count=args.compile_backend_count,
+        expected_compile_smoke_count=args.expected_compile_smoke_count,
     )
 
     output_md.parent.mkdir(parents=True, exist_ok=True)
