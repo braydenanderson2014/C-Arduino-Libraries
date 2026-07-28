@@ -8,6 +8,8 @@
 template <typename KeyType, typename ValueType>
 class UnorderedMap {
 private:
+    static const size_t DEFAULT_CAPACITY = 16;
+
     struct Node {
         KeyType key;
         ValueType value;
@@ -18,8 +20,8 @@ private:
     size_t capacity; // Size of the table
     size_t count; // Number of key-value pairs in the map
     float loadFactor; // Maximum load factor before resizing
-    KeyHash<KeyType> hashFunction;
-    mutable Node fallbackNode;
+    KeyHash<KeyType> hashFunction; // Hash functor used to hash keys by type.
+    mutable Node fallbackNode; // Safe fallback return for out-of-range operator[] access.
 
     size_t hash(const KeyType& key) const; // Hash function
     void resize(); // Resize the hashtable
@@ -93,7 +95,7 @@ public:
 
 template <typename KeyType, typename ValueType>
 UnorderedMap<KeyType, ValueType>::UnorderedMap(size_t initialCapacity, float loadFactor)
-    : capacity(initialCapacity == 0 ? 16 : initialCapacity),
+    : capacity(initialCapacity == 0 ? DEFAULT_CAPACITY : initialCapacity),
       count(0),
       loadFactor(loadFactor),
       fallbackNode{KeyType(), ValueType(), nullptr} {
@@ -111,9 +113,6 @@ UnorderedMap<KeyType, ValueType>::~UnorderedMap() {
 
 template <typename KeyType, typename ValueType>
 size_t UnorderedMap<KeyType, ValueType>::hash(const KeyType& key) const {
-    if (capacity == 0) {
-        return 0;
-    }
     return hashFunction(key) % capacity;
 }
 
