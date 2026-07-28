@@ -131,7 +131,8 @@ public:
         if(isEmpty()){
             return T();
         }
-        T val = queue[front++];
+        T val = queue[front]; // copy before advancing state
+        front++;
         elements--;
         return val;
     }
