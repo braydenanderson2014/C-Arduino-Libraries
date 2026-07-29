@@ -161,7 +161,7 @@ private:
         delete node;
     }
 
-    static void inOrderPrint(AVLNode* node) {
+    static void inOrderPrint(const AVLNode* node) {
         if (!node) {
             return;
         }
