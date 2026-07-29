@@ -125,10 +125,10 @@ private:
         first.depth = 0;
         stack.push_back(first);
 
-        while (stack.size() > 0) {
-            SearchEntry e = stack.get(stack.size() - 1);
-            stack.erase(static_cast<int>(stack.size()) - 1);
-
+        while (stack.elements() > 0) {
+            unsigned int last = stack.elements() - 1;
+            SearchEntry e = stack.get(last);
+            stack.erase(static_cast<int>(last));
             KDimensionalNode* node = e.node;
             if (node == nullptr) continue;
 
