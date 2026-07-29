@@ -148,7 +148,7 @@ private:
             KDimensionalNode* farChild = diff < 0 ? node->right : node->left;
 
             // Push farChild first (lower priority in LIFO — explored second).
-            if (farChild != nullptr && (bestDistSq < 0 || splitDistSq < bestDistSq)) {
+            if (farChild != nullptr && (bestDistSq < 0 || splitDistSq <= bestDistSq)) {
                 SearchEntry fe;
                 fe.node = farChild;
                 fe.depth = e.depth + 1;
