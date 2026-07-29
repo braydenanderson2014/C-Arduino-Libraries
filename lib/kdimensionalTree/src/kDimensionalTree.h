@@ -211,9 +211,16 @@ private:
 
     void freeTree(KDimensionalNode* node) {
         if (!node) return;
-        freeTree(node->left);
-        freeTree(node->right);
-        delete node;
+        SimpleVector<KDimensionalNode*> stack;
+        stack.push_back(node);
+        while (stack.elements() > 0) {
+            unsigned int last = stack.elements() - 1;
+            KDimensionalNode* current = stack.get(last);
+            stack.erase(static_cast<int>(last));
+            if (current->left) stack.push_back(current->left);
+            if (current->right) stack.push_back(current->right);
+            delete current;
+        }
     }
 
 public:
