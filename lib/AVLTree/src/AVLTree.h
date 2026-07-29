@@ -1,0 +1,347 @@
+#ifndef AVL_TREE_H
+#define AVL_TREE_H
+
+#include <Arduino.h>
+#include <cstddef>
+
+template <typename T>
+class AVLTree {
+private:
+    struct AVLNode {
+        T data;
+        AVLNode* left;
+        AVLNode* right;
+        int height;
+
+        explicit AVLNode(const T& value)
+            : data(value), left(nullptr), right(nullptr), height(0) {}
+    };
+
+    AVLNode* root;
+    std::size_t nodeCount;
+
+    static int maxInt(int a, int b) {
+        return (a > b) ? a : b;
+    }
+
+    static int heightOf(const AVLNode* node) {
+        return node ? node->height : -1;
+    }
+
+    static int balanceOf(const AVLNode* node) {
+        return node ? (heightOf(node->left) - heightOf(node->right)) : 0;
+    }
+
+    static AVLNode* rotateRight(AVLNode* node) {
+        AVLNode* newRoot = node->left;
+        AVLNode* transfer = newRoot->right;
+
+        newRoot->right = node;
+        node->left = transfer;
+
+        node->height = 1 + maxInt(heightOf(node->left), heightOf(node->right));
+        newRoot->height = 1 + maxInt(heightOf(newRoot->left), heightOf(newRoot->right));
+        return newRoot;
+    }
+
+    static AVLNode* rotateLeft(AVLNode* node) {
+        AVLNode* newRoot = node->right;
+        AVLNode* transfer = newRoot->left;
+
+        newRoot->left = node;
+        node->right = transfer;
+
+        node->height = 1 + maxInt(heightOf(node->left), heightOf(node->right));
+        newRoot->height = 1 + maxInt(heightOf(newRoot->left), heightOf(newRoot->right));
+        return newRoot;
+    }
+
+    static AVLNode* rebalance(AVLNode* node) {
+        if (!node) {
+            return nullptr;
+        }
+
+        node->height = 1 + maxInt(heightOf(node->left), heightOf(node->right));
+        const int balance = balanceOf(node);
+
+        if (balance > 1) {
+            if (balanceOf(node->left) < 0) {
+                node->left = rotateLeft(node->left);
+            }
+            return rotateRight(node);
+        }
+
+        if (balance < -1) {
+            if (balanceOf(node->right) > 0) {
+                node->right = rotateRight(node->right);
+            }
+            return rotateLeft(node);
+        }
+
+        return node;
+    }
+
+    static AVLNode* findMinNode(AVLNode* node) {
+        AVLNode* current = node;
+        while (current && current->left) {
+            current = current->left;
+        }
+        return current;
+    }
+
+    static AVLNode* findMaxNode(AVLNode* node) {
+        AVLNode* current = node;
+        while (current && current->right) {
+            current = current->right;
+        }
+        return current;
+    }
+
+    static AVLNode* findNode(AVLNode* node, const T& data) {
+        AVLNode* current = node;
+        while (current) {
+            if (data < current->data) {
+                current = current->left;
+            } else if (data > current->data) {
+                current = current->right;
+            } else {
+                return current;
+            }
+        }
+        return nullptr;
+    }
+
+    static AVLNode* cloneNode(const AVLNode* node) {
+        if (!node) {
+            return nullptr;
+        }
+        AVLNode* copy = new AVLNode(node->data);
+        copy->height = node->height;
+        copy->left = cloneNode(node->left);
+        copy->right = cloneNode(node->right);
+        return copy;
+    }
+
+    static void clearNode(AVLNode* node) {
+        if (!node) {
+            return;
+        }
+        clearNode(node->left);
+        clearNode(node->right);
+        delete node;
+    }
+
+    static void inOrderPrint(AVLNode* node) {
+        if (!node) {
+            return;
+        }
+        inOrderPrint(node->left);
+        Serial.println(node->data);
+        inOrderPrint(node->right);
+    }
+
+    static void preOrderPrint(AVLNode* node) {
+        if (!node) {
+            return;
+        }
+        Serial.println(node->data);
+        preOrderPrint(node->left);
+        preOrderPrint(node->right);
+    }
+
+    static void postOrderPrint(AVLNode* node) {
+        if (!node) {
+            return;
+        }
+        postOrderPrint(node->left);
+        postOrderPrint(node->right);
+        Serial.println(node->data);
+    }
+
+    static void printTree(AVLNode* node, int space) {
+        if (!node) {
+            return;
+        }
+
+        space += 10;
+        printTree(node->right, space);
+        Serial.println();
+        for (int i = 10; i < space; ++i) {
+            Serial.print(" ");
+        }
+        Serial.println(node->data);
+        printTree(node->left, space);
+    }
+
+    AVLNode* insertNode(AVLNode* node, const T& data, bool& inserted) {
+        if (!node) {
+            inserted = true;
+            return new AVLNode(data);
+        }
+
+        if (data < node->data) {
+            node->left = insertNode(node->left, data, inserted);
+        } else if (data > node->data) {
+            node->right = insertNode(node->right, data, inserted);
+        } else {
+            return node;
+        }
+
+        return rebalance(node);
+    }
+
+    AVLNode* removeNode(AVLNode* node, const T& data, bool& removed) {
+        if (!node) {
+            return nullptr;
+        }
+
+        if (data < node->data) {
+            node->left = removeNode(node->left, data, removed);
+        } else if (data > node->data) {
+            node->right = removeNode(node->right, data, removed);
+        } else {
+            removed = true;
+            if (!node->left || !node->right) {
+                AVLNode* child = node->left ? node->left : node->right;
+                delete node;
+                return child;
+            }
+
+            AVLNode* successor = findMinNode(node->right);
+            node->data = successor->data;
+            node->right = removeNode(node->right, successor->data, removed);
+        }
+
+        return rebalance(node);
+    }
+
+public:
+    AVLTree() : root(nullptr), nodeCount(0) {}
+
+    AVLTree(const AVLTree& other)
+        : root(cloneNode(other.root)), nodeCount(other.nodeCount) {}
+
+    AVLTree& operator=(const AVLTree& other) {
+        if (this == &other) {
+            return *this;
+        }
+
+        AVLNode* newRoot = cloneNode(other.root);
+        clearNode(root);
+        root = newRoot;
+        nodeCount = other.nodeCount;
+        return *this;
+    }
+
+    AVLTree(AVLTree&& other) noexcept
+        : root(other.root), nodeCount(other.nodeCount) {
+        other.root = nullptr;
+        other.nodeCount = 0;
+    }
+
+    AVLTree& operator=(AVLTree&& other) noexcept {
+        if (this == &other) {
+            return *this;
+        }
+
+        clearNode(root);
+        root = other.root;
+        nodeCount = other.nodeCount;
+        other.root = nullptr;
+        other.nodeCount = 0;
+        return *this;
+    }
+
+    ~AVLTree() {
+        clear();
+    }
+
+    void insert(const T& data) {
+        bool inserted = false;
+        root = insertNode(root, data, inserted);
+        if (inserted) {
+            ++nodeCount;
+        }
+    }
+
+    void remove(const T& data) {
+        bool removed = false;
+        root = removeNode(root, data, removed);
+        if (removed && nodeCount > 0) {
+            --nodeCount;
+        }
+    }
+
+    bool erase(const T& data) {
+        const std::size_t before = nodeCount;
+        remove(data);
+        return nodeCount != before;
+    }
+
+    void deleteNode(const T& data) {
+        remove(data);
+    }
+
+    bool contains(const T& data) const {
+        return findNode(root, data) != nullptr;
+    }
+
+    T find(const T& data) const {
+        AVLNode* found = findNode(root, data);
+        return found ? found->data : T();
+    }
+
+    T findMin() const {
+        AVLNode* node = findMinNode(root);
+        return node ? node->data : T();
+    }
+
+    T findMax() const {
+        AVLNode* node = findMaxNode(root);
+        return node ? node->data : T();
+    }
+
+    int height() const {
+        return heightOf(root);
+    }
+
+    int getBalance() const {
+        return balanceOf(root);
+    }
+
+    std::size_t size() const {
+        return nodeCount;
+    }
+
+    bool isEmpty() const {
+        return root == nullptr;
+    }
+
+    void clear() {
+        clearNode(root);
+        root = nullptr;
+        nodeCount = 0;
+    }
+
+    void inOrder() const {
+        inOrderPrint(root);
+    }
+
+    void preOrder() const {
+        preOrderPrint(root);
+    }
+
+    void postOrder() const {
+        postOrderPrint(root);
+    }
+
+    void print() const {
+        inOrder();
+    }
+
+    void printTree() const {
+        printTree(root, 0);
+    }
+};
+
+#endif // AVL_TREE_H
