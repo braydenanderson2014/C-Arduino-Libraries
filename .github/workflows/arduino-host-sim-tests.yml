@@ -759,7 +759,10 @@ jobs:
             test/host_arduino_sim/include/SPI.h
             lib/ArrayList/src/ArrayList.h
             lib/AVLTree/src/AVLTree.h
+            lib/DynamicStorageLibrary/src/DynamicStorageLibrary.h
             lib/Hashtable/src/Hashtable.h
+            lib/Operators/src/Operators.h
+            lib/Predicates/src/Predicates.h
             lib/SimpleVector/src/SimpleVector.h
             lib/SDList/src/SDList.h
             lib/TypeTraits/src/TypeTraits.h
@@ -808,9 +811,12 @@ jobs:
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
             -Ilib/AVLTree/src \
+            -Ilib/DynamicStorageLibrary/src \
             -Ilib/Hashtable/src \
             -Ilib/Json/src \
             -Ilib/MathLib/src \
+            -Ilib/Operators/src \
+            -Ilib/Predicates/src \
             -Ilib/SimpleVector/src \
             -Ilib/SDList/src \
             -Ilib/String/src \
@@ -854,10 +860,13 @@ jobs:
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
             -Ilib/AVLTree/src \
+            -Ilib/DynamicStorageLibrary/src \
             -Ilib/Hashtable/src \
             -Ilib/Json/src \
             -Ilib/MathLib/src \
             -Ilib/Optional/src \
+            -Ilib/Operators/src \
+            -Ilib/Predicates/src \
             -Ilib/SimpleVector/src \
             -Ilib/SDList/src \
             -Ilib/String/src \

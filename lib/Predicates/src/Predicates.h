@@ -5,7 +5,7 @@
 template <typename T>
 class Predicates {
 private:
-    static int globalMultiplier;
+    inline static int globalMultiplier = 0;
 public:
 
 

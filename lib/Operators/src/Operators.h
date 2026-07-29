@@ -2,6 +2,8 @@
 #define OPERATORS_H
 
 #include <Arduino.h>
+#include <cmath>
+#include <cstdlib>
 template <typename T>
 class Operators {
 
@@ -9,8 +11,8 @@ private:
     
 public:
 
-    static T globalMultiplier = 0;
-    static T array = new T[100];
+    inline static T globalMultiplier = static_cast<T>(0);
+    inline static T array[100] = {};
     /**
      * @brief Increment element by 1 (assuming T supports being incremented)
      * @param element The element to increment
@@ -40,7 +42,7 @@ public:
      * 
      * @return void
     */
-    void setGlobalMultiplier(T multiplier) {
+    static void setGlobalMultiplier(T multiplier) {
         globalMultiplier = multiplier;
     }
 
@@ -1030,8 +1032,8 @@ public:
      * 
     */
     static void addItemsToArray(T value){
-        for(static T i = 0; i < 100; i++){
-            if(array[i] != 0){
+        for(int i = 0; i < 100; i++){
+            if(array[i] == 0){
                 array[i] = value;
                 return;
             }else {
@@ -1046,7 +1048,7 @@ public:
      * 
     */
     static void removeItemsFromArray(T value){
-        for(static T i = 0; i < 100; i++){
+        for(int i = 0; i < 100; i++){
             if(array[i] == value){
                 array[i] = 0;
                 return;
