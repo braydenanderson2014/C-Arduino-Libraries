@@ -89,6 +89,14 @@ private:
         return current;
     }
 
+    static const AVLNode* findMinNode(const AVLNode* node) {
+        const AVLNode* current = node;
+        while (current && current->left) {
+            current = current->left;
+        }
+        return current;
+    }
+
     static AVLNode* findMaxNode(AVLNode* node) {
         AVLNode* current = node;
         while (current && current->right) {
@@ -97,8 +105,30 @@ private:
         return current;
     }
 
+    static const AVLNode* findMaxNode(const AVLNode* node) {
+        const AVLNode* current = node;
+        while (current && current->right) {
+            current = current->right;
+        }
+        return current;
+    }
+
     static AVLNode* findNode(AVLNode* node, const T& data) {
         AVLNode* current = node;
+        while (current) {
+            if (data < current->data) {
+                current = current->left;
+            } else if (data > current->data) {
+                current = current->right;
+            } else {
+                return current;
+            }
+        }
+        return nullptr;
+    }
+
+    static const AVLNode* findNode(const AVLNode* node, const T& data) {
+        const AVLNode* current = node;
         while (current) {
             if (data < current->data) {
                 current = current->left;
@@ -284,21 +314,21 @@ public:
     }
 
     bool contains(const T& data) const {
-        return findNode(root, data) != nullptr;
+        return findNode(static_cast<const AVLNode*>(root), data) != nullptr;
     }
 
     T find(const T& data) const {
-        AVLNode* found = findNode(root, data);
+        const AVLNode* found = findNode(static_cast<const AVLNode*>(root), data);
         return found ? found->data : T();
     }
 
     T findMin() const {
-        AVLNode* node = findMinNode(root);
+        const AVLNode* node = findMinNode(static_cast<const AVLNode*>(root));
         return node ? node->data : T();
     }
 
     T findMax() const {
-        AVLNode* node = findMaxNode(root);
+        const AVLNode* node = findMaxNode(static_cast<const AVLNode*>(root));
         return node ? node->data : T();
     }
 

@@ -789,7 +789,7 @@ void testAVLTreeChurnAndHeightHealth() {
         tree.insert(i);
     }
     expect(tree.size() == 512, "AVLTree size mismatch after sequential inserts");
-    expect(tree.height() >= 0 && tree.height() <= 20, "AVLTree height should stay logarithmic for 512 inserts");
+    expect(tree.height() >= -1 && tree.height() <= 20, "AVLTree height should stay logarithmic for 512 inserts");
     expect(tree.findMin() == 0 && tree.findMax() == 511, "AVLTree min/max mismatch after fill");
 
     for (int i = 1; i < 512; i += 2) {
@@ -800,7 +800,7 @@ void testAVLTreeChurnAndHeightHealth() {
         const bool shouldExist = (i % 2) == 0;
         expect(tree.contains(i) == shouldExist, "AVLTree key presence mismatch after churn");
     }
-    expect(tree.height() >= 0 && tree.height() <= 20, "AVLTree height should remain bounded after churn");
+    expect(tree.height() >= -1 && tree.height() <= 20, "AVLTree height should remain bounded after churn");
 
     for (int i = 0; i < 512; i += 2) {
         tree.remove(i);

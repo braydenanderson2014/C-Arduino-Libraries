@@ -49,6 +49,8 @@
 // Mask applied to std::size_t loop counters before casting to int/key, keeping
 // the value non-negative regardless of the platform's int width.
 static constexpr unsigned int MAX_POSITIVE_INT_MASK = 0x7fffffffu;
+// A large positive key kept below INT_MAX to avoid collision with sequential inserts.
+static constexpr int AVLTREE_PROBE_SENTINEL = 2147483000;
 
 // ─── Memory measurement ──────────────────────────────────────────────────────
 
@@ -733,8 +735,8 @@ int main() {
             const std::size_t before = c.size();
             const int probe = expected > 0 ? static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK) : 0;
             const bool hadProbe = expected > 0 ? c.contains(probe) : true;
-            c.insert(2147483000);
-            c.remove(2147483000);
+            c.insert(AVLTREE_PROBE_SENTINEL);
+            c.remove(AVLTREE_PROBE_SENTINEL);
             return c.size() == before && (!hadProbe || c.contains(probe));
         }
     ));
