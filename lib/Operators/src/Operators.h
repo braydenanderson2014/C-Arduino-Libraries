@@ -1032,7 +1032,7 @@ public:
      * 
     */
     static void addItemsToArray(T value){
-        for(static T i = 0; i < 100; i++){
+        for(int i = 0; i < 100; i++){
             if(array[i] == 0){
                 array[i] = value;
                 return;
@@ -1048,7 +1048,7 @@ public:
      * 
     */
     static void removeItemsFromArray(T value){
-        for(static T i = 0; i < 100; i++){
+        for(int i = 0; i < 100; i++){
             if(array[i] == value){
                 array[i] = 0;
                 return;
