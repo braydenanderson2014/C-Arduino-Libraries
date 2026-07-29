@@ -23,7 +23,7 @@ void setup() {
   tree.inOrder();
 
   Serial.print("Size: ");
-  Serial.println(static_cast<int>(tree.size()));
+  Serial.println(static_cast<unsigned long>(tree.size()));
 
   Serial.print("Contains 25: ");
   Serial.println(tree.contains(25));
