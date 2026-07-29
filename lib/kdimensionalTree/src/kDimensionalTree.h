@@ -115,13 +115,15 @@ private:
         // Iterative nearest-neighbor search with a heap-allocated explicit stack
         // to prevent call-stack overflow on deep or unbalanced trees.
         SimpleVector<SearchEntry> stack;
+
+        // Pre-seed best with root so no sentinel value is needed in the loop.
+        KDimensionalNode* best = root;
+        double bestDistSq = distanceSq(point, root->point);
+
         SearchEntry first;
         first.node = root;
         first.depth = 0;
         stack.push_back(first);
-
-        KDimensionalNode* best = nullptr;
-        double bestDistSq = -1.0;
 
         while (stack.size() > 0) {
             SearchEntry e = stack.get(stack.size() - 1);
@@ -133,7 +135,7 @@ private:
             int cd = e.depth % dimension;
             double dSq = distanceSq(point, node->point);
 
-            if (bestDistSq < 0 || dSq < bestDistSq) {
+            if (dSq < bestDistSq) {
                 bestDistSq = dSq;
                 best = node;
             }
@@ -143,12 +145,14 @@ private:
 
             // Near child = same side as query point; explored first (pushed last in LIFO).
             KDimensionalNode* nearChild = diff < 0 ? node->left : node->right;
-            // Far child = opposite side; only explore if the splitting-plane distance
-            // is less than the current best, meaning a closer point could exist there.
+            // Far child = opposite side; only explore when the splitting-plane distance
+            // is <= the current best, meaning a closer point could exist there.
+            // When diff == 0 the query lies exactly on the plane (splitDistSq == 0),
+            // so the condition is always true and both subtrees are searched.
             KDimensionalNode* farChild = diff < 0 ? node->right : node->left;
 
             // Push farChild first (lower priority in LIFO — explored second).
-            if (farChild != nullptr && (bestDistSq < 0 || splitDistSq <= bestDistSq)) {
+            if (farChild != nullptr && splitDistSq <= bestDistSq) {
                 SearchEntry fe;
                 fe.node = farChild;
                 fe.depth = e.depth + 1;
