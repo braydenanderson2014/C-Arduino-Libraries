@@ -34,6 +34,7 @@
 #endif
 
 #include "ArrayList.h"
+#include "AVLTree.h"
 #include "Hashtable.h"
 #include "JSON.h"
 #include "SDList.h"
@@ -721,6 +722,70 @@ void testJSONPersistenceStress(const std::filesystem::path& rootPath) {
         for (int i = 0; i < 40; ++i) {
             writer.setNumber((String("values.") + String(i)).c_str(), round * 100 + i);
         }
+
+        void testAVLTreeBasicBehavior() {
+            AVLTree<int> tree;
+            expect(tree.isEmpty(), "AVLTree should start empty");
+            expect(tree.size() == 0, "AVLTree size should start at 0");
+            expect(tree.findMin() == 0 && tree.findMax() == 0,
+                   "AVLTree empty min/max should return default int");
+
+            tree.insert(30);
+            tree.insert(20);
+            tree.insert(40);
+            tree.insert(10);
+            tree.insert(25);
+            tree.insert(35);
+            tree.insert(50);
+            tree.insert(25); // duplicate ignored
+
+            expect(tree.size() == 7, "AVLTree should ignore duplicate inserts");
+            expect(!tree.isEmpty(), "AVLTree should no longer be empty after inserts");
+            expect(tree.contains(10) && tree.contains(35), "AVLTree should contain inserted keys");
+            expect(!tree.contains(99), "AVLTree should report missing keys");
+            expect(tree.find(35) == 35, "AVLTree find should return matching key");
+            expect(tree.find(99) == 0, "AVLTree find should return default value when missing");
+            expect(tree.findMin() == 10, "AVLTree findMin mismatch");
+            expect(tree.findMax() == 50, "AVLTree findMax mismatch");
+
+            tree.remove(40);
+            tree.deleteNode(10);
+            expect(!tree.contains(40) && !tree.contains(10), "AVLTree remove/deleteNode should erase keys");
+            expect(tree.size() == 5, "AVLTree size should decrease after removals");
+            expect(tree.getBalance() >= -1 && tree.getBalance() <= 1, "AVLTree root should remain balanced");
+
+            tree.clear();
+            expect(tree.isEmpty(), "AVLTree clear should empty tree");
+            expect(tree.size() == 0, "AVLTree size should be zero after clear");
+        }
+
+        void testAVLTreeChurnAndHeightHealth() {
+            AVLTree<int> tree;
+
+            for (int i = 0; i < 512; ++i) {
+                tree.insert(i);
+            }
+            expect(tree.size() == 512, "AVLTree size mismatch after sequential inserts");
+            expect(tree.height() >= 0 && tree.height() <= 20, "AVLTree height should stay logarithmic for 512 inserts");
+            expect(tree.findMin() == 0 && tree.findMax() == 511, "AVLTree min/max mismatch after fill");
+
+            for (int i = 1; i < 512; i += 2) {
+                tree.remove(i);
+            }
+            expect(tree.size() == 256, "AVLTree size mismatch after odd removals");
+            for (int i = 0; i < 512; ++i) {
+                const bool shouldExist = (i % 2) == 0;
+                expect(tree.contains(i) == shouldExist, "AVLTree key presence mismatch after churn");
+            }
+            expect(tree.height() >= 0 && tree.height() <= 20, "AVLTree height should remain bounded after churn");
+
+            for (int i = 0; i < 512; i += 2) {
+                tree.remove(i);
+            }
+            expect(tree.isEmpty(), "AVLTree should be empty after removing all elements");
+            expect(tree.findMin() == 0 && tree.findMax() == 0,
+                   "AVLTree empty min/max should return default after full clear-by-removal");
+        }
         expect(writer.writeToFile(filePath.string().c_str(), false) == JSON::JSON_WRITE_SUCCESS,
                "JSON persistence write should succeed");
 
@@ -873,6 +938,8 @@ int main() {
             [&]() { testJSONPersistenceStress(fsRoot); },
             memoryStats
         );
+        runTestWithMemoryStats("testAVLTreeBasicBehavior", testAVLTreeBasicBehavior, memoryStats);
+        runTestWithMemoryStats("testAVLTreeChurnAndHeightHealth", testAVLTreeChurnAndHeightHealth, memoryStats);
 
         peak = getPeakResidentBytes();
         success = true;

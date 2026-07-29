@@ -41,6 +41,7 @@
 
 #include "Arduino.h"
 #include "ArrayList.h"
+#include "AVLTree.h"
 #include "Hashtable.h"
 #include "JSON.h"
 #include "SimpleVector.h"
@@ -448,6 +449,11 @@ int main() {
         []() { return new JSON(); }
     ));
 
+    instanceProbes.push_back(probeInstanceCount<AVLTree<int>>(
+        "AVLTree_int", limitBytes, maxInstances,
+        []() { return new AVLTree<int>(); }
+    ));
+
     // ── Element fill probes ──────────────────────────────────────────────────
     // Measures how many elements fit in a single container instance.
 
@@ -697,6 +703,39 @@ int main() {
             if (!c.remove(recoveryKey)) return false;
             return static_cast<std::size_t>(c.elements()) == before &&
                    (expected == 0 || c.getElement(probe) == probeValue);
+        }
+    ));
+
+    // AVLTree<int>
+    fillProbes.push_back(probeElementFill<AVLTree<int>>(
+        "AVLTree", "int", limitBytes, maxElements,
+        []() { return AVLTree<int>(); },
+        [](AVLTree<int>& c, std::size_t i) {
+            c.insert(static_cast<int>(i & MAX_POSITIVE_INT_MASK));
+        },
+        [](AVLTree<int>& c, std::size_t expected) {
+            if (c.size() != expected) return false;
+            if (expected == 0) return true;
+            const std::array<std::size_t, 3> idx = {0, expected / 2, expected - 1};
+            for (std::size_t i : idx) {
+                const int key = static_cast<int>(i & MAX_POSITIVE_INT_MASK);
+                if (!c.contains(key)) return false;
+            }
+            return c.findMin() == 0 && c.findMax() == static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+        },
+        [](AVLTree<int>& c, std::size_t expected) {
+            return sampleChecksum(expected, [&](std::size_t i) {
+                const int key = static_cast<int>(i & MAX_POSITIVE_INT_MASK);
+                return c.find(key);
+            });
+        },
+        [](AVLTree<int>& c, std::size_t expected) {
+            const std::size_t before = c.size();
+            const int probe = expected > 0 ? static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK) : 0;
+            const bool hadProbe = expected > 0 ? c.contains(probe) : true;
+            c.insert(2147483000);
+            c.remove(2147483000);
+            return c.size() == before && (!hadProbe || c.contains(probe));
         }
     ));
 

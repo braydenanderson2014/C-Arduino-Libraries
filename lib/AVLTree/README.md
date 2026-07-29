@@ -1,83 +1,63 @@
 # AVL Tree Library for Arduino
+
 ## Overview
-This library provides an implementation of an AVL Tree, a self-balancing binary search tree, for use in Arduino projects. The AVL Tree maintains a balance factor for each node to ensure that the tree remains approximately balanced at all times, offering O(log n) complexity for insertion, deletion, and lookup operations.
+This library provides a templated AVL Tree implementation for Arduino. The tree self-balances after inserts/removals to keep operations efficient.
 
 ## Features
-* Insertion: Add elements to the tree while maintaining its balanced nature.
-* Deletion: Remove elements from the tree, automatically rebalancing as necessary.
-* Search: Efficiently find elements within the tree.
-* Traversal: Supports in-order, pre-order, and post-order traversals to iterate over elements in the tree.
-* Min/Max: Quickly retrieve the minimum or maximum value contained in the tree.
-* Height and Balance Information: Access the height of the tree and the balance factor of any node to understand the tree's structure.
-* Printing: Utility functions for printing the tree structure to aid in debugging.
+- Insert and remove values with automatic AVL rebalancing
+- Search and membership checks (`find`, `contains`)
+- Safe empty-tree handling for `findMin`, `findMax`, and `find`
+- In-order, pre-order, and post-order printing via `Serial`
+- Utility APIs: `size`, `height`, `getBalance`, `clear`, `isEmpty`
+- Compatibility include for both `AVLTree.h` and legacy `avlTree.h`
 
 ## Usage
-To use this library in your Arduino project, include the AVLTree.h header file and follow the example below:
-
 ```cpp
-#include "AVLTree.h"
+#include <AVLTree.h>
 
-AVLTree<int> myTree;
+AVLTree<int> tree;
 
 void setup() {
   Serial.begin(9600);
-  
-  // Insert elements into the AVL Tree
-  myTree.insert(10);
-  myTree.insert(20);
-  myTree.insert(30);
-  myTree.insert(5);
-  myTree.insert(3);
 
-  // Perform in-order traversal of the tree
-  Serial.println("In-order Traversal:");
-  myTree.inOrder();
+  tree.insert(10);
+  tree.insert(20);
+  tree.insert(15);
 
-  // Find the minimum and maximum elements
-  Serial.print("Minimum: ");
-  Serial.println(myTree.findMin());
-  Serial.print("Maximum: ");
-  Serial.println(myTree.findMax());
+  if (tree.contains(15)) {
+    Serial.println(tree.find(15));
+  }
 
-  // Delete an element
-  myTree.deleteNode(10);
-  Serial.println("After deleting 10:");
-  myTree.inOrder();
+  Serial.println(tree.findMin());
+  Serial.println(tree.findMax());
+
+  tree.remove(10);
+  tree.inOrder();
 }
 
-void loop() {
-  // Tree operations can be invoked here or in setup()
-}
+void loop() {}
 ```
 
-## Implementation Details
-The AVL Tree implementation automatically handles balancing through rotations during insertions and deletions, ensuring that the tree remains as balanced as possible without requiring manual intervention.
+## Notes
+- The tree stores unique keys (duplicate inserts are ignored).
+- `find`, `findMin`, and `findMax` return `T()` when no value is available.
 
-## Functions
-* ```cpp void insert(T data)```: Inserts a new element into the tree.
-* ```void remove(T data)```: Removes an element from the tree.
-* ```void inOrder()```, void preOrder(), void postOrder(): Perform tree traversals.
-* ```T findMin(), T findMax()```: Retrieve the minimum and maximum elements of the tree.
-* ```void printTree()```: Prints a visual representation of the tree.
-* ```void clear()```: Clears the tree, removing all elements.
-* ```bool isEmpty()```: Checks if the tree is empty.
-
-## Customization
-The library is templated to allow for the storage of any data type that supports comparison operations (i.e., has operator< and operator> defined). This makes it suitable for a wide range of applications, from storing simple integers to complex objects, as long as they provide the necessary comparison operators.
-
-## Contribution
-Contributions to the library are welcome, whether they are for bug fixes, improvements, or new features. Please follow standard coding conventions and add comments to your code to ensure readability and maintainability.
-
-## License
-This library is released under the Apache License. See the LICENSE file for more details.
-
-
-# Arduino Library Manager
+## Arduino Library Manager
 ## ChangeLog:
-### Version 1.0.0-ALPHA
-* Initial Untested Release... This Release has been test compiled but not tested.
+### Version 1.0.1-ALPHA
+- Reworked AVL tree internals to eliminate memory safety bugs and duplicate deletion paths.
+- Added compatibility header support (`AVLTree.h` + `avlTree.h`).
+- Added/updated host simulation and stress coverage for AVL behavior.
 
-# PlatformIO Registry
-## ChangeLog:
 ### Version 1.0.0-ALPHA
-* Initial Untested Release... This Release has been test compiled but not tested.
+- Initial untested release.
+
+## PlatformIO Registry
+## ChangeLog:
+### Version 1.0.1-ALPHA
+- Reworked AVL tree internals to eliminate memory safety bugs and duplicate deletion paths.
+- Added compatibility header support (`AVLTree.h` + `avlTree.h`).
+- Added/updated host simulation and stress coverage for AVL behavior.
+
+### Version 1.0.0-ALPHA
+- Initial untested release.

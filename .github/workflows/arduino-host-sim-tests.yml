@@ -757,6 +757,7 @@ jobs:
             test/host_arduino_sim/include/LittleFS.h
             test/host_arduino_sim/include/SPI.h
             lib/ArrayList/src/ArrayList.h
+            lib/AVLTree/src/AVLTree.h
             lib/Hashtable/src/Hashtable.h
             lib/SimpleVector/src/SimpleVector.h
             lib/SDList/src/SDList.h
@@ -805,6 +806,7 @@ jobs:
             -DAL_NO_SERIAL ${EXTRA_FLAGS} ${ARCH_FLAGS} \
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
+            -Ilib/AVLTree/src \
             -Ilib/Hashtable/src \
             -Ilib/Json/src \
             -Ilib/MathLib/src \
@@ -849,6 +851,7 @@ jobs:
             -DJSON_ENABLE_OPTIONAL_RETURNS=1 \
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
+            -Ilib/AVLTree/src \
             -Ilib/Hashtable/src \
             -Ilib/Json/src \
             -Ilib/MathLib/src \
