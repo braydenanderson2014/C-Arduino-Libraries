@@ -13,6 +13,12 @@ private:
         KDimensionalNode *left, *right;
     };
 
+    // Stack entry for the iterative nearest-neighbor search.
+    struct SearchEntry {
+        KDimensionalNode* node;
+        int depth;
+    };
+
     KDimensionalNode *root;
     int dimension;
 
@@ -106,23 +112,21 @@ private:
     KDimensionalNode* nearestNeighbor(const SimpleVector<T>& point) {
         if (root == nullptr) return nullptr;
 
-        // Iterative nearest-neighbor search with an explicit stack to prevent
-        // call-stack overflow on deep or unbalanced trees.
-        static const int MAX_STACK = 64;
-        struct Entry {
-            KDimensionalNode* node;
-            int depth;
-        };
-        Entry stack[MAX_STACK];
-        int top = 0;
+        // Iterative nearest-neighbor search with a heap-allocated explicit stack
+        // to prevent call-stack overflow on deep or unbalanced trees.
+        SimpleVector<SearchEntry> stack;
+        SearchEntry first;
+        first.node = root;
+        first.depth = 0;
+        stack.push_back(first);
 
         KDimensionalNode* best = nullptr;
         double bestDistSq = -1.0;
 
-        stack[top++] = {root, 0};
+        while (stack.size() > 0) {
+            SearchEntry e = stack.get(stack.size() - 1);
+            stack.erase(static_cast<int>(stack.size()) - 1);
 
-        while (top > 0) {
-            Entry e = stack[--top];
             KDimensionalNode* node = e.node;
             if (node == nullptr) continue;
 
@@ -140,18 +144,23 @@ private:
             // Near child = same side as query point; explored first (pushed last in LIFO).
             KDimensionalNode* nearChild = diff < 0 ? node->left : node->right;
             // Far child = opposite side; only explore if the splitting-plane distance
-            // is smaller than the current best, meaning a closer point could exist there.
+            // is less than the current best, meaning a closer point could exist there.
             KDimensionalNode* farChild = diff < 0 ? node->right : node->left;
 
             // Push farChild first (lower priority in LIFO — explored second).
-            if (farChild != nullptr && top < MAX_STACK &&
-                (bestDistSq < 0 || splitDistSq < bestDistSq)) {
-                stack[top++] = {farChild, e.depth + 1};
+            if (farChild != nullptr && (bestDistSq < 0 || splitDistSq < bestDistSq)) {
+                SearchEntry fe;
+                fe.node = farChild;
+                fe.depth = e.depth + 1;
+                stack.push_back(fe);
             }
 
             // Push nearChild last (higher priority in LIFO — explored first).
-            if (nearChild != nullptr && top < MAX_STACK) {
-                stack[top++] = {nearChild, e.depth + 1};
+            if (nearChild != nullptr) {
+                SearchEntry ne;
+                ne.node = nearChild;
+                ne.depth = e.depth + 1;
+                stack.push_back(ne);
             }
         }
 
