@@ -660,6 +660,7 @@ jobs:
           fi
           if [ "${{ matrix.target.optional }}" = "on" ]; then
             EXTRA_FLAGS+=("-DJSON_ENABLE_OPTIONAL_RETURNS=1")
+            EXTRA_FLAGS+=("-DAVL_TREE_ENABLE_ERROR_CODES=1")
           fi
 
           ARCH_FLAGS="-D_AVR_ATmega2560_"
@@ -757,6 +758,7 @@ jobs:
             test/host_arduino_sim/include/LittleFS.h
             test/host_arduino_sim/include/SPI.h
             lib/ArrayList/src/ArrayList.h
+            lib/AVLTree/src/AVLTree.h
             lib/Hashtable/src/Hashtable.h
             lib/SimpleVector/src/SimpleVector.h
             lib/SDList/src/SDList.h
@@ -805,6 +807,7 @@ jobs:
             -DAL_NO_SERIAL ${EXTRA_FLAGS} ${ARCH_FLAGS} \
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
+            -Ilib/AVLTree/src \
             -Ilib/Hashtable/src \
             -Ilib/Json/src \
             -Ilib/MathLib/src \
@@ -847,8 +850,10 @@ jobs:
           g++ -std=c++17 -O2 \
             -DAL_NO_SERIAL ${EXTRA_FLAGS} ${ARCH_FLAGS} \
             -DJSON_ENABLE_OPTIONAL_RETURNS=1 \
+            -DAVL_TREE_ENABLE_ERROR_CODES=1 \
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
+            -Ilib/AVLTree/src \
             -Ilib/Hashtable/src \
             -Ilib/Json/src \
             -Ilib/MathLib/src \

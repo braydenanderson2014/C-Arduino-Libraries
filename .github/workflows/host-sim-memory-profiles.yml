@@ -58,6 +58,7 @@ jobs:
             -DAL_NO_SERIAL -D_AVR_ATmega2560_ \
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
+            -Ilib/AVLTree/src \
             -Ilib/Hashtable/src \
             -Ilib/Json/src \
             -Ilib/MathLib/src \

@@ -28,9 +28,9 @@ Probes currently run:
 | Health/recovery metadata | Checkpointed invariants/checksums, post-limit recovery checks, and post-cleanup deltas |
 
 Container and type combinations:
-- Instance count: `ArrayList<int>`, `SimpleVector<int>`, `Hashtable<int,int>`, `JSON`
+- Instance count: `ArrayList<int>`, `SimpleVector<int>`, `Hashtable<int,int>`, `JSON`, `AVLTree<int>`
 - Element fill: `ArrayList<{int,float,double,String}>`, `SimpleVector<{int,float,double}>`,
-  `Hashtable<{int→int,String→String}>`
+  `Hashtable<{int→int,String→String}>`, `AVLTree<int>`
 
 Results are written to `stress-{board}.json` and aggregated into
 `reports/host-sim-stress-report.md` / `.json`.
@@ -67,6 +67,7 @@ g++ -std=c++17 -O2 \
   -DAL_NO_SERIAL \
   -Itest/host_arduino_sim/include \
   -Ilib/ArrayList/src \
+  -Ilib/AVLTree/src \
   -Ilib/Hashtable/src \
   -Ilib/Json/src \
   -Ilib/MathLib/src \
@@ -92,6 +93,7 @@ g++ -std=c++17 -O2 \
   -DAL_NO_SERIAL \
   -Itest/host_arduino_sim/include \
   -Ilib/ArrayList/src \
+  -Ilib/AVLTree/src \
   -Ilib/Hashtable/src \
   -Ilib/Json/src \
   -Ilib/MathLib/src \
