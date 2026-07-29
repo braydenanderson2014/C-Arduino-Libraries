@@ -35,8 +35,11 @@
 
 #include "ArrayList.h"
 #include "AVLTree.h"
+#include "DynamicStorageLibrary.h"
 #include "Hashtable.h"
 #include "JSON.h"
+#include "Operators.h"
+#include "Predicates.h"
 #include "SDList.h"
 #include "SimpleVector.h"
 #include "CustomString.h"
@@ -881,6 +884,56 @@ void testAVLTreeChurnAndHeightHealth() {
            "AVLTree empty min/max should return default after full clear-by-removal");
 }
 
+void testPredicatesBasicBehavior() {
+    Predicates<int>::setGlobalMultiplier(10);
+    expect(Predicates<int>::getGlobalMultiplier() == 10, "Predicates global multiplier should persist");
+    expect(Predicates<int>::isEven(12), "Predicates isEven should detect even numbers");
+    expect(Predicates<int>::isOdd(13), "Predicates isOdd should detect odd numbers");
+    expect(Predicates<int>::isGreaterThan(11), "Predicates single-arg isGreaterThan should use global multiplier");
+    expect(Predicates<int>::isLessThan(9), "Predicates single-arg isLessThan should use global multiplier");
+    expect(Predicates<int>::isDivisibleBy(20), "Predicates single-arg isDivisibleBy should use global multiplier");
+    expect(Predicates<int>::isDivisibleBy(21, 7), "Predicates two-arg isDivisibleBy should use explicit divisor");
+}
+
+void testOperatorsBasicBehavior() {
+    Operators<int>::setGlobalMultiplier(4);
+    expect(Operators<int>::incrementByOne(5) == 6, "Operators incrementByOne should add one");
+    expect(Operators<int>::doubleValue(7) == 14, "Operators doubleValue should multiply by two");
+    expect(Operators<int>::multiply(3) == 12, "Operators multiply should use global multiplier");
+    expect(Operators<int>::divide(20) == 5, "Operators divide should use global multiplier");
+    expect(Operators<int>::add(2) == 6, "Operators add single-arg should use global multiplier");
+    expect(Operators<int>::subtract(10) == 6, "Operators subtract single-arg should use global multiplier");
+    expect(Operators<int>::add(3, 5) == 8, "Operators add two-arg should add both values");
+    expect(Operators<int>::subtract(9, 2) == 7, "Operators subtract two-arg should subtract second value");
+}
+
+void testDynamicStorageLibraryRamMode() {
+    using Storage = DynamicStorage<String, int>;
+    Storage storage(Storage::RAM);
+
+    expect(storage.size() == 0, "DynamicStorage should start with empty list storage");
+    storage.add(7);
+    storage.add(11);
+    expect(storage.size() == 2, "DynamicStorage add should grow list storage");
+    expect(storage.get(static_cast<size_t>(0)) == 7, "DynamicStorage list get should return first value");
+    expect(storage.get(static_cast<size_t>(1)) == 11, "DynamicStorage list get should return second value");
+    expect(storage.get(static_cast<size_t>(99)) == 0, "DynamicStorage list get out-of-range should return default");
+
+    storage.put("alpha", 3);
+    expect(storage.hasKey("alpha"), "DynamicStorage hasKey should detect inserted key");
+    expect(storage.get("alpha") == 3, "DynamicStorage map get should return inserted value");
+
+    storage.put("alpha", 5);
+    expect(storage.get("alpha") == 5, "DynamicStorage map get should return most recent value");
+    SimpleVector<int> values = storage.getList("alpha");
+    expect(values.elements() == 2, "DynamicStorage getList should return all values for duplicate key inserts");
+    expect(values.get(0) == 3 && values.get(1) == 5, "DynamicStorage getList should preserve insertion order");
+
+    storage.clear();
+    expect(storage.size() == 0, "DynamicStorage clear should reset list storage");
+    expect(!storage.hasKey("alpha"), "DynamicStorage clear should reset keyed storage");
+}
+
 void writeReport(const std::filesystem::path& reportPath,
                  bool success,
                  std::size_t peakBytes,
@@ -1012,6 +1065,9 @@ int main() {
         );
         runTestWithMemoryStats("testAVLTreeBasicBehavior", testAVLTreeBasicBehavior, memoryStats);
         runTestWithMemoryStats("testAVLTreeChurnAndHeightHealth", testAVLTreeChurnAndHeightHealth, memoryStats);
+        runTestWithMemoryStats("testPredicatesBasicBehavior", testPredicatesBasicBehavior, memoryStats);
+        runTestWithMemoryStats("testOperatorsBasicBehavior", testOperatorsBasicBehavior, memoryStats);
+        runTestWithMemoryStats("testDynamicStorageLibraryRamMode", testDynamicStorageLibraryRamMode, memoryStats);
 #if AVL_TREE_ENABLE_ERROR_CODES
         runTestWithMemoryStats("testAVLTreeErrorCodes", testAVLTreeErrorCodes, memoryStats);
 #endif

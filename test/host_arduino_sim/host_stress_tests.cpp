@@ -42,8 +42,11 @@
 #include "Arduino.h"
 #include "ArrayList.h"
 #include "AVLTree.h"
+#include "DynamicStorageLibrary.h"
 #include "Hashtable.h"
 #include "JSON.h"
+#include "Operators.h"
+#include "Predicates.h"
 #include "SimpleVector.h"
 
 // Mask applied to std::size_t loop counters before casting to int/key, keeping
@@ -456,6 +459,21 @@ int main() {
         []() { return new AVLTree<int>(); }
     ));
 
+    instanceProbes.push_back(probeInstanceCount<DynamicStorage<String, int>>(
+        "DynamicStorage_String_int", limitBytes, maxInstances,
+        []() { return new DynamicStorage<String, int>(DynamicStorage<String, int>::RAM); }
+    ));
+
+    instanceProbes.push_back(probeInstanceCount<Predicates<int>>(
+        "Predicates_int", limitBytes, maxInstances,
+        []() { return new Predicates<int>(); }
+    ));
+
+    instanceProbes.push_back(probeInstanceCount<Operators<int>>(
+        "Operators_int", limitBytes, maxInstances,
+        []() { return new Operators<int>(); }
+    ));
+
     // ── Element fill probes ──────────────────────────────────────────────────
     // Measures how many elements fit in a single container instance.
 
@@ -738,6 +756,35 @@ int main() {
             try { c.insert(AVLTREE_PROBE_SENTINEL); } catch (const std::bad_alloc&) {}
             c.remove(AVLTREE_PROBE_SENTINEL);
             return c.size() == before && (!hadProbe || c.contains(probe));
+        }
+    ));
+
+    // DynamicStorage<String,int> in RAM mode
+    fillProbes.push_back(probeElementFill<DynamicStorage<String, int>>(
+        "DynamicStorage", "String_int", limitBytes, maxElements,
+        []() { return DynamicStorage<String, int>(DynamicStorage<String, int>::RAM); },
+        [](DynamicStorage<String, int>& c, std::size_t i) {
+            c.put(String(static_cast<int>(i)), static_cast<int>(i & MAX_POSITIVE_INT_MASK));
+        },
+        [](DynamicStorage<String, int>& c, std::size_t expected) {
+            if (expected == 0) return true;
+            const String probe = String(static_cast<int>(expected - 1));
+            return c.hasKey(probe) && c.get(probe) == static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+        },
+        [](DynamicStorage<String, int>& c, std::size_t expected) {
+            return sampleChecksum(expected, [&](std::size_t i) {
+                return c.get(String(static_cast<int>(i)));
+            });
+        },
+        [](DynamicStorage<String, int>& c, std::size_t expected) {
+            if (expected == 0) {
+                c.put("__recovery__", 1);
+                return c.get("__recovery__") == 1;
+            }
+            const String probe = String(static_cast<int>(expected - 1));
+            const int beforeValue = c.get(probe);
+            c.put("__recovery__", 7);
+            return c.get("__recovery__") == 7 && c.get(probe) == beforeValue;
         }
     ));
 

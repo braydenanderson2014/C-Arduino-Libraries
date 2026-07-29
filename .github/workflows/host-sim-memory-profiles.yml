@@ -59,9 +59,12 @@ jobs:
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
             -Ilib/AVLTree/src \
+            -Ilib/DynamicStorageLibrary/src \
             -Ilib/Hashtable/src \
             -Ilib/Json/src \
             -Ilib/MathLib/src \
+            -Ilib/Operators/src \
+            -Ilib/Predicates/src \
             -Ilib/SimpleVector/src \
             -Ilib/SDList/src \
             -Ilib/String/src \
