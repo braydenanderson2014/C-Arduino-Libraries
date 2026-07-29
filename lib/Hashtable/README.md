@@ -80,7 +80,7 @@ for (auto it = hashTable.begin(); it != hashTable.end(); ++it) {
 ---
 ## 📜 **PlatformIO Changelog**
 ### Latest Version:
-- **v1.1.4** (see changes below)
+- **v1.1.5** (see changes below)
 
 
 ### Previous Versions:
@@ -162,6 +162,11 @@ This is to make sure that empty data is printed as empty and not garbage data.
 return Iterator(this, TABLE_SIZE, nullptr);
 ```
 which is exactly what end() already has inside. This is just to be neater.
+
+- **v1.1.5**
+             - Hardened defensive behavior around edge cases in the Hashtable implementation.
+             - Improved compatibility and stability for defensive access paths and test coverage.
+             - Kept the existing capacity normalization and fallback behavior intact for safer embedded use.
 
 - **v1.1.4**
              - Added `normalizeTableSize()` private helper: zero or negative initial capacities now safely default to `INITIAL_TABLE_SIZE` instead of causing undefined behavior.

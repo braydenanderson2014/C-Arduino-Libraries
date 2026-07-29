@@ -1,6 +1,6 @@
 {
     "name": "Hashtable",
-    "version": "1.1.3",
+    "version": "1.1.5",
     "description": "A hashtable implementation for Arduino",
     "keywords": ["Hashtable", "Hashtable Iterator", "Hash", "Table", "Dynamic Hashtable", "Arduino Hashtable", "Arduino Hash", "Arduino Table", "Arduino Dynamic Hashtable", "Hashset", "Arduino Hashset", "Arduino Dynamic Hashset", "Key-Value Pairs"],
     "repository": {

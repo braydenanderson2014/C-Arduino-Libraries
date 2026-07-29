@@ -85,6 +85,11 @@ Serial.println(text.getValue()); // Output: Hello, Optional!
 ```
 
 ## Changelog
+### **v1.0.1**
+- ✅ Refined empty-value fallback behavior for safer optional access.
+- ✅ Improved consistency around optional-return handling and JSON-related usage.
+- ✅ Added follow-up fixes for empty access semantics and optional parsing safety.
+
 ### **v1.0.0**
 - 🚀 Initial release.
 - ✅ Supports `hasValue()` for checking availability.

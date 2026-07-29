@@ -16,7 +16,16 @@ This optimization allows Arduino Mega to create many more OrderedMap instances w
 * Testing: So far testing is successful!
 * Memory: Optimized for minimal memory usage - suitable for resource-constrained devices
 
+## What's new in 1.0.2
+- Kept the memory-optimized serialization path that creates JSON only when needed.
+- Continued refinement of the OrderedMap implementation and documentation for clearer use in Arduino projects.
+- Improved compatibility and stability around serialization and map access behavior.
+
 ## Change Log:
+### Version 1.0.2: [CURRENT]
+* Continued refinement of OrderedMap behavior and documentation.
+* Kept the memory-optimized serialization approach that creates JSON only during read/write operations.
+* Improved compatibility and stability around serialization and map access behavior.
 ### Version 1.0.1-ALPHA: [CURRENT]
 * Memory optimization: Removed persistent JSON member variable
 * JSON object now created only during serialization/deserialization operations

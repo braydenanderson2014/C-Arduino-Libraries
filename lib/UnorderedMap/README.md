@@ -16,6 +16,11 @@ To use `UnorderedMap` in your Arduino sketch:
 1. Copy the `UnorderedMap.h` file to your project's directory.
 2. Include `UnorderedMap.h` at the top of your sketch.
 
+## What's new in 1.0.5
+- Improved hashing compatibility and iterator behavior for better map traversal and key handling.
+- Fixed core map issues around resize, hashing, and access paths.
+- Cleaned up compile-time issues and clarified the public API docs.
+
 ## Change Log
 ### Version 1.0.0
 * Initial Release
@@ -35,8 +40,10 @@ To use `UnorderedMap` in your Arduino sketch:
 ### Version 1.0.4
 * Removed Debug Messages to save memory space, Will implement a version with debug messages later.
 * Added Function Comments to all functions
-
-
+### Version 1.0.5
+* Improved hashing compatibility and iterator behavior for better map traversal and key handling.
+* Fixed core map issues around resize, hashing, and access paths.
+* Cleaned up compile-time issues and clarified the public API docs.
 
 ## Usage
 

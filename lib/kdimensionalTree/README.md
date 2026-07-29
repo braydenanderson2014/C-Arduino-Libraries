@@ -3,6 +3,12 @@
 ## Overview
 The K-Dimensional Tree (KD-Tree) library for Arduino provides a powerful tool for organizing points in a k-dimensional space. This data structure facilitates efficient search operations, such as nearest neighbor search and range search, making it ideal for applications in robotics, spatial indexing, and more.
 
+## What's new in 1.0.0
+- This release marks the first stable 1.0.0 package version for the library.
+- Documentation and examples have been refreshed for easier Arduino and PlatformIO use.
+- Package metadata has been updated to improve library discovery and installation consistency.
+- Core KD-tree features remain available, including dynamic insertion, nearest-neighbor search, range search, removal, and clearing.
+
 ## Key Features
 * Generic Implementation: Compatible with any numeric type (e.g., int, float) for the coordinates of points.
 * Dynamic Insertion: Allows for dynamic insertion of points into the k-dimensional space.

@@ -2,6 +2,12 @@
 
 The `Properties` class is a C++ class that provides a simple key-value store for managing properties. It allows you to store and retrieve key-value pairs, save properties to an SD card, load properties from an SD card, and perform other operations commonly used for managing configurations and settings.
 
+## What's new in 1.2.0
+- Added broader filesystem support for SD, LittleFS, and injected fs::FS backends.
+- Improved YAML, JSON, TOML, INI, and CSV parsing/serialization behavior.
+- Fixed issues around trailing commas, blank/comment line handling, and file-loading edge cases.
+- Refined the Properties API documentation and compatibility with the latest Hashtable and SimpleVector behavior.
+
 ## Usage
 
 To use the `Properties` class, follow these steps:
@@ -112,6 +118,11 @@ You may also need:
 ### Version 1.1.2: [CURRENT-RELEASE] 
 * Added Support for custom chipSelect pin. You can now setChipSelect and getChipSelect which allows you to customize which pin gets used as the ChipSelect pin on an SD card reader. 
 * This Version moves the library back out of Beta status. Though the library may still have issues... If you spot any bugs, please do not hesitate to file an issue report.
+### Version 1.2.0: [CURRENT]
+* Added broader filesystem support for SD, LittleFS, and injected fs::FS backends.
+* Improved YAML, JSON, TOML, INI, and CSV parsing/serialization behavior.
+* Fixed issues around trailing commas, blank/comment line handling, and file-loading edge cases.
+* Refined the Properties API documentation and compatibility with the latest Hashtable and SimpleVector behavior.
 
             
 ## LittleFS support

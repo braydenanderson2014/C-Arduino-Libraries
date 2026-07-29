@@ -1,6 +1,6 @@
 {
     "name": "Variant",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "A flexible template-based Variant class supporting both single values and dynamic lists using ArrayList or SimpleVector.",
     "keywords": ["Variant", "Dynamic Storage", "List", "ArrayList", "SimpleVector", "Data"],
     "repositories": [

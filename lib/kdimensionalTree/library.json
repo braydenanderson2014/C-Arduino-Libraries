@@ -1,7 +1,7 @@
 {
     "name": "KDimensonalTree",
-    "version": "1.0.0-ALPHA",
-    "description": "A Tree Data Structure Library for Arduino. This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
+    "version": "1.0.0",
+    "description": "A KD-tree data structure library for Arduino with support for insertion, nearest-neighbor search, range search, deletion, and tree clearing.",
     "keywords": ["kDimensional", "Tree", "Data Structure", "Arduino", "kDimensional Tree"],
     "repositories": [
         {
