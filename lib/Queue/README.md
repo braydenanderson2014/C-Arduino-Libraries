@@ -83,5 +83,17 @@ The Queue library is versatile for a wide range of applications, including but n
 * Customization
 * The initial size of the queue and the resizing behavior can be customized by modifying the library's source code to better fit specific requirements, such as memory constraints or expected workload.
 
+## What's new in 1.0.1
+- Fixed dequeue ordering and front-pointer advancement to make queue removal safer and more predictable.
+- Added defensive null guards and validity checks across queue operations.
+- Improved resize, clear, and constructor/operator behavior for more reliable embedded use.
+
+## Changelog
+### 1.0.1
+- Fixed `dequeue()` so it advances the front pointer before decrementing the element count.
+- Corrected copy-ordering behavior in `dequeue()` to be exception-safe.
+- Added validity checks and allocation-failure handling for constructors and operators.
+- Reduced redundant null checks after resize in `push()` and `enqueue()`.
+
 ## License
 The Queue library is open-source and can be freely used and modified. It's recommended to check the specific license details for usage in both personal and commercial projects.

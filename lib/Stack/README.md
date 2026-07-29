@@ -86,5 +86,16 @@ Stacks are fundamental in many areas of computer science and programming, includ
 * Customization and Extensions
 * The template-based implementation allows for easy customization to accommodate various data types. Further extensions could include implementing additional functionalities like iterator support or integrating with other data structures for complex data management.
 
+## What's new in 1.0.1
+- Hardened the Stack implementation with defensive checks and safer state handling.
+- Improved resize and clear behavior to reduce edge-case failures.
+- Added safer constructor and operator paths for more reliable embedded use.
+
+## Changelog
+### 1.0.1
+- Added defensive checks and null-guarded behavior in core stack operations.
+- Improved resize, clear, and copy-construction behavior for better reliability.
+- Refined the library documentation to reflect the current implementation.
+
 ## License
 Please adhere to the licensing terms of the library when incorporating it into your projects, whether open-source or proprietary.
