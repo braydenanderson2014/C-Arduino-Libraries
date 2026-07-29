@@ -110,7 +110,7 @@ private:
     }
 
     KDimensionalNode* nearestNeighbor(const SimpleVector<T>& point) {
-        if (root == nullptr) return nullptr;
+        if (root == nullptr || dimension <= 0) return nullptr;
 
         // Iterative nearest-neighbor search with a heap-allocated explicit stack
         // to prevent call-stack overflow on deep or unbalanced trees.
