@@ -58,7 +58,7 @@ jobs:
           cat reports/host-sim-repository-report.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload repository-level host simulation report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: host-sim-repository-report
           path: |

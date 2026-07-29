@@ -76,7 +76,7 @@ jobs:
           ./test/host_arduino_sim/out/bin/json_mode_${{ matrix.mode }}_${{ matrix.backend }}
 
       - name: Upload JSON host mode report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: json-mode-report-${{ matrix.mode }}-${{ matrix.backend }}
           path: test/host_arduino_sim/out/report-json-${{ matrix.mode }}-${{ matrix.backend }}.json

@@ -724,7 +724,7 @@ jobs:
 
       - name: Upload per-library compile artifact
         if: always() && steps.smoke.outputs.out_dir != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: host-library-compile-${{ steps.smoke.outputs.lib_slug }}-${{ matrix.target.backend }}-${{ matrix.target.optional }}
           path: ${{ steps.smoke.outputs.out_dir }}
@@ -878,7 +878,7 @@ jobs:
 
       - name: Upload host simulation report
         if: always() && steps.precheck.outputs.run == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: host-arduino-sim-${{ matrix.backend }}
           path: test/host_arduino_sim/out/report-${{ matrix.backend }}.json
@@ -886,7 +886,7 @@ jobs:
 
       - name: Upload host simulation report (optional returns)
         if: always() && steps.precheck.outputs.run == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: host-arduino-sim-optional-${{ matrix.backend }}
           path: test/host_arduino_sim/out/report-optional-${{ matrix.backend }}.json
@@ -894,7 +894,7 @@ jobs:
 
       - name: Upload host simulation memory stats
         if: always() && steps.precheck.outputs.run == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: host-arduino-sim-stats-${{ matrix.backend }}
           path: test/host_arduino_sim/out/stats-${{ matrix.backend }}.json
@@ -902,7 +902,7 @@ jobs:
 
       - name: Upload host simulation memory stats (optional returns)
         if: always() && steps.precheck.outputs.run == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: host-arduino-sim-stats-optional-${{ matrix.backend }}
           path: test/host_arduino_sim/out/stats-optional-${{ matrix.backend }}.json
@@ -952,7 +952,7 @@ jobs:
 
       - name: Upload consolidated host simulation report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: host-sim-test-report
           path: |
