@@ -209,7 +209,8 @@ private:
 
             AVLNode* successor = findMinNode(node->right);
             node->data = successor->data;
-            node->right = removeNode(node->right, successor->data, removed);
+            bool successorRemoved = false;
+            node->right = removeNode(node->right, successor->data, successorRemoved);
         }
 
         return rebalance(node);

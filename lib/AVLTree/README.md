@@ -43,6 +43,7 @@ void loop() {}
 - `find`, `findMin`, and `findMax` return `T()` when no value is available.
 
 ## Arduino Library Manager
+Release notes for the Arduino Library Manager package.
 ## ChangeLog:
 ### Version 1.0.1-ALPHA
 - Reworked AVL tree internals to eliminate memory safety bugs and duplicate deletion paths.
@@ -53,6 +54,7 @@ void loop() {}
 - Initial untested release.
 
 ## PlatformIO Registry
+Release notes for the PlatformIO package metadata.
 ## ChangeLog:
 ### Version 1.0.1-ALPHA
 - Reworked AVL tree internals to eliminate memory safety bugs and duplicate deletion paths.
