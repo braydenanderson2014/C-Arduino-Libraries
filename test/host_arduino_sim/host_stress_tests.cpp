@@ -764,11 +764,13 @@ int main() {
         "DynamicStorage", "String_int", limitBytes, maxElements,
         []() { return DynamicStorage<String, int>(DynamicStorage<String, int>::RAM); },
         [](DynamicStorage<String, int>& c, std::size_t i) {
-            c.put(String(static_cast<int>(i)), static_cast<int>(i & MAX_POSITIVE_INT_MASK));
+            const int key = static_cast<int>(i & MAX_POSITIVE_INT_MASK);
+            c.put(String(key), static_cast<int>(i & MAX_POSITIVE_INT_MASK));
         },
         [](DynamicStorage<String, int>& c, std::size_t expected) {
             if (expected == 0) return true;
-            const String probe = String(static_cast<int>(expected - 1));
+            const int probeKey = static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+            const String probe = String(probeKey);
             return c.hasKey(probe) && c.get(probe) == static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
         },
         [](DynamicStorage<String, int>& c, std::size_t expected) {
