@@ -45,11 +45,6 @@
     "MbedLittleFSWrapper": { "sourcePath": "lib/MbedLittleFSWrapper", "targetRepo": "MbedLittleFSWrapper" },
     "MemoryManager": { "sourcePath": "lib/MemoryManager", "targetRepo": "MemoryManager" },
     "MyDictionary": { "sourcePath": "lib/MyDictionary", "targetRepo": "MyDictionary" },
-    "NewArrayList (TEMP)": {
-      "enabled": false,
-      "sourcePath": "lib/NewArrayList (TEMP)",
-      "reason": "Temporary library; remote sync target not configured."
-    },
     "Numeric_Limits": { "sourcePath": "lib/Numeric_Limits", "targetRepo": "Numeric_Limits" },
     "OCTree": { "sourcePath": "lib/OCTree", "targetRepo": "OCTree" },
     "Operators": { "sourcePath": "lib/Operators", "targetRepo": "Operators" },
@@ -61,11 +56,6 @@
     "Queue": { "sourcePath": "lib/Queue", "targetRepo": "Queue" },
     "RTree": { "sourcePath": "lib/RTree", "targetRepo": "RTree" },
     "RedBlackTree": { "sourcePath": "lib/RedBlackTree", "targetRepo": "RedBlackTree" },
-    "SD-master": {
-      "enabled": false,
-      "sourcePath": "lib/SD-master",
-      "reason": "Vendored upstream library; remote sync target not configured."
-    },
     "SDList": { "sourcePath": "lib/SDList", "targetRepo": "ArduinoSDList" },
     "SegmentTree": { "sourcePath": "lib/SegmentTree", "targetRepo": "SegmentTree" },
     "SimpleMutex": { "sourcePath": "lib/SimpleMutex", "targetRepo": "SimpleMutex" },
@@ -74,7 +64,7 @@
     "Stack": { "sourcePath": "lib/Stack", "targetRepo": "Stack" },
     "String": { "sourcePath": "lib/String", "targetRepo": "String" },
     "SuffixTree": { "sourcePath": "lib/SuffixTree", "targetRepo": "SuffixTree" },
-    "Timer": { "sourcePath": "lib/Timer", "targetRepo": "Timer" },
+    "Timer": { "sourcePath": "lib/Timer", "targetRepo": "ArduinoTimer" },
     "TrieTree": { "sourcePath": "lib/TrieTree", "targetRepo": "TrieTree" },
     "TypeTraits": { "sourcePath": "lib/TypeTraits", "targetRepo": "TypeTraits" },
     "UnorderedMap": { "sourcePath": "lib/UnorderedMap", "targetRepo": "UnorderedMap" },
