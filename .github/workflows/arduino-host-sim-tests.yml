@@ -660,6 +660,7 @@ jobs:
           fi
           if [ "${{ matrix.target.optional }}" = "on" ]; then
             EXTRA_FLAGS+=("-DJSON_ENABLE_OPTIONAL_RETURNS=1")
+            EXTRA_FLAGS+=("-DAVL_TREE_ENABLE_ERROR_CODES=1")
           fi
 
           ARCH_FLAGS="-D_AVR_ATmega2560_"
@@ -849,6 +850,7 @@ jobs:
           g++ -std=c++17 -O2 \
             -DAL_NO_SERIAL ${EXTRA_FLAGS} ${ARCH_FLAGS} \
             -DJSON_ENABLE_OPTIONAL_RETURNS=1 \
+            -DAVL_TREE_ENABLE_ERROR_CODES=1 \
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
             -Ilib/AVLTree/src \

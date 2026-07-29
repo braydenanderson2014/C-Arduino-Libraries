@@ -18,6 +18,12 @@
         "optionalModes": ["off"]
       }
     },
+    "lib/AVLTree": {
+      "compile": {
+        "backends": ["sd"],
+        "optionalModes": ["off", "on"]
+      }
+    },
     "lib/Hashtable": {
       "compile": {
         "backends": ["sd"],

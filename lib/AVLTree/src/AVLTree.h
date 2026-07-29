@@ -4,6 +4,22 @@
 #include <Arduino.h>
 #include <cstddef>
 
+// Define AVL_TREE_ENABLE_ERROR_CODES=1 before including this header (or via
+// a compiler flag) to enable lightweight error-code tracking.  When disabled
+// (the default) the feature compiles away completely, saving flash and RAM on
+// resource-constrained microcontrollers.
+#ifndef AVL_TREE_ENABLE_ERROR_CODES
+#define AVL_TREE_ENABLE_ERROR_CODES 0
+#endif
+
+#if AVL_TREE_ENABLE_ERROR_CODES
+#define AVL_ERR_NONE       0  // no error
+#define AVL_ERR_DUPLICATE  1  // insert ignored: key already present
+#define AVL_ERR_NOT_FOUND  2  // remove/find: key not in tree
+#define AVL_ERR_EMPTY      3  // findMin/findMax called on empty tree
+#define AVL_ERR_ALLOC      4  // memory allocation failed
+#endif
+
 template <typename T>
 class AVLTree {
 private:
@@ -19,6 +35,9 @@ private:
 
     AVLNode* root;
     std::size_t nodeCount;
+#if AVL_TREE_ENABLE_ERROR_CODES
+    mutable int lastError;
+#endif
 
     static int maxInt(int a, int b) {
         return (a > b) ? a : b;
@@ -205,8 +224,15 @@ private:
 
     AVLNode* insertNode(AVLNode* node, const T& data, bool& inserted) {
         if (!node) {
+            AVLNode* newNode = new AVLNode(data);
+#if AVL_TREE_ENABLE_ERROR_CODES
+            if (!newNode) {
+                lastError = AVL_ERR_ALLOC;
+                return nullptr;
+            }
+#endif
             inserted = true;
-            return new AVLNode(data);
+            return newNode;
         }
 
         if (data < node->data) {
@@ -247,10 +273,18 @@ private:
     }
 
 public:
-    AVLTree() : root(nullptr), nodeCount(0) {}
+    AVLTree() : root(nullptr), nodeCount(0)
+#if AVL_TREE_ENABLE_ERROR_CODES
+        , lastError(AVL_ERR_NONE)
+#endif
+    {}
 
     AVLTree(const AVLTree& other)
-        : root(cloneNode(other.root)), nodeCount(other.nodeCount) {}
+        : root(cloneNode(other.root)), nodeCount(other.nodeCount)
+#if AVL_TREE_ENABLE_ERROR_CODES
+        , lastError(AVL_ERR_NONE)
+#endif
+    {}
 
     AVLTree& operator=(const AVLTree& other) {
         if (this == &other) {
@@ -261,13 +295,23 @@ public:
         clearNode(root);
         root = newRoot;
         nodeCount = other.nodeCount;
+#if AVL_TREE_ENABLE_ERROR_CODES
+        lastError = AVL_ERR_NONE;
+#endif
         return *this;
     }
 
     AVLTree(AVLTree&& other) noexcept
-        : root(other.root), nodeCount(other.nodeCount) {
+        : root(other.root), nodeCount(other.nodeCount)
+#if AVL_TREE_ENABLE_ERROR_CODES
+        , lastError(other.lastError)
+#endif
+    {
         other.root = nullptr;
         other.nodeCount = 0;
+#if AVL_TREE_ENABLE_ERROR_CODES
+        other.lastError = AVL_ERR_NONE;
+#endif
     }
 
     AVLTree& operator=(AVLTree&& other) noexcept {
@@ -278,6 +322,10 @@ public:
         clearNode(root);
         root = other.root;
         nodeCount = other.nodeCount;
+#if AVL_TREE_ENABLE_ERROR_CODES
+        lastError = other.lastError;
+        other.lastError = AVL_ERR_NONE;
+#endif
         other.root = nullptr;
         other.nodeCount = 0;
         return *this;
@@ -289,18 +337,34 @@ public:
 
     void insert(const T& data) {
         bool inserted = false;
+#if AVL_TREE_ENABLE_ERROR_CODES
+        lastError = AVL_ERR_NONE;
+#endif
         root = insertNode(root, data, inserted);
         if (inserted) {
             ++nodeCount;
         }
+#if AVL_TREE_ENABLE_ERROR_CODES
+        else if (lastError == AVL_ERR_NONE) {
+            lastError = AVL_ERR_DUPLICATE;
+        }
+#endif
     }
 
     void remove(const T& data) {
         bool removed = false;
+#if AVL_TREE_ENABLE_ERROR_CODES
+        lastError = AVL_ERR_NONE;
+#endif
         root = removeNode(root, data, removed);
         if (removed && nodeCount > 0) {
             --nodeCount;
         }
+#if AVL_TREE_ENABLE_ERROR_CODES
+        else if (!removed) {
+            lastError = AVL_ERR_NOT_FOUND;
+        }
+#endif
     }
 
     bool erase(const T& data) {
@@ -319,15 +383,32 @@ public:
 
     T find(const T& data) const {
         const AVLNode* found = findNode(static_cast<const AVLNode*>(root), data);
+#if AVL_TREE_ENABLE_ERROR_CODES
+        lastError = found ? AVL_ERR_NONE : AVL_ERR_NOT_FOUND;
+#endif
         return found ? found->data : T();
     }
 
     T findMin() const {
+#if AVL_TREE_ENABLE_ERROR_CODES
+        if (!root) {
+            lastError = AVL_ERR_EMPTY;
+            return T();
+        }
+        lastError = AVL_ERR_NONE;
+#endif
         const AVLNode* node = findMinNode(static_cast<const AVLNode*>(root));
         return node ? node->data : T();
     }
 
     T findMax() const {
+#if AVL_TREE_ENABLE_ERROR_CODES
+        if (!root) {
+            lastError = AVL_ERR_EMPTY;
+            return T();
+        }
+        lastError = AVL_ERR_NONE;
+#endif
         const AVLNode* node = findMaxNode(static_cast<const AVLNode*>(root));
         return node ? node->data : T();
     }
@@ -352,6 +433,9 @@ public:
         clearNode(root);
         root = nullptr;
         nodeCount = 0;
+#if AVL_TREE_ENABLE_ERROR_CODES
+        lastError = AVL_ERR_NONE;
+#endif
     }
 
     void inOrder() const {
@@ -373,6 +457,19 @@ public:
     void printTree() const {
         printTree(root, 0);
     }
+
+#if AVL_TREE_ENABLE_ERROR_CODES
+    // Returns the error code set by the most recent mutating or querying
+    // operation, or AVL_ERR_NONE (0) when the operation succeeded.
+    int getLastError() const {
+        return lastError;
+    }
+
+    // Clears the stored error code back to AVL_ERR_NONE.
+    void clearLastError() {
+        lastError = AVL_ERR_NONE;
+    }
+#endif
 };
 
 #endif // AVL_TREE_H

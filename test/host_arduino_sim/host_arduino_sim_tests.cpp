@@ -782,6 +782,77 @@ void testAVLTreeBasicBehavior() {
     expect(tree.size() == 0, "AVLTree size should be zero after clear");
 }
 
+#if AVL_TREE_ENABLE_ERROR_CODES
+void testAVLTreeErrorCodes() {
+    AVLTree<int> tree;
+
+    // Initial state: no error
+    expect(tree.getLastError() == AVL_ERR_NONE, "AVLTree initial lastError should be AVL_ERR_NONE");
+
+    // Successful insert clears error
+    tree.insert(10);
+    expect(tree.getLastError() == AVL_ERR_NONE, "AVLTree successful insert should leave AVL_ERR_NONE");
+
+    // Duplicate insert sets AVL_ERR_DUPLICATE
+    tree.insert(10);
+    expect(tree.getLastError() == AVL_ERR_DUPLICATE,
+           "AVLTree duplicate insert should set AVL_ERR_DUPLICATE");
+
+    // Successful insert after duplicate clears the error
+    tree.insert(20);
+    expect(tree.getLastError() == AVL_ERR_NONE,
+           "AVLTree successful insert after duplicate should clear error");
+
+    // find hit: no error
+    tree.find(10);
+    expect(tree.getLastError() == AVL_ERR_NONE, "AVLTree find (hit) should leave AVL_ERR_NONE");
+
+    // find miss: AVL_ERR_NOT_FOUND
+    tree.find(99);
+    expect(tree.getLastError() == AVL_ERR_NOT_FOUND,
+           "AVLTree find (miss) should set AVL_ERR_NOT_FOUND");
+
+    // Successful remove clears error
+    tree.remove(10);
+    expect(tree.getLastError() == AVL_ERR_NONE, "AVLTree successful remove should leave AVL_ERR_NONE");
+
+    // Remove missing key: AVL_ERR_NOT_FOUND
+    tree.remove(99);
+    expect(tree.getLastError() == AVL_ERR_NOT_FOUND,
+           "AVLTree remove (miss) should set AVL_ERR_NOT_FOUND");
+
+    // deleteNode (alias of remove) also propagates error
+    tree.deleteNode(99);
+    expect(tree.getLastError() == AVL_ERR_NOT_FOUND,
+           "AVLTree deleteNode (miss) should set AVL_ERR_NOT_FOUND");
+
+    // clearLastError resets
+    tree.clearLastError();
+    expect(tree.getLastError() == AVL_ERR_NONE, "AVLTree clearLastError should reset to AVL_ERR_NONE");
+
+    // findMin / findMax on non-empty tree: no error
+    tree.findMin();
+    expect(tree.getLastError() == AVL_ERR_NONE, "AVLTree findMin (non-empty) should leave AVL_ERR_NONE");
+    tree.findMax();
+    expect(tree.getLastError() == AVL_ERR_NONE, "AVLTree findMax (non-empty) should leave AVL_ERR_NONE");
+
+    // findMin / findMax on empty tree: AVL_ERR_EMPTY
+    tree.clear();
+    tree.findMin();
+    expect(tree.getLastError() == AVL_ERR_EMPTY,
+           "AVLTree findMin (empty) should set AVL_ERR_EMPTY");
+    tree.findMax();
+    expect(tree.getLastError() == AVL_ERR_EMPTY,
+           "AVLTree findMax (empty) should set AVL_ERR_EMPTY");
+
+    // clear() resets error
+    tree.insert(5);
+    tree.find(99); // set an error
+    tree.clear();
+    expect(tree.getLastError() == AVL_ERR_NONE, "AVLTree clear() should reset lastError");
+}
+#endif
+
 void testAVLTreeChurnAndHeightHealth() {
     AVLTree<int> tree;
 
@@ -941,6 +1012,9 @@ int main() {
         );
         runTestWithMemoryStats("testAVLTreeBasicBehavior", testAVLTreeBasicBehavior, memoryStats);
         runTestWithMemoryStats("testAVLTreeChurnAndHeightHealth", testAVLTreeChurnAndHeightHealth, memoryStats);
+#if AVL_TREE_ENABLE_ERROR_CODES
+        runTestWithMemoryStats("testAVLTreeErrorCodes", testAVLTreeErrorCodes, memoryStats);
+#endif
 
         peak = getPeakResidentBytes();
         success = true;
