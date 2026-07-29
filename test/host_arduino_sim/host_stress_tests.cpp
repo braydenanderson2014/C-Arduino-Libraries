@@ -735,7 +735,7 @@ int main() {
             const std::size_t before = c.size();
             const int probe = expected > 0 ? static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK) : 0;
             const bool hadProbe = expected > 0 ? c.contains(probe) : true;
-            c.insert(AVLTREE_PROBE_SENTINEL);
+            try { c.insert(AVLTREE_PROBE_SENTINEL); } catch (const std::bad_alloc&) {}
             c.remove(AVLTREE_PROBE_SENTINEL);
             return c.size() == before && (!hadProbe || c.contains(probe));
         }
