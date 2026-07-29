@@ -7,10 +7,35 @@ This library provides a templated AVL Tree implementation for Arduino. The tree 
 - Insert and remove values with automatic AVL rebalancing
 - Search and membership checks (`find`, `contains`)
 - Safe empty-tree handling for `findMin`, `findMax`, and `find`
-- In-order, pre-order, and post-order printing via `Serial`
+- In-order, pre-order, and post-order printing via `Serial` (Arduino) or `std::cout` (other platforms)
 - Utility APIs: `size`, `height`, `getBalance`, `clear`, `isEmpty`
 - Compatibility include for both `AVLTree.h` and legacy `avlTree.h`
 - Optional error-code tracking via `AVL_TREE_ENABLE_ERROR_CODES` (off by default)
+- Cross-platform: Arduino, ESP-IDF, mbed, and desktop/host environments
+
+## Platform Compatibility
+
+The library auto-detects the build environment at compile time.
+
+| Platform | Detected by | Print output |
+|---|---|---|
+| Arduino (AVR, SAMD, ESP32/ESP8266 Arduino, Teensy, …) | `ARDUINO` macro | `Serial.println()` |
+| ESP-IDF, mbed, desktop/host | absence of `ARDUINO` | `std::cout` |
+| Any platform without `<iostream>` | `AVL_TREE_NO_STD_IO=1` | no-op (print methods silently do nothing) |
+
+### Disabling `std::cout` on bare-metal targets
+
+If your non-Arduino platform does not provide a C++ iostream implementation
+(e.g. a bare-metal RTOS build), define `AVL_TREE_NO_STD_IO=1` before
+including the header or pass it as a compiler flag:
+
+```cpp
+#define AVL_TREE_NO_STD_IO 1
+#include <AVLTree.h>
+```
+
+All core tree operations (insert, remove, find, etc.) are completely
+unaffected — only the print/traversal helpers become no-ops.
 
 ## Usage
 ```cpp
@@ -110,6 +135,15 @@ void loop() {}
 ## Arduino Library Manager
 Release notes for the Arduino Library Manager package.
 ## ChangeLog:
+### Version 1.0.3-ALPHA
+- Cross-platform compatibility: `#include <Arduino.h>` is now guarded by
+  `#ifdef ARDUINO` so the library compiles on ESP-IDF, mbed, desktop/host,
+  and any other C++ environment.
+- Print helpers (`inOrder`, `preOrder`, `postOrder`, `printTree`) use
+  `Serial` on Arduino, fall back to `std::cout` elsewhere, and compile to
+  no-ops when `AVL_TREE_NO_STD_IO=1` is defined (useful on bare-metal
+  targets without iostream support).
+
 ### Version 1.0.2-ALPHA
 - Added optional error-code tracking via `AVL_TREE_ENABLE_ERROR_CODES`.
   Disabled by default (zero overhead). When enabled, `getLastError()` and
@@ -127,6 +161,13 @@ Release notes for the Arduino Library Manager package.
 ## PlatformIO Registry
 Release notes for the PlatformIO package metadata.
 ## ChangeLog:
+### Version 1.0.3-ALPHA
+- Cross-platform compatibility: `#include <Arduino.h>` is now guarded by
+  `#ifdef ARDUINO` so the library compiles on ESP-IDF, mbed, desktop/host,
+  and any other C++ environment.
+- Print helpers use `Serial` on Arduino, `std::cout` elsewhere, and
+  no-ops when `AVL_TREE_NO_STD_IO=1` is defined.
+
 ### Version 1.0.2-ALPHA
 - Added optional error-code tracking via `AVL_TREE_ENABLE_ERROR_CODES`.
   Disabled by default (zero overhead). When enabled, `getLastError()` and

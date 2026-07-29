@@ -1,7 +1,38 @@
 #ifndef AVL_TREE_H
 #define AVL_TREE_H
 
-#include <Arduino.h>
+// ---------------------------------------------------------------------------
+// Platform detection
+//
+// Arduino (AVR, SAMD, ESP32/ESP8266 Arduino framework, Teensy, …)
+//   ARDUINO is always defined by the Arduino build system.
+//
+// Non-Arduino platforms (ESP-IDF, mbed, desktop/host, …)
+//   Only standard C/C++ headers are used.  By default the print helpers
+//   fall back to std::cout.  Define AVL_TREE_NO_STD_IO=1 before including
+//   this header (or pass -DAVL_TREE_NO_STD_IO=1) to disable std::cout and
+//   make the print helpers compile to no-ops — useful on bare-metal targets
+//   that ship without a C++ iostream implementation.
+// ---------------------------------------------------------------------------
+#if defined(ARDUINO)
+  #include <Arduino.h>
+  #define _AVL_PRINT(x)          Serial.print(x)
+  #define _AVL_PRINTLN(x)        Serial.println(x)
+  #define _AVL_PRINTLN_EMPTY()   Serial.println()
+#else
+  #include <stddef.h>  // size_t
+  #ifndef AVL_TREE_NO_STD_IO
+    #include <iostream>
+    #define _AVL_PRINT(x)        (static_cast<void>(std::cout << (x)))
+    #define _AVL_PRINTLN(x)      (static_cast<void>(std::cout << (x) << '\n'))
+    #define _AVL_PRINTLN_EMPTY() (static_cast<void>(std::cout << '\n'))
+  #else
+    // No I/O available — print methods compile to no-ops
+    #define _AVL_PRINT(x)        ((void)0)
+    #define _AVL_PRINTLN(x)      ((void)0)
+    #define _AVL_PRINTLN_EMPTY() ((void)0)
+  #endif
+#endif
 
 // Define AVL_TREE_ENABLE_ERROR_CODES=1 before including this header (or via
 // a compiler flag) to enable lightweight error-code tracking.  When disabled
@@ -184,7 +215,7 @@ private:
             return;
         }
         inOrderPrint(node->left);
-        Serial.println(node->data);
+        _AVL_PRINTLN(node->data);
         inOrderPrint(node->right);
     }
 
@@ -192,7 +223,7 @@ private:
         if (!node) {
             return;
         }
-        Serial.println(node->data);
+        _AVL_PRINTLN(node->data);
         preOrderPrint(node->left);
         preOrderPrint(node->right);
     }
@@ -203,7 +234,7 @@ private:
         }
         postOrderPrint(node->left);
         postOrderPrint(node->right);
-        Serial.println(node->data);
+        _AVL_PRINTLN(node->data);
     }
 
     static void printTree(AVLNode* node, int space) {
@@ -213,11 +244,11 @@ private:
 
         space += 10;
         printTree(node->right, space);
-        Serial.println();
+        _AVL_PRINTLN_EMPTY();
         for (int i = 10; i < space; ++i) {
-            Serial.print(" ");
+            _AVL_PRINT(" ");
         }
-        Serial.println(node->data);
+        _AVL_PRINTLN(node->data);
         printTree(node->left, space);
     }
 
