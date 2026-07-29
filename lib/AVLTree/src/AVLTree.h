@@ -2,7 +2,6 @@
 #define AVL_TREE_H
 
 #include <Arduino.h>
-#include <cstddef>
 
 // Define AVL_TREE_ENABLE_ERROR_CODES=1 before including this header (or via
 // a compiler flag) to enable lightweight error-code tracking.  When disabled
@@ -34,7 +33,7 @@ private:
     };
 
     AVLNode* root;
-    std::size_t nodeCount;
+    size_t nodeCount;
 #if AVL_TREE_ENABLE_ERROR_CODES
     mutable int lastError;
 #endif
@@ -368,7 +367,7 @@ public:
     }
 
     bool erase(const T& data) {
-        const std::size_t before = nodeCount;
+        const size_t before = nodeCount;
         remove(data);
         return nodeCount != before;
     }
@@ -421,7 +420,7 @@ public:
         return balanceOf(root);
     }
 
-    std::size_t size() const {
+    size_t size() const {
         return nodeCount;
     }
 
