@@ -48,16 +48,12 @@ jobs:
             const PASSING_LINT_ISSUE_NUMBER = 26;
             const FAILED_LINT_ISSUE_NUMBER = 27;
 
-            async function countIssueLabels(issueNumber) {
+            async function countItemLabels(itemNumber) {
               const { data } = await github.rest.issues.get({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: issueNumber
+                issue_number: itemNumber
               });
-
-              if (data.pull_request) {
-                throw new Error(`Expected issue #${issueNumber}, but found a pull request.`);
-              }
 
               return (data.labels || []).length;
             }
@@ -118,7 +114,7 @@ jobs:
                     ... on ProjectV2 {
                       items(first:100, after:$after) {
                         nodes {
-                          content { __typename ... on Issue { state } }
+                         content { __typename ... on Issue { state } ... on PullRequest { state } }
                           fieldValues(first:20) {
                             nodes {
                               __typename
@@ -138,7 +134,7 @@ jobs:
 
               const items = page.node.items;
               for (const it of items.nodes) {
-                if (!it.content || it.content.__typename !== "Issue") continue;
+                if (!it.content || (it.content.__typename !== "Issue" && it.content.__typename !== "PullRequest")) continue;
                 if (it.content.state !== "OPEN") continue;
 
                 const statusVal = (it.fieldValues.nodes || []).find(n =>
@@ -160,11 +156,11 @@ jobs:
             core.info(`Total active work items: ${totalCount}`);
             core.info(`Status breakdown: ${JSON.stringify(statusCounts, null, 2)}`);
 
-            // 3) Read lint status buckets from private tracker issues
-            const passingLintCount = await countIssueLabels(PASSING_LINT_ISSUE_NUMBER);
-            const failedLintCount = await countIssueLabels(FAILED_LINT_ISSUE_NUMBER);
-            core.info(`Passing lint libraries (issue #${PASSING_LINT_ISSUE_NUMBER} labels): ${passingLintCount}`);
-            core.info(`Failed lint libraries (issue #${FAILED_LINT_ISSUE_NUMBER} labels): ${failedLintCount}`);
+            // 3) Read lint status buckets from private tracker issues/PRs
+            const passingLintCount = await countItemLabels(PASSING_LINT_ISSUE_NUMBER);
+            const failedLintCount = await countItemLabels(FAILED_LINT_ISSUE_NUMBER);
+            core.info(`Passing lint libraries (#${PASSING_LINT_ISSUE_NUMBER} labels): ${passingLintCount}`);
+            core.info(`Failed lint libraries (#${FAILED_LINT_ISSUE_NUMBER} labels): ${failedLintCount}`);
 
             // 4) Decide overall project status based on total active work + lint failures
             let statusEnum = "ON_TRACK";
@@ -202,7 +198,7 @@ jobs:
             const body = `**Project Health Summary** (as of ${today})\n\n` +
              `**Overall Status: ${healthDescription}**\n\n` +
              `**Total Active Work Items: ${totalCount}**\n\n` +
-             `**Lint Status (Issue Labels):**\n` +
+             `**Lint Status (Labels):**\n` +
              `• ✅ Passing Lint (#${PASSING_LINT_ISSUE_NUMBER}): **${passingLintCount}**\n` +
              `• ❌ Failed Lint (#${FAILED_LINT_ISSUE_NUMBER}): **${failedLintCount}**\n\n` +
              `**Status Breakdown:**\n${statusBreakdown || '• No active items found'}\n\n` +
