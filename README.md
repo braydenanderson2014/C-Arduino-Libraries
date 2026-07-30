@@ -4,7 +4,7 @@
 
 [![Arduino Host Simulation Tests](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml)
 [![Compile Examples](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml)
-[![Project Health Monitoring](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/Project%20Health%20Monitoring/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/Project%20Health%20Monitoring)
+[![Cross-Repo Health Report](https://github.com/braydenanderson2014/SystemCommands/actions/workflows/Generate%20Cross-Repo%20Library%20Health%20Report.yml/badge.svg)](https://github.com/braydenanderson2014/SystemCommands/actions/workflows/Generate%20Cross-Repo%20Library%20Health%20Report.yml)
 [![PlatformIO Metrics](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/update-platformio-metrics.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/update-platformio-metrics.yml)
 
 ## Quick Start
@@ -105,7 +105,7 @@ Quick expectation notes: data structures, utility helpers (`Optional`, `Variant`
 
 Track quality and CI status from these workflow/report entry points:
 
-- Cross-repo health status (SystemCommands issue buckets): [![Project Health Monitoring](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/Project%20Health%20Monitoring/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/Project%20Health%20Monitoring)
+- Cross-repo health status (SystemCommands issue buckets): [![Cross-Repo Health Report](https://github.com/braydenanderson2014/SystemCommands/actions/workflows/Generate%20Cross-Repo%20Library%20Health%20Report.yml/badge.svg)](https://github.com/braydenanderson2014/SystemCommands/actions/workflows/Generate%20Cross-Repo%20Library%20Health%20Report.yml)
 - Host-level simulation tests: [![Arduino Host Simulation Tests](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml)
 - Build and compile coverage: [![Compile Examples](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml)
 - JSON host simulation tests: [![JSON Host Sim Tests](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/json-host-sim-tests.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/json-host-sim-tests.yml)
