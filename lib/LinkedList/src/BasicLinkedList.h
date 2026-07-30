@@ -289,7 +289,7 @@ class ForwardIterator {
         ListNode<T>* current = head;
         for (size_t i = 0; i < position; i++) {
             if (!current) {
-return String(F("LL_OUT_OF_BOUNDS"));
+return String("LL_OUT_OF_BOUNDS");
             }
             current = current->next;
         }
