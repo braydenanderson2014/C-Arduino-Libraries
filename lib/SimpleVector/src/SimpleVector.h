@@ -34,11 +34,15 @@ private:
             Serial.println("Memory allocation failed during resize.");
             return;
         }
-        for (unsigned int i = 0; i < count; i++) {
-            newArray[i] = array[i];
+        const unsigned int copiedCount = (count < targetCapacity) ? count : targetCapacity;
+        if (array != nullptr) {
+            for (unsigned int i = 0; i < copiedCount; i++) {
+                newArray[i] = array[i];
+            }
         }
         delete[] array;
         array = newArray;
+        count = copiedCount;
         capacity = targetCapacity;
     }
 
@@ -136,13 +140,14 @@ public:
             if (capacity != MIN_CAPACITY || array == nullptr) {
                 resize(MIN_CAPACITY);
                 count = 0;
-                return true;
+                return array != nullptr && capacity == MIN_CAPACITY;
             }
             return false;
         }
         if (count < capacity) {
-            resize(count == 0 ? DEFAULT_CAPACITY : count);
-            return true;
+            const unsigned int targetCapacity = normalizeCapacity(count);
+            resize(targetCapacity);
+            return array != nullptr && capacity == targetCapacity;
         }
         return false;
     }
@@ -205,6 +210,9 @@ public:
     */
     void put(const T& item) {
         ensureCapacity();
+        if (array == nullptr || count >= capacity) {
+            return;
+        }
         array[count++] = item;
     }
 
@@ -218,6 +226,9 @@ public:
 
     void emplace_back() {  
         ensureCapacity();
+        if (array == nullptr || count >= capacity) {
+            return;
+        }
         array[count].~T();
         new (array + count) T();
         count++;
@@ -225,6 +236,9 @@ public:
 
     void emplace_back(const T& value) {
         ensureCapacity();
+        if (array == nullptr || count >= capacity) {
+            return;
+        }
         array[count].~T();
         new (array + count) T(value);
         count++;
