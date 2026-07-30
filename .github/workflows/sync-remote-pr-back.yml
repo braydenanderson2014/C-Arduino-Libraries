@@ -348,16 +348,23 @@ jobs:
           git remote set-url origin "https://x-access-token:${SYNC_TOKEN}@github.com/${{ github.repository }}.git"
 
           node <<'NODEEOF'
-          const { execSync } = require("child_process");
+          const { execFileSync } = require("child_process");
           const fs = require("fs");
           const path = require("path");
+          const syncToken = process.env.SYNC_TOKEN || "";
 
-          const exec = (cmd, opts = {}) => {
+          const redact = (value) => {
+            const str = String(value || "");
+            return syncToken ? str.split(syncToken).join("***") : str;
+          };
+
+          const exec = (file, args = [], opts = {}) => {
             try {
-              return execSync(cmd, { stdio: "pipe", ...opts }).toString().trim();
+              return execFileSync(file, args, { stdio: "pipe", ...opts }).toString().trim();
             } catch (e) {
-              const errMsg = e.stderr ? e.stderr.toString().trim() : e.message;
-              throw new Error(`Command failed: ${cmd}\n${errMsg}`);
+              const stderr = redact(e.stderr ? e.stderr.toString().trim() : "");
+              const fallback = redact(e.message || "");
+              throw new Error(stderr || fallback || `Command failed: ${file}`);
             }
           };
 
@@ -379,28 +386,31 @@ jobs:
 
           const items = JSON.parse(fs.readFileSync(process.env.ITEMS_PATH, "utf8"));
           const workspace = process.env.GITHUB_WORKSPACE;
-          const syncToken = process.env.SYNC_TOKEN;
           const results = [];
 
           for (const item of items) {
             const { library, sourcePath, targetPath, managedPaths, remoteOwner, remoteRepo, remoteBranch, remotePrNumber, headSha } = item;
             const librarySlug = slugify(library);
-            const remoteDir = path.join(process.env.RUNNER_TEMP, `back-sync-remote-${librarySlug}`);
+            const remoteDir = path.join(process.env.RUNNER_TEMP, `back-sync-remote-${librarySlug}-${remotePrNumber}`);
             const backSyncBranch = `back-sync/${librarySlug}/remote-pr-${remotePrNumber}`;
-            const worktreeDir = path.join(process.env.RUNNER_TEMP, `back-sync-wt-${librarySlug}`);
+            const worktreeDir = path.join(process.env.RUNNER_TEMP, `back-sync-wt-${librarySlug}-${remotePrNumber}`);
 
             console.log(`Processing back-sync for ${library} (remote PR #${remotePrNumber}, head ${headSha.slice(0, 7)})...`);
 
             try {
               // Clone the remote library branch
-              exec(
-                `git clone --depth 1 --branch "${remoteBranch}" ` +
-                `"https://x-access-token:${syncToken}@github.com/${remoteOwner}/${remoteRepo}.git" ` +
-                `"${remoteDir}"`
-              );
+              exec("git", [
+                "clone",
+                "--depth",
+                "1",
+                "--branch",
+                remoteBranch,
+                `https://x-access-token:${syncToken}@github.com/${remoteOwner}/${remoteRepo}.git`,
+                remoteDir
+              ]);
 
               // Create an isolated worktree for the back-sync branch based on HEAD of the monorepo
-              exec(`git worktree add "${worktreeDir}" -B "${backSyncBranch}" HEAD`, { cwd: workspace });
+              exec("git", ["worktree", "add", worktreeDir, "-B", backSyncBranch, "HEAD"], { cwd: workspace });
 
               const sourceRoot = path.join(remoteDir, targetPath === "." ? "" : targetPath);
               const destRoot = path.join(worktreeDir, sourcePath);
@@ -412,21 +422,24 @@ jobs:
                 if (fs.existsSync(src)) {
                   fs.rmSync(dst, { recursive: true, force: true });
                   copyRecursive(src, dst);
+                } else {
+                  fs.rmSync(dst, { recursive: true, force: true });
                 }
               }
 
-              exec("git add -A", { cwd: worktreeDir });
-              const diffStat = exec("git diff --cached --stat", { cwd: worktreeDir });
+              exec("git", ["add", "-A"], { cwd: worktreeDir });
+              const diffStat = exec("git", ["diff", "--cached", "--stat"], { cwd: worktreeDir });
 
               if (!diffStat) {
                 console.log(`No changes detected for ${library} back-sync. Skipping.`);
                 results.push({ ...item, backSyncBranch, pushed: false, skipped: true });
               } else {
                 exec(
-                  `git commit -m "Back-sync ${library} from remote PR #${remotePrNumber} (${headSha.slice(0, 7)})"`,
+                  "git",
+                  ["commit", "-m", `Back-sync ${library} from remote PR #${remotePrNumber} (${headSha.slice(0, 7)})`],
                   { cwd: worktreeDir }
                 );
-                exec(`git push --force-with-lease origin "${backSyncBranch}"`, { cwd: worktreeDir });
+                exec("git", ["push", "--force-with-lease", "origin", backSyncBranch], { cwd: worktreeDir });
                 results.push({ ...item, backSyncBranch, pushed: true });
                 console.log(`Pushed back-sync branch ${backSyncBranch} for ${library}.`);
               }
@@ -435,7 +448,7 @@ jobs:
               results.push({ ...item, backSyncBranch, pushed: false, error: e.message });
             } finally {
               try {
-                exec(`git worktree remove --force "${worktreeDir}"`, { cwd: workspace });
+                exec("git", ["worktree", "remove", "--force", worktreeDir], { cwd: workspace });
               } catch {}
             }
           }
@@ -913,16 +926,23 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           node <<'NODEEOF'
-          const { execSync } = require("child_process");
+          const { execFileSync } = require("child_process");
           const fs = require("fs");
           const path = require("path");
+          const syncToken = process.env.SYNC_TOKEN || "";
 
-          const exec = (cmd, opts = {}) => {
+          const redact = (value) => {
+            const str = String(value || "");
+            return syncToken ? str.split(syncToken).join("***") : str;
+          };
+
+          const exec = (file, args = [], opts = {}) => {
             try {
-              return execSync(cmd, { stdio: "pipe", ...opts }).toString().trim();
+              return execFileSync(file, args, { stdio: "pipe", ...opts }).toString().trim();
             } catch (e) {
-              const errMsg = e.stderr ? e.stderr.toString().trim() : e.message;
-              throw new Error(`Command failed: ${cmd}\n${errMsg}`);
+              const stderr = redact(e.stderr ? e.stderr.toString().trim() : "");
+              const fallback = redact(e.message || "");
+              throw new Error(stderr || fallback || `Command failed: ${file}`);
             }
           };
 
@@ -944,26 +964,29 @@ jobs:
 
           const items = JSON.parse(fs.readFileSync(process.env.ITEMS_PATH, "utf8"));
           const workspace = process.env.GITHUB_WORKSPACE;
-          const syncToken = process.env.SYNC_TOKEN;
           const results = [];
 
           for (const item of items) {
             const { library, sourcePath, targetPath, managedPaths, remoteOwner, remoteRepo, remoteBranch, remotePrNumber, headSha, backSyncPrNumber } = item;
             const librarySlug = slugify(library);
-            const remoteDir = path.join(process.env.RUNNER_TEMP, `fwd-remote-${librarySlug}`);
+            const remoteDir = path.join(process.env.RUNNER_TEMP, `fwd-remote-${librarySlug}-${backSyncPrNumber}-${remotePrNumber}`);
 
             console.log(`Mirroring back-sync PR #${backSyncPrNumber} changes for ${library} to remote branch ${remoteBranch}...`);
 
             try {
               // Clone the remote library sync branch
-              exec(
-                `git clone --depth 1 --branch "${remoteBranch}" ` +
-                `"https://x-access-token:${syncToken}@github.com/${remoteOwner}/${remoteRepo}.git" ` +
-                `"${remoteDir}"`
-              );
+              exec("git", [
+                "clone",
+                "--depth",
+                "1",
+                "--branch",
+                remoteBranch,
+                `https://x-access-token:${syncToken}@github.com/${remoteOwner}/${remoteRepo}.git`,
+                remoteDir
+              ]);
 
-              exec(`git config user.name "github-actions[bot]"`, { cwd: remoteDir });
-              exec(`git config user.email "41898282+github-actions[bot]@users.noreply.github.com"`, { cwd: remoteDir });
+              exec("git", ["config", "user.name", "github-actions[bot]"], { cwd: remoteDir });
+              exec("git", ["config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"], { cwd: remoteDir });
 
               const sourceRoot = path.join(workspace, sourcePath);
               const targetRoot = path.join(remoteDir, targetPath === "." ? "" : targetPath);
@@ -975,21 +998,24 @@ jobs:
                 if (fs.existsSync(src)) {
                   fs.rmSync(dst, { recursive: true, force: true });
                   copyRecursive(src, dst);
+                } else {
+                  fs.rmSync(dst, { recursive: true, force: true });
                 }
               }
 
-              exec("git add -A", { cwd: remoteDir });
-              const diffStat = exec("git diff --cached --stat", { cwd: remoteDir });
+              exec("git", ["add", "-A"], { cwd: remoteDir });
+              const diffStat = exec("git", ["diff", "--cached", "--stat"], { cwd: remoteDir });
 
               if (!diffStat) {
                 console.log(`No file changes to push for ${library} forward mirror.`);
                 results.push({ ...item, pushed: false, skipped: true });
               } else {
                 exec(
-                  `git commit -m "Forward back-sync ${library} from monorepo PR #${backSyncPrNumber} (${headSha.slice(0, 7)})"`,
+                  "git",
+                  ["commit", "-m", `Forward back-sync ${library} from monorepo PR #${backSyncPrNumber} (${headSha.slice(0, 7)})`],
                   { cwd: remoteDir }
                 );
-                exec(`git push --force-with-lease origin "${remoteBranch}"`, { cwd: remoteDir });
+                exec("git", ["push", "--force-with-lease", "origin", remoteBranch], { cwd: remoteDir });
                 results.push({ ...item, pushed: true });
                 console.log(`Pushed forward mirror for ${library} to ${remoteOwner}/${remoteRepo}:${remoteBranch}.`);
               }
