@@ -4,7 +4,7 @@
 
 [![Arduino Host Simulation Tests](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml)
 [![Compile Examples](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml)
-[![Arduino Checks](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/check-arduino.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/check-arduino.yml)
+[![Project Health Monitoring](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/Project%20Health%20Monitoring/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/Project%20Health%20Monitoring)
 [![PlatformIO Metrics](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/update-platformio-metrics.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/update-platformio-metrics.yml)
 
 ## Quick Start
