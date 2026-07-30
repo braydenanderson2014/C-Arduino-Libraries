@@ -117,6 +117,164 @@ Notes:
 - Workflow badges reflect the latest run outcome, including `cancelled` when a run is interrupted.
 - For debugging failures, open the workflow run and inspect step logs directly.
 
+## Testing Strategy and Confidence Levels
+
+This repository uses multiple testing layers on purpose. Each layer catches different classes of failures.
+
+### 1) Compile Validation
+
+Primary signal:
+- [Compile Examples workflow](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml)
+- Local workflow file: [.github/workflows/compile-examples.yml](.github/workflows/compile-examples.yml)
+
+What it checks:
+- Example sketches and library code still compile.
+- Header/API changes did not break common include paths or usage patterns.
+
+What it does not guarantee:
+- Runtime behavior on real boards.
+- Correct timing, interrupts, or peripheral behavior.
+
+### 2) Host Simulation and Functional Tests
+
+Primary signal:
+- [Arduino Host Simulation Tests workflow](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml)
+- Local workflow file: [.github/workflows/arduino-host-sim-tests.yml](.github/workflows/arduino-host-sim-tests.yml)
+
+Related signal:
+- [JSON Host Sim Tests workflow](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/json-host-sim-tests.yml)
+- Local workflow file: [.github/workflows/json-host-sim-tests.yml](.github/workflows/json-host-sim-tests.yml)
+
+What they check:
+- Data-structure and algorithm correctness under repeatable host-side conditions.
+- Serialization and parser behavior for JSON-oriented flows.
+- Regressions in logic that do not require physical hardware.
+
+What they do not guarantee:
+- Exact SRAM/stack pressure behavior on 8-bit targets.
+- Hardware-dependent timing and bus-level edge cases.
+
+### 3) Memory and Resource-Oriented Testing
+
+Primary signal:
+- [Host Sim Memory Profiles workflow](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/host-sim-memory-profiles.yml)
+- Local workflow file: [.github/workflows/host-sim-memory-profiles.yml](.github/workflows/host-sim-memory-profiles.yml)
+
+What it checks:
+- Relative allocation trends, leak-like patterns, and growth behavior in host simulation.
+- Useful early warnings when a change increases memory pressure.
+
+What it does not guarantee:
+- Exact AVR/ARM allocator behavior.
+- Real board fragmentation patterns over long uptime.
+
+### Why a Passing CI Run Can Still Fail on Arduino Hardware
+
+A green CI badge means strong baseline quality, but not full hardware certification.
+
+Common reasons for hardware-only failures:
+- Smaller SRAM/flash limits than host environment assumptions.
+- Different compiler flags, ABI details, or core library implementations.
+- Peripheral timing differences (SPI/I2C/UART), ISR interactions, or watchdog behavior.
+- Electrical and board-specific factors (clock, wiring quality, power stability).
+
+Practical confidence guide:
+- Compile pass only: low-to-medium confidence for runtime on device.
+- Compile + host sim pass: medium-to-high confidence for pure logic libraries.
+- Compile + host sim + memory profile pass: higher confidence, but still verify on target board before release.
+
+Recommended release gate:
+1. Pass compile workflow.
+2. Pass host simulation workflows.
+3. Review memory profile diffs for unusual growth.
+4. Run at least one real-board smoke test for each changed library family.
+
+## Issue Automation and Moderation Tools
+
+This repository includes automated issue triage and duplicate-management workflows. They reduce manual work, but they also use protected labels and project-field updates that contributors should understand.
+
+### What Tools Exist
+
+- Challenge handling: [Challenge Handler](.github/workflows/challenge-handler.yml)
+- Duplicate detection and AI training: [Duplicate Detection](.github/workflows/duplicate-detection.yml)
+- Restricted label enforcement: [Restricted Label Watchdog](.github/workflows/restricted-label-watchdog.yml)
+- Reopen behavior integration: [Issue Reopen Handler](.github/workflows/issue-reopen-handler.yml)
+
+### Challenge System (When You Disagree With a Closure)
+
+Use this when an issue was marked duplicate or closed and you believe it was incorrect.
+
+Contributor path:
+1. Add the challenge label to the issue.
+2. Or comment with a challenge command such as /challenge, start challenge, or mention-style challenge text.
+3. Include specific reasons why your issue is unique.
+
+What automation does:
+- Moves issue status to Challenged.
+- Temporarily removes duplicate-related labels during review.
+- Reopens the issue for review if needed.
+- Posts an automated challenge-status comment.
+
+Maintainer resolution:
+- Challenge upheld: apply challenge-upheld or use comment command such as /challenge-upheld.
+- Challenge failed: apply challenge-failed or use comment command such as /challenge-failed followed by a reason.
+
+Typical result:
+- Upheld challenges return the issue to active triage.
+- Failed challenges archive the issue in Failed Challenges and keep closure intent.
+
+### Duplicate Detection and Admin Override Labels
+
+Duplicate detection runs on new issues, selected label events, comments, and scheduled retraining.
+
+Auto outcomes:
+- Potential duplicate labels may be added for human review.
+- Parent-child duplicate relationships can be established.
+- Parent issues get an aggregated duplicate list section.
+
+Admin override labels:
+- adminduplicate: confirms duplicate, closes issue, links parent-child, updates project status, records training data.
+- adminduplicatenegative: confirms not-duplicate, removes auto duplicate labels, records negative training data.
+
+Manual bot commands for maintainers:
+- Duplicate check trigger: comment with a bot mention plus wording like test duplicate, check duplicate, or scan duplicate.
+- Duplicate list refresh trigger: comment with a bot mention plus wording like refresh duplicates, update duplicates, or rebuild duplicates.
+
+### Restricted Label Watchdog
+
+The label watchdog protects sensitive labels from unauthorized edits.
+
+Restricted labels include:
+- adminduplicate
+- adminduplicatenegative
+- challenge-upheld
+- challenge-failed
+- challenge-complete
+- parent
+- child
+- ai-training
+- ai-data
+- ai-verified
+- training-data
+- auto-processed
+
+Policy behavior:
+- Unauthorized add: label is removed automatically.
+- Unauthorized removal: label is restored automatically.
+- Allowed actors: maintainers, admins, and trusted system actors.
+
+What this means in practice:
+- Contributors should not rely on manually toggling restricted labels.
+- If you need a restricted-state change, request maintainer review in issue comments.
+
+### Recommended Maintainer Playbook
+
+1. For likely duplicates, let automation mark potential duplicates first.
+2. Confirm true duplicates with adminduplicate.
+3. Mark false positives with adminduplicatenegative.
+4. If challenged, resolve with challenge-upheld or challenge-failed and include rationale.
+5. If labels seem to revert unexpectedly, check the restricted label watchdog run before reapplying labels.
+
 ## Core Links
 
 - 📦 PlatformIO owner page: https://registry.platformio.org/search?q=owner%3Abraydenanderson2014
