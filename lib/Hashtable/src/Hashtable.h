@@ -3,6 +3,7 @@
 
 #include <SimpleVector.h>
 #include <Arduino.h>
+#include <limits.h>
 
 // Forward declaration of KeyHash
 /**
@@ -387,7 +388,7 @@ public:
      * 
     */
     Hashtable(size_t initialCapacity, float loadFactor) 
-        : TABLE_SIZE(normalizeTableSize(static_cast<int>(initialCapacity))), count(0), loadFactorThreshold(loadFactor), hashFunction() {
+        : TABLE_SIZE(normalizeTableSize(initialCapacity > static_cast<size_t>(INT_MAX) ? INT_MAX : static_cast<int>(initialCapacity))), count(0), loadFactorThreshold(loadFactor), hashFunction() {
         table = new Entry*[TABLE_SIZE]();
         // Initialize buckets to nullptr...
     }
