@@ -282,22 +282,21 @@ class ForwardIterator {
      * @return the element at the given position as a String
      * 
      * @details Returns the element at the given position in the list.
-     * If the position is out of bounds, nullptr is returned.
+     * If the position is out of bounds, LL_OUT_OF_BOUNDS is returned as a String.
      * Otherwise, the element at the given position is returned as a String
     */
     String getAsString(size_t position) const {
         ListNode<T>* current = head;
         for (size_t i = 0; i < position; i++) {
             if (!current) {
-                static String error_value = String("LL_OUT_OF_BOUNDS");
-                return error_value; // Out of bounds
+return String("LL_OUT_OF_BOUNDS");
             }
             current = current->next;
         }
         if (current) {
             return String(current->data);
         } else {
-            return String("");
+            return String(LL_OUT_OF_BOUNDS);
         }
     }
     // Check if the list contains a specific element
