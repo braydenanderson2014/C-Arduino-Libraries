@@ -98,10 +98,22 @@ void Timer::syncWithRTC() {
 }
 
 DateTime Timer::getRTCTime() const {
+    if (!rtcInitialized) {
+        if (debug) {
+            Serial.println("[" + TimerName + "]: getRTCTime() ignored - RTC not initialised");
+        }
+        return DateTime();
+    }
     return rtc.now();
 }
 
 void Timer::setRTCTime(int year, int month, int day, int hour, int minute, int second) {
+    if (!rtcInitialized) {
+        if (debug) {
+            Serial.println("[" + TimerName + "]: setRTCTime() ignored - RTC not initialised");
+        }
+        return;
+    }
     if (debug) {
         Serial.println("[" + TimerName + "]: Setting RTC time");
     }
