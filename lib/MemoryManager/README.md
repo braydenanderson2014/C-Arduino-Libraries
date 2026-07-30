@@ -1,22 +1,21 @@
 # MemoryManager
 
 ## Overview
-The `MemoryManager` is a dynamic memory management system for embedded systems, offering memory allocation, garbage collection, and memory leak detection. It supports JSON-based storage for memory tracking and integrates with SD cards for logging.
+The `MemoryManager` tracks allocations made through its API so you can detect leaks and safely free/reallocate blocks in embedded projects. It optionally checks SD card space before allocating.
 
 ## Features
-- **Dynamic memory allocation** with block reuse optimization.
-- **Garbage collection** to manage memory efficiently.
-- **Memory leak detection and reporting** via serial or SD card.
-- **JSON-based storage** for persistent memory tracking.
-- **Configurable settings** via preprocessor directives.
+- **Tracked allocation APIs**: `malloc`, `calloc`, `realloc`, `free`.
+- **Memory leak detection** with file/line source reporting.
+- **Error code reporting** via `getLastError()`.
+- **Optional SD capacity gate** before allocation attempts.
 
 ## Configuration
-You can enable or disable features using the following macros:
+You can configure behavior using these macros:
 
 | Macro                      | Description |
 |----------------------------|-------------|
-| `ENABLE_JSON_STORAGE`      | Enables storing memory allocations in JSON format. |
-| `ENABLE_GARBAGE_COLLECTION` | Enables reuse of freed memory blocks to improve efficiency. |
+| `DEBUG_MEMORY`             | Set to `1` to enable debug output, `0` to disable. |
+| `SD_CS_PIN`                | Chip-select pin used for optional SD initialization. |
 
 ## Error Codes
 
@@ -29,6 +28,8 @@ You can enable or disable features using the following macros:
 | `MM_FILE_READ_ERROR` | 4 | Failed to read from file. |
 | `MM_FILE_NOT_FOUND` | 5 | File not found. |
 | `MM_NO_AVAILABLE_BLOCKS` | 6 | No available memory blocks. |
+| `MM_BLOCK_NOT_FOUND` | 7 | Pointer was not found in tracked allocations. |
+| `MM_SD_OUT_OF_SPACE` | 12 | Optional SD free-space check failed. |
 | `MM_UNKNOWN_ERROR` | 99 | Unknown error occurred. |
 
 ## API Reference
@@ -41,11 +42,10 @@ You can enable or disable features using the following macros:
 | `void* calloc(unsigned int num, unsigned int size, const char* file, unsigned int line)` | Allocates and zero-initializes memory. |
 | `int detectMemoryLeaks()` | Checks for memory leaks and reports them. |
 | `void printMemoryLeaks()` | Prints memory leak details to the serial output. |
-| `int saveMemoryLeaks(const char* filename)` | Saves memory leak information to an SD file. |
-| `unsigned int getFreeMemory()` | Returns the total amount of free memory available. |
+| `unsigned int getTrackedMemoryInUse()` | Returns total bytes currently tracked as in-use. |
+| `unsigned int getAllocationCount()` | Returns number of active tracked allocations. |
 | `void setUseSDFile(bool useSD)` | Enables or disables logging memory leaks to an SD card. |
-| `int storeMemoryBlockToFile(const char* filename)` | Saves memory block information in a JSON file. |
-| `int loadMemoryBlockFromFile(const char* filename)` | Loads memory block information from a JSON file. |
+| `bool beginSD(uint8_t csPin)` | Initializes SD usage explicitly for capacity checks. |
 | `~MemoryManager()` | Destructor that frees all allocated memory blocks. |
 
 ## Example Usage
@@ -58,8 +58,9 @@ if (ptr) {
     memoryManager.free(ptr);
 }
 
-memoryManager.detectMemoryLeaks();
-memoryManager.printMemoryLeaks();
+if (memoryManager.detectMemoryLeaks() == MM_MEMORY_LEAK_ERROR) {
+    memoryManager.printMemoryLeaks();
+}
 ```
 
 ## License

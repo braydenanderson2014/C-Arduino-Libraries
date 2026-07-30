@@ -25,17 +25,18 @@ jobs:
         run: |
           python scripts/update_platformio_metrics.py \
             --owner braydenanderson2014 \
-            --output PLATFORMIO_METRICS.md
+            --output PLATFORMIO_METRICS.md \
+            --readme README.md
 
       - name: Commit report if changed
         run: |
-          if git diff --quiet -- PLATFORMIO_METRICS.md; then
+          if git diff --quiet -- PLATFORMIO_METRICS.md README.md; then
             echo "No metrics changes detected"
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add PLATFORMIO_METRICS.md
-          git commit -m "chore: update PlatformIO metrics report"
+          git add PLATFORMIO_METRICS.md README.md
+          git commit -m "chore: update PlatformIO metrics and badges"
           git push

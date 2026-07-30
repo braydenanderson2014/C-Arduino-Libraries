@@ -1,405 +1,298 @@
-# **C-Arduino-Libraries**  
-🚀 **A collection of optimized C++ libraries for Arduino and embedded systems**  
+﻿# C-Arduino-Libraries
+
+🚀 A collection of Arduino-focused C++ libraries with shared tooling, automated quality checks, and registry tracking.
+
 [![Arduino Host Simulation Tests](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml)
-## 📑 **Table of Contents**
+[![Compile Examples](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml)
+[![Cross-Repo Health Report](https://github.com/braydenanderson2014/SystemCommands/actions/workflows/Generate%20Cross-Repo%20Library%20Health%20Report.yml/badge.svg)](https://github.com/braydenanderson2014/SystemCommands/actions/workflows/Generate%20Cross-Repo%20Library%20Health%20Report.yml)
+[![PlatformIO Metrics](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/update-platformio-metrics.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/update-platformio-metrics.yml)
 
-- [Project Structure](#-project-structure)
-- [Support My Work](#-support-my-work)
-- [Special Thanks](#-special-thanks-for-those-who-sponser-my-work)
-- [Library Testing & Stability](#-library-testing--stability)
-- [Available Libraries](#-available-libraries)
-- [Stable & Tested Libraries](#-stable--tested-libraries-)
-- [Active Development Libraries](#-active-development-libraries-)
-- [Currently Testing Libraries](#-currently-testing-libraries-)
-- [Unpublished Libraries (In Development)](#-unpublished-libraries-in-development)
-- [Libraries Published on Arduino Library Manager](#-libraries-published-on-arduino-library-manager)
-- [Contributing & Issues](#-contributing--issues)
-- [Discussions](#-discussions)
-- [Automation, Templates, and Cross-Repo Intake](#-automation-templates-and-cross-repo-intake)
-- [Automation: What Gets Copied Here From Other Library Repositories](#-what-gets-copied-here-from-other-library-repositories)
-- [Automation: Issue Templates In This Repository](#-issue-templates-in-this-repository)
-- [Automation: Main Issue/PR Automation Workflows](#-main-issuepr-automation-workflows)
-- [Automation: If Automation Does Something You Do Not Understand](#-if-automation-does-something-you-do-not-understand)
-- [Final Notes](#-final-notes)
-- [Quick Links](#-quick-links)
-- [All Libraries Include A README.md](#-all-libraries-include-a-readmemd-)
-- [PlatformIO Leaderboard for These Libraries](#-platformio-leaderboard-for-these-libraries)
-- [Information About This Document](#-information-about-this-document-)
+## Quick Start
 
-## 📁 **Project Structure**  
-All libraries are located under the `lib` folder. For best results, open the **parent folder** containing this `README.md` to access the full project.  
+- Libraries live under `lib/`.
+- Most libraries include their own README with API and examples.
+- Experimental UnoQ branch work is in `lib/__ArduinoUnoQLibraryDevelopment__Experimental/`.
 
-- 📌 The **`src`** folder contains the main project file (`main.cpp`) for testing libraries.  
-- 🧪 The **`Test`** folder allows unit testing using the **Unity** framework. Enable it in `platformio.ini` when needed.  
-- 📖 Each library has its own README file with setup instructions.  
-- 🔍 Some libraries are also available on **Arduino Library Manager**. See the list below for version details.  
+## Automation-Driven Status
 
----
-## 💖 **Support My Work**  
-If you find these libraries useful, consider supporting me:  
+This repo now relies heavily on workflows for health and stability reporting.
 
-🔗 **[Donate via GoFundMe](https://gofund.me/923e5f10)**  
-💰 **Click the Sponsor Button** at the top of this repository!  
- - **Patreon:** [Support on Patreon](https://www.patreon.com/posts/122298248)
- - **Kofi:** [Support on Kofi](https://ko-fi.com/joesupercool15673)
- - **Venmo:** [Support on Venmo](https://venmo.com/Brayden-Anderson-20)
----
-## SPECIAL THANKS FOR THOSE WHO SPONSER MY WORK:
-* Brayden Anderson (Developer)
+- Library health summary: [library-health-report.md](library-health-report.md)
+- PlatformIO metrics report: [PLATFORMIO_METRICS.md](PLATFORMIO_METRICS.md)
+- Host simulation and compile workflows: `.github/workflows/`
 
+## Feature Snapshot
 
+Expect practical building blocks rather than one giant framework:
 
-## ⚠ **Library Testing & Stability**  
-Most libraries are **[PARTIALLY-TESTED]** or **[MOSTLY-TESTED]**. Even **[STABLE]** libraries may contain unknown bugs. If you encounter issues, **please report them** on this repository.  
+- Storage and file friendly patterns: SD workflows (`SDList`) and filesystem-oriented integration points (including `LittleFS` wrapper paths in this repo).
+- Modern utility helpers: `Optional`, `Variant`, `TypeTraits`, `Predicates`, and iterator/style support.
+- Data structures: maps, trees, lists, queues, stacks, vectors, and hash containers.
+- Math and utility helpers: `MathLib`, `MatrixMath`, timers, and lightweight support modules.
 
-⚠ **Note:** Some libraries have different published names. For example:  
-- **Properties** → Published as **SimpleProperties**  
-- **iostream** → Published as **BasicIOStream**  
+For deep details, check each library README and examples under `lib/`.
 
-📌 **[Development Branch]:** Libraries here are in **active development** and may not compile. Use **main** branch versions for stable releases.
-
----
-<!-- HEALTH_BADGES_START -->
 ## Library Health Badges
 
-Auto-generated from workflow status results (2026-07-29T17:36:20.248Z).
-
-![Array List](https://img.shields.io/badge/Array%20List-Healthy-2ea44f) ![AVL Tree](https://img.shields.io/badge/AVL%20Tree-Healthy-2ea44f) ![B Plus Tree](https://img.shields.io/badge/B%20Plus%20Tree-Healthy-2ea44f) ![B Tree](https://img.shields.io/badge/B%20Tree-Healthy-2ea44f) ![Binary Search Tree](https://img.shields.io/badge/Binary%20Search%20Tree-Healthy-2ea44f) ![Binary Tree](https://img.shields.io/badge/Binary%20Tree-Healthy-2ea44f) ![Color Manager](https://img.shields.io/badge/Color%20Manager-Healthy-2ea44f) ![Dictionary](https://img.shields.io/badge/Dictionary-Healthy-2ea44f) ![Double Linked List](https://img.shields.io/badge/Double%20Linked%20List-Healthy-2ea44f) ![Ethernet Connection Checker](https://img.shields.io/badge/Ethernet%20Connection%20Checker-Healthy-2ea44f) ![Ethernet Mach2 Connection Checker](https://img.shields.io/badge/Ethernet%20Mach2%20Connection%20Checker-Healthy-2ea44f) ![Extreme Variant](https://img.shields.io/badge/Extreme%20Variant-Healthy-2ea44f) ![Fenwick Tree](https://img.shields.io/badge/Fenwick%20Tree-Healthy-2ea44f) ![Hashtable](https://img.shields.io/badge/Hashtable-Healthy-2ea44f) ![Heap Tree](https://img.shields.io/badge/Heap%20Tree-Healthy-2ea44f) ![Initializer List](https://img.shields.io/badge/Initializer%20List-Healthy-2ea44f) ![Interval Tree](https://img.shields.io/badge/Interval%20Tree-Healthy-2ea44f) ![Iterator](https://img.shields.io/badge/Iterator-Healthy-2ea44f) ![Map](https://img.shields.io/badge/Map-Healthy-2ea44f) ![Math Lib](https://img.shields.io/badge/Math%20Lib-Healthy-2ea44f) ![Matrix Math](https://img.shields.io/badge/Matrix%20Math-Healthy-2ea44f) ![My Dictionary](https://img.shields.io/badge/My%20Dictionary-Healthy-2ea44f) ![Numeric Limits](https://img.shields.io/badge/Numeric%20Limits-Healthy-2ea44f) ![OC Tree](https://img.shields.io/badge/OC%20Tree-Healthy-2ea44f) ![Operators](https://img.shields.io/badge/Operators-Healthy-2ea44f) ![Optional](https://img.shields.io/badge/Optional-Healthy-2ea44f) ![Predicates](https://img.shields.io/badge/Predicates-Healthy-2ea44f) ![Quad Tree](https://img.shields.io/badge/Quad%20Tree-Healthy-2ea44f) ![R Tree](https://img.shields.io/badge/R%20Tree-Healthy-2ea44f) ![Red Black Tree](https://img.shields.io/badge/Red%20Black%20Tree-Healthy-2ea44f) ![SD List](https://img.shields.io/badge/SD%20List-Healthy-2ea44f) ![Segment Tree](https://img.shields.io/badge/Segment%20Tree-Healthy-2ea44f) ![Simple Vector](https://img.shields.io/badge/Simple%20Vector-Healthy-2ea44f) ![Suffix Tree](https://img.shields.io/badge/Suffix%20Tree-Healthy-2ea44f) ![Trie Tree](https://img.shields.io/badge/Trie%20Tree-Healthy-2ea44f) ![Type Traits](https://img.shields.io/badge/Type%20Traits-Healthy-2ea44f) ![Unordered Map](https://img.shields.io/badge/Unordered%20Map-Healthy-2ea44f) ![Variant](https://img.shields.io/badge/Variant-Healthy-2ea44f)
-
-Lint: ![Passed Lint: 11](https://img.shields.io/badge/Passed%20Lint-11-2ea44f?style=flat-square) ![Failed Lint: 0](https://img.shields.io/badge/Failed%20Lint-0-d73a49?style=flat-square) ![Unknown Lint: 42](https://img.shields.io/badge/Unknown%20Lint-42-9e9e9e?style=flat-square)
-Compilation: ![Passed Compilation: 41](https://img.shields.io/badge/Passed%20Compilation-41-2ea44f?style=flat-square) ![Failed Compilation: 0](https://img.shields.io/badge/Failed%20Compilation-0-d73a49?style=flat-square) ![Unknown Compilation: 12](https://img.shields.io/badge/Unknown%20Compilation-12-9e9e9e?style=flat-square)
+<!-- HEALTH_BADGES_START -->
+Auto-generated health badges will be inserted by workflow.
 <!-- HEALTH_BADGES_END -->
 
----
-## 📚 **Available Libraries**  
-* [Dictionary](lib/Dictionary/README.md) [DEVELOPMENT-COMPLETE] (PURE VIRTUAL : No Concrete Implementation in this Library), [TESTING-NOT-NECESSARY],[IMPLEMENTED IN ANOTHER LIBRARY]
-* [Hashtable](lib/Hashtable/README.md) [PASSIVE-DEVELOPMENT], [TESTED], [STABLE]
-* [iostream](lib/iostream/README.md) [PASSIVE-DEVELOPMENT] (Published as : BasicIOStream), [PARTIALLY-TESTED], [STABLE]
-* [iterator](lib/iterator/README.md) [DEVELOPMENT-COMPLETE], (PURE VIRTUAL : No Concrete Implementation in this Library)  [TESTING-NOT-NECESSARY] 
-* [Properties](lib/Properties/README.md) [PASSIVE-DEVELOPMENT] (Published as : SimpleProperties), [MOSTLY-TESTED], [STABLE]
-* [SimpleVector](lib/SimpleVector/README.md) [PASSIVE-DEVELOPMENT] , [TESTED], [STABLE]
-* [Timer](lib/Timer/README.md) [PASSIVE_DEVELOPMENT] (Published as : SimpleArduinoTimer), [MOSTLY-TESTED], [SEMI-STABLE]
-* [UnorderedMap](lib/UnorderedMap/README.md) [PASSIVE-DEVELOPMENT], [PARTIALLY-TESTED], [STABLE]
-* [LinkedList](lib/LinkedList/README.md) [PASSIVE-DEVELOPMENT] (Published as : BasicLinkedList), [PARTIALLY-TESTED], [STABLE]
-* [DoubleLinkedList](lib/DoubleLinkedList/README.md) [PASSIVE-DEVELOPMENT], [PARTIALLY-TESTED], [STABLE]
-* [MyDictionary](lib/MyDictionary/README.md) [ACTIVE-DEVELOPMENT],(implemented Version of the Dictionary Class), [UNTESTED]
-* [SDList](lib/SDList/README.md) [PASSIVE-DEVELOPMENT], [REIMPLEMENTED], [MOSTLY-TESTED], [UNSTABLE]
-* [ArrayList](lib/ArrayList/README.md) [PASSIVE-DEVELOPMENT], [TESTED], [STABLE]
-* [SimpleMutex](lib/SimpleMutex/) [ACTIVE-DEVELOPMENT]
-* [SimpleThreadManager](lib/SimpleThreadManager/) [ACTIVE-DEVELOPMENT]
-* [Operators](lib/Operators/README.md) [PASSIVE-DEVELOPMENT], [STABLE]
-* [Predicates](lib/Predicates/README.md) [PASSIVE-DEVELOPMENT], [STABLE]
-* [TypeTraits](lib/TypeTraits/README.md) [PASSIVE-DEVELOPMENT], [STABLE]
-* [Numeric_Limits](lib/Numeric_Limits/README.md) [PASSIVE-DEVELOPMENT], [STABLE]
-* [Map](lib/Map/README.md) [ACTIVE-DEVELOPMENT], [STABLE], [PARTIALLY-TESTED]
-* [Queue](lib/Queue/README.md) [PASSIVE-DEVELOPMENT], [STABLE]
-* [Stack](lib/Stack/README.md) [PASSIVE-DEVELOPMENT], [STABLE]
-* [MatrixMath](lib/MatrixMath/README.md) [PASSIVE-DEVELOPMENT], [UNTESTED]
-* [MathLib](lib/MathLib/README.md) [PASSIVE-DEVELOPMENT], [UNTESTED]
-* [ColorManager](lib/ColorManager/README.md) [PASSIVE-DEVELOPMENT], [UNTESTED]
-* [InitializerList](lib/Initializer_List/README.md) [PASSIVE-DEVELOPMENT], [UNTESTED]
-* [Optional](lib/Optional/README.md) [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED]
-* [Variant](lib/Variant/README.md) [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED]
-* [ExtremeVariant](lib/ExtremeVariant/README.md) [ACTIVE-DEVELOPMENT], [MOSTLY-TESTED]
+<!-- PLATFORMIO_BADGES_START -->
+## PlatformIO Registry Badges
 
+Auto-generated from PlatformIO registry package data (2026-07-30 12:33 UTC).
 
-Total Available Libraries: (45)
-Total Libraries: (51)
+Quick expectation notes: data structures, utility helpers (`Optional`, `Variant`, `TypeTraits`), and storage-facing support (`SD`/`SDList` and repo-level `LittleFS` integration paths).
 
-### 🏆 **Stable & Tested Libraries** ✅  
-| Library | Status | Notes |
-|---------|--------|-------|
-| [Dictionary](lib/Dictionary/README.md) | ✅ DEVELOPMENT-COMPLETE | Pure Virtual (No Concrete Implementation) |
-| [Hashtable](lib/Hashtable/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
-| [SimpleVector](lib/SimpleVector/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
-| [ArrayList](lib/ArrayList/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, ⚠ SEMI-STABLE |
-| [Timer](lib/Timer/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ MOSTLY-TESTED, ⚠ SEMI-STABLE |
-| [LinkedList](lib/LinkedList/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ PARTIALLY-TESTED, 🏆 STABLE |
-| [UnorderedMap](lib/UnorderedMap/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ PARTIALLY-TESTED, 🏆 STABLE |
-| [Stack](lib/Stack/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
-| [Queue](lib/Queue/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
-| [Operators](lib/Operators/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
-| [Predicates](lib/Predicates/README.md) | 🛠 PASSIVE-DEVELOPMENT | ✅ TESTED, 🏆 STABLE |
+### Data Structures
 
----
+- [AVL Tree](lib/AVLTree) [![AVL Tree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/AVL%20Tree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/AVL%20Tree)
+- [ArrayList](lib/ArrayList) [![ArrayList](https://badges.registry.platformio.org/packages/braydenanderson2014/library/ArrayList.svg)](https://registry.platformio.org/libraries/braydenanderson2014/ArrayList)
+- [BPlusTree](lib/bPlusTree) [![BPlusTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/BPlusTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/BPlusTree)
+- [BTree](lib/bTree) [![BTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/BTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/BTree)
+- [BasicLinkedList](lib/LinkedList) [![BasicLinkedList](https://badges.registry.platformio.org/packages/braydenanderson2014/library/BasicLinkedList.svg)](https://registry.platformio.org/libraries/braydenanderson2014/BasicLinkedList)
+- [BinarySearchTree](lib/BinarySearchTree) [![BinarySearchTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/BinarySearchTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/BinarySearchTree)
+- [BinaryTree](lib/BinaryTree) [![BinaryTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/BinaryTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/BinaryTree)
+- [Dictionary](lib/Dictionary) [![Dictionary](https://badges.registry.platformio.org/packages/braydenanderson2014/library/Dictionary.svg)](https://registry.platformio.org/libraries/braydenanderson2014/Dictionary)
+- [DoubleLinkedList](lib/DoubleLinkedList) [![DoubleLinkedList](https://badges.registry.platformio.org/packages/braydenanderson2014/library/DoubleLinkedList.svg)](https://registry.platformio.org/libraries/braydenanderson2014/DoubleLinkedList)
+- [FenwickTree](lib/FenwickTree) [![FenwickTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/FenwickTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/FenwickTree)
+- [Hashtable](lib/Hashtable) [![Hashtable](https://badges.registry.platformio.org/packages/braydenanderson2014/library/Hashtable.svg)](https://registry.platformio.org/libraries/braydenanderson2014/Hashtable)
+- [HeapTree](lib/HeapTree) [![HeapTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/HeapTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/HeapTree)
+- [Initializer_List](lib/Initializer_List) [![Initializer_List](https://badges.registry.platformio.org/packages/braydenanderson2014/library/Initializer_List.svg)](https://registry.platformio.org/libraries/braydenanderson2014/Initializer_List)
+- [IntervalTree](lib/IntervalTree) [![IntervalTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/IntervalTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/IntervalTree)
+- [KDimensonalTree](lib/kdimensionalTree) [![KDimensonalTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/KDimensonalTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/KDimensonalTree)
+- [Map](lib/Map) [![Map](https://badges.registry.platformio.org/packages/braydenanderson2014/library/Map.svg)](https://registry.platformio.org/libraries/braydenanderson2014/Map)
+- [MyDictionary](lib/MyDictionary) [![MyDictionary](https://badges.registry.platformio.org/packages/braydenanderson2014/library/MyDictionary.svg)](https://registry.platformio.org/libraries/braydenanderson2014/MyDictionary)
+- [OcTree](lib/OCTree) [![OcTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/OcTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/OcTree)
+- [QuadTree](lib/QuadTree) [![QuadTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/QuadTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/QuadTree)
+- [RTree](lib/RTree) [![RTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/RTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/RTree)
+- [RedBlackTree](lib/RedBlackTree) [![RedBlackTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/RedBlackTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/RedBlackTree)
+- [SDList](lib/SDList) [![SDList](https://badges.registry.platformio.org/packages/braydenanderson2014/library/SDList.svg)](https://registry.platformio.org/libraries/braydenanderson2014/SDList)
+- [SegmentTree](lib/SegmentTree) [![SegmentTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/SegmentTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/SegmentTree)
+- [SimpleQueue](lib/Queue) [![SimpleQueue](https://badges.registry.platformio.org/packages/braydenanderson2014/library/SimpleQueue.svg)](https://registry.platformio.org/libraries/braydenanderson2014/SimpleQueue)
+- [SimpleStack](lib/Stack) [![SimpleStack](https://badges.registry.platformio.org/packages/braydenanderson2014/library/SimpleStack.svg)](https://registry.platformio.org/libraries/braydenanderson2014/SimpleStack)
+- [SimpleVector](lib/SimpleVector) [![SimpleVector](https://badges.registry.platformio.org/packages/braydenanderson2014/library/SimpleVector.svg)](https://registry.platformio.org/libraries/braydenanderson2014/SimpleVector)
+- [SuffixTree](lib/SuffixTree) [![SuffixTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/SuffixTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/SuffixTree)
+- [TrieTree](lib/TrieTree) [![TrieTree](https://badges.registry.platformio.org/packages/braydenanderson2014/library/TrieTree.svg)](https://registry.platformio.org/libraries/braydenanderson2014/TrieTree)
+- [UnorderedMap](lib/UnorderedMap) [![UnorderedMap](https://badges.registry.platformio.org/packages/braydenanderson2014/library/UnorderedMap.svg)](https://registry.platformio.org/libraries/braydenanderson2014/UnorderedMap)
 
-### 🔬 **Active Development Libraries** ⚡  
-| Library | Status | Notes |
-|---------|--------|-------|
-| [MyDictionary](lib/MyDictionary/README.md) | 🚧 DEVELOPMENT-PAUSED | ⚠ UNTESTED |
-| [SimpleMutex](lib/SimpleMutex/) | 🚧 DEVELOPMENT-PAUSED | ⚠ UNTESTED |
-| [SimpleThreadManager](lib/SimpleThreadManager/) | 🚧 DEVELOPMENT-PAUSED | ⚠ UNTESTED |
-| [JSON](lib/Json/) | 🔥 ACTIVE-DEVELOPMENT | 🚧 UNPUBLISHED |
-| [MemoryManager](lib/MemoryManager/README.md) | 🔥 ACTIVE-DEVELOPMENT | 🚧 UNPUBLISHED |
-| [Optional](lib/Optional/README.md) | 🔥 ACTIVE-DEVELOPMENT | ✅ MOSTLY-TESTED |
-| [Variant](lib/Variant/README.md) | 🔥 ACTIVE-DEVELOPMENT | ✅ MOSTLY-TESTED |
-| [ExtremeVariant](lib/ExtremeVariant/README.md) | 🔥 ACTIVE-DEVELOPMENT | ✅ MOSTLY-TESTED |
-| [DynamicStorage](lib/DynamicStorageLibrary/README.md) | 🔥 ACTIVE-DEVELOPMENT | 🚧 IN PROGRESS |
+### Language and Utility Helpers
 
+- [Iterator](lib/iterator) [![Iterator](https://badges.registry.platformio.org/packages/braydenanderson2014/library/Iterator.svg)](https://registry.platformio.org/libraries/braydenanderson2014/Iterator)
+- [Numeric_Limits](lib/Numeric_Limits) [![Numeric_Limits](https://badges.registry.platformio.org/packages/braydenanderson2014/library/Numeric_Limits.svg)](https://registry.platformio.org/libraries/braydenanderson2014/Numeric_Limits)
+- [Operators](lib/Operators) [![Operators](https://badges.registry.platformio.org/packages/braydenanderson2014/library/Operators.svg)](https://registry.platformio.org/libraries/braydenanderson2014/Operators)
+- [Optional](lib/Optional) [![Optional](https://badges.registry.platformio.org/packages/braydenanderson2014/library/Optional.svg)](https://registry.platformio.org/libraries/braydenanderson2014/Optional)
+- [Predicates](lib/Predicates) [![Predicates](https://badges.registry.platformio.org/packages/braydenanderson2014/library/Predicates.svg)](https://registry.platformio.org/libraries/braydenanderson2014/Predicates)
+- [TypeTraits](lib/TypeTraits) [![TypeTraits](https://badges.registry.platformio.org/packages/braydenanderson2014/library/TypeTraits.svg)](https://registry.platformio.org/libraries/braydenanderson2014/TypeTraits)
+- [Variant](lib/Variant) [![Variant](https://badges.registry.platformio.org/packages/braydenanderson2014/library/Variant.svg)](https://registry.platformio.org/libraries/braydenanderson2014/Variant)
 
----
-## 🧪 **Currently Testing Libraries** 🔍  
-🚧 These libraries are under active testing:  
-1. [MatrixMath](lib/MatrixMath/README.md)  🚧 TESTING-PAUSED
-2. [MathLib](lib/MathLib/README.md)  🚧 TESTING-PAUSED
-3. [JSON](lib/Json/) 🔥 ACTIVELY-TESTING
-4. [Optional](lib/Optional/README.md) 🔥 ACTIVELY-TESTING
-5. [Variant](lib/Variant/README.md) 🛠 PASSIVE-TESTING
-6. [ExtremeVariant](lib/ExtremeVariant/README.md) 🔥 ACTIVELY-TESTING
-7. [ArrayList](lib/ArrayList/README.md) 🛠 PASSIVE-TESTING
-8. [SimpleVector](lib/SimpleVector/README.md) 🛠 PASSIVE-TESTING
----
+### Storage and IO
 
-## 🚧 **Unpublished Libraries (In Development)**  
-📢 These libraries are **not yet available** but are under **active development**:  
+- [BasicIOStream](lib/iostream) [![BasicIOStream](https://badges.registry.platformio.org/packages/braydenanderson2014/library/BasicIOStream.svg)](https://registry.platformio.org/libraries/braydenanderson2014/BasicIOStream)
+- [SimpleProperties](lib/Properties) [![SimpleProperties](https://badges.registry.platformio.org/packages/braydenanderson2014/library/SimpleProperties.svg)](https://registry.platformio.org/libraries/braydenanderson2014/SimpleProperties)
 
-| Library | Status |
-|---------|--------|
-| SimpleMutex | 🚧 DEVELOPMENT-PAUSED, ❌ UNPUBLISHED |
-| SimpleThreadManager | 🚧 DEVELOPMENT-PAUSED, ❌ UNPUBLISHED |
-| OrderedMap | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
-| JSON | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
-| STRING | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
-| MemoryManager | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
-| ExtremeVariant | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
-| DynamicStorage | 🔥 ACTIVE-DEVELOPMENT, ❌ UNPUBLISHED |
+### Math and Runtime Helpers
 
----
+- [ColorManager](lib/ColorManager) [![ColorManager](https://badges.registry.platformio.org/packages/braydenanderson2014/library/ColorManager.svg)](https://registry.platformio.org/libraries/braydenanderson2014/ColorManager)
+- [MathLib](lib/MathLib) [![MathLib](https://badges.registry.platformio.org/packages/braydenanderson2014/library/MathLib.svg)](https://registry.platformio.org/libraries/braydenanderson2014/MathLib)
+- [MatrixMath](lib/MatrixMath) [![MatrixMath](https://badges.registry.platformio.org/packages/braydenanderson2014/library/MatrixMath.svg)](https://registry.platformio.org/libraries/braydenanderson2014/MatrixMath)
+- [SimpleArduinoTimer](lib/Timer) [![SimpleArduinoTimer](https://badges.registry.platformio.org/packages/braydenanderson2014/library/SimpleArduinoTimer.svg)](https://registry.platformio.org/libraries/braydenanderson2014/SimpleArduinoTimer)
 
-## 📜 **Libraries Published on Arduino Library Manager**  
+<!-- PLATFORMIO_BADGES_END -->
 
-- **ArrayList** `[ON-PAR]`  
-- **SimpleVector** `[ON-PAR]`  
-- **Hashtable** `[ON-PAR]`  
-- **Properties** (SimpleProperties)  
-- **Timer** (ArduinoTimer)  
-- **LinkedList** (ArduinoLinkedList)  
-- **UnorderedMap**  
-- **DoubleLinkedList** (ArduinoDoubleLinkedList)  
-- **SDList** (Arduino SDList) `[ON-PAR]`  
-- **Optional** (Will be synced between Versions shortly (made a mistake))  
-- **Variant** `[ON-PAR]`  
+## Health and Testing
 
-## 📢 **Contributing & Issues**  
-🛠 Found a bug? Have a question? **Open an issue** on GitHub!  
+Track quality and CI status from these workflow/report entry points:
 
-💡 Want to contribute? Fork the repository and submit a **pull request** with your changes.  
+- Cross-repo health status (SystemCommands issue buckets): [![Cross-Repo Health Report](https://github.com/braydenanderson2014/SystemCommands/actions/workflows/Generate%20Cross-Repo%20Library%20Health%20Report.yml/badge.svg)](https://github.com/braydenanderson2014/SystemCommands/actions/workflows/Generate%20Cross-Repo%20Library%20Health%20Report.yml)
+- Host-level simulation tests: [![Arduino Host Simulation Tests](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml)
+- Build and compile coverage: [![Compile Examples](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml)
+- JSON host simulation tests: [![JSON Host Sim Tests](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/json-host-sim-tests.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/json-host-sim-tests.yml)
+- Aggregated health output: [library-health-report.md](library-health-report.md)
+- PlatformIO metrics and registry overview: [PLATFORMIO_METRICS.md](PLATFORMIO_METRICS.md)
 
----
+Notes:
+- Compile/testing pass-fail labels are synchronized to SystemCommands from the host simulation workflow jobs.
+- Workflow badges reflect the latest run outcome, including `cancelled` when a run is interrupted.
+- For debugging failures, open the workflow run and inspect step logs directly.
 
-## 💬 **Discussions**
-Have a general question, idea, or just want to chat about the libraries? Head over to the **[GitHub Discussions](https://github.com/braydenanderson2014/C-Arduino-Libraries/discussions)** page!
+## Testing Strategy and Confidence Levels
 
-Discussions are a great place to:
-- 🙋 **Ask questions** that aren't necessarily bugs or feature requests
-- 💡 **Share ideas** for new libraries or improvements
-- 📣 **Show off** projects you've built using these libraries
-- 🤝 **Connect** with other users and contributors
+This repository uses multiple testing layers on purpose. Each layer catches different classes of failures.
 
-👉 **[Open a Discussion](https://github.com/braydenanderson2014/C-Arduino-Libraries/discussions)**
+### 1) Compile Validation
 
----
+Primary signal:
+- [Compile Examples workflow](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml)
+- Local workflow file: [.github/workflows/compile-examples.yml](.github/workflows/compile-examples.yml)
 
-## 🤖 **Automation, Templates, and Cross-Repo Intake**
+What it checks:
+- Example sketches and library code still compile.
+- Header/API changes did not break common include paths or usage patterns.
 
-This repository is the **main tracker** for issues and pull-request intake across related library repositories.
+What it does not guarantee:
+- Runtime behavior on real boards.
+- Correct timing, interrupts, or peripheral behavior.
 
-### ✅ What Gets Copied Here From Other Library Repositories
+### 2) Host Simulation and Functional Tests
 
-The workflow `.github/workflows/forward-issues-to-main.yml` is designed to run in **separate library repositories** (not this main repo).
+Primary signal:
+- [Arduino Host Simulation Tests workflow](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml)
+- Local workflow file: [.github/workflows/arduino-host-sim-tests.yml](.github/workflows/arduino-host-sim-tests.yml)
 
-- When a new **issue** is opened in a library repo, it is mirrored as an issue in `braydenanderson2014/C-Arduino-Libraries`.
-- When a new **pull request** is opened in a library repo, it is also mirrored here as an issue so discussion can stay centralized.
-- The mirrored issue is added to project `braydenanderson2014/4` and set to `Status = Triage`.
-- The mirrored issue gets `Needs Transfer = Yes`, and after forwarding completes it is set to `Needs Transfer = Completed Transfer`.
-- By default, the source library-repo issue/PR is then closed after mirroring (configurable through workflow_dispatch inputs).
+Related signal:
+- [JSON Host Sim Tests workflow](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/json-host-sim-tests.yml)
+- Local workflow file: [.github/workflows/json-host-sim-tests.yml](.github/workflows/json-host-sim-tests.yml)
 
-Important behavior:
-- The forwarding workflow **self-disables in this main repo** (`C-Arduino-Libraries`) to prevent loops.
-- This means each library repo should have its own copy of that workflow file, with token/permission setup.
+What they check:
+- Data-structure and algorithm correctness under repeatable host-side conditions.
+- Serialization and parser behavior for JSON-oriented flows.
+- Regressions in logic that do not require physical hardware.
 
-### 🧩 Issue Templates In This Repository
+What they do not guarantee:
+- Exact SRAM/stack pressure behavior on 8-bit targets.
+- Hardware-dependent timing and bus-level edge cases.
 
-Templates in `.github/ISSUE_TEMPLATE/` standardize intake and labels:
+### 3) Memory and Resource-Oriented Testing
 
-- `bug_report.yml`: applies `bug` + `user-reported`
-- `feature_request.yml`: applies `enhancement` + `feature-request`
-- `documentation-request.yml`: applies `documentation`
-- `general-question.yml`: applies `question`
-- `config.yml`: disables blank issues (`blank_issues_enabled: false`)
+Primary signal:
+- [Host Sim Memory Profiles workflow](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/host-sim-memory-profiles.yml)
+- Local workflow file: [.github/workflows/host-sim-memory-profiles.yml](.github/workflows/host-sim-memory-profiles.yml)
 
-Each template also includes a **Repository / Library** selector so reports can still be routed correctly in one central tracker.
+What it checks:
+- Relative allocation trends, leak-like patterns, and growth behavior in host simulation.
+- Useful early warnings when a change increases memory pressure.
 
-### 🗂️ Main Issue/PR Automation Workflows
+What it does not guarantee:
+- Exact AVR/ARM allocator behavior.
+- Real board fragmentation patterns over long uptime.
 
-Core workflow behaviors in `.github/workflows/`:
+### Why a Passing CI Run Can Still Fail on Arduino Hardware
 
-- `welcome-messages.yml`:
-	- Sends automated first response
-	- Adds issue to project board and sets fields like `Status`, `Type`, and (feature) `Priority`
-	- Supports retroactive welcome with `/welcome` comment or `send-welcome` label
+A green CI badge means strong baseline quality, but not full hardware certification.
 
-- `duplicate-detection.yml`:
-	- Runs AI + similarity duplicate detection on issue open
-	- Uses `scripts/ai_duplicate_detector.py` for ML-assisted candidate generation
-	- Labels potential duplicates (`auto-potential-duplicate`) or auto-closes very high-confidence duplicates
-	- Supports admin override labels:
-		- `adminduplicate` = confirm duplicate and close
-		- `adminduplicatenegative` = mark as not duplicate and remove auto-duplicate labels
-	- Maintains parent/child links and duplicate rollups in parent issue body
+Common reasons for hardware-only failures:
+- Smaller SRAM/flash limits than host environment assumptions.
+- Different compiler flags, ABI details, or core library implementations.
+- Peripheral timing differences (SPI/I2C/UART), ISR interactions, or watchdog behavior.
+- Electrical and board-specific factors (clock, wiring quality, power stability).
 
-- `challenge-handler.yml`:
-	- Handles duplicate challenge flow via labels or commands
-	- Commands/labels can trigger:
-		- challenge started
-		- challenge upheld
-		- challenge failed (with optional admin reason)
-	- Updates project fields like `Status`, `Archive Bucket`, and `Reopened Issue`
+Practical confidence guide:
+- Compile pass only: low-to-medium confidence for runtime on device.
+- Compile + host sim pass: medium-to-high confidence for pure logic libraries.
+- Compile + host sim + memory profile pass: higher confidence, but still verify on target board before release.
 
-- `restricted-label-watchdog.yml`:
-	- Protects restricted labels on both issues and pull requests
-	- Automatically removes restricted labels if added by unauthorized users
-	- Automatically restores restricted labels if unauthorized users remove them
-	- Allows trusted system actors (for example `github-actions[bot]`) and maintainers/admins
+Recommended release gate:
+1. Pass compile workflow.
+2. Pass host simulation workflows.
+3. Review memory profile diffs for unusual growth.
+4. Run at least one real-board smoke test for each changed library family.
 
-- `issue-reopen-handler.yml`:
-	- On issue reopen, sets `Status = REOPENED!!!` unless challenge-override labels are present
+## Issue Automation and Moderation Tools
 
-- `working-status.yml`, `question-status.yml`, `documentation-status.yml`:
-	- Keep project `Status` synchronized when labels are added/removed
-	- Examples: move between `Triage`, `Backlog`, `General Question`, `Documentation Request`, and in-progress states
+This repository includes automated issue triage and duplicate-management workflows. They reduce manual work, but they also use protected labels and project-field updates that contributors should understand.
 
-- `needs-more-info.yml`:
-	- Posts an info-request message when `needs-more-info` is added
-	- Posts follow-up confirmation when that label is removed after updates
+### What Tools Exist
 
-- `pull-request-triage.yml`:
-	- Auto-labels PRs with `pull-request`
-	- Adds welcome comment
-	- Adds PR to project board and sets `Status = Triage`
+- Challenge handling: [Challenge Handler](.github/workflows/challenge-handler.yml)
+- Duplicate detection and AI training: [Duplicate Detection](.github/workflows/duplicate-detection.yml)
+- Restricted label enforcement: [Restricted Label Watchdog](.github/workflows/restricted-label-watchdog.yml)
+- Reopen behavior integration: [Issue Reopen Handler](.github/workflows/issue-reopen-handler.yml)
 
-- `user-closed-handler.yml`:
-	- If `user-closed` label exists, updates project fields (`Archive Bucket = User-Closed`, `Status = Done`)
+### Challenge System (When You Disagree With a Closure)
 
-- `extract-program-id.yml`:
-	- Extracts Program ID patterns from issue body and writes to project `ID` field
+Use this when an issue was marked duplicate or closed and you believe it was incorrect.
 
-- `Project Health Monitoring`:
-	- Contains scheduled Project V2 health-summary logic based on active work-item counts
-	- Note: the file is currently named without `.yml`/`.yaml`; GitHub Actions only executes workflow files with a workflow extension
+Contributor path:
+1. Add the challenge label to the issue.
+2. Or comment with a challenge command such as /challenge, start challenge, or mention-style challenge text.
+3. Include specific reasons why your issue is unique.
 
-### 🆘 If Automation Does Something You Do Not Understand
+What automation does:
+- Moves issue status to Challenged.
+- Temporarily removes duplicate-related labels during review.
+- Reopens the issue for review if needed.
+- Posts an automated challenge-status comment.
 
-When a label/comment action is confusing (for example duplicate detection):
+Maintainer resolution:
+- Challenge upheld: apply challenge-upheld or use comment command such as /challenge-upheld.
+- Challenge failed: apply challenge-failed or use comment command such as /challenge-failed followed by a reason.
 
-1. Check labels on the issue first (`duplicate`, `parent`, `child`, `auto-potential-duplicate`, `challenge-*`, `adminduplicate*`, `needs-more-info`, `working`).
-2. Read bot comments in order; automation writes reason/context comments for most actions.
-3. If duplicate handling looks wrong:
-	 - Add details showing why the issue is unique.
-	 - Add `challenge` label (or comment command for challenge flow).
-	 - Maintainer can mark `challenge-upheld` or `challenge-failed`.
-4. If AI marked a false duplicate:
-	 - Use the `challenge` mechanism (this is the correct path for non-maintainers).
-	 - Add specific details showing how your case differs from the parent/linked issue.
-5. If a true duplicate was missed:
-	 - Maintainer/admin can use `adminduplicate` to force confirmed-duplicate flow.
-6. If the issue was auto-closed but should be active:
-	 - Reopen and explain what is new.
-	 - Apply `challenge` when closure reason was duplicate-related.
-7. Maintainer-only: if a library-repo issue/PR did not mirror here:
-	 - Verify `GH_PROJECT_TOKEN` exists in that source repo.
-	 - Verify the source repo has `forward-issues-to-main.yml`.
-	 - Verify project fields/options still match expected names (for example `Needs Transfer`, `Status`, `Triage`).
+Typical result:
+- Upheld challenges return the issue to active triage.
+- Failed challenges archive the issue in Failed Challenges and keep closure intent.
 
----
+### Duplicate Detection and Admin Override Labels
 
-## 📜 **Final Notes**  
-- **Libraries marked as `[ON-PAR]`** have the same version in **Arduino Library Manager** and **PlatformIO**.  
-- **If a library is not `[ON-PAR]`**, the **Arduino version may be outdated**. Updates on **PlatformIO** happen first due to ease of deployment.  
+Duplicate detection runs on new issues, selected label events, comments, and scheduled retraining.
 
-🚀 **Happy coding & thank you for using my libraries!** 🚀  
+Auto outcomes:
+- Potential duplicate labels may be added for human review.
+- Parent-child duplicate relationships can be established.
+- Parent issues get an aggregated duplicate list section.
 
----
+Admin override labels:
+- adminduplicate: confirms duplicate, closes issue, links parent-child, updates project status, records training data.
+- adminduplicatenegative: confirms not-duplicate, removes auto duplicate labels, records negative training data.
 
-## 🎯 **Quick Links**  
-🔗 **[GoFundMe - Support My Work!](https://gofund.me/923e5f10)**
-🔗 **[Patreon - Support My Work!](https://www.patreon.com/posts/support-my-open-122298248?utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=postshare_creator&utm_content=join_link)**  
-🔗 **[Platformio Registry](https://registry.platformio.org/search?q=owner%3Abraydenanderson2014)**  
-🔗 **[GitHub Repository](https://github.com/braydenanderson2014/C-Arduino-Libraries)**  
-🔗 **[GitHub Discussions](https://github.com/braydenanderson2014/C-Arduino-Libraries/discussions)**  
-🔗 **[Arduino Library Manager](https://docs.arduino.cc/software/ide-v1/tutorials/installing-libraries/#using-the-library-manager)** 
- 
+Manual bot commands for maintainers:
+- Duplicate check trigger: comment with a bot mention plus wording like test duplicate, check duplicate, or scan duplicate.
+- Duplicate list refresh trigger: comment with a bot mention plus wording like refresh duplicates, update duplicates, or rebuild duplicates.
 
-## ALL LIBRARIES INCLUDE A README.md ##
+### Restricted Label Watchdog
 
-## 📊 **PlatformIO Leaderboard for These Libraries**  
-📅 **Updated:** *01/29/2025 09:08 PM Mountain Time*  
+The label watchdog protects sensitive labels from unauthorized edits.
 
-| Library Name | Position | Downloads MTD | Total Downloads |
-|--------------|----------|---------------|-----------------|
-| [ArrayList](lib/ArrayList/README.md) | 1,186 | 22 | 178 | 
-| [Dictionary](lib/Dictionary/README.md) | 14,128 | 0 | 16 |
-| [SimpleArduinoTimer](lib/Timer/README.md) | 3,947 | 2 | 16 |
-| [UnorderedMap](lib/UnorderedMap/README.md) | 3,952 | 2 | 46 |
-| [SimpleProperties](lib/Properties/README.md) | 3,948 | 2 | 46 |
-| [Iterator](lib/iterator/README.md) | 3,949 | 2 | 25 |
-| [BasicIO](lib/iostream/README.md) | 1,679 | 12 | 360 |
-| [SDList](lib/SDList/README.md) | 3,951 | 2 | 12 |
-| [Hashtable](lib/Hashtable/README.md) | 1,375 | 17 | 189 |
-| [SimpleVector](lib/SimpleVector/README.md) | 1,259 | 21 | 247 |
-| [MyDictionary](lib/MyDictionary/README.md) | 14,136 | 0 | 3 |
-| [Operators](lib/Operators/README.md) | 14,221 | 0 | 15 | 
-| [Predicates](lib/Predicates/README.md) | 14,222 | 0 | 15 |
-| [BasicLinkedList](lib/LinkedList/README.md) | 2,818 | 4 | 20 |
-| [DoubleLinkedList](lib/DoubleLinkedList/README.md) | 3,250 | 3 | 21 |
-| [TypeTraits](lib/TypeTraits/README.md) | 3,980 | 2 | 28 |
-| [AVLTree](lib/AVLTree/README.md) | 14,422 | 0 | 4 |
-| [BinarySearchTree](lib/BinarySearchTree/README.md) | 14,423 | 0 | 4 |
-| [BinaryTree](lib/BinaryTree/README.md) | 14,424 | 0 | 4 |
-| [B+ Tree](lib/bPlusTree/README.md) | 14,425 | 0 | 4 |
-| [B Tree](lib/bTree/README.md) | 14,426 | 0 | 4 |
-| [ColorManager](lib/ColorManager/README.md) | 14,427 | 0 | 5 |
-| [FenwickTree](lib/FenwickTree/README.md) | 14,428 | 0 | 4 |
-| [HeapTree](lib/HeapTree/README.md) | 14,429 | 0 | 4 |
-| [InitializerList](lib/Initializer_List/README.md) | 1,379 | 18 | 217 |
-| [IntervalTree](lib/IntervalTree/README.md) | 14,430 | 0 | 4 |
-| [KDimensionalTree](lib/kdimensionalTree/README.md) | 14,431 | 0 | 4 |
-| [MathLib](lib/MathLib/README.md) | 3,982 | 2 | 21 |
-| [Map](lib/Map/README.md) | 2,726 | 1 | 38 |
-| [MatrixMath](lib/MatrixMath/README.md) | 14,444 | 0 | 4 |
-| [Numeric_Limits](lib/Numeric_Limits/README.md) | 3,983 | 2 | 25 |
-| [OCTree](lib/OCTree/README.md) | 14,432 | 0 | 4 |
-| [QuadTree](lib/QuadTree/README.md) | 14,436 | 0 | 4 |
-| [Queue](lib/Queue/README.md) | 14,437 | 0 | 5 |
-| [RedBlackTree](lib/RedBlackTree/README.md) | 14,438 | 0 | 4 |
-| [RTree](lib/RTree/README.md) | 14,439 | 0 | 4 |
-| [SegmentTree](lib/SegmentTree/README.md) | 14,440 | 0 | 4 |
-| [Stack](lib/Stack/README.md) | 14,441 | 0 | 6 |
-| [SuffixTree](lib/SuffixTree/README.md) | 14,442 | 0 | 4 |
-| [TrieTree](lib/TrieTree/README.md) | 14,443 | 0 | 4 | 
-| [Optional](lib/Optional/README.md) | [NEW] | 0 | 0 |
-| [Variant](lib/Variant/README.md) | [NEW] | 0 | 0 | 
-| [ExtremeVariant](lib/ExtremeVariant/README.md) | [NEW] | 0 | 0 |
+Restricted labels include:
+- adminduplicate
+- adminduplicatenegative
+- challenge-upheld
+- challenge-failed
+- challenge-complete
+- parent
+- child
+- ai-training
+- ai-data
+- ai-verified
+- training-data
+- auto-processed
 
+Policy behavior:
+- Unauthorized add: label is removed automatically.
+- Unauthorized removal: label is restored automatically.
+- Allowed actors: maintainers, admins, and trusted system actors.
 
-## Information about this document ##
-| Status | Meaning |
-|--------|---------|
-|[TESTED] | Library has been tested and found to operate as intended (newer updates may not actually be tested) |
-| [PARTIALLY-TESTED] | Library has had some tests completed, the library could still be unstable |
-| ✅ [MOSTLY-TESTED] ✅ | Similar to partially tested, most functions have been tested. (main functions) |
-| [UNTESTED] | If I have to explain this to you, you got problems ;) Library has not been tested |
-| ❌ [UNPUBLISHED] ❌ | The library is only on github. This is usually a temporary tag. |
-| [DEVELOPMENT-COMPLETE] | I have no intention to further develop library. (will fix bugs) |
-| 🔥 [ACTIVE-DEVELOPMENT] 🔥 | Actively working on library. Enhancements, bug fixes, ext. | 
-| 🛠 [PASSIVE-DEVELOPMENT] 🛠 | Resevered for libraries that I have plans for, but am not working on currently |
-| 🚧 [DEVELOPMENT-PAUSED] 🚧 | Development is no longer a priority, and the Development will not be progressed  |
-| 🚧 [TESTING-PAUSED] 🚧 | Testing is no longer a priority, and at this time will not be continued.
-| 🏆 [STABLE] 🏆 | Library should work as intended and shouldnt give any trouble. |
-| [CONSIDERED-STABLE] | Library hasnt been fully tested, but the vast majority of the functions seem to work fine with no issues |
-| ⚠ [SEMI-STABLE] ⚠ | Library has some aspects that are stable, but others that may not be stable |
-| [UNSTABLE] | Testing is showing that a library is not working properly. Even though a library is not labled with this, please consider all libraries on the Development-Branch to be Unstable. Some libraries on main may also be unstable if it had to be merged early. |
-| [REIMPLEMENTED] | Library was rebuilt from the ground up. Functionality may have changed |
-| [TESTING-NOT-NECESSARY] | Library is Virtual and has no concrete implementation |
-| [ON-PAR] | Means the Arduino Current Version and the Platformio Current Version are the same. This is not always true, so this label is used to show that they are currently in sync. Absense of this label should be taken as the library versions are not identical. |
-| 🚧 [IN-PROGRESS] 🚧 | Essentially this and Active development are the same. However this means this library is priority |
+What this means in practice:
+- Contributors should not rely on manually toggling restricted labels.
+- If you need a restricted-state change, request maintainer review in issue comments.
+
+### Recommended Maintainer Playbook
+
+1. For likely duplicates, let automation mark potential duplicates first.
+2. Confirm true duplicates with adminduplicate.
+3. Mark false positives with adminduplicatenegative.
+4. If challenged, resolve with challenge-upheld or challenge-failed and include rationale.
+5. If labels seem to revert unexpectedly, check the restricted label watchdog run before reapplying labels.
+
+## Core Links
+
+- 📦 PlatformIO owner page: https://registry.platformio.org/search?q=owner%3Abraydenanderson2014
+- 💬 Discussions: https://github.com/braydenanderson2014/C-Arduino-Libraries/discussions
+- 🐛 Issues: https://github.com/braydenanderson2014/C-Arduino-Libraries/issues
+
+## Support
+
+If these libraries help you, support is appreciated:
+
+- ❤️ GoFundMe: https://gofund.me/923e5f10
+- 💰 Patreon: https://www.patreon.com/posts/122298248
+- ☕ Ko-fi: https://ko-fi.com/joesupercool15673
+- 🤝 GitHub Sponsors button in this repository
+
+## Notes
+
+- Legacy long-form status sections were reduced in favor of workflow-generated sources.
+- For detailed per-library state, check each library README plus generated reports.
+- Expect active changes, especially in experimental and development branches.
+

@@ -1,0 +1,6 @@
+#ifndef ETHERNET_MACH2_CONNECTION_CHECKER_FORWARD_H
+#define ETHERNET_MACH2_CONNECTION_CHECKER_FORWARD_H
+
+#include "src/EthernetMach2ConnectionChecker.h"
+
+#endif

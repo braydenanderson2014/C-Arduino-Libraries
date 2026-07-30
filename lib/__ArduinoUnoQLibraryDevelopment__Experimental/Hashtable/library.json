@@ -1,0 +1,44 @@
+{
+    "name": "Hashtable",
+    "version": "1.1.5",
+    "description": "A hashtable implementation for Arduino",
+    "keywords": ["Hashtable", "Hashtable Iterator", "Hash", "Table", "Dynamic Hashtable", "Arduino Hashtable", "Arduino Hash", "Arduino Table", "Arduino Dynamic Hashtable", "Hashset", "Arduino Hashset", "Arduino Dynamic Hashset", "Key-Value Pairs"],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Hashtable.git"
+    },
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "dependencies": {
+        "Arduino": "*",
+        "SimpleVector": "*"
+    },
+    "examples": [
+        {
+            "name": "Example",
+            "base": "examples",
+            "files": [
+                "Example/Example.cpp"
+            ]
+        },
+        {
+            "name": "Example 2",
+            "base": "examples",
+            "files": [
+                "Example2/Example2.cpp"
+            ]
+        }
+    ],
+    "Categories": [
+        "Data Structures",
+        "Dynamic Data Structures",
+        "Utilities"
+    ],
+
+    "Notes": "This library is a work in progress. It has been mostly tested now and is considered mostly stable, however issue may still arise, please report any bugs you find!"
+}
