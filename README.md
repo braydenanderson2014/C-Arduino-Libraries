@@ -41,7 +41,7 @@ Auto-generated health badges will be inserted by workflow.
 <!-- PLATFORMIO_BADGES_START -->
 ## PlatformIO Registry Badges
 
-Auto-generated from PlatformIO registry package data (2026-07-30 06:52 UTC).
+Auto-generated from PlatformIO registry package data (2026-07-30 12:33 UTC).
 
 Quick expectation notes: data structures, utility helpers (`Optional`, `Variant`, `TypeTraits`), and storage-facing support (`SD`/`SDList` and repo-level `LittleFS` integration paths).
 
