@@ -32,7 +32,6 @@ Expect practical building blocks rather than one giant framework:
 
 For deep details, check each library README and examples under `lib/`.
 
-## Library Health Badges
 
 <!-- HEALTH_BADGES_START -->
 ## Library Health Badges
