@@ -1,5 +1,7 @@
 # SimpleProperties
 
+[![SimpleProperties](https://badges.registry.platformio.org/packages/braydenanderson2014/library/SimpleProperties.svg)](https://registry.platformio.org/libraries/braydenanderson2014/SimpleProperties)
+
 A C++ library for managing Java-style key/value properties on Arduino.  
 Supports **SD cards**, **LittleFS** (ESP32 / ESP8266), and any other `fs::FS`-compatible filesystem.  
 Backed by the `Hashtable` library and serialises to eight file formats.
