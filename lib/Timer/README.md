@@ -56,7 +56,7 @@ void setup() {
 ## Installation
 
 ```powershell
-git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Timer.git"
+git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
 ```
 
 ## Header
