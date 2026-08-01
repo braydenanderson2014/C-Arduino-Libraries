@@ -1,0 +1,21 @@
+{
+  "name": "SimpleMutex",
+  "version": "1.0.0",
+  "description": "Cross-platform recursive mutex for Arduino ecosystems with RTOS and cooperative fallback behavior.",
+  "keywords": ["arduino", "mutex", "lock", "thread", "rtos", "freertos", "mbed", "concurrency"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
+  },
+  "authors": [
+    {
+      "name": "Brayden Anderson",
+      "email": "braydenanderson2014@gmail.com",
+      "url": "https://github.com/braydenanderson2014"
+    }
+  ],
+  "headers": ["Mutex.h"],
+  "frameworks": "arduino",
+  "platforms": "*",
+  "license": "Apache-2.0"
+}

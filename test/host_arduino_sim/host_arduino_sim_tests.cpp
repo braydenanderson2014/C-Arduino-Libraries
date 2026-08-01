@@ -41,6 +41,10 @@
 #include "Operators.h"
 #include "Predicates.h"
 #include "SDList.h"
+#include "SimpleSemaphore.h"
+#include "SimpleRWLock.h"
+#include "Mutex.h"
+#include "ThreadManager.h"
 #include "SimpleVector.h"
 #include "CustomString.h"
 
@@ -934,6 +938,91 @@ void testDynamicStorageLibraryRamMode() {
     expect(!storage.hasKey("alpha"), "DynamicStorage clear should reset keyed storage");
 }
 
+void noOpThreadEntry(void*) {}
+
+void testSimpleThreadManagerFallbackBehavior() {
+    expect(!ThreadManager::hasThreading(), "Host fallback should report no runtime threading");
+    expect(!ThreadManager::hasMultiCoreScheduling(), "Host fallback should report no multicore scheduling");
+    expect(ThreadManager::processorCount() == 1, "Host fallback should report a single processor");
+    expect(ThreadManager::currentCore() == -1, "Host fallback should report unknown core id");
+
+    const ThreadManager::ThreadId invalidByNull = ThreadManager::createThread(nullptr);
+    expect(invalidByNull == ThreadManager::InvalidThreadId,
+           "createThread should reject null function pointers");
+
+    const ThreadManager::ThreadId invalidByBackend =
+        ThreadManager::createThread(noOpThreadEntry, nullptr, "noop", 1024);
+    expect(invalidByBackend == ThreadManager::InvalidThreadId,
+           "Host fallback should return InvalidThreadId when threading is unavailable");
+
+    expect(!ThreadManager::joinThread(ThreadManager::InvalidThreadId, 5),
+           "joinThread should fail for invalid thread ids");
+    expect(!ThreadManager::setThreadPriority(ThreadManager::InvalidThreadId, ThreadManager::defaultPriority()),
+           "setThreadPriority should fail for invalid thread ids in fallback mode");
+    expect(ThreadManager::getCurrentThreadId() != 0,
+           "Host fallback should expose a stable synthetic thread id");
+}
+
+void testSimpleMutexFallbackBehavior() {
+    Mutex mutex;
+
+    expect(mutex.lock(20), "Mutex lock should succeed in fallback mode");
+    expect(mutex.isLocked(), "Mutex should report locked after first lock");
+    const intptr_t owner = mutex.ownerThreadId();
+    expect(owner != 0, "Mutex owner id should be non-zero while locked");
+
+    expect(mutex.lock(20), "Mutex should allow recursive lock by same owner");
+    expect(mutex.tryLock(), "Mutex tryLock should succeed for recursive owner lock");
+
+    mutex.unlock();
+    expect(mutex.isLocked(), "Mutex should stay locked until recursion is fully unwound");
+    mutex.unlock();
+    expect(mutex.isLocked(), "Mutex should remain locked after second recursive unlock");
+    mutex.unlock();
+    expect(!mutex.isLocked(), "Mutex should fully release after matching unlock count");
+
+    {
+        Mutex::LockGuard guard(mutex, 20);
+        expect(guard.locked(), "LockGuard should acquire mutex");
+        expect(mutex.isLocked(), "Mutex should be locked inside guard scope");
+    }
+    expect(!mutex.isLocked(), "Mutex should release when LockGuard leaves scope");
+}
+
+void testSimpleSemaphoreFallbackBehavior() {
+    SimpleSemaphore semaphore(3, 1);
+
+    expect(semaphore.maxCount() == 3, "SimpleSemaphore maxCount should match constructor value");
+    expect(semaphore.available() == 1, "SimpleSemaphore initial count should match constructor value");
+
+    expect(semaphore.acquire(20), "SimpleSemaphore acquire should consume initial token");
+    expect(semaphore.available() == 0, "SimpleSemaphore should report zero tokens after acquire");
+    expect(!semaphore.tryAcquire(), "SimpleSemaphore tryAcquire should fail when empty");
+
+    expect(semaphore.release(), "SimpleSemaphore release should replenish one token");
+    expect(semaphore.available() == 1, "SimpleSemaphore should report replenished token count");
+
+    expect(semaphore.release(2), "SimpleSemaphore release(amount) should support multi-token release");
+    expect(semaphore.available() == 3, "SimpleSemaphore should saturate at max count");
+    expect(!semaphore.release(), "SimpleSemaphore release should fail when already full in fallback mode");
+}
+
+void testSimpleRWLockFallbackBehavior() {
+    SimpleRWLock rwlock;
+
+    expect(rwlock.readLock(20), "SimpleRWLock readLock should succeed");
+    expect(rwlock.activeReaders() == 1, "SimpleRWLock should track active reader count");
+
+    expect(!rwlock.writeLock(10), "SimpleRWLock writeLock should timeout while a reader is active");
+    rwlock.readUnlock();
+    expect(rwlock.activeReaders() == 0, "SimpleRWLock readUnlock should decrement active readers");
+
+    expect(rwlock.writeLock(20), "SimpleRWLock writeLock should succeed when no readers are active");
+    expect(rwlock.writerActive(), "SimpleRWLock should report active writer while write lock is held");
+    rwlock.writeUnlock();
+    expect(!rwlock.writerActive(), "SimpleRWLock should clear writer state after write unlock");
+}
+
 void writeReport(const std::filesystem::path& reportPath,
                  bool success,
                  std::size_t peakBytes,
@@ -1068,6 +1157,14 @@ int main() {
         runTestWithMemoryStats("testPredicatesBasicBehavior", testPredicatesBasicBehavior, memoryStats);
         runTestWithMemoryStats("testOperatorsBasicBehavior", testOperatorsBasicBehavior, memoryStats);
         runTestWithMemoryStats("testDynamicStorageLibraryRamMode", testDynamicStorageLibraryRamMode, memoryStats);
+        runTestWithMemoryStats(
+            "testSimpleThreadManagerFallbackBehavior",
+            testSimpleThreadManagerFallbackBehavior,
+            memoryStats
+        );
+        runTestWithMemoryStats("testSimpleMutexFallbackBehavior", testSimpleMutexFallbackBehavior, memoryStats);
+        runTestWithMemoryStats("testSimpleSemaphoreFallbackBehavior", testSimpleSemaphoreFallbackBehavior, memoryStats);
+        runTestWithMemoryStats("testSimpleRWLockFallbackBehavior", testSimpleRWLockFallbackBehavior, memoryStats);
 #if AVL_TREE_ENABLE_ERROR_CODES
         runTestWithMemoryStats("testAVLTreeErrorCodes", testAVLTreeErrorCodes, memoryStats);
 #endif

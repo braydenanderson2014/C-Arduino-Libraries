@@ -1,0 +1,21 @@
+{
+  "name": "SimpleChannel",
+  "version": "1.0.0",
+  "description": "Fixed-capacity message channel for inter-task communication in Arduino ecosystems.",
+  "keywords": ["arduino", "channel", "queue", "rtos", "freertos", "mbed", "concurrency"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
+  },
+  "authors": [
+    {
+      "name": "Brayden Anderson",
+      "email": "braydenanderson2014@gmail.com",
+      "url": "https://github.com/braydenanderson2014"
+    }
+  ],
+  "headers": ["SimpleChannel.h"],
+  "frameworks": "arduino",
+  "platforms": "*",
+  "license": "Apache-2.0"
+}

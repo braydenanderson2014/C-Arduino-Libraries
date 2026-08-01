@@ -10,6 +10,8 @@ This test platform runs selected Arduino-style library behavior on a Linux host 
 - Json path lookup, serialization, parsing, and file round-trips
 - SDList behavior in memory mode
 - File-backed SDList behavior in host mode (file creation, write, readback, header verification)
+- Concurrency primitive fallback behavior for SimpleMutex, SimpleThreadManager,
+  SimpleSemaphore, and SimpleRWLock
 - Peak process heap usage collected as informational data (not a failure gate)
 
 ## What the stress tester measures (separate workflow)

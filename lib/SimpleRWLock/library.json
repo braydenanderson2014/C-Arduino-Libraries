@@ -1,0 +1,21 @@
+{
+  "name": "SimpleRWLock",
+  "version": "1.0.0",
+  "description": "Reader-writer synchronization primitive for Arduino ecosystems with RTOS support.",
+  "keywords": ["arduino", "rwlock", "reader", "writer", "rtos", "concurrency"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
+  },
+  "authors": [
+    {
+      "name": "Brayden Anderson",
+      "email": "braydenanderson2014@gmail.com",
+      "url": "https://github.com/braydenanderson2014"
+    }
+  ],
+  "headers": ["SimpleRWLock.h"],
+  "frameworks": "arduino",
+  "platforms": "*",
+  "license": "Apache-2.0"
+}

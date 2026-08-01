@@ -2,70 +2,222 @@
 #define MUTEX_H
 
 #include <Arduino.h>
-//#include <ThreadManager.h>
-#include "ThreadManager.h"
+#include <stdint.h>
+#include <string.h>
+
+#if defined(ARDUINO_ARCH_MBED) || defined(__MBED__) || defined(TARGET_RTOS_MBED)
+    #define SMUTEX_HAS_MBED_RTOS 1
+    #include <cmsis_os2.h>
+#elif defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+    #define SMUTEX_HAS_FREERTOS 1
+    extern "C" {
+        #include <freertos/FreeRTOS.h>
+        #include <freertos/semphr.h>
+    }
+#endif
+
 class Mutex {
 public:
-    Mutex() : _locked(false), _ownerThreadId(-1) {}
+    class LockGuard {
+    public:
+        explicit LockGuard(Mutex& mutex, unsigned long timeoutMs = 0)
+            : _mutex(mutex), _locked(mutex.lock(timeoutMs)) {}
 
-    bool lock(unsigned long timeout = 0) {
-        unsigned long startTime = millis();
+        ~LockGuard() {
+            if (_locked) {
+                _mutex.unlock();
+            }
+        }
+
+        bool locked() const {
+            return _locked;
+        }
+
+    private:
+        Mutex& _mutex;
+        bool _locked;
+    };
+
+    Mutex() : _ownerThreadId(0), _recursionCount(0) {
+#if defined(SMUTEX_HAS_MBED_RTOS)
+        osMutexAttr_t attr;
+        memset(&attr, 0, sizeof(attr));
+        attr.attr_bits = osMutexRecursive | osMutexPrioInherit;
+        _nativeMutex = osMutexNew(&attr);
+#elif defined(SMUTEX_HAS_FREERTOS)
+        _nativeMutex = xSemaphoreCreateRecursiveMutex();
+#else
+        _locked = false;
+#endif
+    }
+
+    ~Mutex() {
+#if defined(SMUTEX_HAS_MBED_RTOS)
+        if (_nativeMutex != nullptr) {
+            osMutexDelete(_nativeMutex);
+            _nativeMutex = nullptr;
+        }
+#elif defined(SMUTEX_HAS_FREERTOS)
+        if (_nativeMutex != nullptr) {
+            vSemaphoreDelete(_nativeMutex);
+            _nativeMutex = nullptr;
+        }
+#endif
+    }
+
+    // timeoutMs = 0 means wait forever.
+    bool lock(unsigned long timeoutMs = 0) {
+        const intptr_t currentId = currentThreadId();
+
+#if defined(SMUTEX_HAS_MBED_RTOS)
+        if (_nativeMutex == nullptr) {
+            return false;
+        }
+        const uint32_t wait = (timeoutMs == 0) ? osWaitForever : static_cast<uint32_t>(timeoutMs);
+        if (osMutexAcquire(_nativeMutex, wait) != osOK) {
+            return false;
+        }
+        noInterrupts();
+        _ownerThreadId = currentId;
+        ++_recursionCount;
+        interrupts();
+        return true;
+#elif defined(SMUTEX_HAS_FREERTOS)
+        if (_nativeMutex == nullptr) {
+            return false;
+        }
+        const TickType_t ticks =
+            (timeoutMs == 0) ? portMAX_DELAY : pdMS_TO_TICKS(static_cast<uint32_t>(timeoutMs));
+        if (xSemaphoreTakeRecursive(_nativeMutex, ticks) != pdTRUE) {
+            return false;
+        }
+        noInterrupts();
+        _ownerThreadId = currentId;
+        ++_recursionCount;
+        interrupts();
+        return true;
+#else
+        const unsigned long start = millis();
         while (true) {
             noInterrupts();
-            if (!_locked || _ownerThreadId == currentThreadId()) {
+            if (!_locked || _ownerThreadId == currentId) {
                 _locked = true;
-                _ownerThreadId = currentThreadId();
+                _ownerThreadId = currentId;
+                ++_recursionCount;
                 interrupts();
                 return true;
             }
             interrupts();
 
-            if (timeout > 0 && (millis() - startTime >= timeout)) {
-                return false; // Timeout
+            if (timeoutMs > 0 && (millis() - start) >= timeoutMs) {
+                return false;
             }
 
-            // Optionally, yield to other threads or introduce a delay
+            ::yield();
             delay(1);
         }
-    }
-
-    void unlock() {
-        if (currentThreadId() == _ownerThreadId) {
-            noInterrupts();
-            _locked = false;
-            _ownerThreadId = -1;
-            interrupts();
-        }
+#endif
     }
 
     bool tryLock() {
+        const intptr_t currentId = currentThreadId();
+
+#if defined(SMUTEX_HAS_MBED_RTOS)
+        if (_nativeMutex == nullptr) {
+            return false;
+        }
+        if (osMutexAcquire(_nativeMutex, 0) != osOK) {
+            return false;
+        }
         noInterrupts();
-        if (!_locked || _ownerThreadId == currentThreadId()) {
+        _ownerThreadId = currentId;
+        ++_recursionCount;
+        interrupts();
+        return true;
+#elif defined(SMUTEX_HAS_FREERTOS)
+        if (_nativeMutex == nullptr) {
+            return false;
+        }
+        if (xSemaphoreTakeRecursive(_nativeMutex, 0) != pdTRUE) {
+            return false;
+        }
+        noInterrupts();
+        _ownerThreadId = currentId;
+        ++_recursionCount;
+        interrupts();
+        return true;
+#else
+        noInterrupts();
+        if (!_locked || _ownerThreadId == currentId) {
             _locked = true;
-            _ownerThreadId = currentThreadId();
+            _ownerThreadId = currentId;
+            ++_recursionCount;
             interrupts();
             return true;
         }
         interrupts();
         return false;
+#endif
+    }
+
+    void unlock() {
+        const intptr_t currentId = currentThreadId();
+
+        noInterrupts();
+        if (_ownerThreadId != currentId || _recursionCount == 0) {
+            interrupts();
+            return;
+        }
+        --_recursionCount;
+        const bool fullyReleased = (_recursionCount == 0);
+        if (fullyReleased) {
+            _ownerThreadId = 0;
+#if !defined(SMUTEX_HAS_MBED_RTOS) && !defined(SMUTEX_HAS_FREERTOS)
+            _locked = false;
+#endif
+        }
+        interrupts();
+
+#if defined(SMUTEX_HAS_MBED_RTOS)
+        if (_nativeMutex != nullptr) {
+            osMutexRelease(_nativeMutex);
+        }
+#elif defined(SMUTEX_HAS_FREERTOS)
+        if (_nativeMutex != nullptr) {
+            xSemaphoreGiveRecursive(_nativeMutex);
+        }
+#endif
+    }
+
+    bool isLocked() const {
+        return _recursionCount > 0;
+    }
+
+    intptr_t ownerThreadId() const {
+        return _ownerThreadId;
     }
 
 private:
-    // ... [Other parts of the Mutex class] ...
+    static intptr_t currentThreadId() {
+#if defined(SMUTEX_HAS_MBED_RTOS)
+    return reinterpret_cast<intptr_t>(osThreadGetId());
+#elif defined(SMUTEX_HAS_FREERTOS)
+    return reinterpret_cast<intptr_t>(xTaskGetCurrentTaskHandle());
+#else
+    return 1;
+#endif
+    }
 
-private:
+#if defined(SMUTEX_HAS_MBED_RTOS)
+    osMutexId_t _nativeMutex;
+#elif defined(SMUTEX_HAS_FREERTOS)
+    SemaphoreHandle_t _nativeMutex;
+#else
     volatile bool _locked;
-    volatile int _ownerThreadId; // Thread ID of the current owner
+#endif
 
-    int currentThreadId() {
-        // Here, integrate with your thread manager to get the current thread ID
-        // For example:
-        return ThreadManager::getCurrentThreadId();
-    }
+    volatile intptr_t _ownerThreadId;
+    volatile uint16_t _recursionCount;
 };
-
-// ... [Rest of the Mutex class] ...
-
-
 
 #endif // MUTEX_H

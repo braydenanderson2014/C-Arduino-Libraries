@@ -1,0 +1,21 @@
+{
+  "name": "SimpleSemaphore",
+  "version": "1.0.0",
+  "description": "Cross-platform counting semaphore for Arduino-style targets with RTOS and fallback modes.",
+  "keywords": ["arduino", "semaphore", "rtos", "freertos", "mbed", "concurrency"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
+  },
+  "authors": [
+    {
+      "name": "Brayden Anderson",
+      "email": "braydenanderson2014@gmail.com",
+      "url": "https://github.com/braydenanderson2014"
+    }
+  ],
+  "headers": ["SimpleSemaphore.h"],
+  "frameworks": "arduino",
+  "platforms": "*",
+  "license": "Apache-2.0"
+}

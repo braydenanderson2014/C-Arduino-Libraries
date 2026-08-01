@@ -94,6 +94,13 @@ inline void delay(unsigned long ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 
+inline void yield() {
+    std::this_thread::yield();
+}
+
+inline void noInterrupts() {}
+inline void interrupts() {}
+
 inline void randomSeed(unsigned long seed) {
     std::srand(static_cast<unsigned int>(seed));
 }
