@@ -23,7 +23,7 @@
     "examples": [
         {
             "name": "Example",
-            "base": "examples",
+            "base": "Example",
             "files": [
                 "example.cpp"
             ]
