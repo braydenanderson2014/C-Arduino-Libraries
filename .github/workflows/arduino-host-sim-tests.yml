@@ -30,7 +30,7 @@ on:
     - cron: "0 6 * * *"
 
 permissions:
-  contents: read
+  contents: write
   issues: write
 
 jobs:
@@ -1917,12 +1917,38 @@ jobs:
 
           cat reports/host-sim-test-report.md >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Publish root testing results document
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp reports/host-sim-test-report.md ABOUT_TESTING_RESULTS.md
+
+      - name: Commit root testing results document
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add ABOUT_TESTING_RESULTS.md
+
+          if git diff --cached --quiet; then
+            echo "No ABOUT_TESTING_RESULTS.md changes to commit."
+            exit 0
+          fi
+
+          git commit -m "docs: update testing results summary"
+          git push
+
       - name: Upload consolidated host simulation report
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: host-sim-test-report
           path: |
+            ABOUT_TESTING_RESULTS.md
             reports/host-sim-test-report.md
             reports/host-sim-test-report.json
           if-no-files-found: error
