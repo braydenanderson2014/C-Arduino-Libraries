@@ -1541,6 +1541,45 @@ jobs:
           path: ${{ steps.smoke.outputs.out_dir }}
           if-no-files-found: warn
 
+  host-experimental-runtime:
+    name: host-experimental-runtime (UnoQBridge)
+    needs:
+      - discover-libraries
+      - host-experimental-library-compile
+    if: needs.discover-libraries.outputs.experimental_has_targets == 'true' && contains(needs.discover-libraries.outputs.experimental_matrix, 'lib/__ArduinoUnoQLibraryDevelopment__Experimental/UnoQBridge')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Build experimental UnoQBridge host runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test/host_arduino_sim/out/bin
+
+          g++ -std=c++17 -O2 \
+            -DAL_NO_SERIAL -D_AVR_ATmega2560_ \
+            -Itest/host_arduino_sim/include \
+            -Ilib/__ArduinoUnoQLibraryDevelopment__Experimental/UnoQBridge/src \
+            test/host_arduino_sim/host_experimental_unoqbridge_tests.cpp \
+            -o test/host_arduino_sim/out/bin/host_experimental_unoqbridge
+
+      - name: Run experimental UnoQBridge host runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./test/host_arduino_sim/out/bin/host_experimental_unoqbridge
+
+      - name: Upload experimental runtime artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: host-experimental-runtime-unoqbridge
+          path: test/host_arduino_sim/out/bin/host_experimental_unoqbridge
+          if-no-files-found: error
+
   host-sim-integration:
     needs:
       - discover-libraries
@@ -1753,6 +1792,7 @@ jobs:
       - discover-libraries
       - host-library-compile
       - host-experimental-library-compile
+      - host-experimental-runtime
       - host-sim-integration
     if: always() && (needs.discover-libraries.outputs.has_targets == 'true' || needs.discover-libraries.outputs.experimental_has_targets == 'true')
     runs-on: ubuntu-latest

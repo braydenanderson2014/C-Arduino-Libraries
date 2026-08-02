@@ -53,6 +53,7 @@ not a failure.
 - `host_arduino_sim_tests.cpp`: correctness test runner (pass/fail on assertions only)
 - `host_json_mode_tests.cpp`: JSON-focused runner for optional-off and optional-on modes
 - `host_stress_tests.cpp`: memory stress / capacity measurement runner
+- `host_experimental_unoqbridge_tests.cpp`: executable runtime checks for experimental UnoQ bridge client/transport behavior
 - `host_test_matrix.json`: per-library host compile matrix (backend/optional combinations)
 
 ## Config-driven host compile matrix
@@ -157,6 +158,21 @@ HOST_SIM_FS_ROOT=test/host_arduino_sim/out/fs-json-optional-off-local \
 HOST_JSON_MODE_REPORT=test/host_arduino_sim/out/report-json-optional-on-local.json \
 HOST_SIM_FS_ROOT=test/host_arduino_sim/out/fs-json-optional-on-local \
 ./test/host_arduino_sim/out/bin/json_mode_optional_on
+```
+
+## Run experimental UnoQBridge runtime checks locally
+
+From repository root:
+
+```bash
+g++ -std=c++17 -O2 \
+  -DAL_NO_SERIAL -D_AVR_ATmega2560_ \
+  -Itest/host_arduino_sim/include \
+  -Ilib/__ArduinoUnoQLibraryDevelopment__Experimental/UnoQBridge/src \
+  test/host_arduino_sim/host_experimental_unoqbridge_tests.cpp \
+  -o test/host_arduino_sim/out/bin/host_experimental_unoqbridge
+
+./test/host_arduino_sim/out/bin/host_experimental_unoqbridge
 ```
 
 ## Per-test memory stats output
