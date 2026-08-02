@@ -1,0 +1,21 @@
+{
+  "name": "UnoQBridge",
+  "version": "0.1.0",
+  "description": "Experimental binary sketch-side bridge scaffold for UNO Q and related Arduino helper workflows.",
+  "keywords": ["arduino", "bridge", "experimental", "unoq", "ventunoq", "communication", "protocol", "binary"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
+  },
+  "authors": [
+    {
+      "name": "Brayden Anderson",
+      "email": "braydenanderson2014@gmail.com",
+      "url": "https://github.com/braydenanderson2014"
+    }
+  ],
+  "headers": ["UnoQBridgeClient.h", "UnoQBridge.h"],
+  "frameworks": ["arduino"],
+  "platforms": ["ststm32", "espressif32"],
+  "license": "Apache-2.0"
+}

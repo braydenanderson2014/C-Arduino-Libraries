@@ -5,8 +5,8 @@
 - Scope: UnoQ experimental branch
 - Stability: Experimental
 - Documentation label: UnoQ-Experimental-2026-07-29
-- Primary integration: FileHandler.py and UnoQFileTransferClient.h
-- Transport focus: JSON, MessagePack, Yun Process, and Serial/Stream
+- Primary integration: UnoQBridgeService.py, ThreadMemoryHandler.py, and UnoQBridgeClient.h
+- Transport focus: binary frames, JSON, MessagePack, Yun Process, and Serial/Stream
 
 This folder contains the active experimental branch of selected libraries for
 Arduino UnoQ and related dual-core bridge workflows.
@@ -14,7 +14,7 @@ Arduino UnoQ and related dual-core bridge workflows.
 ## Purpose
 
 - Keep UnoQ-specific development isolated from the normal library set.
-- Validate Linux-side file backend integration through `FileHandler.py`.
+- Validate Linux-side file backend integration through `UnoQBridgeService.py`.
 - Add multi-backend behavior for SD, LittleFS, mbed, and MessagePack bridge flows.
 
 ## Included Libraries
@@ -29,11 +29,14 @@ Arduino UnoQ and related dual-core bridge workflows.
 | `MemoryManager` | Updated | Added multi-source block tracking and shrink/split support. |
 | `Properties` | Updated | Added UnoQ save/load helpers on top of SD/LittleFS support. |
 | `SimpleVector` | Synced | Dependency library used by most experimental libraries. |
+| `UnoQBridge` | Scaffolded | Experimental bridge shell for sketch-side Linux helper communication. |
 
 ## Shared UnoQ Components
 
-- `FileHandler.py`: Linux-side backend service for file operations over JSON/MessagePack.
-- `UnoQFileTransferClient.h`: sketch-side transport/client with stream, Yun Process, and MessagePack request helpers.
+- `UnoQBridgeService.py`: Linux-side backend service for file operations and message delegation.
+- `ThreadMemoryHandler.py`: Linux-side helper for thread-memory record handling.
+- `UnoQBridgeClient.h`: sketch-side binary bridge client with stream and Yun Process transports.
+- `UnoQBridge/`: isolated bridge scaffold folder for the next protocol iteration.
 
 ## Notes
 

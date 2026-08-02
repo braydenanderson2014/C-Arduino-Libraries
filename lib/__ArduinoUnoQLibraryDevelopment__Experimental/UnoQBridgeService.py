@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """
-Experimental Arduino Uno Q file backend.
+Experimental Arduino Uno Q bridge service.
 
 This service is intended to run on the Linux "smart brain" and expose
-filesystem operations to a sketch-facing bridge service (for example,
-arduino-router) using a tiny RPC protocol over stdin/stdout.
+filesystem operations plus message delegation to a sketch-facing bridge
+service over stdio.
 
 Protocol summary:
 - Request:  {"id": <any>, "op": <string>, ...args }
 - Response: {"id": <same>, "ok": true, "result": <object>}
-			{"id": <same>, "ok": false, "error": {"code": "...", "message": "..."}}
+            {"id": <same>, "ok": false, "error": {"code": "...", "message": "..."}}
 
 Transport modes:
 - MessagePack stream (default): back-to-back packed objects via stdio.
 - JSON lines (--mode json): one JSON object per line via stdio.
+- Binary frames (--mode binary): framed packets with a small binary header.
 
 Supported operations:
 - ping
@@ -39,14 +40,24 @@ import base64
 import json
 import os
 import shutil
+import struct
 import sys
 from pathlib import Path
 from typing import Any, Dict, Iterable, Optional
+
+from ThreadMemoryHandler import ThreadMemoryBackend, dispatch as dispatch_threadmemory
 
 try:
 	import msgpack  # type: ignore
 except Exception:  # pragma: no cover
 	msgpack = None
+
+
+_BINARY_MAGIC = 0x5155
+_BINARY_VERSION = 1
+_BINARY_FORMAT_JSON = 1
+_BINARY_FORMAT_MSGPACK = 2
+_BINARY_HEADER = struct.Struct("<HBBHI")
 
 
 class FileBackendError(Exception):
@@ -82,7 +93,7 @@ class FileBackend:
 		}
 
 	def ping(self) -> Dict[str, Any]:
-		return {"service": "FileHandler", "status": "ok"}
+		return {"service": "UnoQBridgeService", "status": "ok"}
 
 	def exists(self, path: str) -> Dict[str, Any]:
 		p = self._resolve(path)
@@ -320,7 +331,72 @@ def dispatch(backend: FileBackend, request: Dict[str, Any]) -> Dict[str, Any]:
 		return _error_response(request_id, "INTERNAL", str(exc))
 
 
-def run_json_loop(backend: FileBackend) -> int:
+def dispatch_bridge(file_backend: FileBackend, thread_backend: ThreadMemoryBackend, request: Dict[str, Any]) -> Dict[str, Any]:
+	request_id = request.get("id")
+	op = request.get("op")
+	if not isinstance(op, str) or not op:
+		return _error_response(request_id, "INVALID_REQUEST", "Missing or invalid 'op'")
+
+	if op.startswith("file."):
+		routed = dict(request)
+		routed["op"] = op.split(".", 1)[1]
+		return dispatch(file_backend, routed)
+
+	if op.startswith("threadmemory.") or request.get("domain") == "threadmemory":
+		routed = dict(request)
+		if op.startswith("threadmemory."):
+			routed["op"] = op.split(".", 1)[1]
+		return dispatch_threadmemory(thread_backend, routed)
+
+	if op == "delegate":
+		target = str(request.get("target", ""))
+		payload = request.get("payload", {})
+		if not isinstance(payload, dict):
+			return _error_response(request_id, "INVALID_REQUEST", "delegate payload must be an object")
+		if target == "file":
+			return dispatch(file_backend, payload)
+		if target == "threadmemory":
+			return dispatch_threadmemory(thread_backend, payload)
+		return _error_response(request_id, "UNKNOWN_TARGET", f"Unsupported delegate target: {target}")
+
+	if op in {"ping", "exists", "stat", "mkdir", "listdir", "read_text", "write_text", "read_bytes", "write_bytes", "delete", "rename", "copy"}:
+		return dispatch(file_backend, request)
+
+	return _error_response(request_id, "UNKNOWN_OP", f"Unsupported op: {op}")
+
+
+def _read_exact(stream, size: int) -> bytes:
+	buffer = bytearray()
+	while len(buffer) < size:
+		chunk = stream.read(size - len(buffer))
+		if not chunk:
+			raise EOFError("Unexpected end of stream")
+		buffer.extend(chunk)
+	return bytes(buffer)
+
+
+def _encode_binary_response(response: Dict[str, Any], payload_format: int) -> bytes:
+	if payload_format == _BINARY_FORMAT_MSGPACK:
+		if msgpack is None:
+			raise RuntimeError("msgpack is not installed. Install with: pip install msgpack")
+		return msgpack.packb(response, use_bin_type=True)
+	return json.dumps(response, ensure_ascii=True).encode("utf-8")
+
+
+def _decode_binary_request(payload: bytes, payload_format: int) -> Dict[str, Any]:
+	if payload_format == _BINARY_FORMAT_MSGPACK:
+		if msgpack is None:
+			raise RuntimeError("msgpack is not installed. Install with: pip install msgpack")
+		request = msgpack.unpackb(payload, raw=False)
+	else:
+		request = json.loads(payload.decode("utf-8"))
+
+	if not isinstance(request, dict):
+		raise FileBackendError("INVALID_REQUEST", "Request must be an object")
+	return request
+
+
+def run_json_loop(backend: FileBackend, thread_backend: ThreadMemoryBackend) -> int:
 	for line in sys.stdin:
 		line = line.strip()
 		if not line:
@@ -330,7 +406,7 @@ def run_json_loop(backend: FileBackend) -> int:
 			if not isinstance(request, dict):
 				response = _error_response(None, "INVALID_REQUEST", "Request must be an object")
 			else:
-				response = dispatch(backend, request)
+				response = dispatch_bridge(backend, thread_backend, request)
 		except json.JSONDecodeError as exc:
 			response = _error_response(None, "INVALID_JSON", str(exc))
 
@@ -339,7 +415,7 @@ def run_json_loop(backend: FileBackend) -> int:
 	return 0
 
 
-def run_msgpack_loop(backend: FileBackend) -> int:
+def run_msgpack_loop(backend: FileBackend, thread_backend: ThreadMemoryBackend) -> int:
 	if msgpack is None:
 		raise RuntimeError("msgpack is not installed. Install with: pip install msgpack")
 
@@ -348,14 +424,47 @@ def run_msgpack_loop(backend: FileBackend) -> int:
 		if not isinstance(request, dict):
 			response = _error_response(None, "INVALID_REQUEST", "Request must be an object")
 		else:
-			response = dispatch(backend, request)
+			response = dispatch_bridge(backend, thread_backend, request)
 		sys.stdout.buffer.write(msgpack.packb(response, use_bin_type=True))
 		sys.stdout.buffer.flush()
 	return 0
 
 
+def run_binary_loop(file_backend: FileBackend, thread_backend: ThreadMemoryBackend) -> int:
+	while True:
+		header = sys.stdin.buffer.read(_BINARY_HEADER.size)
+		if not header:
+			return 0
+		if len(header) != _BINARY_HEADER.size:
+			raise EOFError("Incomplete binary header")
+
+		magic, version, payload_format, request_id, payload_length = _BINARY_HEADER.unpack(header)
+		payload = _read_exact(sys.stdin.buffer, payload_length) if payload_length else b""
+
+		if magic != _BINARY_MAGIC or version != _BINARY_VERSION:
+			response = _error_response(request_id, "INVALID_FRAME", "Unsupported binary frame")
+		else:
+			try:
+				request = _decode_binary_request(payload, payload_format)
+				response = dispatch_bridge(file_backend, thread_backend, request)
+			except Exception as exc:  # pragma: no cover
+				response = _error_response(request_id, "INTERNAL", str(exc))
+
+		response_payload = _encode_binary_response(response, payload_format)
+		response_header = _BINARY_HEADER.pack(
+			_BINARY_MAGIC,
+			_BINARY_VERSION,
+			payload_format,
+			int(response.get("id", request_id) or request_id) & 0xFFFF,
+			len(response_payload),
+		)
+		sys.stdout.buffer.write(response_header)
+		sys.stdout.buffer.write(response_payload)
+		sys.stdout.buffer.flush()
+
+
 def parse_args() -> argparse.Namespace:
-	parser = argparse.ArgumentParser(description="Experimental Arduino Uno Q file backend")
+	parser = argparse.ArgumentParser(description="Experimental Arduino Uno Q bridge service")
 	parser.add_argument(
 		"--root",
 		default=os.environ.get("UNOQ_FILE_ROOT", "./unoq_files"),
@@ -363,7 +472,7 @@ def parse_args() -> argparse.Namespace:
 	)
 	parser.add_argument(
 		"--mode",
-		choices=("msgpack", "json"),
+		choices=("msgpack", "json", "binary"),
 		default="msgpack",
 		help="RPC transport format over stdio",
 	)
@@ -378,6 +487,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
 	args = parse_args()
 	backend = FileBackend(Path(args.root))
+	thread_backend = ThreadMemoryBackend()
 	if args.once:
 		try:
 			request = json.loads(args.once)
@@ -391,13 +501,15 @@ def main() -> int:
 			sys.stdout.write(json.dumps(response, ensure_ascii=True) + "\n")
 			return 1
 
-		response = dispatch(backend, request)
+		response = dispatch_bridge(backend, thread_backend, request)
 		sys.stdout.write(json.dumps(response, ensure_ascii=True) + "\n")
 		return 0
 
 	if args.mode == "json":
-		return run_json_loop(backend)
-	return run_msgpack_loop(backend)
+		return run_json_loop(backend, thread_backend)
+	if args.mode == "binary":
+		return run_binary_loop(backend, thread_backend)
+	return run_msgpack_loop(backend, thread_backend)
 
 
 if __name__ == "__main__":

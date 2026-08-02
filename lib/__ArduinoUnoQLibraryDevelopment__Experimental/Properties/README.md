@@ -14,7 +14,7 @@
 - Added UnoQ backend helpers:
     - `saveToUnoQ(UnoQFileTransferClient&, const String& remotePath)`
     - `loadFromUnoQ(UnoQFileTransferClient&, const String& remotePath)`
-- Intended for integration with `FileHandler.py` on the Linux side.
+- Intended for integration with `UnoQBridgeService.py` on the Linux side.
 
 The `Properties` class is a C++ class that provides a simple key-value store for managing properties. It allows you to store and retrieve key-value pairs, save properties to an SD card, load properties from an SD card, and perform other operations commonly used for managing configurations and settings.
 
