@@ -26,6 +26,17 @@ def load_stress_runs(artifacts_dir: Path) -> List[Dict[str, Any]]:
     return runs
 
 
+def load_experimental_compile_results(artifacts_dir: Path) -> List[Dict[str, Any]]:
+    """Load all experimental-compile-result.json files from any artifact subdirectory."""
+    results: List[Dict[str, Any]] = []
+    for path in sorted(artifacts_dir.rglob("experimental-compile-result.json")):
+        if path.is_file():
+            data = load_json(path)
+            if data:
+                results.append(data)
+    return results
+
+
 def _aggregate_stress_by_board(runs: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
     """Per-board: keep the minimum (most conservative) count across all variants."""
     board_data: Dict[str, Dict[str, Any]] = {}
@@ -331,6 +342,34 @@ def summarize(runs: Dict[str, Dict[str, Any]], smoke_count: int) -> Dict[str, An
     }
 
 
+def summarize_experimental_compile_results(results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    total = len(results)
+    passed = 0
+    failed = 0
+    failures: List[Dict[str, Any]] = []
+
+    for result in results:
+        success = bool(result.get("success", False))
+        if success:
+            passed += 1
+            continue
+
+        failed += 1
+        failures.append({
+            "libraryPath": str(result.get("libraryPath", "")),
+            "backend": str(result.get("backend", "")),
+            "optional": str(result.get("optional", "")),
+            "returnCode": int(result.get("returnCode", -1)) if isinstance(result.get("returnCode", -1), int) else -1,
+        })
+
+    return {
+        "total": total,
+        "passed": passed,
+        "failed": failed,
+        "failures": failures,
+    }
+
+
 def fmt_bool(value: Any) -> str:
     return "yes" if bool(value) else "no"
 
@@ -342,6 +381,8 @@ def generate_markdown(
     expected_library_count: int,
     compile_backend_count: int,
     expected_compile_smoke_count: int,
+    experimental_compile_results: List[Dict[str, Any]],
+    expected_experimental_compile_count: int,
 ) -> str:
     lines: List[str] = []
 
@@ -356,6 +397,9 @@ def generate_markdown(
     lines.append(f"- Max peak bytes: {summary['maxPeakBytes']}")
     lines.append(f"- Avg peak bytes: {summary['avgPeakBytes']}")
     lines.append(f"- Compile smoke objects found: {summary['compileSmokeObjectCount']}")
+    lines.append(f"- Experimental compile results found: {summary['experimentalCompileResultCount']}")
+    lines.append(f"- Experimental compile successes: {summary['experimentalCompileSuccessCount']}")
+    lines.append(f"- Experimental compile failures: {summary['experimentalCompileFailureCount']}")
     lines.append(f"- Memory profile runs: {summary['memoryProfileRuns']}")
     lines.append(f"- Runs that exceeded limit: {summary['limitExceededRuns']}")
     lines.append(f"- Runs with limit enforcement enabled: {summary['limitEnforcedRuns']}")
@@ -369,6 +413,9 @@ def generate_markdown(
         expected_smoke = expected_library_count * max(compile_backend_count, 1)
         lines.append(f"- Expected compile smoke objects: {expected_smoke}")
 
+    if expected_experimental_compile_count >= 0:
+        lines.append(f"- Expected experimental compile results: {expected_experimental_compile_count}")
+
     lines.append("")
     lines.append("## Understanding")
     lines.append("")
@@ -378,6 +425,7 @@ def generate_markdown(
     lines.append("- Per-test heap fields (BeforeHeap/AfterHeap) track allocator-managed heap bytes and are better for small test-to-test differences.")
     lines.append("- LimitExceeded means run peak was above LimitBytes.")
     lines.append("- LimitEnforced tells whether exceeding the limit should fail the run.")
+    lines.append("- Experimental compile failures are reported separately and do not gate the main host simulation lanes.")
     lines.append("- ProbeElementsAtStop and ProbeCurrentBytesAtStop come from the optional capacity probe.")
     lines.append("- FirstLimitCrossingTest is the first test whose per-test memory reached or exceeded the run limit.")
     lines.append("- If FirstLimitCrossingTest is blank, no per-test crossing was found (or no per-test stats were present).")
@@ -456,6 +504,24 @@ def generate_markdown(
             error = str(test.get("error", "")).replace("|", " ")
             lines.append(f"| {name} | {passed} | {before} | {after} | {delta} | {before_heap} | {after_heap} | {delta_heap} | {peak_after} | {error} |")
 
+    if experimental_compile_results:
+        lines.append("")
+        lines.append("## Experimental Compile Results")
+        lines.append("")
+        lines.append("| Library | Backend | Optional | Success | ReturnCode | Artifact |")
+        lines.append("| --- | --- | --- | --- | ---: | --- |")
+
+        for result in experimental_compile_results:
+            library_path = str(result.get("libraryPath", ""))
+            backend = str(result.get("backend", ""))
+            optional = str(result.get("optional", ""))
+            success = fmt_bool(result.get("success", False))
+            return_code = result.get("returnCode", -1)
+            if not isinstance(return_code, int):
+                return_code = -1
+            artifact = str(result.get("artifactPath", ""))
+            lines.append(f"| {library_path} | {backend} | {optional} | {success} | {return_code} | {artifact} |")
+
     lines.append("")
     return "\n".join(lines)
 
@@ -469,6 +535,7 @@ def main() -> int:
     parser.add_argument("--expected-library-count", type=int, default=0)
     parser.add_argument("--compile-backend-count", type=int, default=2)
     parser.add_argument("--expected-compile-smoke-count", type=int, default=-1)
+    parser.add_argument("--expected-experimental-compile-count", type=int, default=-1)
     args = parser.parse_args()
 
     artifacts_dir = Path(args.artifacts_dir)
@@ -503,9 +570,14 @@ def main() -> int:
 
     # Standard and memory-profiles modes use the existing artifact-based path.
     report_files, stats_files, smoke_objects = classify_paths(artifacts_dir)
+    experimental_compile_results = load_experimental_compile_results(artifacts_dir)
     runs = build_run_index(report_files, stats_files)
     analyze_runs(runs)
     summary = summarize(runs, len(smoke_objects))
+    experimental_summary = summarize_experimental_compile_results(experimental_compile_results)
+    summary["experimentalCompileResultCount"] = experimental_summary["total"]
+    summary["experimentalCompileSuccessCount"] = experimental_summary["passed"]
+    summary["experimentalCompileFailureCount"] = experimental_summary["failed"]
 
     payload = {
         "mode": args.mode,
@@ -514,9 +586,11 @@ def main() -> int:
         "reportFiles": [p.as_posix() for p in report_files],
         "statsFiles": [p.as_posix() for p in stats_files],
         "compileSmokeObjects": [p.as_posix() for p in smoke_objects],
+        "experimentalCompileResults": experimental_compile_results,
         "expectedLibraryCount": args.expected_library_count,
         "compileBackendCount": args.compile_backend_count,
         "expectedCompileSmokeCount": args.expected_compile_smoke_count,
+        "expectedExperimentalCompileCount": args.expected_experimental_compile_count,
     }
 
     markdown = generate_markdown(
@@ -526,6 +600,8 @@ def main() -> int:
         expected_library_count=args.expected_library_count,
         compile_backend_count=args.compile_backend_count,
         expected_compile_smoke_count=args.expected_compile_smoke_count,
+        experimental_compile_results=experimental_compile_results,
+        expected_experimental_compile_count=args.expected_experimental_compile_count,
     )
 
     output_md.parent.mkdir(parents=True, exist_ok=True)

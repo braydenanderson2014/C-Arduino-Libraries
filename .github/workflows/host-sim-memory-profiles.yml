@@ -90,6 +90,7 @@ jobs:
           HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
           HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
           HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
+          HOST_STRESS_MAX_ELEMENTS=1000000 \
           HOST_STRESS_REPORT="${REPORT_PATH}" \
           ./test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}
 

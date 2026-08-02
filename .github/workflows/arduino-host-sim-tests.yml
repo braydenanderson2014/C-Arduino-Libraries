@@ -39,10 +39,16 @@ jobs:
     outputs:
       matrix: ${{ steps.discover.outputs.matrix }}
       compile_matrix: ${{ steps.discover.outputs.compile_matrix }}
+      experimental_matrix: ${{ steps.discover.outputs.experimental_matrix }}
+      experimental_compile_matrix: ${{ steps.discover.outputs.experimental_compile_matrix }}
       has_targets: ${{ steps.discover.outputs.has_targets }}
       count: ${{ steps.discover.outputs.count }}
       compile_count: ${{ steps.discover.outputs.compile_count }}
+      experimental_has_targets: ${{ steps.discover.outputs.experimental_has_targets }}
+      experimental_count: ${{ steps.discover.outputs.experimental_count }}
+      experimental_compile_count: ${{ steps.discover.outputs.experimental_compile_count }}
       targets_display: ${{ steps.discover.outputs.targets_display }}
+      experimental_targets_display: ${{ steps.discover.outputs.experimental_targets_display }}
       run_integration: ${{ steps.discover.outputs.run_integration }}
       selection_reason: ${{ steps.discover.outputs.selection_reason }}
 
@@ -94,6 +100,15 @@ jobs:
                   discovered.append(str(child).replace('\\', '/'))
             return discovered
 
+          def all_known_experimental_libraries():
+            discovered = []
+            experimental_root = root / "lib" / "__ArduinoUnoQLibraryDevelopment__Experimental"
+            if experimental_root.is_dir():
+              for child in sorted(experimental_root.iterdir()):
+                if child.is_dir() and is_arduino_library(child):
+                  discovered.append(str(child).replace('\\', '/'))
+            return discovered
+
           def normalize_paths(items):
             out = []
             for item in items:
@@ -106,6 +121,24 @@ jobs:
                 seen.add(item)
                 deduped.append(item)
             return deduped
+
+          def build_compile_targets(library_paths):
+            targets = []
+            for library_path in library_paths:
+              library_cfg = per_library.get(library_path, {})
+              compile_cfg = library_cfg.get("compile", {})
+              backends = compile_cfg.get("backends", backends_default)
+              optional_modes = compile_cfg.get("optionalModes", optional_default)
+
+              for backend in backends:
+                for optional in optional_modes:
+                  targets.append({
+                    "libraryPath": library_path,
+                    "backend": backend,
+                    "optional": optional
+                  })
+
+            return targets
 
           def git_changed_files(base_sha: str, head_sha: str):
             if not base_sha or not head_sha:
@@ -120,6 +153,7 @@ jobs:
             return [line.strip().replace('\\', '/') for line in raw.splitlines() if line.strip()]
 
           changed_files = []
+          experimental_results = []
 
           if target:
             target_path = Path(target)
@@ -129,8 +163,13 @@ jobs:
             if not is_arduino_library(target_path):
               raise SystemExit(f"Requested target_library_path '{target}' is not an Arduino-style library (missing library.properties or src/)")
 
-            results = [str(target_path).replace('\\', '/').rstrip('/') or '.']
-            selection_reason = f"workflow_dispatch targeted path: {results[0]}"
+            normalized_target = str(target_path).replace('\\', '/').rstrip('/') or '.'
+            if normalized_target.startswith("lib/__ArduinoUnoQLibraryDevelopment__Experimental/"):
+              experimental_results = [normalized_target]
+              selection_reason = f"workflow_dispatch targeted experimental path: {experimental_results[0]}"
+            else:
+              results = [normalized_target]
+              selection_reason = f"workflow_dispatch targeted path: {results[0]}"
           else:
             if event_name in {"workflow_dispatch", "schedule"}:
               full_run = True
@@ -161,6 +200,7 @@ jobs:
                 selection_reason = "workflow/host harness/report tooling change runs full host matrix"
               else:
                 impacted = []
+                experimental_impacted = []
                 for path in changed_files:
                   if path in {"library.properties", "library.json"} or path.startswith("src/"):
                     if is_arduino_library(Path(".")):
@@ -173,25 +213,47 @@ jobs:
                   pieces = path.split("/")
                   if len(pieces) < 2:
                     continue
+
+                  if pieces[1] == "__ArduinoUnoQLibraryDevelopment__Experimental":
+                    if len(pieces) < 3:
+                      continue
+                    candidate = Path("lib") / pieces[1] / pieces[2]
+                    if is_arduino_library(candidate):
+                      experimental_impacted.append(str(candidate).replace('\\', '/'))
+                    continue
+
                   candidate = Path("lib") / pieces[1]
                   if is_arduino_library(candidate):
                     impacted.append(str(candidate).replace('\\', '/'))
 
                 results = impacted
-                selection_reason = (
-                  "changed-file selection: " + ", ".join(normalize_paths(results))
-                  if results
-                  else "changed-file selection produced no Arduino-style library targets"
-                )
+                experimental_results = experimental_impacted
+
+                stable_display = normalize_paths(results)
+                experimental_display = normalize_paths(experimental_results)
+                if stable_display and experimental_display:
+                  selection_reason = (
+                    "changed-file selection: stable " + ", ".join(stable_display) +
+                    "; experimental " + ", ".join(experimental_display)
+                  )
+                elif stable_display:
+                  selection_reason = "changed-file selection: " + ", ".join(stable_display)
+                elif experimental_display:
+                  selection_reason = "changed-file selection: experimental " + ", ".join(experimental_display)
+                else:
+                  selection_reason = "changed-file selection produced no Arduino-style library targets"
 
             if full_run:
               results = all_known_libraries()
-            elif not changed_files and not results:
+              experimental_results = all_known_experimental_libraries()
+            elif not changed_files and not results and not experimental_results:
               # Unknown/no-diff edge cases should fail-safe to full coverage.
               results = all_known_libraries()
+              experimental_results = all_known_experimental_libraries()
               selection_reason = "unable to resolve changed files; running full host matrix"
 
           deduped = normalize_paths(results)
+          experimental_deduped = normalize_paths(experimental_results)
 
           compile_defaults = {
             "backends": ["sd", "littlefs"],
@@ -206,20 +268,8 @@ jobs:
           optional_default = compile_defaults.get("optionalModes", ["off"])
           per_library = config.get("libraries", {})
 
-          compile_targets = []
-          for library_path in deduped:
-            library_cfg = per_library.get(library_path, {})
-            compile_cfg = library_cfg.get("compile", {})
-            backends = compile_cfg.get("backends", backends_default)
-            optional_modes = compile_cfg.get("optionalModes", optional_default)
-
-            for backend in backends:
-              for optional in optional_modes:
-                compile_targets.append({
-                  "libraryPath": library_path,
-                  "backend": backend,
-                  "optional": optional
-                })
+          compile_targets = build_compile_targets(deduped)
+          experimental_compile_targets = build_compile_targets(experimental_deduped)
 
           integration_sensitive = {
             ".",
@@ -246,10 +296,16 @@ jobs:
           print(json.dumps({
             "matrix": deduped,
             "compile_matrix": compile_targets,
+            "experimental_matrix": experimental_deduped,
+            "experimental_compile_matrix": experimental_compile_targets,
             "compile_count": len(compile_targets),
+            "experimental_compile_count": len(experimental_compile_targets),
             "count": len(deduped),
+            "experimental_count": len(experimental_deduped),
             "has_targets": bool(deduped),
+            "experimental_has_targets": bool(experimental_deduped),
             "targets_display": ", ".join(deduped) if deduped else "(none)",
+            "experimental_targets_display": ", ".join(experimental_deduped) if experimental_deduped else "(none)",
             "run_integration": run_integration,
             "selection_reason": selection_reason,
           }))
@@ -260,20 +316,31 @@ jobs:
 
           MATRIX_JSON="$(printf '%s' "${DISCOVERY_JSON}" | jq -c '.matrix')"
           COMPILE_MATRIX_JSON="$(printf '%s' "${DISCOVERY_JSON}" | jq -c '.compile_matrix')"
+          EXPERIMENTAL_COMPILE_MATRIX_JSON="$(printf '%s' "${DISCOVERY_JSON}" | jq -c '.experimental_compile_matrix')"
           COMPILE_COUNT_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.compile_count')"
+          EXPERIMENTAL_COMPILE_COUNT_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.experimental_compile_count')"
           COUNT_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.count')"
+          EXPERIMENTAL_COUNT_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.experimental_count')"
           HAS_TARGETS_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.has_targets')"
+          EXPERIMENTAL_HAS_TARGETS_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.experimental_has_targets')"
           TARGETS_DISPLAY_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.targets_display')"
+          EXPERIMENTAL_TARGETS_DISPLAY_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.experimental_targets_display')"
           RUN_INTEGRATION_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.run_integration')"
           SELECTION_REASON_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.selection_reason')"
 
           {
             echo "matrix=${MATRIX_JSON}"
             echo "compile_matrix=${COMPILE_MATRIX_JSON}"
+            echo "experimental_matrix=$(printf '%s' "${DISCOVERY_JSON}" | jq -c '.experimental_matrix')"
+            echo "experimental_compile_matrix=${EXPERIMENTAL_COMPILE_MATRIX_JSON}"
             echo "compile_count=${COMPILE_COUNT_VALUE}"
+            echo "experimental_compile_count=${EXPERIMENTAL_COMPILE_COUNT_VALUE}"
             echo "count=${COUNT_VALUE}"
+            echo "experimental_count=${EXPERIMENTAL_COUNT_VALUE}"
             echo "has_targets=${HAS_TARGETS_VALUE}"
+            echo "experimental_has_targets=${EXPERIMENTAL_HAS_TARGETS_VALUE}"
             echo "targets_display=${TARGETS_DISPLAY_VALUE}"
+            echo "experimental_targets_display=${EXPERIMENTAL_TARGETS_DISPLAY_VALUE}"
             echo "run_integration=${RUN_INTEGRATION_VALUE}"
             echo "selection_reason=${SELECTION_REASON_VALUE}"
           } >> "$GITHUB_OUTPUT"
@@ -294,6 +361,12 @@ jobs:
           echo "Discovered library matrix: ${{ steps.discover.outputs.matrix }}"
           echo "Discovered compile matrix count: ${{ steps.discover.outputs.compile_count }}"
           echo "Discovered compile matrix: ${{ steps.discover.outputs.compile_matrix }}"
+          echo "Discovered experimental targets count: ${{ steps.discover.outputs.experimental_count }}"
+          echo "Discovered experimental has_targets: ${{ steps.discover.outputs.experimental_has_targets }}"
+          echo "Discovered experimental targets: ${{ steps.discover.outputs.experimental_targets_display }}"
+          echo "Discovered experimental matrix: ${{ steps.discover.outputs.experimental_matrix }}"
+          echo "Discovered experimental compile matrix count: ${{ steps.discover.outputs.experimental_compile_count }}"
+          echo "Discovered experimental compile matrix: ${{ steps.discover.outputs.experimental_compile_matrix }}"
           echo "Run integration: ${{ steps.discover.outputs.run_integration }}"
           echo "Selection reason: ${{ steps.discover.outputs.selection_reason }}"
 
@@ -867,6 +940,598 @@ jobs:
           path: ${{ steps.smoke.outputs.out_dir }}
           if-no-files-found: warn
 
+  host-experimental-library-compile:
+    name: host-experimental-library-compile (${{ matrix.target.libraryPath }}, ${{ matrix.target.backend }}, ${{ matrix.target.optional }})
+    needs: discover-libraries
+    if: needs.discover-libraries.outputs.experimental_has_targets == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJson(needs.discover-libraries.outputs.experimental_compile_matrix) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Log current matrix target
+        shell: bash
+        run: |
+          echo "Compiling experimental host smoke target for library path: ${{ matrix.target.libraryPath }}"
+          echo "Backend: ${{ matrix.target.backend }}"
+          echo "Optional mode: ${{ matrix.target.optional }}"
+
+      - name: Prepare host shim headers
+        id: shim
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -d "test/host_arduino_sim/include" ]; then
+            echo "shim_dir=test/host_arduino_sim/include" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          mkdir -p .github/tmp-host-shim
+          cat > .github/tmp-host-shim/Arduino.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_ARDUINO_H
+          #define HOST_ARDUINO_SIM_ARDUINO_H
+          #include <cstdlib>
+          #include <cstdint>
+          #include <iomanip>
+          #include <iostream>
+          #include <string>
+          using byte = std::uint8_t;
+          class String : public std::string {
+          public:
+              using std::string::string;
+              String() : std::string() {}
+              String(const char* s) : std::string(s ? s : "") {}
+              String(const std::string& s) : std::string(s) {}
+              String(char c) : std::string(1, c) {}
+              String(int v) : std::string(std::to_string(v)) {}
+              String(unsigned int v) : std::string(std::to_string(v)) {}
+              String(long v) : std::string(std::to_string(v)) {}
+              String(unsigned long v) : std::string(std::to_string(v)) {}
+              String(float v) : std::string(std::to_string(v)) {}
+              String(double v) : std::string(std::to_string(v)) {}
+              long toInt() const {
+                char* end = nullptr;
+                const long value = std::strtol(this->c_str(), &end, 10);
+                return (end == this->c_str()) ? 0L : value;
+              }
+              float toFloat() const {
+                char* end = nullptr;
+                const float value = std::strtof(this->c_str(), &end);
+                return (end == this->c_str()) ? 0.0f : value;
+              }
+                String substring(unsigned int from) const {
+                  if (from >= this->size()) { return String(""); }
+                  return String(this->substr(from));
+                }
+                String substring(unsigned int from, unsigned int to) const {
+                  if (from >= this->size()) { return String(""); }
+                  if (to > this->size()) { to = static_cast<unsigned int>(this->size()); }
+                  if (to <= from) { return String(""); }
+                  return String(this->substr(from, to - from));
+                }
+          };
+          constexpr uint8_t LOW = 0;
+          constexpr uint8_t HIGH = 1;
+          constexpr uint8_t INPUT = 0;
+          constexpr uint8_t OUTPUT = 1;
+          constexpr uint8_t LED_BUILTIN = 13;
+          constexpr int DEC = 10;
+          constexpr int HEX = 16;
+          constexpr int OCT = 8;
+          constexpr int BIN = 2;
+          inline void pinMode(uint8_t, uint8_t) {}
+          inline void digitalWrite(uint8_t, uint8_t) {}
+          template <typename T>
+          inline T min(const T& a, const T& b) { return (a < b) ? a : b; }
+          template <typename T>
+          inline T max(const T& a, const T& b) { return (a > b) ? a : b; }
+          class HostSerial {
+          public:
+              void begin(unsigned long) {}
+              void flush() {}
+              template <typename T> void print(const T& value) { std::cout << value; }
+              template <typename T> void println(const T& value) { std::cout << value << std::endl; }
+              template <typename T>
+              void print(const T& value, int base) {
+                  if (base == HEX) { std::cout << std::hex << value << std::dec; return; }
+                  if (base == OCT) { std::cout << std::oct << value << std::dec; return; }
+                  std::cout << value;
+              }
+              template <typename T>
+              void println(const T& value, int base) {
+                  print(value, base);
+                  std::cout << std::endl;
+              }
+              void println() { std::cout << std::endl; }
+              explicit operator bool() const { return true; }
+          };
+          inline HostSerial Serial;
+          inline unsigned long millis() { return 0UL; }
+          inline void yield() {}
+          inline void noInterrupts() {}
+          inline void interrupts() {}
+          inline void delay(unsigned long) {}
+          inline void randomSeed(unsigned long seed) { std::srand(static_cast<unsigned int>(seed)); }
+          inline long random(long max) {
+              if (max <= 0) { return 0; }
+              return static_cast<long>(std::rand() % max);
+          }
+          inline long random(long min, long max) {
+              if (max <= min) { return min; }
+              return min + random(max - min);
+          }
+          #endif
+          EOF
+
+          cat > .github/tmp-host-shim/SPI.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_SPI_H
+          #define HOST_ARDUINO_SIM_SPI_H
+          class SPIClass { public: void begin() {} };
+          inline SPIClass SPI;
+          #endif
+          EOF
+
+          cat > .github/tmp-host-shim/Ethernet.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_ETHERNET_H
+          #define HOST_ARDUINO_SIM_ETHERNET_H
+          #include "Arduino.h"
+          #include <cstddef>
+          #include <cstdint>
+          #include <cstring>
+          class IPAddress {
+          public:
+              IPAddress() : _address{0, 0, 0, 0} {}
+              IPAddress(uint8_t a, uint8_t b, uint8_t c, uint8_t d) : _address{a, b, c, d} {}
+              uint8_t operator[](size_t index) const { return index < 4 ? _address[index] : 0; }
+              uint8_t& operator[](size_t index) {
+                  if (index >= 4) { static uint8_t dummy = 0; return dummy; }
+                  return _address[index];
+              }
+          private:
+              uint8_t _address[4];
+          };
+          enum EthernetLinkStatus { Unknown, LinkON, LinkOFF };
+          enum EthernetHardwareStatus { EthernetNoHardware, EthernetW5100, EthernetW5200, EthernetW5500 };
+          class EthernetClient {
+          public:
+              EthernetClient() : _connected(false) {}
+              bool connect(const char*, uint16_t) { _connected = true; return true; }
+              bool connect(const IPAddress&, uint16_t) { _connected = true; return true; }
+              int available() const { return 0; }
+              int read() { return -1; }
+              int read(uint8_t*, size_t) { return 0; }
+              size_t write(uint8_t) { return 1; }
+              size_t write(const uint8_t*, size_t size) { return size; }
+              size_t print(const String& value) { return value.length(); }
+              size_t print(const char* value) { return value ? std::strlen(value) : 0; }
+              size_t print(char) { return 1; }
+              size_t print(int) { return 1; }
+              size_t print(unsigned long) { return 1; }
+              size_t println() { return 2; }
+              size_t println(const String& value) { return value.length() + 2; }
+              size_t println(const char* value) { return (value ? std::strlen(value) : 0) + 2; }
+              bool connected() const { return _connected; }
+              void stop() { _connected = false; }
+              explicit operator bool() const { return true; }
+          private:
+              bool _connected;
+          };
+          class EthernetServer {
+          public:
+              explicit EthernetServer(uint16_t) {}
+              void begin() {}
+              EthernetClient available() { return EthernetClient(); }
+          };
+          class EthernetClass {
+          public:
+              EthernetClass()
+                  : _localIp(192, 168, 1, 200), _dnsIp(8, 8, 8, 8), _gatewayIp(192, 168, 1, 1),
+                    _subnetIp(255, 255, 255, 0), _linkStatus(LinkON), _hardwareStatus(EthernetW5500) {}
+              void init(uint8_t) {}
+              int begin(uint8_t*, unsigned long = 0) { return 1; }
+              void begin(uint8_t*, const IPAddress& ip, const IPAddress& dns, const IPAddress& gateway, const IPAddress& subnet) {
+                  _localIp = ip;
+                  _dnsIp = dns;
+                  _gatewayIp = gateway;
+                  _subnetIp = subnet;
+              }
+              IPAddress localIP() const { return _localIp; }
+              IPAddress dnsServerIP() const { return _dnsIp; }
+              IPAddress gatewayIP() const { return _gatewayIp; }
+              IPAddress subnetMask() const { return _subnetIp; }
+              void setRetransmissionTimeout(uint16_t) {}
+              void setRetransmissionCount(uint8_t) {}
+              EthernetLinkStatus linkStatus() const { return _linkStatus; }
+              EthernetHardwareStatus hardwareStatus() const { return _hardwareStatus; }
+          private:
+              IPAddress _localIp;
+              IPAddress _dnsIp;
+              IPAddress _gatewayIp;
+              IPAddress _subnetIp;
+              EthernetLinkStatus _linkStatus;
+              EthernetHardwareStatus _hardwareStatus;
+          };
+          inline EthernetClass Ethernet;
+          #endif
+          EOF
+
+          cat > .github/tmp-host-shim/SdFat.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_SDFAT_H
+          #define HOST_ARDUINO_SIM_SDFAT_H
+          #include "Arduino.h"
+          #include <cstddef>
+          #include <cstdint>
+          constexpr uint8_t O_READ = 0x01;
+          constexpr uint8_t O_WRITE = 0x02;
+          constexpr uint8_t O_CREAT = 0x04;
+          #ifndef SD_CS_PIN
+          #define SD_CS_PIN 4
+          #endif
+          #ifndef SD_SCK_MHZ
+          #define SD_SCK_MHZ(x) (x)
+          #endif
+          class FsFile {
+          public:
+              explicit operator bool() const { return true; }
+              int read() { return -1; }
+              int read(void*, size_t) { return 0; }
+              size_t write(const void*, size_t size) { return size; }
+              size_t write(uint8_t) { return 1; }
+              void close() {}
+          };
+          class SdCardMock { public: uint32_t sectorCount() const { return 4UL * 1024UL * 1024UL; } };
+          class SdVolumeMock {
+          public:
+              uint32_t freeClusterCount() const { return 32768UL; }
+              uint32_t clusterCount() const { return 65536UL; }
+              uint32_t sectorsPerCluster() const { return 8UL; }
+          };
+          class SdFat {
+          public:
+              bool begin() { return true; }
+              bool begin(uint8_t, uint32_t = 0) { return true; }
+              FsFile open(const char*, uint8_t = O_READ) { return FsFile(); }
+              FsFile open(const String&, uint8_t = O_READ) { return FsFile(); }
+              SdCardMock* card() { return &_card; }
+              SdVolumeMock* vol() { return &_vol; }
+          private:
+              SdCardMock _card;
+              SdVolumeMock _vol;
+          };
+          using SdFile = FsFile;
+          #endif
+          EOF
+
+          cat > .github/tmp-host-shim/SDFat.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_SDFAT_COMPAT_H
+          #define HOST_ARDUINO_SIM_SDFAT_COMPAT_H
+          #include "SdFat.h"
+          #endif
+          EOF
+
+            cat > .github/tmp-host-shim/RTClib.h <<'EOF'
+            #ifndef HOST_ARDUINO_SIM_RTCLIB_H
+            #define HOST_ARDUINO_SIM_RTCLIB_H
+            #include "Arduino.h"
+            class DateTime {
+            public:
+              DateTime() : _year(1970), _month(1), _day(1), _hour(0), _minute(0), _second(0) {}
+              DateTime(int year, int month, int day, int hour, int minute, int second)
+                : _year(year), _month(month), _day(day), _hour(hour), _minute(minute), _second(second) {}
+              unsigned long unixtime() const { return millis() / 1000UL; }
+              String timestamp() const {
+                return String(_year) + "-" + String(_month) + "-" + String(_day) + " " +
+                   String(_hour) + ":" + String(_minute) + ":" + String(_second);
+              }
+            private:
+              int _year;
+              int _month;
+              int _day;
+              int _hour;
+              int _minute;
+              int _second;
+            };
+            class RTC_DS3231 {
+            public:
+              bool begin() { return true; }
+              DateTime now() const { return _current; }
+              void adjust(const DateTime& value) { _current = value; }
+            private:
+              DateTime _current;
+            };
+            #endif
+            EOF
+
+            cat > .github/tmp-host-shim/lz4.h <<'EOF'
+            #ifndef HOST_ARDUINO_SIM_LZ4_H
+            #define HOST_ARDUINO_SIM_LZ4_H
+            #include <cstring>
+            inline int LZ4_compress_default(const char* src, char* dst, int srcSize, int dstCapacity) {
+              if (!src || !dst || srcSize < 0 || dstCapacity < 0) { return 0; }
+              if (srcSize > dstCapacity) { return 0; }
+              if (srcSize == 0) { return 0; }
+              std::memcpy(dst, src, static_cast<size_t>(srcSize));
+              return srcSize;
+            }
+            inline int LZ4_decompress_safe(const char* src, char* dst, int compressedSize, int dstCapacity) {
+              if (!src || !dst || compressedSize < 0 || dstCapacity < 0) { return -1; }
+              if (compressedSize > dstCapacity) { return -1; }
+              if (compressedSize == 0) { return 0; }
+              std::memcpy(dst, src, static_cast<size_t>(compressedSize));
+              return compressedSize;
+            }
+            #endif
+            EOF
+
+          cat > .github/tmp-host-shim/SD.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_SD_H
+          #define HOST_ARDUINO_SIM_SD_H
+          #include "Arduino.h"
+          #include <cstddef>
+          #include <cstdint>
+          constexpr std::uint8_t FILE_READ = 0x01;
+          constexpr std::uint8_t FILE_WRITE = 0x02;
+          class File {
+          public:
+              explicit operator bool() const { return false; }
+              bool seek(std::uint32_t) { return false; }
+              std::size_t write(const std::uint8_t*, std::size_t) { return 0; }
+              std::size_t read(std::uint8_t*, std::size_t) { return 0; }
+              void close() {}
+          };
+          class SDClass {
+          public:
+              bool begin(int) { return true; }
+              bool exists(const String&) const { return false; }
+              bool remove(const String&) const { return true; }
+              File open(const String&, std::uint8_t) const { return File(); }
+          };
+          inline SDClass SD;
+          #endif
+          EOF
+
+          cat > .github/tmp-host-shim/LittleFS.h <<'EOF'
+          #ifndef HOST_ARDUINO_SIM_LITTLEFS_H
+          #define HOST_ARDUINO_SIM_LITTLEFS_H
+          #include "SD.h"
+          inline SDClass LittleFS;
+          #endif
+          EOF
+
+          echo "shim_dir=.github/tmp-host-shim" >> "$GITHUB_OUTPUT"
+
+      - name: Validate header include casing
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          lib_path = Path("${{ matrix.target.libraryPath }}")
+          src_dir = lib_path / "src"
+          props = lib_path / "library.properties"
+
+          # Build include search roots used by host smoke compile.
+          search_roots = [src_dir]
+          lib_root = Path("lib")
+          if lib_root.is_dir():
+              for child in sorted(lib_root.iterdir()):
+                  child_src = child / "src"
+                  if child.is_dir() and child_src.is_dir():
+                      search_roots.append(child_src)
+          if Path("src").is_dir():
+              search_roots.append(Path("src"))
+
+          include_re = re.compile(r'^\s*#\s*include\s*"([^"]+)"')
+          skip = {"Arduino.h", "SD.h", "SPI.h", "LittleFS.h"}
+
+          # Lowercase index for case mismatch detection.
+          root_indices = {}
+          for root in search_roots:
+              idx = {}
+              for f in root.rglob("*"):
+                  if f.is_file():
+                      rel = f.relative_to(root).as_posix()
+                      idx[rel.lower()] = rel
+              root_indices[root] = idx
+
+          problems = []
+
+          # 1) Validate library.properties includes entries match actual file case in this library src.
+          if props.is_file():
+              includes_value = None
+              for line in props.read_text(encoding="utf-8", errors="ignore").splitlines():
+                  if line.strip().startswith("includes="):
+                      includes_value = line.split("=", 1)[1].strip()
+                      break
+
+              if includes_value:
+                  declared = [s.strip() for s in includes_value.split(",") if s.strip()]
+                  src_name_map = {p.name.lower(): p.name for p in src_dir.glob("*") if p.is_file()}
+                  for inc in declared:
+                      exact_path = src_dir / inc
+                      if exact_path.is_file():
+                          continue
+                      actual_name = src_name_map.get(inc.lower())
+                      if actual_name:
+                          problems.append(
+                              f"{props.as_posix()}: includes entry '{inc}' has wrong case, expected '{actual_name}'"
+                          )
+                      else:
+                          problems.append(
+                              f"{props.as_posix()}: includes entry '{inc}' not found in {src_dir.as_posix()}"
+                          )
+
+          # 2) Validate local source includes do not reference differently-cased headers.
+          source_files = [
+              p for p in src_dir.rglob("*")
+              if p.is_file() and p.suffix.lower() in {".h", ".hpp", ".hh", ".c", ".cc", ".cpp", ".ino"}
+          ]
+
+          for sf in source_files:
+              for line_no, line in enumerate(sf.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
+                  m = include_re.match(line)
+                  if not m:
+                      continue
+                  inc = m.group(1)
+                  if inc in skip:
+                      continue
+
+                  # Exact resolution in any search root passes.
+                  exact = any((root / inc).is_file() for root in search_roots)
+                  if exact:
+                      continue
+
+                  # If exact failed but lowercase resolution exists, this is a case mismatch.
+                  for root, idx in root_indices.items():
+                      actual_rel = idx.get(inc.lower())
+                      if actual_rel and actual_rel != inc:
+                          problems.append(
+                              f"{sf.as_posix()}:{line_no}: include '{inc}' has wrong case, expected '{actual_rel}' (from {root.as_posix()})"
+                          )
+                          break
+
+          if problems:
+              print("Header include casing/declaration validation failed:")
+              for p in problems:
+                  print(f" - {p}")
+              sys.exit(1)
+
+          print(f"Header include casing/declaration validation passed for {lib_path.as_posix()}")
+          PY
+
+      - name: Build experimental per-library host compile smoke
+        id: smoke
+        shell: bash
+        env:
+          LIB_PATH: ${{ matrix.target.libraryPath }}
+        run: |
+          set -euo pipefail
+
+          LIB_PATH="${{ matrix.target.libraryPath }}"
+          LIB_NAME="$(basename "${LIB_PATH}")"
+          if [ "${LIB_PATH}" = "." ]; then
+            LIB_NAME="root"
+          fi
+
+          LIB_SLUG="$(echo "${LIB_PATH}" | tr '/\\.' '___')"
+          if [ -z "${LIB_SLUG}" ]; then
+            LIB_SLUG="root"
+          fi
+
+          OUT_DIR="test/host_arduino_sim/out/experimental-library-smoke/${LIB_SLUG}/${{ matrix.target.backend }}/${{ matrix.target.optional }}"
+          mkdir -p "${OUT_DIR}"
+
+          echo "lib_slug=${LIB_SLUG}" >> "$GITHUB_OUTPUT"
+          echo "out_dir=${OUT_DIR}" >> "$GITHUB_OUTPUT"
+
+          EXTRA_FLAGS=()
+          if [ "${{ matrix.target.backend }}" = "littlefs" ]; then
+            EXTRA_FLAGS+=("-DUSE_LITTLEFS")
+          fi
+          if [ "${{ matrix.target.optional }}" = "on" ]; then
+            EXTRA_FLAGS+=("-DJSON_ENABLE_OPTIONAL_RETURNS=1")
+            EXTRA_FLAGS+=("-DAVL_TREE_ENABLE_ERROR_CODES=1")
+          fi
+
+          ARCH_FLAGS="-D_AVR_ATmega2560_"
+
+          INCLUDE_FLAGS=(
+            "-I${{ steps.shim.outputs.shim_dir }}"
+            "-I${LIB_PATH}/src"
+          )
+
+          if [ -d "lib" ]; then
+            while IFS= read -r src_dir; do
+              INCLUDE_FLAGS+=("-I${src_dir}")
+            done < <(find lib -mindepth 2 -maxdepth 2 -type d -name src | sort)
+          fi
+
+          if [ -d "src" ]; then
+            INCLUDE_FLAGS+=("-Isrc")
+          fi
+
+          python3 - <<'PY' > "${OUT_DIR}/smoke.cpp"
+          import os
+          from pathlib import Path
+
+          lib_path = Path(os.environ["LIB_PATH"])
+          src_dir = lib_path / "src"
+          props = lib_path / "library.properties"
+
+          includes = []
+          if props.is_file():
+              for line in props.read_text(encoding="utf-8", errors="ignore").splitlines():
+                  if line.strip().startswith("includes="):
+                      raw = line.split("=", 1)[1].strip()
+                      includes = [item.strip() for item in raw.split(",") if item.strip()]
+                      break
+
+          if not includes:
+              headers = sorted(src_dir.glob("*.h"))
+              if headers:
+                  includes = [headers[0].name]
+
+          if not includes:
+              raise SystemExit(f"No includable header found for {lib_path}")
+
+          print('#include "Arduino.h"')
+          print('#include "SD.h"')
+          print('#ifdef USE_LITTLEFS')
+          print('#include "LittleFS.h"')
+          print('#endif')
+          for inc in includes:
+              print(f'#include "{inc}"')
+          print('int main() { return 0; }')
+          PY
+
+          set +e
+          g++ -std=c++17 -O2 -DAL_NO_SERIAL "${EXTRA_FLAGS[@]}" ${ARCH_FLAGS} \
+            "${INCLUDE_FLAGS[@]}" \
+            "${OUT_DIR}/smoke.cpp" \
+            -c -o "${OUT_DIR}/experimental-smoke.o"
+          status=$?
+          set -e
+
+          python3 - "${OUT_DIR}/experimental-compile-result.json" "${LIB_PATH}" "${{ matrix.target.backend }}" "${{ matrix.target.optional }}" "${status}" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          output_path = Path(sys.argv[1])
+          payload = {
+              "libraryPath": sys.argv[2],
+              "backend": sys.argv[3],
+              "optional": sys.argv[4],
+              "success": sys.argv[5] == "0",
+              "returnCode": int(sys.argv[5]),
+              "artifactPath": output_path.parent.as_posix(),
+              "smokeObject": (output_path.parent / "experimental-smoke.o").as_posix(),
+          }
+          output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+          PY
+
+          if [ "${status}" -ne 0 ]; then
+            echo "Experimental compile failed for ${LIB_PATH} (${matrix.target.backend}/${matrix.target.optional})"
+          fi
+
+      - name: Upload experimental per-library compile artifact
+        if: always() && steps.smoke.outputs.out_dir != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: host-experimental-library-compile-${{ steps.smoke.outputs.lib_slug }}-${{ matrix.target.backend }}-${{ matrix.target.optional }}
+          path: ${{ steps.smoke.outputs.out_dir }}
+          if-no-files-found: warn
+
   host-sim-integration:
     needs:
       - discover-libraries
@@ -1078,8 +1743,9 @@ jobs:
     needs:
       - discover-libraries
       - host-library-compile
+      - host-experimental-library-compile
       - host-sim-integration
-    if: always() && needs.discover-libraries.outputs.has_targets == 'true'
+    if: always() && (needs.discover-libraries.outputs.has_targets == 'true' || needs.discover-libraries.outputs.experimental_has_targets == 'true')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -1097,7 +1763,7 @@ jobs:
         uses: actions/download-artifact@v8
         continue-on-error: true
         with:
-          pattern: host-library-compile-*
+          pattern: host-*library-compile-*
           merge-multiple: true
           path: .artifacts/host-compile
 
@@ -1112,7 +1778,8 @@ jobs:
             --output-md reports/host-sim-test-report.md \
             --output-json reports/host-sim-test-report.json \
             --expected-library-count "${{ needs.discover-libraries.outputs.count }}" \
-            --expected-compile-smoke-count "${{ needs.discover-libraries.outputs.compile_count }}"
+            --expected-compile-smoke-count "${{ needs.discover-libraries.outputs.compile_count }}" \
+            --expected-experimental-compile-count "${{ needs.discover-libraries.outputs.experimental_compile_count }}"
 
           cat reports/host-sim-test-report.md >> "$GITHUB_STEP_SUMMARY"
 

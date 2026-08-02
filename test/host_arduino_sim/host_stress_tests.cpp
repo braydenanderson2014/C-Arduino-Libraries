@@ -15,7 +15,7 @@
 //   HOST_STRESS_OPTIONAL        "on" or "off" for JSON optional mode    (default: "off")
 //   HOST_STRESS_REPORT          Output path for the stress JSON report
 //   HOST_STRESS_MAX_INSTANCES   Max instances to create per probe        (default: 5000)
-//   HOST_STRESS_MAX_ELEMENTS    Max elements to add per fill probe       (default: 100000)
+//   HOST_STRESS_MAX_ELEMENTS    Max elements to add per fill probe       (default: 1000000)
 
 #include <algorithm>
 #include <array>
@@ -410,7 +410,7 @@ int main() {
     const std::size_t limitBytes   = envSize("HOST_MEM_LIMIT_BYTES",       8u * 1024u * 1024u);
     const std::size_t sramBytes    = envSize("HOST_STRESS_SRAM_BYTES",      0u);
     const std::size_t maxInstances = envSize("HOST_STRESS_MAX_INSTANCES",   5000u);
-    const std::size_t maxElements  = envSize("HOST_STRESS_MAX_ELEMENTS",    100000u);
+    const std::size_t maxElements  = envSize("HOST_STRESS_MAX_ELEMENTS",    1000000u);
     const std::string board        = envStr ("HOST_STRESS_BOARD",           "unknown");
     const std::string backend      = envStr ("HOST_STRESS_BACKEND",         "SD");
     const std::string optional     = envStr ("HOST_STRESS_OPTIONAL",        "off");

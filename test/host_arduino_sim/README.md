@@ -35,6 +35,9 @@ Container and type combinations:
 - Element fill: `ArrayList<{int,float,double,String}>`, `SimpleVector<{int,float,double}>`,
   `Hashtable<{int→int,String→String}>`, `AVLTree<int>`
 
+The fill probes now default to `HOST_STRESS_MAX_ELEMENTS=1000000` so the stress run keeps
+pressing further before it stops on the configured budget.
+
 Results are written to `stress-{board}.json` and aggregated into
 `reports/host-sim-stress-report.md` / `.json`.
 
