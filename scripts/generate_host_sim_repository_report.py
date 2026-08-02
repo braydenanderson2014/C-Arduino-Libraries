@@ -12,13 +12,22 @@ def load_json(path: Path) -> Dict[str, Any]:
         return {}
 
 
-def first_matching_json(root: Path, expected_name: str) -> Optional[Path]:
+def first_matching_file(root: Path, expected_name: str) -> Optional[Path]:
     if not root.exists() or not root.is_dir():
         return None
     for candidate in root.rglob(expected_name):
         if candidate.is_file():
             return candidate
     return None
+
+
+def load_text(path: Optional[Path]) -> str:
+    if not path:
+        return ""
+    try:
+        return path.read_text(encoding="utf-8")
+    except Exception:
+        return ""
 
 
 def as_int(value: Any, default: int = 0) -> int:
@@ -58,11 +67,26 @@ def summarize_stress_payload(payload: Dict[str, Any]) -> Dict[str, int]:
     }
 
 
+def strip_leading_title(markdown: str) -> str:
+    if not markdown:
+        return ""
+
+    lines = markdown.splitlines()
+    if lines and lines[0].startswith("# "):
+        lines = lines[1:]
+        while lines and not lines[0].strip():
+            lines = lines[1:]
+
+    return "\n".join(lines).strip()
+
+
 def build_markdown(
     standard_payload: Dict[str, Any],
     stress_payload: Dict[str, Any],
     standard_path: Optional[Path],
     stress_path: Optional[Path],
+    standard_markdown: str,
+    stress_markdown: str,
 ) -> str:
     std    = summarize_standard_payload(standard_payload)
     stress = summarize_stress_payload(stress_payload)
@@ -103,26 +127,35 @@ def build_markdown(
     lines.append("")
     lines.append("## Standard Host Report")
     lines.append("")
-    lines.append(f"- Total runs: {std['totalRuns']}")
-    lines.append(f"- Passed runs: {std['passedRuns']}")
-    lines.append(f"- Failed runs: {std['failedRuns']}")
-    lines.append(f"- Max peak bytes: {std['maxPeakBytes']}")
-    lines.append(f"- Avg peak bytes: {std['avgPeakBytes']}")
-    lines.append(f"- Runs that exceeded informational limit: {std['limitExceededRuns']}")
-    lines.append(f"- Experimental compile results: {std['experimentalCompileResultCount']}")
-    lines.append(f"- Experimental compile successes: {std['experimentalCompileSuccessCount']}")
-    lines.append(f"- Experimental compile failures: {std['experimentalCompileFailureCount']}")
-    lines.append(f"- Experimental libraries covered: {std['experimentalCompileLibraryCount']}")
-    lines.append(f"- Experimental backends covered: {std['experimentalCompileBackendCount']}")
-    lines.append(f"- Experimental optional modes covered: {std['experimentalCompileOptionalModeCount']}")
-    lines.append("")
+    if standard_markdown:
+        lines.append(strip_leading_title(standard_markdown))
+        lines.append("")
+    else:
+        lines.append(f"- Total runs: {std['totalRuns']}")
+        lines.append(f"- Passed runs: {std['passedRuns']}")
+        lines.append(f"- Failed runs: {std['failedRuns']}")
+        lines.append(f"- Max peak bytes: {std['maxPeakBytes']}")
+        lines.append(f"- Avg peak bytes: {std['avgPeakBytes']}")
+        lines.append(f"- Runs that exceeded informational limit: {std['limitExceededRuns']}")
+        lines.append(f"- Experimental compile results: {std['experimentalCompileResultCount']}")
+        lines.append(f"- Experimental compile successes: {std['experimentalCompileSuccessCount']}")
+        lines.append(f"- Experimental compile failures: {std['experimentalCompileFailureCount']}")
+        lines.append(f"- Experimental libraries covered: {std['experimentalCompileLibraryCount']}")
+        lines.append(f"- Experimental backends covered: {std['experimentalCompileBackendCount']}")
+        lines.append(f"- Experimental optional modes covered: {std['experimentalCompileOptionalModeCount']}")
+        lines.append("")
+
     lines.append("## Stress Test Report")
     lines.append("")
-    lines.append(f"- Total stress runs: {stress['totalRuns']}")
-    lines.append(f"- Boards profiled: {stress['boardsProfiled']}")
-    lines.append(f"- Instance probe results: {stress['totalInstanceProbeResults']}")
-    lines.append(f"- Element fill results: {stress['totalElementFillResults']}")
-    lines.append("")
+    if stress_markdown:
+        lines.append(strip_leading_title(stress_markdown))
+        lines.append("")
+    else:
+        lines.append(f"- Total stress runs: {stress['totalRuns']}")
+        lines.append(f"- Boards profiled: {stress['boardsProfiled']}")
+        lines.append(f"- Instance probe results: {stress['totalInstanceProbeResults']}")
+        lines.append(f"- Element fill results: {stress['totalElementFillResults']}")
+        lines.append("")
 
     return "\n".join(lines)
 
@@ -140,17 +173,30 @@ def main() -> int:
     output_md    = Path(args.output_md)
     output_json  = Path(args.output_json)
 
-    standard_path = first_matching_json(standard_dir, "host-sim-test-report.json")
-    stress_path   = first_matching_json(stress_dir,   "host-sim-stress-report.json")
+    standard_path = first_matching_file(standard_dir, "host-sim-test-report.json")
+    stress_path   = first_matching_file(stress_dir,   "host-sim-stress-report.json")
+    standard_md_path = first_matching_file(standard_dir, "host-sim-test-report.md")
+    stress_md_path   = first_matching_file(stress_dir,   "host-sim-stress-report.md")
 
     standard_payload = load_json(standard_path) if standard_path else {}
     stress_payload   = load_json(stress_path)   if stress_path   else {}
+    standard_markdown = load_text(standard_md_path)
+    stress_markdown   = load_text(stress_md_path)
 
-    markdown = build_markdown(standard_payload, stress_payload, standard_path, stress_path)
+    markdown = build_markdown(
+        standard_payload,
+        stress_payload,
+        standard_path,
+        stress_path,
+        standard_markdown,
+        stress_markdown,
+    )
 
     payload = {
         "standardReportPath": standard_path.as_posix() if standard_path else None,
         "stressReportPath":   stress_path.as_posix()   if stress_path   else None,
+        "standardMarkdownPath": standard_md_path.as_posix() if standard_md_path else None,
+        "stressMarkdownPath":   stress_md_path.as_posix()   if stress_md_path   else None,
         "standardReport":     standard_payload,
         "stressReport":       stress_payload,
     }
