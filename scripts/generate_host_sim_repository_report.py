@@ -39,6 +39,12 @@ def summarize_standard_payload(payload: Dict[str, Any]) -> Dict[str, int]:
         "avgPeakBytes":                   as_int(summary.get("avgPeakBytes", 0)),
         "limitExceededRuns":              as_int(summary.get("limitExceededRuns", 0)),
         "runsWithFirstLimitCrossingTest": as_int(summary.get("runsWithFirstLimitCrossingTest", 0)),
+        "experimentalCompileResultCount": as_int(summary.get("experimentalCompileResultCount", 0)),
+        "experimentalCompileSuccessCount": as_int(summary.get("experimentalCompileSuccessCount", 0)),
+        "experimentalCompileFailureCount": as_int(summary.get("experimentalCompileFailureCount", 0)),
+        "experimentalCompileLibraryCount": as_int(summary.get("experimentalCompileLibraryCount", 0)),
+        "experimentalCompileBackendCount": as_int(summary.get("experimentalCompileBackendCount", 0)),
+        "experimentalCompileOptionalModeCount": as_int(summary.get("experimentalCompileOptionalModeCount", 0)),
     }
 
 
@@ -76,6 +82,9 @@ def build_markdown(
     lines.append(f"- Boards profiled by stress tests: {stress['boardsProfiled']}")
     lines.append(f"- Total instance probe results: {stress['totalInstanceProbeResults']}")
     lines.append(f"- Total element fill results: {stress['totalElementFillResults']}")
+    lines.append(f"- Experimental compile results: {std['experimentalCompileResultCount']}")
+    lines.append(f"- Experimental compile libraries covered: {std['experimentalCompileLibraryCount']}")
+    lines.append(f"- Experimental compile failures: {std['experimentalCompileFailureCount']}")
     lines.append("")
     lines.append("## Understanding")
     lines.append("")
@@ -83,6 +92,9 @@ def build_markdown(
     lines.append("- If one source is missing, this report is partial and will say which source was not found.")
     lines.append("- Use the Standard section to read compile/integration run correctness results.")
     lines.append("- Use the Stress Test section to read per-board capacity metrics.")
+    lines.append("- RSS (resident set size) means physical memory pages currently resident for the process.")
+    lines.append("- Peak bytes is the full-run RSS high-water mark; average peak bytes is the average of run peak RSS values.")
+    lines.append("- Experimental compile metrics are matrix-entry counts over experimental library/backend/optional combinations.")
     lines.append("")
     lines.append("## Source Status")
     lines.append("")
@@ -97,6 +109,12 @@ def build_markdown(
     lines.append(f"- Max peak bytes: {std['maxPeakBytes']}")
     lines.append(f"- Avg peak bytes: {std['avgPeakBytes']}")
     lines.append(f"- Runs that exceeded informational limit: {std['limitExceededRuns']}")
+    lines.append(f"- Experimental compile results: {std['experimentalCompileResultCount']}")
+    lines.append(f"- Experimental compile successes: {std['experimentalCompileSuccessCount']}")
+    lines.append(f"- Experimental compile failures: {std['experimentalCompileFailureCount']}")
+    lines.append(f"- Experimental libraries covered: {std['experimentalCompileLibraryCount']}")
+    lines.append(f"- Experimental backends covered: {std['experimentalCompileBackendCount']}")
+    lines.append(f"- Experimental optional modes covered: {std['experimentalCompileOptionalModeCount']}")
     lines.append("")
     lines.append("## Stress Test Report")
     lines.append("")

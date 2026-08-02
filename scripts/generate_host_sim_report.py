@@ -13,6 +13,47 @@ def load_json(path: Path) -> Dict[str, Any]:
         return {}
 
 
+def load_json_stream(path: Path) -> List[Dict[str, Any]]:
+    """Load one or more JSON objects from a file.
+
+    Supports both single-object files and newline/whitespace separated JSON
+    object streams written in append mode.
+    """
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except Exception:
+        return []
+
+    if not raw.strip():
+        return []
+
+    try:
+        parsed = json.loads(raw)
+        return [parsed] if isinstance(parsed, dict) else []
+    except Exception:
+        pass
+
+    decoder = json.JSONDecoder()
+    idx = 0
+    length = len(raw)
+    objs: List[Dict[str, Any]] = []
+
+    while idx < length:
+        while idx < length and raw[idx].isspace():
+            idx += 1
+        if idx >= length:
+            break
+        try:
+            value, next_idx = decoder.raw_decode(raw, idx)
+        except Exception:
+            break
+        if isinstance(value, dict):
+            objs.append(value)
+        idx = next_idx
+
+    return objs
+
+
 # ─── Stress-mode helpers ──────────────────────────────────────────────────────
 
 def load_stress_runs(artifacts_dir: Path) -> List[Dict[str, Any]]:
@@ -20,20 +61,64 @@ def load_stress_runs(artifacts_dir: Path) -> List[Dict[str, Any]]:
     runs: List[Dict[str, Any]] = []
     for path in sorted(artifacts_dir.rglob("stress-*.json")):
         if path.is_file():
-            data = load_json(path)
-            if data:
-                runs.append(data)
+            runs.extend(load_json_stream(path))
     return runs
 
 
 def load_experimental_compile_results(artifacts_dir: Path) -> List[Dict[str, Any]]:
     """Load all experimental-compile-result.json files from any artifact subdirectory."""
     results: List[Dict[str, Any]] = []
+    seen_keys = set()
+
     for path in sorted(artifacts_dir.rglob("experimental-compile-result.json")):
         if path.is_file():
             data = load_json(path)
             if data:
+                key = (
+                    str(data.get("libraryPath", "")),
+                    str(data.get("backend", "")),
+                    str(data.get("optional", "")),
+                )
+                if key in seen_keys:
+                    continue
+                seen_keys.add(key)
                 results.append(data)
+
+    # Fallback: if sidecar json files are missing, infer minimal rows from experimental smoke objects.
+    for path in sorted(artifacts_dir.rglob("experimental-smoke.o")):
+        if not path.is_file():
+            continue
+
+        # Expected layout:
+        # .../experimental-library-smoke/<slug>/<backend>/<optional>/experimental-smoke.o
+        optional = path.parent.name
+        backend = path.parent.parent.name if path.parent.parent else ""
+        slug = path.parent.parent.parent.name if path.parent.parent and path.parent.parent.parent else ""
+        if not slug or not backend or not optional:
+            continue
+
+        library_path = slug.replace("___", "/")
+        key = (library_path, backend, optional)
+        if key in seen_keys:
+            continue
+
+        seen_keys.add(key)
+        results.append({
+            "libraryPath": library_path,
+            "backend": backend,
+            "optional": optional,
+            "success": True,
+            "returnCode": 0,
+            "artifactPath": path.parent.as_posix(),
+            "smokeObject": path.as_posix(),
+            "inferredFromSmokeObject": True,
+        })
+
+    results.sort(key=lambda item: (
+        str(item.get("libraryPath", "")),
+        str(item.get("backend", "")),
+        str(item.get("optional", "")),
+    ))
     return results
 
 
@@ -204,7 +289,7 @@ def classify_paths(root: Path) -> Tuple[List[Path], List[Path], List[Path]]:
             report_files.append(path)
         elif name.startswith("stats") and name.endswith(".json"):
             stats_files.append(path)
-        elif name == "smoke.o":
+        elif name in {"smoke.o", "experimental-smoke.o"}:
             smoke_objects.append(path)
 
     return sorted(report_files), sorted(stats_files), sorted(smoke_objects)
@@ -347,8 +432,21 @@ def summarize_experimental_compile_results(results: List[Dict[str, Any]]) -> Dic
     passed = 0
     failed = 0
     failures: List[Dict[str, Any]] = []
+    library_paths = set()
+    backends = set()
+    optional_modes = set()
 
     for result in results:
+        library_path = str(result.get("libraryPath", ""))
+        backend = str(result.get("backend", ""))
+        optional = str(result.get("optional", ""))
+        if library_path:
+            library_paths.add(library_path)
+        if backend:
+            backends.add(backend)
+        if optional:
+            optional_modes.add(optional)
+
         success = bool(result.get("success", False))
         if success:
             passed += 1
@@ -356,9 +454,9 @@ def summarize_experimental_compile_results(results: List[Dict[str, Any]]) -> Dic
 
         failed += 1
         failures.append({
-            "libraryPath": str(result.get("libraryPath", "")),
-            "backend": str(result.get("backend", "")),
-            "optional": str(result.get("optional", "")),
+            "libraryPath": library_path,
+            "backend": backend,
+            "optional": optional,
             "returnCode": int(result.get("returnCode", -1)) if isinstance(result.get("returnCode", -1), int) else -1,
         })
 
@@ -366,6 +464,10 @@ def summarize_experimental_compile_results(results: List[Dict[str, Any]]) -> Dic
         "total": total,
         "passed": passed,
         "failed": failed,
+        "libraryCount": len(library_paths),
+        "backendCount": len(backends),
+        "optionalModeCount": len(optional_modes),
+        "libraries": sorted(library_paths),
         "failures": failures,
     }
 
@@ -400,6 +502,9 @@ def generate_markdown(
     lines.append(f"- Experimental compile results found: {summary['experimentalCompileResultCount']}")
     lines.append(f"- Experimental compile successes: {summary['experimentalCompileSuccessCount']}")
     lines.append(f"- Experimental compile failures: {summary['experimentalCompileFailureCount']}")
+    lines.append(f"- Experimental libraries covered: {summary['experimentalCompileLibraryCount']}")
+    lines.append(f"- Experimental backends covered: {summary['experimentalCompileBackendCount']}")
+    lines.append(f"- Experimental optional modes covered: {summary['experimentalCompileOptionalModeCount']}")
     lines.append(f"- Memory profile runs: {summary['memoryProfileRuns']}")
     lines.append(f"- Runs that exceeded limit: {summary['limitExceededRuns']}")
     lines.append(f"- Runs with limit enforcement enabled: {summary['limitEnforcedRuns']}")
@@ -420,12 +525,16 @@ def generate_markdown(
     lines.append("## Understanding")
     lines.append("")
     lines.append("- This report only summarizes artifacts downloaded into this workflow run.")
-    lines.append("- PeakBytes is process-level peak memory for the full run.")
-    lines.append("- Per-test RSS fields (BeforeRSS/AfterRSS) are process resident memory snapshots and may be page-granular.")
-    lines.append("- Per-test heap fields (BeforeHeap/AfterHeap) track allocator-managed heap bytes and are better for small test-to-test differences.")
-    lines.append("- LimitExceeded means run peak was above LimitBytes.")
-    lines.append("- LimitEnforced tells whether exceeding the limit should fail the run.")
+    lines.append("- RSS means resident set size: physical memory pages currently resident for the process.")
+    lines.append("- PeakBytes is the process-level peak resident memory (high-water RSS) for the full run.")
+    lines.append("- BeforeRSS/AfterRSS are per-test resident-memory snapshots; DeltaRSS is AfterRSS minus BeforeRSS.")
+    lines.append("- BeforeHeap/AfterHeap are allocator-managed heap snapshots; DeltaHeap is AfterHeap minus BeforeHeap.")
+    lines.append("- PeakAfterTest is the process peak resident memory observed after a specific test completed.")
+    lines.append("- LimitBytes is the configured memory threshold for the run.")
+    lines.append("- LimitExceeded means measured memory crossed LimitBytes.")
+    lines.append("- LimitEnforced means crossing LimitBytes should mark that run as failed/gated.")
     lines.append("- Experimental compile failures are reported separately and do not gate the main host simulation lanes.")
+    lines.append("- Experimental compile metrics track each library/backend/optional combination discovered in the experimental lane.")
     lines.append("- ProbeElementsAtStop and ProbeCurrentBytesAtStop come from the optional capacity probe.")
     lines.append("- FirstLimitCrossingTest is the first test whose per-test memory reached or exceeded the run limit.")
     lines.append("- If FirstLimitCrossingTest is blank, no per-test crossing was found (or no per-test stats were present).")
@@ -508,6 +617,8 @@ def generate_markdown(
         lines.append("")
         lines.append("## Experimental Compile Results")
         lines.append("")
+        lines.append("_Each row is one experimental compile matrix entry (library + backend + optional mode)._")
+        lines.append("")
         lines.append("| Library | Backend | Optional | Success | ReturnCode | Artifact |")
         lines.append("| --- | --- | --- | --- | ---: | --- |")
 
@@ -578,6 +689,9 @@ def main() -> int:
     summary["experimentalCompileResultCount"] = experimental_summary["total"]
     summary["experimentalCompileSuccessCount"] = experimental_summary["passed"]
     summary["experimentalCompileFailureCount"] = experimental_summary["failed"]
+    summary["experimentalCompileLibraryCount"] = experimental_summary["libraryCount"]
+    summary["experimentalCompileBackendCount"] = experimental_summary["backendCount"]
+    summary["experimentalCompileOptionalModeCount"] = experimental_summary["optionalModeCount"]
 
     payload = {
         "mode": args.mode,

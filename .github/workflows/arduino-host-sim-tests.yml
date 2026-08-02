@@ -1580,6 +1580,91 @@ jobs:
           path: test/host_arduino_sim/out/bin/host_experimental_unoqbridge
           if-no-files-found: error
 
+  host-memory-stress:
+    name: host-memory-stress (${{ matrix.boardProfile.board }})
+    needs:
+      - discover-libraries
+      - host-experimental-runtime
+    if: needs.discover-libraries.outputs.experimental_has_targets == 'true' && contains(needs.discover-libraries.outputs.experimental_matrix, 'lib/__ArduinoUnoQLibraryDevelopment__Experimental/UnoQBridge')
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        boardProfile:
+          - board: unoq
+            sramBytes: 32768
+          - board: ventunoq
+            sramBytes: 65536
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Build host stress runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test/host_arduino_sim/out/bin
+
+          g++ -std=c++17 -O2 \
+            -DAL_NO_SERIAL -D_AVR_ATmega2560_ \
+            -Itest/host_arduino_sim/include \
+            -Ilib/ArrayList/src \
+            -Ilib/AVLTree/src \
+            -Ilib/DynamicStorageLibrary/src \
+            -Ilib/Hashtable/src \
+            -Ilib/Json/src \
+            -Ilib/MathLib/src \
+            -Ilib/Operators/src \
+            -Ilib/Predicates/src \
+            -Ilib/SimpleVector/src \
+            -Ilib/SDList/src \
+            -Ilib/String/src \
+            -Ilib/TypeTraits/src \
+            lib/Json/src/JSON.cpp \
+            test/host_arduino_sim/host_stress_tests.cpp \
+            -o test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}
+
+      - name: Run appended stress probes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          MEM_LIMIT_BYTES=$(( ${{ matrix.boardProfile.sramBytes }} * 1024 ))
+          REPORT_PATH="test/host_arduino_sim/out/stress-${{ matrix.boardProfile.board }}.json"
+
+          echo "Board: ${{ matrix.boardProfile.board }}"
+          echo "SRAM bytes: ${{ matrix.boardProfile.sramBytes }}"
+          echo "Host heap-delta limit bytes: ${MEM_LIMIT_BYTES}"
+
+          rm -f "${REPORT_PATH}"
+
+          append_mode=0
+          for backend in SD LittleFS; do
+            for optional in off on; do
+              echo "Running stress probe backend=${backend} optional=${optional} append=${append_mode}"
+              HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
+              HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
+              HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
+              HOST_STRESS_BACKEND="${backend}" \
+              HOST_STRESS_OPTIONAL="${optional}" \
+              HOST_STRESS_MAX_INSTANCES=20000 \
+              HOST_STRESS_MAX_ELEMENTS=5000000 \
+              HOST_STRESS_APPEND="${append_mode}" \
+              HOST_STRESS_REPORT="${REPORT_PATH}" \
+              ./test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}
+              append_mode=1
+            done
+          done
+
+      - name: Upload stress profile artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: host-stress-report-${{ matrix.boardProfile.board }}
+          path: test/host_arduino_sim/out/stress-${{ matrix.boardProfile.board }}.json
+          if-no-files-found: error
+
   host-sim-integration:
     needs:
       - discover-libraries

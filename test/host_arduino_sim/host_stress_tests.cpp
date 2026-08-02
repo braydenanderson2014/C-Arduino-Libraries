@@ -14,6 +14,7 @@
 //   HOST_STRESS_BACKEND         "SD" or "LittleFS"                      (default: "SD")
 //   HOST_STRESS_OPTIONAL        "on" or "off" for JSON optional mode    (default: "off")
 //   HOST_STRESS_REPORT          Output path for the stress JSON report
+//   HOST_STRESS_APPEND          Append report objects to report file       (default: 0)
 //   HOST_STRESS_MAX_INSTANCES   Max instances to create per probe        (default: 5000)
 //   HOST_STRESS_MAX_ELEMENTS    Max elements to add per fill probe       (default: 1000000)
 
@@ -86,6 +87,18 @@ static std::size_t envSize(const char* key, std::size_t fallback) {
 static std::string envStr(const char* key, const std::string& fallback) {
     const char* raw = std::getenv(key);
     return (raw && *raw) ? std::string(raw) : fallback;
+}
+
+static bool envBool(const char* key, bool fallback) {
+    const char* raw = std::getenv(key);
+    if (!raw || !*raw) return fallback;
+    if (std::strcmp(raw, "1") == 0 || std::strcmp(raw, "true") == 0 || std::strcmp(raw, "TRUE") == 0) {
+        return true;
+    }
+    if (std::strcmp(raw, "0") == 0 || std::strcmp(raw, "false") == 0 || std::strcmp(raw, "FALSE") == 0) {
+        return false;
+    }
+    return fallback;
 }
 
 // ─── JSON escaping ────────────────────────────────────────────────────────────
@@ -342,16 +355,25 @@ static void writeStressReport(
     std::size_t limitBytes,
     const std::string& backend,
     const std::string& optional,
+    bool append,
     const std::vector<InstanceProbeResult>& instanceProbes,
     const std::vector<ElementFillProbeResult>& fillProbes
 ) {
     std::error_code ec;
     std::filesystem::create_directories(reportPath.parent_path(), ec);
 
-    std::ofstream out(reportPath, std::ios::binary);
+    std::ios::openmode mode = std::ios::binary;
+    if (append) {
+        mode |= std::ios::app;
+    }
+    std::ofstream out(reportPath, mode);
     if (!out.good()) {
         std::cerr << "Failed to open stress report for writing: " << reportPath << std::endl;
         return;
+    }
+
+    if (append) {
+        out << "\n";
     }
 
     out << "{\n";
@@ -414,6 +436,7 @@ int main() {
     const std::string board        = envStr ("HOST_STRESS_BOARD",           "unknown");
     const std::string backend      = envStr ("HOST_STRESS_BACKEND",         "SD");
     const std::string optional     = envStr ("HOST_STRESS_OPTIONAL",        "off");
+    const bool appendReport        = envBool("HOST_STRESS_APPEND",          false);
     const std::filesystem::path reportPath = envStr(
         "HOST_STRESS_REPORT",
         "test/host_arduino_sim/out/host-stress-report.json"
@@ -425,6 +448,7 @@ int main() {
     std::cout << "Limit bytes: "  << limitBytes << std::endl;
     std::cout << "Max instances per probe: " << maxInstances << std::endl;
     std::cout << "Max elements per probe:  " << maxElements  << std::endl;
+    std::cout << "Append report mode: " << (appendReport ? "on" : "off") << std::endl;
 
     std::vector<InstanceProbeResult>    instanceProbes;
     std::vector<ElementFillProbeResult> fillProbes;
@@ -807,6 +831,7 @@ int main() {
 
     std::cout << "Writing stress report to: " << reportPath << std::endl;
     writeStressReport(reportPath, board, sramBytes, limitBytes, backend, optional,
+                      appendReport,
                       instanceProbes, fillProbes);
     std::cout << "Stress report written successfully." << std::endl;
 

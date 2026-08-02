@@ -41,6 +41,10 @@ jobs:
             sramBytes: 524288
           - board: esp32c3
             sramBytes: 400000
+          - board: unoq
+            sramBytes: 32768
+          - board: ventunoq
+            sramBytes: 65536
 
     name: Stress profile (${{ matrix.boardProfile.board }})
 
@@ -87,12 +91,25 @@ jobs:
           echo "SRAM bytes: ${{ matrix.boardProfile.sramBytes }}"
           echo "Host heap-delta limit bytes: ${MEM_LIMIT_BYTES}"
 
-          HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
-          HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
-          HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
-          HOST_STRESS_MAX_ELEMENTS=1000000 \
-          HOST_STRESS_REPORT="${REPORT_PATH}" \
-          ./test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}
+          rm -f "${REPORT_PATH}"
+
+          append_mode=0
+          for backend in SD LittleFS; do
+            for optional in off on; do
+              echo "Running stress probe backend=${backend} optional=${optional} append=${append_mode}"
+              HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
+              HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
+              HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
+              HOST_STRESS_BACKEND="${backend}" \
+              HOST_STRESS_OPTIONAL="${optional}" \
+              HOST_STRESS_MAX_INSTANCES=20000 \
+              HOST_STRESS_MAX_ELEMENTS=5000000 \
+              HOST_STRESS_APPEND="${append_mode}" \
+              HOST_STRESS_REPORT="${REPORT_PATH}" \
+              ./test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}
+              append_mode=1
+            done
+          done
 
       - name: Verify stress report was produced
         shell: bash
@@ -106,16 +123,43 @@ jobs:
             exit 1
           fi
 
-          INSTANCE_COUNT="$(jq '.instanceCountProbes | length' "${REPORT_PATH}")"
-          FILL_COUNT="$(jq '.elementFillProbes | length' "${REPORT_PATH}")"
+            python3 - "${REPORT_PATH}" <<'PY'
+            import json
+            import sys
 
-          echo "Instance probes: ${INSTANCE_COUNT}"
-          echo "Element fill probes: ${FILL_COUNT}"
+            report_path = sys.argv[1]
+            raw = open(report_path, encoding="utf-8").read()
+            decoder = json.JSONDecoder()
+            i = 0
+            n = len(raw)
+            runs = []
 
-          if [ "${INSTANCE_COUNT}" -lt 1 ] || [ "${FILL_COUNT}" -lt 1 ]; then
-            echo "Stress report appears empty."
-            exit 1
-          fi
+            while i < n:
+              while i < n and raw[i].isspace():
+                i += 1
+              if i >= n:
+                break
+              value, j = decoder.raw_decode(raw, i)
+              if isinstance(value, dict):
+                runs.append(value)
+              i = j
+
+            if not runs:
+              raise SystemExit("Stress report appears empty.")
+
+            if len(runs) < 4:
+              raise SystemExit(f"Expected at least 4 appended stress runs, found {len(runs)}")
+
+            total_instance = sum(len(run.get("instanceCountProbes", [])) for run in runs)
+            total_fill = sum(len(run.get("elementFillProbes", [])) for run in runs)
+
+            print(f"Appended runs: {len(runs)}")
+            print(f"Instance probes total: {total_instance}")
+            print(f"Element fill probes total: {total_fill}")
+
+            if total_instance < 1 or total_fill < 1:
+              raise SystemExit("Stress report appears to have no probes.")
+            PY
 
       - name: Upload stress profile report
         if: always()
