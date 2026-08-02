@@ -50,6 +50,7 @@ jobs:
       targets_display: ${{ steps.discover.outputs.targets_display }}
       experimental_targets_display: ${{ steps.discover.outputs.experimental_targets_display }}
       run_integration: ${{ steps.discover.outputs.run_integration }}
+      integration_backends: ${{ steps.discover.outputs.integration_backends }}
       selection_reason: ${{ steps.discover.outputs.selection_reason }}
 
     steps:
@@ -125,9 +126,9 @@ jobs:
           def build_compile_targets(library_paths):
             targets = []
             for library_path in library_paths:
+              backends = compile_backends_for_library(library_path)
               library_cfg = per_library.get(library_path, {})
               compile_cfg = library_cfg.get("compile", {})
-              backends = compile_cfg.get("backends", backends_default)
               optional_modes = compile_cfg.get("optionalModes", optional_default)
 
               for backend in backends:
@@ -268,6 +269,11 @@ jobs:
           optional_default = compile_defaults.get("optionalModes", ["off"])
           per_library = config.get("libraries", {})
 
+          def compile_backends_for_library(library_path):
+            library_cfg = per_library.get(library_path, {})
+            compile_cfg = library_cfg.get("compile", {})
+            return compile_cfg.get("backends", backends_default)
+
           compile_targets = build_compile_targets(deduped)
           experimental_compile_targets = build_compile_targets(experimental_deduped)
 
@@ -291,7 +297,15 @@ jobs:
             "lib/String",
             "lib/TypeTraits"
           }
-          run_integration = any(item in integration_sensitive for item in deduped)
+          integration_backends = []
+          for item in deduped:
+            if item not in integration_sensitive:
+              continue
+            for backend in compile_backends_for_library(item):
+              if backend not in integration_backends:
+                integration_backends.append(backend)
+
+          run_integration = bool(integration_backends)
 
           print(json.dumps({
             "matrix": deduped,
@@ -306,6 +320,7 @@ jobs:
             "experimental_has_targets": bool(experimental_deduped),
             "targets_display": ", ".join(deduped) if deduped else "(none)",
             "experimental_targets_display": ", ".join(experimental_deduped) if experimental_deduped else "(none)",
+            "integration_backends": integration_backends,
             "run_integration": run_integration,
             "selection_reason": selection_reason,
           }))
@@ -326,6 +341,7 @@ jobs:
           TARGETS_DISPLAY_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.targets_display')"
           EXPERIMENTAL_TARGETS_DISPLAY_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.experimental_targets_display')"
           RUN_INTEGRATION_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.run_integration')"
+          INTEGRATION_BACKENDS_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -c '.integration_backends')"
           SELECTION_REASON_VALUE="$(printf '%s' "${DISCOVERY_JSON}" | jq -r '.selection_reason')"
 
           {
@@ -341,6 +357,7 @@ jobs:
             echo "experimental_has_targets=${EXPERIMENTAL_HAS_TARGETS_VALUE}"
             echo "targets_display=${TARGETS_DISPLAY_VALUE}"
             echo "experimental_targets_display=${EXPERIMENTAL_TARGETS_DISPLAY_VALUE}"
+            echo "integration_backends=${INTEGRATION_BACKENDS_VALUE}"
             echo "run_integration=${RUN_INTEGRATION_VALUE}"
             echo "selection_reason=${SELECTION_REASON_VALUE}"
           } >> "$GITHUB_OUTPUT"
@@ -367,6 +384,7 @@ jobs:
           echo "Discovered experimental matrix: ${{ steps.discover.outputs.experimental_matrix }}"
           echo "Discovered experimental compile matrix count: ${{ steps.discover.outputs.experimental_compile_count }}"
           echo "Discovered experimental compile matrix: ${{ steps.discover.outputs.experimental_compile_matrix }}"
+          echo "Integration backends: ${{ steps.discover.outputs.integration_backends }}"
           echo "Run integration: ${{ steps.discover.outputs.run_integration }}"
           echo "Selection reason: ${{ steps.discover.outputs.selection_reason }}"
 
@@ -1674,7 +1692,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        backend: [sd, littlefs]
+        backend: ${{ fromJson(needs.discover-libraries.outputs.integration_backends) }}
 
     steps:
       - name: Checkout repository

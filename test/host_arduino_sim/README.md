@@ -64,6 +64,8 @@ tested for each discovered library in `arduino-host-sim-tests.yml`.
 - `defaults.compile.backends` / `defaults.compile.optionalModes` apply to all libraries.
 - `libraries.<path>.compile.backends` / `optionalModes` override defaults per library path.
 - This allows skipping irrelevant permutations (for example, ArrayList with LittleFS/optional).
+- The integration runner also uses the union of the selected libraries' configured backends, so
+  SD/LittleFS correctness runs only execute when those backends are relevant.
 
 ## Run the correctness tests locally
 
