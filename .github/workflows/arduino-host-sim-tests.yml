@@ -1450,8 +1450,17 @@ jobs:
             "-I${LIB_PATH}/src"
           )
 
+          if [ -d "lib/__ArduinoUnoQLibraryDevelopment__Experimental" ]; then
+            while IFS= read -r src_dir; do
+              INCLUDE_FLAGS+=("-I${src_dir}")
+            done < <(find lib/__ArduinoUnoQLibraryDevelopment__Experimental -mindepth 2 -maxdepth 2 -type d -name src | sort)
+          fi
+
           if [ -d "lib" ]; then
             while IFS= read -r src_dir; do
+              case "${src_dir}" in
+                lib/__ArduinoUnoQLibraryDevelopment__Experimental/*) continue ;;
+              esac
               INCLUDE_FLAGS+=("-I${src_dir}")
             done < <(find lib -mindepth 2 -maxdepth 2 -type d -name src | sort)
           fi
