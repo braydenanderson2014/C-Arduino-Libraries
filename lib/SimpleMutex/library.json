@@ -15,7 +15,7 @@
     }
   ],
   "headers": ["Mutex.h"],
-  "frameworks": "arduino",
-  "platforms": "*",
+  "frameworks": ["arduino"],
+  "platforms": ["espressif32", "ststm32"],
   "license": "Apache-2.0"
 }

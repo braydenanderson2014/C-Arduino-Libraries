@@ -4,6 +4,18 @@
 #include <Arduino.h>
 #include <stdint.h>
 
+#if !defined(HOST_ARDUINO_SIM_ARDUINO_H) && \
+    !defined(ESP32) && \
+    !defined(ARDUINO_ARCH_ESP32) && \
+    !defined(ARDUINO_ARCH_MBED) && \
+    !defined(__MBED__) && \
+    !defined(TARGET_RTOS_MBED) && \
+    !defined(ARDUINO_ARCH_STM32) && \
+    !defined(ARDUINO_UNO_Q) && \
+    !defined(SIMPLE_CONCURRENCY_ALLOW_UNSUPPORTED)
+    #error "SimpleSemaphore targets ESP32, Arduino mbed cores (for example GIGA), and STM32-based targets (including UNO Q and VENTUNO Q class MCU-side builds). Define SIMPLE_CONCURRENCY_ALLOW_UNSUPPORTED to bypass this gate."
+#endif
+
 #if defined(ARDUINO_ARCH_MBED) || defined(__MBED__) || defined(TARGET_RTOS_MBED)
     #define SSEM_HAS_MBED_RTOS 1
     #include <cmsis_os2.h>

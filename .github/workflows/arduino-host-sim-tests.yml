@@ -233,6 +233,7 @@ jobs:
             "lib/Predicates",
             "lib/SDList",
             "lib/SimpleMutex",
+            "lib/SimpleCoreRuntime",
             "lib/SimpleRWLock",
             "lib/SimpleSemaphore",
             "lib/SimpleThreadManager",
@@ -899,6 +900,7 @@ jobs:
             lib/Hashtable/src/Hashtable.h
             lib/Operators/src/Operators.h
             lib/Predicates/src/Predicates.h
+            lib/SimpleCoreRuntime/src/SimpleCoreRuntime.h
             lib/SimpleMutex/Mutex.h
             lib/SimpleRWLock/src/SimpleRWLock.h
             lib/SimpleSemaphore/src/SimpleSemaphore.h
@@ -957,6 +959,7 @@ jobs:
             -Ilib/MathLib/src \
             -Ilib/Operators/src \
             -Ilib/Predicates/src \
+            -Ilib/SimpleCoreRuntime/src \
             -Ilib/SimpleMutex \
             -Ilib/SimpleRWLock/src \
             -Ilib/SimpleSemaphore/src \
@@ -1011,6 +1014,7 @@ jobs:
             -Ilib/Optional/src \
             -Ilib/Operators/src \
             -Ilib/Predicates/src \
+            -Ilib/SimpleCoreRuntime/src \
             -Ilib/SimpleMutex \
             -Ilib/SimpleRWLock/src \
             -Ilib/SimpleSemaphore/src \

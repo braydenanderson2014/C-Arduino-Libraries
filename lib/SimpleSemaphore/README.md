@@ -2,6 +2,18 @@
 
 SimpleSemaphore is a counting semaphore library for Arduino projects that need task coordination.
 
+## Supported targets
+
+- ESP32 class boards.
+- Arduino mbed class boards (including GIGA-class boards).
+- STM32 class boards (including UNO Q and VENTUNO Q MCU-side sketch builds).
+
+If your board is outside these targets, this library intentionally blocks compilation unless you define:
+
+```cpp
+#define SIMPLE_CONCURRENCY_ALLOW_UNSUPPORTED
+```
+
 ## Header
 
 ```cpp

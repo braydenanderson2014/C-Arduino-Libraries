@@ -2,6 +2,24 @@
 
 SimpleChannel is a fixed-capacity queue for message passing between tasks.
 
+## Supported targets
+
+- ESP32 class boards.
+- Arduino mbed class boards (including GIGA-class boards).
+- STM32 class boards (including UNO Q and VENTUNO Q MCU-side sketch builds).
+
+If your board is outside these targets, this library intentionally blocks compilation unless you define:
+
+```cpp
+#define SIMPLE_CONCURRENCY_ALLOW_UNSUPPORTED
+```
+
+## Header
+
+```cpp
+#include <SimpleChannel.h>
+```
+
 ## Why this exists
 
 - Gives you bounded producer-consumer communication.

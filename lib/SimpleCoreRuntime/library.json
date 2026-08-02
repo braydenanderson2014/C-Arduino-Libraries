@@ -1,8 +1,8 @@
 {
-  "name": "SimpleThreadManager",
+  "name": "SimpleCoreRuntime",
   "version": "1.0.0",
-  "description": "Cross-platform thread/task management wrapper for Arduino ecosystems with RTOS-aware implementations.",
-  "keywords": ["arduino", "thread", "task", "scheduler", "rtos", "freertos", "mbed", "multicore", "concurrency"],
+  "description": "Core-aware runtime wrapper for multicore/threaded Arduino-class targets.",
+  "keywords": ["arduino", "multicore", "runtime", "task", "thread", "esp32", "mbed", "stm32", "concurrency"],
   "repository": {
     "type": "git",
     "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
@@ -14,8 +14,11 @@
       "url": "https://github.com/braydenanderson2014"
     }
   ],
-  "headers": ["ThreadManager.h"],
+  "headers": ["SimpleCoreRuntime.h"],
   "frameworks": ["arduino"],
   "platforms": ["espressif32", "ststm32"],
+  "dependencies": {
+    "SimpleThreadManager": "*"
+  },
   "license": "Apache-2.0"
 }

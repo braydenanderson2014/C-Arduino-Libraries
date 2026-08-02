@@ -43,6 +43,7 @@
 #include "SDList.h"
 #include "SimpleSemaphore.h"
 #include "SimpleRWLock.h"
+#include "SimpleCoreRuntime.h"
 #include "Mutex.h"
 #include "ThreadManager.h"
 #include "SimpleVector.h"
@@ -1023,6 +1024,19 @@ void testSimpleRWLockFallbackBehavior() {
     expect(!rwlock.writerActive(), "SimpleRWLock should clear writer state after write unlock");
 }
 
+void testSimpleCoreRuntimeFallbackBehavior() {
+    const SimpleCoreRuntime::RuntimeInfo info = SimpleCoreRuntime::info();
+    expect(!info.threading, "SimpleCoreRuntime fallback should report no runtime threading");
+    expect(!info.multiCore, "SimpleCoreRuntime fallback should report no multicore support");
+    expect(!info.coreAffinity, "SimpleCoreRuntime fallback should report no core affinity support");
+    expect(info.processorCount == 1, "SimpleCoreRuntime fallback should report one processor");
+
+    const SimpleCoreRuntime::ThreadId invalidThread =
+        SimpleCoreRuntime::launchTask(noOpThreadEntry, nullptr, "runtime-noop", 1024);
+    expect(invalidThread == SimpleCoreRuntime::invalidThreadId(),
+           "SimpleCoreRuntime fallback should return invalid thread id when no threading backend exists");
+}
+
 void writeReport(const std::filesystem::path& reportPath,
                  bool success,
                  std::size_t peakBytes,
@@ -1165,6 +1179,11 @@ int main() {
         runTestWithMemoryStats("testSimpleMutexFallbackBehavior", testSimpleMutexFallbackBehavior, memoryStats);
         runTestWithMemoryStats("testSimpleSemaphoreFallbackBehavior", testSimpleSemaphoreFallbackBehavior, memoryStats);
         runTestWithMemoryStats("testSimpleRWLockFallbackBehavior", testSimpleRWLockFallbackBehavior, memoryStats);
+        runTestWithMemoryStats(
+            "testSimpleCoreRuntimeFallbackBehavior",
+            testSimpleCoreRuntimeFallbackBehavior,
+            memoryStats
+        );
 #if AVL_TREE_ENABLE_ERROR_CODES
         runTestWithMemoryStats("testAVLTreeErrorCodes", testAVLTreeErrorCodes, memoryStats);
 #endif
