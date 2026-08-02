@@ -1530,7 +1530,7 @@ jobs:
           PY
 
           if [ "${status}" -ne 0 ]; then
-            echo "Experimental compile failed for ${LIB_PATH} (${matrix.target.backend}/${matrix.target.optional})"
+            echo "Experimental compile failed for ${LIB_PATH} (${{ matrix.target.backend }}/${{ matrix.target.optional }})"
           fi
 
       - name: Upload experimental per-library compile artifact

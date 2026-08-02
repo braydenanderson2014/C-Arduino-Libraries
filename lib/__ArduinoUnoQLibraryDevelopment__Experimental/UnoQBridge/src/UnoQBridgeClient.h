@@ -15,6 +15,8 @@
     #define UNOQ_HAS_YUN_PROCESS 0
 #endif
 
+class Stream;
+
 class UnoQBridgeClient {
 public:
     static constexpr uint16_t kMagic = 0x5155;
@@ -33,9 +35,10 @@ public:
             String& responseOut) = 0;
     };
 
-    class BinaryStreamTransport : public Transport {
+    template <typename TStream>
+    class BinaryStreamTransportImpl : public Transport {
     public:
-        BinaryStreamTransport(Stream& io, unsigned long timeoutMs = 2000UL, size_t maxPayloadBytes = kDefaultMaxPayloadBytes)
+        BinaryStreamTransportImpl(TStream& io, unsigned long timeoutMs = 2000UL, size_t maxPayloadBytes = kDefaultMaxPayloadBytes)
             : _io(io), _timeoutMs(timeoutMs), _maxPayloadBytes(maxPayloadBytes), _sequenceId(0) {}
 
         bool request(
@@ -175,11 +178,13 @@ public:
             return _sequenceId;
         }
 
-        Stream& _io;
+        TStream& _io;
         unsigned long _timeoutMs;
         size_t _maxPayloadBytes;
         uint16_t _sequenceId;
     };
+
+    using BinaryStreamTransport = BinaryStreamTransportImpl<Stream>;
 
 #if UNOQ_HAS_YUN_PROCESS
     class JsonProcessTransport : public Transport {
@@ -222,7 +227,7 @@ public:
             while (process.available()) {
                 responseOut += static_cast<char>(process.read());
             }
-            responseOut.trim();
+            trimInPlace(responseOut);
             return process.exitValue() == 0 && responseOut.length() > 0;
         }
 
@@ -425,14 +430,30 @@ private:
         return output;
     }
 
+    static void trimInPlace(String& value) {
+        size_t begin = 0;
+        while (begin < value.length() && isspace(static_cast<unsigned char>(value[begin]))) {
+            ++begin;
+        }
+
+        size_t end = value.length();
+        while (end > begin && isspace(static_cast<unsigned char>(value[end - 1]))) {
+            --end;
+        }
+
+        if (begin == 0 && end == value.length()) {
+            return;
+        }
+
+        value = value.substring(static_cast<unsigned int>(begin), static_cast<unsigned int>(end));
+    }
+
     static bool parseOk(const String& response, bool& okOut) {
-        const int index = response.indexOf("\"ok\":true");
-        if (index >= 0) {
+        if (findSubstring(response, "\"ok\":true") != static_cast<size_t>(-1)) {
             okOut = true;
             return true;
         }
-        const int falseIndex = response.indexOf("\"ok\":false");
-        if (falseIndex >= 0) {
+        if (findSubstring(response, "\"ok\":false") != static_cast<size_t>(-1)) {
             okOut = false;
             return true;
         }
@@ -451,17 +472,21 @@ private:
     static bool extractBoolField(const String& response, const char* fieldName, bool& parsed) {
         parsed = false;
         const String needle = String("\"") + fieldName + "\":";
-        const int index = response.indexOf(needle);
-        if (index < 0) {
+        const size_t index = findSubstring(response, needle.c_str());
+        if (index == static_cast<size_t>(-1)) {
             return false;
         }
 
-        const int valueStart = index + needle.length();
-        if (response.startsWith("true", valueStart)) {
+        const size_t valueStart = findValueStart(response, index + needle.length());
+        if (valueStart == static_cast<size_t>(-1)) {
+            return false;
+        }
+
+        if (startsWithAt(response, "true", valueStart)) {
             parsed = true;
             return true;
         }
-        if (response.startsWith("false", valueStart)) {
+        if (startsWithAt(response, "false", valueStart)) {
             parsed = true;
             return false;
         }
@@ -470,15 +495,20 @@ private:
 
     static String extractStringField(const String& response, const char* fieldName, bool& parsed) {
         parsed = false;
-        const String needle = String("\"") + fieldName + "\":\"";
-        const int start = response.indexOf(needle);
-        if (start < 0) {
+        const String needle = String("\"") + fieldName + "\":";
+        const size_t start = findSubstring(response, needle.c_str());
+        if (start == static_cast<size_t>(-1)) {
+            return "";
+        }
+
+        const size_t valueStart = findValueStart(response, start + needle.length());
+        if (valueStart == static_cast<size_t>(-1) || valueStart >= response.length() || response[valueStart] != '"') {
             return "";
         }
 
         String value;
         bool escaped = false;
-        for (int i = start + needle.length(); i < response.length(); ++i) {
+        for (size_t i = valueStart + 1; i < response.length(); ++i) {
             const char c = response[i];
             if (escaped) {
                 switch (c) {
@@ -503,6 +533,64 @@ private:
             value += c;
         }
         return "";
+    }
+
+    static size_t findValueStart(const String& response, size_t start) {
+        size_t index = start;
+        while (index < response.length()) {
+            const char c = response[index];
+            if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r')) {
+                return index;
+            }
+            ++index;
+        }
+        return static_cast<size_t>(-1);
+    }
+
+    static bool startsWithAt(const String& value, const char* prefix, size_t start) {
+        if (!prefix) {
+            return false;
+        }
+
+        const size_t prefixLength = strlen(prefix);
+        if (start + prefixLength > value.length()) {
+            return false;
+        }
+
+        for (size_t i = 0; i < prefixLength; ++i) {
+            if (value[start + i] != prefix[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    static size_t findSubstring(const String& value, const char* needle) {
+        if (!needle) {
+            return static_cast<size_t>(-1);
+        }
+
+        const size_t valueLength = value.length();
+        const size_t needleLength = strlen(needle);
+        if (needleLength == 0 || needleLength > valueLength) {
+            return static_cast<size_t>(-1);
+        }
+
+        for (size_t index = 0; index + needleLength <= valueLength; ++index) {
+            bool matched = true;
+            for (size_t offset = 0; offset < needleLength; ++offset) {
+                if (value[index + offset] != needle[offset]) {
+                    matched = false;
+                    break;
+                }
+            }
+            if (matched) {
+                return index;
+            }
+        }
+
+        return static_cast<size_t>(-1);
     }
 
     Transport& _transport;
