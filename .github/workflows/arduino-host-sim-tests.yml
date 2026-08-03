@@ -1609,6 +1609,32 @@ jobs:
       fail-fast: false
       matrix:
         boardProfile:
+          - board: uno
+            sramBytes: 2048
+          - board: nano
+            sramBytes: 2048
+          - board: micro
+            sramBytes: 2560
+          - board: leonardo
+            sramBytes: 2560
+          - board: mega2560
+            sramBytes: 8192
+          - board: due
+            sramBytes: 98304
+          - board: zero
+            sramBytes: 32768
+          - board: uno_r4
+            sramBytes: 32768
+          - board: mkr1000
+            sramBytes: 32768
+          - board: esp8266
+            sramBytes: 81920
+          - board: esp32
+            sramBytes: 532480
+          - board: esp32s3
+            sramBytes: 524288
+          - board: esp32c3
+            sramBytes: 400000
           - board: unoq
             sramBytes: 32768
           - board: ventunoq
