@@ -7,6 +7,10 @@ Timer::Timer(bool debug)
     : startTime(0), elapsedTime(0), pauseTime(0), targetDuration(0),
       isRunning(false), isPaused(false), useRTC(false), rtcInitialized(false),
       debug(debug), remainingTimeOnTimer(0), timerMode(Seconds)
+#if defined(useRTCModule) && defined(RTC_CHIP_DS1302)
+    , _ds1302Wire(RTC_DS1302_IO, RTC_DS1302_SCLK, RTC_DS1302_CE)
+    , rtc(_ds1302Wire)
+#endif
 {
     setTimerName("Timer");
 }
@@ -23,30 +27,68 @@ String Timer::getTimerName() const {
 }
 
 // ---------------------------------------------------------------------------
-// Initialisation
+// Private chip-abstraction helpers (compiled only when useRTCModule is defined)
 // ---------------------------------------------------------------------------
-void Timer::begin() {
 #ifdef useRTCModule
-    if (!rtc.begin()) {
-        useRTC = false;
-        rtcInitialized = false;
-        if (debug) {
-            Serial.println("[" + TimerName + "]: RTC not found - falling back to millis()");
-        }
-    } else {
-        useRTC = true;
-        rtcInitialized = true;
-        if (debug) {
-            Serial.println("[" + TimerName + "]: RTC initialised");
-        }
-    }
+
+// Returns true when the RTC was successfully initialised.
+bool Timer::_rtcBeginImpl() {
+#ifdef RTC_CHIP_DS1302
+    // DS1302 has no I2C ACK mechanism; Begin() always succeeds if wired correctly.
+    rtc.Begin();
+    return true;
+#else
+    return rtc.begin();
 #endif
 }
 
+// Returns the current RTC time as milliseconds since the Unix epoch.
+unsigned long Timer::_rtcNowMs() const {
+#ifdef RTC_CHIP_DS1302
+    return (unsigned long)(rtc.GetDateTime().Unix32Time()) * 1000UL;
+#else
+    return (unsigned long)(rtc.now().unixtime()) * 1000UL;
+#endif
+}
+
+// Adjusts the RTC to the specified date/time.
+void Timer::_rtcAdjustImpl(int year, int month, int day,
+                             int hour, int minute, int second) {
+#ifdef RTC_CHIP_DS1302
+    rtc.SetDateTime(RtcDateTime((uint16_t)year,  (uint8_t)month,
+                                 (uint8_t)day,    (uint8_t)hour,
+                                 (uint8_t)minute, (uint8_t)second));
+#else
+    rtc.adjust(DateTime(year, month, day, hour, minute, second));
+#endif
+}
+
+// Returns the current RTC time as a chip-agnostic TimerDateTime struct.
+TimerDateTime Timer::_rtcNowDateTime() const {
+    TimerDateTime dt;
+#ifdef RTC_CHIP_DS1302
+    RtcDateTime now = rtc.GetDateTime();
+    dt.year   = now.Year();
+    dt.month  = now.Month();
+    dt.day    = now.Day();
+    dt.hour   = now.Hour();
+    dt.minute = now.Minute();
+    dt.second = now.Second();
+#else
+    DateTime now = rtc.now();
+    dt.year   = now.year();
+    dt.month  = now.month();
+    dt.day    = now.day();
+    dt.hour   = now.hour();
+    dt.minute = now.minute();
+    dt.second = now.second();
+#endif
+    return dt;
+}
+
 // ---------------------------------------------------------------------------
-// RTC helpers (compiled only when useRTCModule is defined)
+// Public RTC helpers
 // ---------------------------------------------------------------------------
-#ifdef useRTCModule
 void Timer::setUseRTC(bool useRTC) {
     if (debug) {
         Serial.println("[" + TimerName + "]: Setting useRTC: " + String(useRTC));
@@ -54,10 +96,10 @@ void Timer::setUseRTC(bool useRTC) {
     if (useRTC) {
         // Initialise the RTC only if it has not been successfully initialised yet.
         if (!rtcInitialized) {
-            if (rtc.begin()) {
+            if (_rtcBeginImpl()) {
                 rtcInitialized = true;
             } else {
-                rtcInitialized = false; // RTC left in failed state; do not use it
+                rtcInitialized = false;
             }
         }
         if (rtcInitialized) {
@@ -87,8 +129,7 @@ void Timer::syncWithRTC() {
     // Re-anchor the start reference so that an external RTC adjustment does
     // not cause a time-jump.  Accumulated elapsed time is preserved.
     if (isRunning) {
-        unsigned long now = (unsigned long)(rtc.now().unixtime()) * 1000UL;
-        // Fold the running segment into elapsedTime and restart from now.
+        unsigned long now = _rtcNowMs();
         elapsedTime += now - startTime;
         startTime = now;
         if (debug) {
@@ -97,14 +138,15 @@ void Timer::syncWithRTC() {
     }
 }
 
-DateTime Timer::getRTCTime() const {
+TimerDateTime Timer::getRTCTime() const {
     if (!rtcInitialized) {
         if (debug) {
             Serial.println("[" + TimerName + "]: getRTCTime() ignored - RTC not initialised");
         }
-        return DateTime();
+        TimerDateTime empty = {0, 0, 0, 0, 0, 0};
+        return empty;
     }
-    return rtc.now();
+    return _rtcNowDateTime();
 }
 
 void Timer::setRTCTime(int year, int month, int day, int hour, int minute, int second) {
@@ -117,9 +159,30 @@ void Timer::setRTCTime(int year, int month, int day, int hour, int minute, int s
     if (debug) {
         Serial.println("[" + TimerName + "]: Setting RTC time");
     }
-    rtc.adjust(DateTime(year, month, day, hour, minute, second));
+    _rtcAdjustImpl(year, month, day, hour, minute, second);
 }
 #endif // useRTCModule
+
+// ---------------------------------------------------------------------------
+// Initialisation
+// ---------------------------------------------------------------------------
+void Timer::begin() {
+#ifdef useRTCModule
+    if (!_rtcBeginImpl()) {
+        useRTC = false;
+        rtcInitialized = false;
+        if (debug) {
+            Serial.println("[" + TimerName + "]: RTC not found - falling back to millis()");
+        }
+    } else {
+        useRTC = true;
+        rtcInitialized = true;
+        if (debug) {
+            Serial.println("[" + TimerName + "]: RTC initialised");
+        }
+    }
+#endif
+}
 
 // ---------------------------------------------------------------------------
 // Core timer control
@@ -131,7 +194,7 @@ void Timer::start() {
     if (!isRunning && !isPaused) {
 #ifdef useRTCModule
         if (useRTC) {
-            startTime = (unsigned long)(rtc.now().unixtime()) * 1000UL;
+            startTime = _rtcNowMs();
         } else
 #endif
         {
@@ -148,7 +211,7 @@ void Timer::stop() {
     if (isRunning) {
 #ifdef useRTCModule
         if (useRTC) {
-            elapsedTime += (unsigned long)(rtc.now().unixtime()) * 1000UL - startTime;
+            elapsedTime += _rtcNowMs() - startTime;
         } else
 #endif
         {
@@ -185,7 +248,7 @@ void Timer::pause() {
     if (isRunning && !isPaused) {
 #ifdef useRTCModule
         if (useRTC) {
-            pauseTime = (unsigned long)(rtc.now().unixtime()) * 1000UL;
+            pauseTime = _rtcNowMs();
         } else
 #endif
         {
@@ -210,7 +273,7 @@ void Timer::resume() {
     if (isPaused) {
 #ifdef useRTCModule
         if (useRTC) {
-            startTime += (unsigned long)(rtc.now().unixtime()) * 1000UL - pauseTime;
+            startTime += _rtcNowMs() - pauseTime;
         } else
 #endif
         {
@@ -271,7 +334,7 @@ unsigned long Timer::elapsed() {
     if (isRunning) {
 #ifdef useRTCModule
         if (useRTC) {
-            e = elapsedTime + ((unsigned long)(rtc.now().unixtime()) * 1000UL - startTime);
+            e = elapsedTime + (_rtcNowMs() - startTime);
         } else
 #endif
         {

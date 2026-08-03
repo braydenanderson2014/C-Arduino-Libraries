@@ -6,6 +6,7 @@
 # Datatypes (KEYWORD1)
 #######################################
 Timer	KEYWORD1
+TimerDateTime	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
