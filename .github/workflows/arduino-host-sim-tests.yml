@@ -1916,7 +1916,7 @@ jobs:
         continue-on-error: true
         with:
           pattern: host-*library-compile-*
-          merge-multiple: true
+          merge-multiple: false
           path: .artifacts/host-compile
 
       - name: Generate consolidated host simulation report
