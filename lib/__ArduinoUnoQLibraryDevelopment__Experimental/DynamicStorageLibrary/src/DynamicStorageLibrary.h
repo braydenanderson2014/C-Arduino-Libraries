@@ -9,20 +9,6 @@
 #include <stdlib.h>
 #include "../../UnoQFileTransferClient.h"
 
-#if defined(__has_include) && __has_include(<FS.h>)
-    #include <FS.h>
-#else
-    namespace fs {
-        class FS {
-        public:
-            virtual ~FS() = default;
-            virtual File open(const char* path, const char* mode) = 0;
-            virtual bool exists(const char* path) = 0;
-            virtual bool remove(const char* path) = 0;
-        };
-    }
-#endif
-
 #define DS_SUCCESS "DS0"
 #define DS_SD_ERROR "DS5"
 #define DS_FILE_NOT_FOUND "DS6"
