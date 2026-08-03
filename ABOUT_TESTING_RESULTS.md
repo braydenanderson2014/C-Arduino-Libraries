@@ -22,7 +22,6 @@
 - Runs with first limit-crossing test identified: 0
 - Expected compile smoke objects: 1
 - Expected experimental compile results: 0
-- Stress test runs loaded: 0
 
 ## Understanding
 
