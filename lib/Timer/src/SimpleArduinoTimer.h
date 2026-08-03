@@ -78,12 +78,17 @@ private:
     bool useRTC;
     bool rtcInitialized;
     bool debug;
+    bool _repeating;
     unsigned long remainingTimeOnTimer;
+    unsigned long _lapAnchor;
+    void (*_callback)();
     enum mode { Seconds, Minutes, Hours };
     mode timerMode;
     String TimerName;
 
 #ifdef useRTCModule
+    int _timezoneOffsetHours;
+
     #if defined(RTC_CHIP_DS1302)
         mutable ThreeWire            _ds1302Wire;
         mutable RtcDS1302<ThreeWire> rtc;
@@ -104,35 +109,65 @@ public:
     void setTimerName(String timerName);
     String getTimerName() const;
 
+    // Core control
     void start();
     void stop();
     void reset();
     void clear();
     void pause();
     void resume();
+    void restart();
     void begin();
 
+    // Target duration setters
     void setTargetDuration(unsigned long durationMs);
     void setTargetSeconds(unsigned long seconds);
     void setTargetMinutes(unsigned long minutes);
     void setTargetHours(unsigned long hours);
 
+    // Target duration getters
+    unsigned long getTargetDuration() const;
+    unsigned long getTargetSeconds() const;
+    unsigned long getTargetMinutes() const;
+    unsigned long getTargetHours() const;
+
+    // Elapsed helpers
     unsigned long elapsed();
+    unsigned long elapsedSeconds();
+    unsigned long elapsedMinutes();
+    unsigned long elapsedHours();
+
+    // Remaining helpers
     unsigned long remainingTime();
     unsigned long remainingTimeMillis();
     void updateRemainingTime();
     void printTimeRemaining();
 
+    // Lap / split
+    unsigned long lap();
+
+    // State queries
     bool isTimerRunning() const;
     bool isTimerPaused() const;
     bool hasReachedTarget();
     bool checkTimer(unsigned long durationMs);
 
+    // Repeating mode
+    void setRepeating(bool repeating);
+    bool getRepeating() const;
+
+    // Callback
+    void onTargetReached(void (*callback)());
+
 #ifdef useRTCModule
     void setUseRTC(bool useRTC);
     bool getUseRTC() const;
+    bool isRTCAvailable() const;
     void syncWithRTC();
     TimerDateTime getRTCTime() const;
+    String getRTCTimeString() const;
+    void printRTCTime() const;
+    void setTimezone(int offsetHours);
     void setRTCTime(int year, int month, int day, int hour, int minute, int second);
 #endif
 };

@@ -1,6 +1,6 @@
 {
     "name": "SimpleArduinoTimer",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "A Simple non-blocking Timer for Arduino. Supports millis() or an optional RTC back-end. Supported RTCs: DS3231, DS1307, PCF8523, PCF8563, MCP7940N (via RTClib) and DS1302 (via Makuna RTC library). Select the chip with a compile-time macro.",
     "keywords": ["Timer", "RTC", "Time", "Arduino", "Simple", "Non-Blocking", "SimpleTimer", "SimpleArduinoTimer", "DS3231", "DS1307", "DS1302", "PCF8523", "PCF8563", "MCP7940"],
     "repository": {

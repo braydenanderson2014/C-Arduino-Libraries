@@ -4,15 +4,24 @@ The `Timer` class is a C++ class for managing time-related operations and timers
 
 ## Features
 
-- Start, stop, reset, clear, and pause/resume timers — all **non-blocking**.
+- Start, stop, reset, clear, pause/resume, and `restart()` timers — all **non-blocking**.
 - Set target durations in milliseconds, seconds, minutes, or hours.
-- `hasReachedTarget()` — check if the timer has expired.
+- Get target durations back with `getTargetDuration/Seconds/Minutes/Hours()`.
+- `hasReachedTarget()` — check if the timer has expired; fires callback and auto-restarts when configured.
 - `checkTimer(ms)` — one-shot elapsed check, great for periodic actions.
 - `remainingTime()` — auto-scales to hours, minutes, or seconds.
 - `remainingTimeMillis()` — raw milliseconds remaining.
 - `printTimeRemaining()` — pretty-prints remaining time to Serial.
+- `elapsedSeconds()` / `elapsedMinutes()` / `elapsedHours()` — convenience elapsed helpers.
+- `lap()` — lap/split timer; returns time since last lap (or `start()`).
+- `setRepeating(true)` — auto-restart mode; timer loops automatically.
+- `onTargetReached(callback)` — register a callback fired when the target is reached.
 - Optional RTC support — define `useRTCModule` to enable.
 - Supported RTC chips: **DS3231** (default), **DS1307**, **PCF8523**, **PCF8563**, **MCP7940N** (all via RTClib), and **DS1302** (via Makuna RTC library).
+- `isRTCAvailable()` — check RTC health at runtime.
+- `getRTCTimeString()` — returns current RTC time as `"YYYY-MM-DD HH:MM:SS"` string.
+- `printRTCTime()` — prints current RTC time to Serial.
+- `setTimezone(offsetHours)` — apply a UTC offset to all RTC time reads.
 - Works without any RTC; uses `millis()` by default.
 - Debug output via `Timer timer(true)`.
 
@@ -105,6 +114,110 @@ Serial.println(now.day);
 
 Fields: `year` (uint16_t), `month`, `day`, `hour`, `minute`, `second` (all uint8_t).
 
+### getRTCTimeString() — formatted string
+
+Returns the current RTC time as a pre-formatted `String` — no manual field unpacking needed:
+
+```cpp
+Serial.println(myTimer.getRTCTimeString()); // "2026-08-03 19:47:22"
+```
+
+### printRTCTime() — Serial helper
+
+Prints the current RTC date+time to Serial in the same format:
+
+```cpp
+myTimer.printRTCTime(); // [MyTimer] RTC: 2026-08-03 19:47:22
+```
+
+### isRTCAvailable() — health check
+
+Check whether the RTC was successfully initialised (without relying on debug output):
+
+```cpp
+if (!myTimer.isRTCAvailable()) {
+    Serial.println("Warning: RTC not found, using millis()");
+}
+```
+
+### setTimezone(offsetHours) — UTC offset
+
+Apply a signed hour offset to all time reads from `getRTCTime()` and `getRTCTimeString()`:
+
+```cpp
+myTimer.setTimezone(-5);  // UTC-5 (Eastern Standard Time)
+```
+
+## QOL Features
+
+### restart()
+
+`clear()` + `start()` in a single call — the most common pattern in `loop()`:
+
+```cpp
+myTimer.restart();  // instead of: myTimer.clear(); myTimer.start();
+```
+
+### setRepeating(bool) — auto-restart mode
+
+When enabled the timer restarts automatically from zero every time the target is reached.
+`hasReachedTarget()` still returns `true` on each expiry before the restart:
+
+```cpp
+myTimer.setTargetSeconds(30);
+myTimer.setRepeating(true);
+myTimer.start();
+
+void loop() {
+    if (myTimer.hasReachedTarget()) {
+        // runs every 30 s — timer auto-restarts, no state machine needed
+        doWork();
+    }
+}
+```
+
+### onTargetReached(callback) — callback support
+
+Register a function that is called automatically inside `hasReachedTarget()` whenever the timer expires:
+
+```cpp
+void flashLED() { digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN)); }
+
+myTimer.setTargetSeconds(1);
+myTimer.setRepeating(true);
+myTimer.onTargetReached(flashLED);
+myTimer.start();
+// LED toggles every second — loop() needs no if() at all
+```
+
+### lap() — lap/split timer
+
+Returns milliseconds since the last `lap()` call (or `start()` if no prior lap) and resets the lap anchor:
+
+```cpp
+myTimer.start();
+doStageOne();
+unsigned long stage1Ms = myTimer.lap();  // time for stage 1
+doStageTwo();
+unsigned long stage2Ms = myTimer.lap();  // time for stage 2
+```
+
+### elapsedSeconds() / elapsedMinutes() / elapsedHours()
+
+Convenience wrappers — no more manual division:
+
+```cpp
+Serial.println(myTimer.elapsedSeconds());  // instead of elapsed() / 1000UL
+```
+
+### getTargetDuration() / getTargetSeconds() / getTargetMinutes() / getTargetHours()
+
+Getter counterparts for the existing setters:
+
+```cpp
+Serial.println("Target: " + String(myTimer.getTargetSeconds()) + "s");
+```
+
 ## Installation
 
 ```powershell
@@ -182,3 +295,14 @@ git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
 * **New**: `TimerDateTime` struct — chip-agnostic date/time type returned by `getRTCTime()`, replacing the RTClib-specific `DateTime` type. Fields: `year`, `month`, `day`, `hour`, `minute`, `second`.
 * **Refactor**: Private chip-abstraction helpers (`_rtcBeginImpl`, `_rtcNowMs`, `_rtcAdjustImpl`, `_rtcNowDateTime`) isolate chip-specific API differences; all public methods now call these helpers instead of accessing `rtc` directly.
 * **Breaking change**: `getRTCTime()` now returns `TimerDateTime` instead of RTClib's `DateTime`. Update any code that assigned the result to a `DateTime` variable.
+### Version 1.2.0:
+* **New**: `restart()` — `clear()` + `start()` in a single call; the most common `loop()` pattern.
+* **New**: `setRepeating(bool)` / `getRepeating()` — auto-restart mode; the timer reloads from zero every time the target is reached.
+* **New**: `onTargetReached(callback)` — register a `void (*)()` function pointer that fires automatically inside `hasReachedTarget()` on expiry.
+* **New**: `lap()` — lap/split timer; returns milliseconds since the last `lap()` call (or `start()`).
+* **New**: `elapsedSeconds()` / `elapsedMinutes()` / `elapsedHours()` — convenience wrappers around `elapsed()` in named units.
+* **New**: `getTargetDuration()` / `getTargetSeconds()` / `getTargetMinutes()` / `getTargetHours()` — getter counterparts for the existing duration setters.
+* **New (RTC)**: `isRTCAvailable()` — exposes `rtcInitialized` so code can check RTC health without debug output.
+* **New (RTC)**: `getRTCTimeString()` — returns the current RTC date+time as a pre-formatted `String` (`"YYYY-MM-DD HH:MM:SS"`).
+* **New (RTC)**: `printRTCTime()` — prints the current RTC date+time to Serial.
+* **New (RTC)**: `setTimezone(int offsetHours)` — apply a signed UTC hour offset to all `getRTCTime()` / `getRTCTimeString()` reads.
