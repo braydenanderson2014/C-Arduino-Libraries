@@ -244,6 +244,23 @@ git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
 * Fixed the remainingTime function. [WARNING]: This function behaves differently than you might expect. It will auto-adjust the unit of measurement being used without letting you know. This is a feature and not a bug.
 * Moved RTC functionality into conditional. You need to define `#define useRTCModule` in order to use the RTC functions.
 * Adjusted serial statements to now say the timer's name instead of the timer class name.
+### Version 1.2.0
+* **New**: `restart()` — `clear()` + `start()` in a single call; the most common `loop()` pattern.
+* **New**: `setRepeating(bool)` / `getRepeating()` — auto-restart mode; the timer reloads from zero every time the target is reached.
+* **New**: `onTargetReached(callback)` — register a `void (*)()` function pointer that fires automatically inside `hasReachedTarget()` on expiry.
+* **New**: `lap()` — lap/split timer; returns milliseconds since the last `lap()` call (or `start()`).
+* **New**: `elapsedSeconds()` / `elapsedMinutes()` / `elapsedHours()` — convenience wrappers around `elapsed()` in named units.
+* **New**: `getTargetDuration()` / `getTargetSeconds()` / `getTargetMinutes()` / `getTargetHours()` — getter counterparts for the existing duration setters.
+* **New (RTC)**: `isRTCAvailable()` — exposes `rtcInitialized` so code can check RTC health without debug output.
+* **New (RTC)**: `getRTCTimeString()` — returns the current RTC date+time as a pre-formatted `String` (`"YYYY-MM-DD HH:MM:SS"`).
+* **New (RTC)**: `printRTCTime()` — prints the current RTC date+time to Serial.
+* **New (RTC)**: `setTimezone(int offsetHours)` — apply a signed UTC hour offset to all `getRTCTime()` / `getRTCTimeString()` reads.
+* * **New**: Multi-RTC support — the library now supports DS3231, DS1307, PCF8523, PCF8563, and MCP7940N via Adafruit RTClib, plus DS1302 via the Makuna RTC library.
+* **New**: Chip-selection macros — define one of `RTC_CHIP_DS3231` (default), `RTC_CHIP_DS1307`, `RTC_CHIP_PCF8523`, `RTC_CHIP_PCF8563`, `RTC_CHIP_MCP7940`, or `RTC_CHIP_DS1302` before including the header.
+* **New**: DS1302 pin macros — `RTC_DS1302_IO` (default 4), `RTC_DS1302_SCLK` (default 5), `RTC_DS1302_CE` (default 2); override before the include.
+* **New**: `TimerDateTime` struct — chip-agnostic date/time type returned by `getRTCTime()`, replacing the RTClib-specific `DateTime` type. Fields: `year`, `month`, `day`, `hour`, `minute`, `second`.
+* **Refactor**: Private chip-abstraction helpers (`_rtcBeginImpl`, `_rtcNowMs`, `_rtcAdjustImpl`, `_rtcNowDateTime`) isolate chip-specific API differences; all public methods now call these helpers instead of accessing `rtc` directly.
+* **Breaking change**: `getRTCTime()` now returns `TimerDateTime` instead of RTClib's `DateTime`. Update any code that assigned the result to a `DateTime` variable.
 
 # Platformio
 ## ChangeLog
@@ -288,13 +305,6 @@ git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
 * **Example**: Fixed `Timer timer = new Timer(false)` (invalid C++) to `Timer timer(false)`.
 * **Example**: Fixed runs that called `timer.reset()` while the timer was still running (silently did nothing); now uses `timer.clear()` between runs.
 * **Metadata**: Removed hard `RTClib` dependency from library.json and library.properties since RTC support is optional.
-### Version 1.1.0:
-* **New**: Multi-RTC support — the library now supports DS3231, DS1307, PCF8523, PCF8563, and MCP7940N via Adafruit RTClib, plus DS1302 via the Makuna RTC library.
-* **New**: Chip-selection macros — define one of `RTC_CHIP_DS3231` (default), `RTC_CHIP_DS1307`, `RTC_CHIP_PCF8523`, `RTC_CHIP_PCF8563`, `RTC_CHIP_MCP7940`, or `RTC_CHIP_DS1302` before including the header.
-* **New**: DS1302 pin macros — `RTC_DS1302_IO` (default 4), `RTC_DS1302_SCLK` (default 5), `RTC_DS1302_CE` (default 2); override before the include.
-* **New**: `TimerDateTime` struct — chip-agnostic date/time type returned by `getRTCTime()`, replacing the RTClib-specific `DateTime` type. Fields: `year`, `month`, `day`, `hour`, `minute`, `second`.
-* **Refactor**: Private chip-abstraction helpers (`_rtcBeginImpl`, `_rtcNowMs`, `_rtcAdjustImpl`, `_rtcNowDateTime`) isolate chip-specific API differences; all public methods now call these helpers instead of accessing `rtc` directly.
-* **Breaking change**: `getRTCTime()` now returns `TimerDateTime` instead of RTClib's `DateTime`. Update any code that assigned the result to a `DateTime` variable.
 ### Version 1.2.0:
 * **New**: `restart()` — `clear()` + `start()` in a single call; the most common `loop()` pattern.
 * **New**: `setRepeating(bool)` / `getRepeating()` — auto-restart mode; the timer reloads from zero every time the target is reached.
@@ -306,3 +316,9 @@ git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
 * **New (RTC)**: `getRTCTimeString()` — returns the current RTC date+time as a pre-formatted `String` (`"YYYY-MM-DD HH:MM:SS"`).
 * **New (RTC)**: `printRTCTime()` — prints the current RTC date+time to Serial.
 * **New (RTC)**: `setTimezone(int offsetHours)` — apply a signed UTC hour offset to all `getRTCTime()` / `getRTCTimeString()` reads.
+* * **New**: Multi-RTC support — the library now supports DS3231, DS1307, PCF8523, PCF8563, and MCP7940N via Adafruit RTClib, plus DS1302 via the Makuna RTC library.
+* **New**: Chip-selection macros — define one of `RTC_CHIP_DS3231` (default), `RTC_CHIP_DS1307`, `RTC_CHIP_PCF8523`, `RTC_CHIP_PCF8563`, `RTC_CHIP_MCP7940`, or `RTC_CHIP_DS1302` before including the header.
+* **New**: DS1302 pin macros — `RTC_DS1302_IO` (default 4), `RTC_DS1302_SCLK` (default 5), `RTC_DS1302_CE` (default 2); override before the include.
+* **New**: `TimerDateTime` struct — chip-agnostic date/time type returned by `getRTCTime()`, replacing the RTClib-specific `DateTime` type. Fields: `year`, `month`, `day`, `hour`, `minute`, `second`.
+* **Refactor**: Private chip-abstraction helpers (`_rtcBeginImpl`, `_rtcNowMs`, `_rtcAdjustImpl`, `_rtcNowDateTime`) isolate chip-specific API differences; all public methods now call these helpers instead of accessing `rtc` directly.
+* **Breaking change**: `getRTCTime()` now returns `TimerDateTime` instead of RTClib's `DateTime`. Update any code that assigned the result to a `DateTime` variable.
