@@ -6,10 +6,14 @@
 Timer::Timer(bool debug)
     : startTime(0), elapsedTime(0), pauseTime(0), targetDuration(0),
       isRunning(false), isPaused(false), useRTC(false), rtcInitialized(false),
-      debug(debug), remainingTimeOnTimer(0), timerMode(Seconds)
+      debug(debug), _repeating(false), remainingTimeOnTimer(0),
+      _lapAnchor(0), _callback(nullptr), timerMode(Seconds)
 #if defined(useRTCModule) && defined(RTC_CHIP_DS1302)
+    , _timezoneOffsetHours(0)
     , _ds1302Wire(RTC_DS1302_IO, RTC_DS1302_SCLK, RTC_DS1302_CE)
     , rtc(_ds1302Wire)
+#elif defined(useRTCModule)
+    , _timezoneOffsetHours(0)
 #endif
 {
     setTimerName("Timer");
@@ -119,6 +123,14 @@ bool Timer::getUseRTC() const {
     return useRTC;
 }
 
+bool Timer::isRTCAvailable() const {
+    return rtcInitialized;
+}
+
+void Timer::setTimezone(int offsetHours) {
+    _timezoneOffsetHours = offsetHours;
+}
+
 void Timer::syncWithRTC() {
     if (!useRTC) {
         if (debug) {
@@ -146,7 +158,37 @@ TimerDateTime Timer::getRTCTime() const {
         TimerDateTime empty = {0, 0, 0, 0, 0, 0};
         return empty;
     }
-    return _rtcNowDateTime();
+    TimerDateTime dt = _rtcNowDateTime();
+    // Apply timezone offset (simple signed-hour shift, no DST)
+    if (_timezoneOffsetHours != 0) {
+        int totalMinutes = (int)dt.hour * 60 + (int)dt.minute
+                           + _timezoneOffsetHours * 60;
+        // Wrap into 0–1439 minute range
+        totalMinutes = ((totalMinutes % 1440) + 1440) % 1440;
+        dt.hour   = (uint8_t)(totalMinutes / 60);
+        dt.minute = (uint8_t)(totalMinutes % 60);
+    }
+    return dt;
+}
+
+String Timer::getRTCTimeString() const {
+    TimerDateTime dt = getRTCTime();
+    // Format: "YYYY-MM-DD HH:MM:SS"
+    char buf[20];
+    snprintf(buf, sizeof(buf), "%04u-%02u-%02u %02u:%02u:%02u",
+             (unsigned)dt.year,  (unsigned)dt.month,  (unsigned)dt.day,
+             (unsigned)dt.hour,  (unsigned)dt.minute, (unsigned)dt.second);
+    return String(buf);
+}
+
+void Timer::printRTCTime() const {
+    if (!rtcInitialized) {
+        if (debug) {
+            Serial.println("[" + TimerName + "]: printRTCTime() ignored - RTC not initialised");
+        }
+        return;
+    }
+    Serial.println("[" + TimerName + "] RTC: " + getRTCTimeString());
 }
 
 void Timer::setRTCTime(int year, int month, int day, int hour, int minute, int second) {
@@ -200,8 +242,17 @@ void Timer::start() {
         {
             startTime = millis();
         }
+        _lapAnchor = startTime;
         isRunning = true;
     }
+}
+
+void Timer::restart() {
+    if (debug) {
+        Serial.println("[" + TimerName + "]: Restarting timer");
+    }
+    clear();
+    start();
 }
 
 void Timer::stop() {
@@ -327,6 +378,25 @@ void Timer::setTargetHours(unsigned long hours) {
 }
 
 // ---------------------------------------------------------------------------
+// Target duration getters
+// ---------------------------------------------------------------------------
+unsigned long Timer::getTargetDuration() const {
+    return targetDuration;
+}
+
+unsigned long Timer::getTargetSeconds() const {
+    return targetDuration / 1000UL;
+}
+
+unsigned long Timer::getTargetMinutes() const {
+    return targetDuration / 60000UL;
+}
+
+unsigned long Timer::getTargetHours() const {
+    return targetDuration / 3600000UL;
+}
+
+// ---------------------------------------------------------------------------
 // Elapsed / remaining queries
 // ---------------------------------------------------------------------------
 unsigned long Timer::elapsed() {
@@ -349,6 +419,40 @@ unsigned long Timer::elapsed() {
         Serial.println("[" + TimerName + "]: Elapsed: " + String(e) + " ms");
     }
     return e;
+}
+
+unsigned long Timer::elapsedSeconds() {
+    return elapsed() / 1000UL;
+}
+
+unsigned long Timer::elapsedMinutes() {
+    return elapsed() / 60000UL;
+}
+
+unsigned long Timer::elapsedHours() {
+    return elapsed() / 3600000UL;
+}
+
+unsigned long Timer::lap() {
+    unsigned long now;
+#ifdef useRTCModule
+    if (useRTC) {
+        now = _rtcNowMs();
+    } else
+#endif
+    {
+        now = millis();
+    }
+    // For a stopped/paused timer, use accumulated elapsed as the lap end point
+    if (!isRunning) {
+        now = elapsedTime + startTime;
+    }
+    unsigned long lapTime = now - _lapAnchor;
+    _lapAnchor = now;
+    if (debug) {
+        Serial.println("[" + TimerName + "]: Lap: " + String(lapTime) + " ms");
+    }
+    return lapTime;
 }
 
 unsigned long Timer::remainingTimeMillis() {
@@ -433,7 +537,34 @@ bool Timer::hasReachedTarget() {
     if (targetDuration == 0) {
         return false; // No target set; never treat as reached
     }
-    return elapsed() >= targetDuration;
+    if (elapsed() >= targetDuration) {
+        if (_callback) {
+            _callback();
+        }
+        if (_repeating) {
+            restart();
+        }
+        return true;
+    }
+    return false;
+}
+
+// ---------------------------------------------------------------------------
+// Repeating mode
+// ---------------------------------------------------------------------------
+void Timer::setRepeating(bool repeating) {
+    _repeating = repeating;
+}
+
+bool Timer::getRepeating() const {
+    return _repeating;
+}
+
+// ---------------------------------------------------------------------------
+// Callback
+// ---------------------------------------------------------------------------
+void Timer::onTargetReached(void (*callback)()) {
+    _callback = callback;
 }
 
 bool Timer::checkTimer(unsigned long durationMs) {
