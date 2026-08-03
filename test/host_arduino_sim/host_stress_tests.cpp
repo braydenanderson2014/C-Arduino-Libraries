@@ -43,12 +43,16 @@
 #include "Arduino.h"
 #include "ArrayList.h"
 #include "AVLTree.h"
+#include "BasicLinkedList.h"
 #include "DynamicStorageLibrary.h"
 #include "Hashtable.h"
 #include "JSON.h"
 #include "Operators.h"
+#include "OrderedMap.h"
 #include "Predicates.h"
+#include "Queue.h"
 #include "SimpleVector.h"
+#include "Stack.h"
 
 // Mask applied to std::size_t loop counters before casting to int/key, keeping
 // the value non-negative regardless of the platform's int width.
@@ -498,6 +502,26 @@ int main() {
         []() { return new Operators<int>(); }
     ));
 
+    instanceProbes.push_back(probeInstanceCount<Stack<int>>(
+        "Stack_int", limitBytes, maxInstances,
+        []() { return new Stack<int>(); }
+    ));
+
+    instanceProbes.push_back(probeInstanceCount<Queue<int>>(
+        "Queue_int", limitBytes, maxInstances,
+        []() { return new Queue<int>(); }
+    ));
+
+    instanceProbes.push_back(probeInstanceCount<LinkedList<int>>(
+        "LinkedList_int", limitBytes, maxInstances,
+        []() { return new LinkedList<int>(); }
+    ));
+
+    instanceProbes.push_back(probeInstanceCount<OrderedMap<int, int>>(
+        "OrderedMap_int_int", limitBytes, maxInstances,
+        []() { return new OrderedMap<int, int>(); }
+    ));
+
     // ── Element fill probes ──────────────────────────────────────────────────
     // Measures how many elements fit in a single container instance.
 
@@ -814,7 +838,301 @@ int main() {
         }
     ));
 
-    // ── Print summary ────────────────────────────────────────────────────────
+    // Stack<int>
+    fillProbes.push_back(probeElementFill<Stack<int>>(
+        "Stack", "int", limitBytes, maxElements,
+        []() { return Stack<int>(); },
+        [](Stack<int>& c, std::size_t i) { c.push(static_cast<int>(i & MAX_POSITIVE_INT_MASK)); },
+        [](Stack<int>& c, std::size_t expected) {
+            if (static_cast<std::size_t>(c.count()) != expected) return false;
+            if (expected == 0) return true;
+            return c.peek() == static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+        },
+        [](Stack<int>& c, std::size_t expected) {
+            return sampleChecksum(1, [&](std::size_t) {
+                return expected > 0 ? c.peek() : 0;
+            });
+        },
+        [](Stack<int>& c, std::size_t expected) {
+            const int before = c.count();
+            try {
+                c.push(0x5a5a5a5a);
+            } catch (const std::bad_alloc&) {
+                return c.count() == before;
+            }
+            c.pop();
+            return c.count() == before && before == static_cast<int>(expected);
+        }
+    ));
+
+    // Stack<float>
+    fillProbes.push_back(probeElementFill<Stack<float>>(
+        "Stack", "float", limitBytes, maxElements,
+        []() { return Stack<float>(); },
+        [](Stack<float>& c, std::size_t i) { c.push(static_cast<float>(i)); },
+        [](Stack<float>& c, std::size_t expected) { return static_cast<std::size_t>(c.count()) == expected; },
+        [](Stack<float>& c, std::size_t expected) {
+            return sampleChecksum(1, [&](std::size_t) { return expected > 0 ? c.peek() : 0.0f; });
+        },
+        [](Stack<float>& c, std::size_t expected) {
+            const int before = c.count();
+            try { c.push(1.5f); } catch (const std::bad_alloc&) { return c.count() == before; }
+            c.pop();
+            return c.count() == before && before == static_cast<int>(expected);
+        }
+    ));
+
+    // Stack<double>
+    fillProbes.push_back(probeElementFill<Stack<double>>(
+        "Stack", "double", limitBytes, maxElements,
+        []() { return Stack<double>(); },
+        [](Stack<double>& c, std::size_t i) { c.push(static_cast<double>(i)); },
+        [](Stack<double>& c, std::size_t expected) { return static_cast<std::size_t>(c.count()) == expected; },
+        [](Stack<double>& c, std::size_t expected) {
+            return sampleChecksum(1, [&](std::size_t) { return expected > 0 ? c.peek() : 0.0; });
+        },
+        [](Stack<double>& c, std::size_t expected) {
+            const int before = c.count();
+            try { c.push(2.5); } catch (const std::bad_alloc&) { return c.count() == before; }
+            c.pop();
+            return c.count() == before && before == static_cast<int>(expected);
+        }
+    ));
+
+    // Stack<String>
+    fillProbes.push_back(probeElementFill<Stack<String>>(
+        "Stack", "String", limitBytes, maxElements,
+        []() { return Stack<String>(); },
+        [](Stack<String>& c, std::size_t i) { c.push(String(static_cast<int>(i))); },
+        [](Stack<String>& c, std::size_t expected) {
+            if (static_cast<std::size_t>(c.count()) != expected) return false;
+            if (expected == 0) return true;
+            return c.peek() == String(static_cast<int>(expected - 1));
+        },
+        [](Stack<String>& c, std::size_t expected) {
+            return sampleChecksum(1, [&](std::size_t) { return expected > 0 ? c.peek() : String(""); });
+        },
+        [](Stack<String>& c, std::size_t expected) {
+            const int before = c.count();
+            try { c.push(String("recovery")); } catch (const std::bad_alloc&) { return c.count() == before; }
+            c.pop();
+            return c.count() == before && before == static_cast<int>(expected);
+        }
+    ));
+
+    // Queue<int>
+    fillProbes.push_back(probeElementFill<Queue<int>>(
+        "Queue", "int", limitBytes, maxElements,
+        []() { return Queue<int>(); },
+        [](Queue<int>& c, std::size_t i) { c.enqueue(static_cast<int>(i & MAX_POSITIVE_INT_MASK)); },
+        [](Queue<int>& c, std::size_t expected) {
+            return static_cast<std::size_t>(c.count()) == expected;
+        },
+        [](Queue<int>& c, std::size_t expected) {
+            return sampleChecksum(1, [&](std::size_t) { return expected > 0 ? c.peek() : 0; });
+        },
+        [](Queue<int>& c, std::size_t expected) {
+            const int before = c.count();
+            try { c.enqueue(0x5a5a5a5a); } catch (const std::bad_alloc&) { return c.count() == before; }
+            c.dequeue();
+            return c.count() == before && before == static_cast<int>(expected);
+        }
+    ));
+
+    // Queue<float>
+    fillProbes.push_back(probeElementFill<Queue<float>>(
+        "Queue", "float", limitBytes, maxElements,
+        []() { return Queue<float>(); },
+        [](Queue<float>& c, std::size_t i) { c.enqueue(static_cast<float>(i)); },
+        [](Queue<float>& c, std::size_t expected) { return static_cast<std::size_t>(c.count()) == expected; },
+        [](Queue<float>& c, std::size_t expected) {
+            return sampleChecksum(1, [&](std::size_t) { return expected > 0 ? c.peek() : 0.0f; });
+        },
+        [](Queue<float>& c, std::size_t expected) {
+            const int before = c.count();
+            try { c.enqueue(1.5f); } catch (const std::bad_alloc&) { return c.count() == before; }
+            c.dequeue();
+            return c.count() == before && before == static_cast<int>(expected);
+        }
+    ));
+
+    // Queue<double>
+    fillProbes.push_back(probeElementFill<Queue<double>>(
+        "Queue", "double", limitBytes, maxElements,
+        []() { return Queue<double>(); },
+        [](Queue<double>& c, std::size_t i) { c.enqueue(static_cast<double>(i)); },
+        [](Queue<double>& c, std::size_t expected) { return static_cast<std::size_t>(c.count()) == expected; },
+        [](Queue<double>& c, std::size_t expected) {
+            return sampleChecksum(1, [&](std::size_t) { return expected > 0 ? c.peek() : 0.0; });
+        },
+        [](Queue<double>& c, std::size_t expected) {
+            const int before = c.count();
+            try { c.enqueue(2.5); } catch (const std::bad_alloc&) { return c.count() == before; }
+            c.dequeue();
+            return c.count() == before && before == static_cast<int>(expected);
+        }
+    ));
+
+    // Queue<String>
+    fillProbes.push_back(probeElementFill<Queue<String>>(
+        "Queue", "String", limitBytes, maxElements,
+        []() { return Queue<String>(); },
+        [](Queue<String>& c, std::size_t i) { c.enqueue(String(static_cast<int>(i))); },
+        [](Queue<String>& c, std::size_t expected) { return static_cast<std::size_t>(c.count()) == expected; },
+        [](Queue<String>& c, std::size_t expected) {
+            return sampleChecksum(1, [&](std::size_t) { return expected > 0 ? c.peek() : String(""); });
+        },
+        [](Queue<String>& c, std::size_t expected) {
+            const int before = c.count();
+            try { c.enqueue(String("recovery")); } catch (const std::bad_alloc&) { return c.count() == before; }
+            c.dequeue();
+            return c.count() == before && before == static_cast<int>(expected);
+        }
+    ));
+
+    // LinkedList<int>
+    fillProbes.push_back(probeElementFill<LinkedList<int>>(
+        "LinkedList", "int", limitBytes, maxElements,
+        []() { return LinkedList<int>(); },
+        [](LinkedList<int>& c, std::size_t i) { c.append(static_cast<int>(i & MAX_POSITIVE_INT_MASK)); },
+        [](LinkedList<int>& c, std::size_t expected) {
+            if (c.size() != expected) return false;
+            if (expected == 0) return true;
+            int* last = c.get(expected - 1);
+            return last && *last == static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+        },
+        [](LinkedList<int>& c, std::size_t expected) {
+            return sampleChecksum(expected, [&](std::size_t i) {
+                int* v = c.get(i);
+                return v ? *v : 0;
+            });
+        },
+        [](LinkedList<int>& c, std::size_t expected) {
+            const std::size_t before = c.size();
+            try { c.append(0x5a5a5a5a); } catch (const std::bad_alloc&) { return c.size() == before; }
+            c.remove(static_cast<int>(c.size() - 1));
+            return c.size() == before && before == expected;
+        }
+    ));
+
+    // LinkedList<float>
+    fillProbes.push_back(probeElementFill<LinkedList<float>>(
+        "LinkedList", "float", limitBytes, maxElements,
+        []() { return LinkedList<float>(); },
+        [](LinkedList<float>& c, std::size_t i) { c.append(static_cast<float>(i)); },
+        [](LinkedList<float>& c, std::size_t expected) { return c.size() == expected; },
+        [](LinkedList<float>& c, std::size_t expected) {
+            return sampleChecksum(1, [&](std::size_t) {
+                float* v = c.get(0);
+                return v ? *v : 0.0f;
+            });
+        },
+        [](LinkedList<float>& c, std::size_t expected) {
+            const std::size_t before = c.size();
+            try { c.append(1.5f); } catch (const std::bad_alloc&) { return c.size() == before; }
+            c.remove(static_cast<int>(c.size() - 1));
+            return c.size() == before && before == expected;
+        }
+    ));
+
+    // LinkedList<double>
+    fillProbes.push_back(probeElementFill<LinkedList<double>>(
+        "LinkedList", "double", limitBytes, maxElements,
+        []() { return LinkedList<double>(); },
+        [](LinkedList<double>& c, std::size_t i) { c.append(static_cast<double>(i)); },
+        [](LinkedList<double>& c, std::size_t expected) { return c.size() == expected; },
+        [](LinkedList<double>& c, std::size_t expected) {
+            return sampleChecksum(1, [&](std::size_t) {
+                double* v = c.get(0);
+                return v ? *v : 0.0;
+            });
+        },
+        [](LinkedList<double>& c, std::size_t expected) {
+            const std::size_t before = c.size();
+            try { c.append(2.5); } catch (const std::bad_alloc&) { return c.size() == before; }
+            c.remove(static_cast<int>(c.size() - 1));
+            return c.size() == before && before == expected;
+        }
+    ));
+
+    // LinkedList<String>
+    fillProbes.push_back(probeElementFill<LinkedList<String>>(
+        "LinkedList", "String", limitBytes, maxElements,
+        []() { return LinkedList<String>(); },
+        [](LinkedList<String>& c, std::size_t i) { c.append(String(static_cast<int>(i))); },
+        [](LinkedList<String>& c, std::size_t expected) {
+            if (c.size() != expected) return false;
+            if (expected == 0) return true;
+            String* last = c.get(expected - 1);
+            return last && *last == String(static_cast<int>(expected - 1));
+        },
+        [](LinkedList<String>& c, std::size_t expected) {
+            return sampleChecksum(1, [&](std::size_t) {
+                String* v = c.get(0);
+                return v ? *v : String("");
+            });
+        },
+        [](LinkedList<String>& c, std::size_t expected) {
+            const std::size_t before = c.size();
+            try { c.append(String("recovery")); } catch (const std::bad_alloc&) { return c.size() == before; }
+            c.remove(static_cast<int>(c.size() - 1));
+            return c.size() == before && before == expected;
+        }
+    ));
+
+    // OrderedMap<int,int>
+    fillProbes.push_back(probeElementFill<OrderedMap<int, int>>(
+        "OrderedMap", "int_int", limitBytes, maxElements,
+        []() { return OrderedMap<int, int>(); },
+        [](OrderedMap<int, int>& c, std::size_t i) {
+            const int k = static_cast<int>(i & MAX_POSITIVE_INT_MASK);
+            c.put(k, k);
+        },
+        [](OrderedMap<int, int>& c, std::size_t expected) {
+            if (c.size() != expected) return false;
+            if (expected == 0) return true;
+            const int last = static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+            return c.get(last) == last;
+        },
+        [](OrderedMap<int, int>& c, std::size_t expected) {
+            return sampleChecksum(expected, [&](std::size_t i) {
+                return c.get(static_cast<int>(i & MAX_POSITIVE_INT_MASK));
+            });
+        },
+        [](OrderedMap<int, int>& c, std::size_t expected) {
+            const std::size_t before = c.size();
+            const int recoveryKey = -1000000 - static_cast<int>(before % 1000);
+            try { c.put(recoveryKey, 42); } catch (const std::bad_alloc&) { return c.size() == before; }
+            return c.get(recoveryKey) == 42;
+        }
+    ));
+
+    // OrderedMap<String,String>
+    fillProbes.push_back(probeElementFill<OrderedMap<String, String>>(
+        "OrderedMap", "String_String", limitBytes, maxElements,
+        []() { return OrderedMap<String, String>(); },
+        [](OrderedMap<String, String>& c, std::size_t i) {
+            String k = String(static_cast<int>(i));
+            c.put(k, k);
+        },
+        [](OrderedMap<String, String>& c, std::size_t expected) {
+            if (c.size() != expected) return false;
+            if (expected == 0) return true;
+            String last = String(static_cast<int>(expected - 1));
+            return c.get(last) == last;
+        },
+        [](OrderedMap<String, String>& c, std::size_t expected) {
+            return sampleChecksum(expected, [&](std::size_t i) {
+                return c.get(String(static_cast<int>(i)));
+            });
+        },
+        [](OrderedMap<String, String>& c, std::size_t expected) {
+            const std::size_t before = c.size();
+            String recoveryKey("__recovery__");
+            try { c.put(recoveryKey, String("ok")); } catch (const std::bad_alloc&) { return c.size() == before; }
+            return c.get(recoveryKey) == String("ok");
+        }
+    ));
 
     std::cout << "Stress probes complete. Results:" << std::endl;
     for (const auto& p : instanceProbes) {

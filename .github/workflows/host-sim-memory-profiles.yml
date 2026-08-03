@@ -66,11 +66,16 @@ jobs:
             -Ilib/DynamicStorageLibrary/src \
             -Ilib/Hashtable/src \
             -Ilib/Json/src \
+            -Ilib/LinkedList/src \
             -Ilib/MathLib/src \
             -Ilib/Operators/src \
+            -Ilib/Optional/src \
+            -Ilib/OrderedMap/src \
             -Ilib/Predicates/src \
+            -Ilib/Queue/src \
             -Ilib/SimpleVector/src \
             -Ilib/SDList/src \
+            -Ilib/Stack/src \
             -Ilib/String/src \
             -Ilib/TypeTraits/src \
             lib/Json/src/JSON.cpp \
@@ -178,7 +183,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Download stress profile artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v7
         continue-on-error: true
         with:
           pattern: host-stress-report-*
