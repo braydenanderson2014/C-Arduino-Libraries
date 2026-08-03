@@ -485,6 +485,7 @@ def generate_markdown(
     expected_compile_smoke_count: int,
     experimental_compile_results: List[Dict[str, Any]],
     expected_experimental_compile_count: int,
+    stress_runs: Optional[List[Dict[str, Any]]] = None,
 ) -> str:
     lines: List[str] = []
 
@@ -520,6 +521,9 @@ def generate_markdown(
 
     if expected_experimental_compile_count >= 0:
         lines.append(f"- Expected experimental compile results: {expected_experimental_compile_count}")
+
+    if stress_runs is not None:
+        lines.append(f"- Stress test runs loaded: {len(stress_runs)}")
 
     lines.append("")
     lines.append("## Understanding")
@@ -633,6 +637,12 @@ def generate_markdown(
             artifact = str(result.get("artifactPath", ""))
             lines.append(f"| {library_path} | {backend} | {optional} | {success} | {return_code} | {artifact} |")
 
+    if stress_runs:
+        lines.append("")
+        lines.append("## Stress Test Results")
+        lines.append("")
+        lines.append(generate_markdown_stress(stress_runs).strip())
+
     lines.append("")
     return "\n".join(lines)
 
@@ -693,6 +703,11 @@ def main() -> int:
     summary["experimentalCompileBackendCount"] = experimental_summary["backendCount"]
     summary["experimentalCompileOptionalModeCount"] = experimental_summary["optionalModeCount"]
 
+    stress_runs: Optional[List[Dict[str, Any]]] = None
+    if args.mode == "standard":
+        stress_runs = load_stress_runs(artifacts_dir)
+        summary["stressRunCount"] = len(stress_runs)
+
     payload = {
         "mode": args.mode,
         "summary": summary,
@@ -705,6 +720,7 @@ def main() -> int:
         "compileBackendCount": args.compile_backend_count,
         "expectedCompileSmokeCount": args.expected_compile_smoke_count,
         "expectedExperimentalCompileCount": args.expected_experimental_compile_count,
+        "stressRuns": stress_runs if stress_runs is not None else [],
     }
 
     markdown = generate_markdown(
@@ -716,6 +732,7 @@ def main() -> int:
         expected_compile_smoke_count=args.expected_compile_smoke_count,
         experimental_compile_results=experimental_compile_results,
         expected_experimental_compile_count=args.expected_experimental_compile_count,
+        stress_runs=stress_runs,
     )
 
     output_md.parent.mkdir(parents=True, exist_ok=True)

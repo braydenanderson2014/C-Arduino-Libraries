@@ -1896,6 +1896,7 @@ jobs:
       - host-library-compile
       - host-experimental-library-compile
       - host-experimental-runtime
+      - host-memory-stress
       - host-sim-integration
     if: always() && (needs.discover-libraries.outputs.has_targets == 'true' || needs.discover-libraries.outputs.experimental_has_targets == 'true')
     runs-on: ubuntu-latest
@@ -1918,6 +1919,14 @@ jobs:
           pattern: host-*library-compile-*
           merge-multiple: false
           path: .artifacts/host-compile
+
+      - name: Download stress profile artifacts
+        uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          pattern: host-stress-report-*
+          merge-multiple: true
+          path: .artifacts/host-stress
 
       - name: Generate consolidated host simulation report
         shell: bash
