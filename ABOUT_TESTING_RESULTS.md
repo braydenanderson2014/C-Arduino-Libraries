@@ -5,8 +5,8 @@
 - Total runs: 4
 - Passed runs: 4
 - Failed runs: 0
-- Max peak bytes: 4022272
-- Avg peak bytes: 4005888
+- Max peak bytes: 4366336
+- Avg peak bytes: 4197376
 - Compile smoke objects found: 63
 - Experimental compile results found: 26
 - Experimental compile successes: 26
@@ -54,96 +54,96 @@
 
 | Run | Success | Backend | PeakBytes | LimitBytes | LimitExceeded | LimitEnforced | FirstLimitCrossingTest | CrossingPeakBytes | ProbeElementsAtStop | ProbeCurrentBytesAtStop |
 | --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: |
-| littlefs | yes | LittleFS | 4022272 | 8388608 | no | yes |  | 0 | 0 | 0 |
-| optional-littlefs | yes | LittleFS | 3985408 | 8388608 | no | yes |  | 0 | 0 | 0 |
-| optional-sd | yes | SD | 3993600 | 8388608 | no | yes |  | 0 | 0 | 0 |
+| littlefs | yes | LittleFS | 4366336 | 8388608 | no | yes |  | 0 | 0 | 0 |
+| optional-littlefs | yes | LittleFS | 4341760 | 8388608 | no | yes |  | 0 | 0 | 0 |
+| optional-sd | yes | SD | 4059136 | 8388608 | no | yes |  | 0 | 0 | 0 |
 | sd | yes | SD | 4022272 | 8388608 | no | yes |  | 0 | 0 | 0 |
 
 ### Per-test Memory Stats: littlefs
 
 | Test | Passed | BeforeRSS | AfterRSS | DeltaRSS | BeforeHeap | AfterHeap | DeltaHeap | PeakAfterTest | Error |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| testArrayListBasicBehavior | yes | 3649536 | 3649536 | 0 | 77056 | 77328 | 272 | 3567616 |  |
-| testHashtableBasicBehavior | yes | 3649536 | 3657728 | 8192 | 77472 | 79664 | 2192 | 3567616 |  |
-| testSDListMemoryMode | yes | 3657728 | 3657728 | 0 | 79664 | 79760 | 96 | 3567616 |  |
-| testSDListFileIOMode | yes | 3657728 | 3850240 | 192512 | 79760 | 81008 | 1248 | 3760128 |  |
-| testCustomStringBehavior | yes | 3850240 | 3850240 | 0 | 81008 | 81008 | 0 | 3760128 |  |
-| testJSONRoundTrip | yes | 3850240 | 3985408 | 135168 | 81008 | 82480 | 1472 | 3891200 |  |
-| testArrayListChurnAndBoundaryHealth | yes | 3985408 | 3989504 | 4096 | 82480 | 85600 | 3120 | 3891200 |  |
-| testHashtableChurnAndBoundaryHealth | yes | 3989504 | 4096000 | 106496 | 85600 | 87040 | 1440 | 4022272 |  |
-| testSimpleVectorLifecycleStress | yes | 4096000 | 4096000 | 0 | 87040 | 87040 | 0 | 4022272 |  |
-| testJSONOptionalFeatureGateBehavior | yes | 4096000 | 4096000 | 0 | 89104 | 89152 | 48 | 4022272 |  |
-| testJSONFileRoundTrip | yes | 4096000 | 4096000 | 0 | 89152 | 89472 | 320 | 4022272 |  |
-| testSDListPersistenceStress | yes | 4096000 | 4096000 | 0 | 89472 | 89760 | 288 | 4022272 |  |
-| testJSONPersistenceStress | yes | 4096000 | 4096000 | 0 | 89760 | 90576 | 816 | 4022272 |  |
-| testAVLTreeBasicBehavior | yes | 4096000 | 4096000 | 0 | 90576 | 90672 | 96 | 4022272 |  |
-| testAVLTreeChurnAndHeightHealth | yes | 4096000 | 4096000 | 0 | 90672 | 90720 | 48 | 4022272 |  |
-| testPredicatesBasicBehavior | yes | 4096000 | 4096000 | 0 | 90720 | 90720 | 0 | 4022272 |  |
-| testOperatorsBasicBehavior | yes | 4096000 | 4096000 | 0 | 90720 | 90720 | 0 | 4022272 |  |
-| testDynamicStorageLibraryRamMode | yes | 4096000 | 4096000 | 0 | 92768 | 92768 | 0 | 4022272 |  |
-| testSimpleThreadManagerFallbackBehavior | yes | 4096000 | 4096000 | 0 | 92768 | 92768 | 0 | 4022272 |  |
-| testSimpleMutexFallbackBehavior | yes | 4096000 | 4165632 | 69632 | 92768 | 92768 | 0 | 4022272 |  |
-| testSimpleSemaphoreFallbackBehavior | yes | 4165632 | 4165632 | 0 | 92768 | 92768 | 0 | 4022272 |  |
-| testSimpleRWLockFallbackBehavior | yes | 4165632 | 4165632 | 0 | 92768 | 92912 | 144 | 4022272 |  |
-| testSimpleCoreRuntimeFallbackBehavior | yes | 4165632 | 4165632 | 0 | 92912 | 92912 | 0 | 4022272 |  |
+| testArrayListBasicBehavior | yes | 3923968 | 3923968 | 0 | 77056 | 77328 | 272 | 3842048 |  |
+| testHashtableBasicBehavior | yes | 3923968 | 3932160 | 8192 | 77472 | 79664 | 2192 | 3842048 |  |
+| testSDListMemoryMode | yes | 3932160 | 3932160 | 0 | 79664 | 79760 | 96 | 3842048 |  |
+| testSDListFileIOMode | yes | 3932160 | 4128768 | 196608 | 79760 | 81008 | 1248 | 3973120 |  |
+| testCustomStringBehavior | yes | 4128768 | 4128768 | 0 | 81008 | 81008 | 0 | 3973120 |  |
+| testJSONRoundTrip | yes | 4128768 | 4263936 | 135168 | 81008 | 82480 | 1472 | 4104192 |  |
+| testArrayListChurnAndBoundaryHealth | yes | 4263936 | 4268032 | 4096 | 82480 | 85600 | 3120 | 4104192 |  |
+| testHashtableChurnAndBoundaryHealth | yes | 4268032 | 4374528 | 106496 | 85600 | 87040 | 1440 | 4235264 |  |
+| testSimpleVectorLifecycleStress | yes | 4374528 | 4374528 | 0 | 87040 | 87040 | 0 | 4235264 |  |
+| testJSONOptionalFeatureGateBehavior | yes | 4374528 | 4374528 | 0 | 89104 | 89152 | 48 | 4235264 |  |
+| testJSONFileRoundTrip | yes | 4374528 | 4374528 | 0 | 89152 | 89472 | 320 | 4235264 |  |
+| testSDListPersistenceStress | yes | 4374528 | 4374528 | 0 | 89472 | 89760 | 288 | 4235264 |  |
+| testJSONPersistenceStress | yes | 4374528 | 4374528 | 0 | 89760 | 90576 | 816 | 4235264 |  |
+| testAVLTreeBasicBehavior | yes | 4374528 | 4374528 | 0 | 90576 | 90672 | 96 | 4235264 |  |
+| testAVLTreeChurnAndHeightHealth | yes | 4374528 | 4374528 | 0 | 90672 | 90720 | 48 | 4235264 |  |
+| testPredicatesBasicBehavior | yes | 4374528 | 4374528 | 0 | 90720 | 90720 | 0 | 4235264 |  |
+| testOperatorsBasicBehavior | yes | 4374528 | 4374528 | 0 | 90720 | 90720 | 0 | 4235264 |  |
+| testDynamicStorageLibraryRamMode | yes | 4374528 | 4374528 | 0 | 92768 | 92768 | 0 | 4235264 |  |
+| testSimpleThreadManagerFallbackBehavior | yes | 4374528 | 4374528 | 0 | 92768 | 92768 | 0 | 4235264 |  |
+| testSimpleMutexFallbackBehavior | yes | 4374528 | 4444160 | 69632 | 92768 | 92768 | 0 | 4366336 |  |
+| testSimpleSemaphoreFallbackBehavior | yes | 4444160 | 4444160 | 0 | 92768 | 92768 | 0 | 4366336 |  |
+| testSimpleRWLockFallbackBehavior | yes | 4444160 | 4444160 | 0 | 92768 | 92912 | 144 | 4366336 |  |
+| testSimpleCoreRuntimeFallbackBehavior | yes | 4444160 | 4444160 | 0 | 92912 | 92912 | 0 | 4366336 |  |
 
 ### Per-test Memory Stats: optional-littlefs
 
 | Test | Passed | BeforeRSS | AfterRSS | DeltaRSS | BeforeHeap | AfterHeap | DeltaHeap | PeakAfterTest | Error |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| testArrayListBasicBehavior | yes | 3612672 | 3612672 | 0 | 77232 | 77504 | 272 | 3530752 |  |
-| testHashtableBasicBehavior | yes | 3612672 | 3620864 | 8192 | 77648 | 79776 | 2128 | 3530752 |  |
-| testSDListMemoryMode | yes | 3620864 | 3620864 | 0 | 79776 | 79872 | 96 | 3530752 |  |
-| testSDListFileIOMode | yes | 3620864 | 3813376 | 192512 | 79872 | 81120 | 1248 | 3723264 |  |
-| testCustomStringBehavior | yes | 3813376 | 3813376 | 0 | 81120 | 81120 | 0 | 3723264 |  |
-| testJSONRoundTrip | yes | 3813376 | 3948544 | 135168 | 81120 | 82592 | 1472 | 3854336 |  |
-| testArrayListChurnAndBoundaryHealth | yes | 3948544 | 3956736 | 8192 | 82592 | 85728 | 3136 | 3854336 |  |
-| testHashtableChurnAndBoundaryHealth | yes | 3956736 | 4059136 | 102400 | 85728 | 87264 | 1536 | 3985408 |  |
-| testSimpleVectorLifecycleStress | yes | 4059136 | 4059136 | 0 | 87264 | 87264 | 0 | 3985408 |  |
-| testJSONOptionalFeatureGateBehavior | yes | 4059136 | 4059136 | 0 | 89328 | 89328 | 0 | 3985408 |  |
-| testJSONFileRoundTrip | yes | 4059136 | 4059136 | 0 | 89328 | 89808 | 480 | 3985408 |  |
-| testSDListPersistenceStress | yes | 4059136 | 4059136 | 0 | 89760 | 90128 | 368 | 3985408 |  |
-| testJSONPersistenceStress | yes | 4059136 | 4059136 | 0 | 90128 | 91168 | 1040 | 3985408 |  |
-| testAVLTreeBasicBehavior | yes | 4059136 | 4059136 | 0 | 91168 | 91344 | 176 | 3985408 |  |
-| testAVLTreeChurnAndHeightHealth | yes | 4059136 | 4059136 | 0 | 91344 | 91504 | 160 | 3985408 |  |
-| testPredicatesBasicBehavior | yes | 4059136 | 4059136 | 0 | 91504 | 91504 | 0 | 3985408 |  |
-| testOperatorsBasicBehavior | yes | 4059136 | 4059136 | 0 | 91504 | 91504 | 0 | 3985408 |  |
-| testDynamicStorageLibraryRamMode | yes | 4059136 | 4059136 | 0 | 93552 | 93552 | 0 | 3985408 |  |
-| testSimpleThreadManagerFallbackBehavior | yes | 4059136 | 4059136 | 0 | 93552 | 93552 | 0 | 3985408 |  |
-| testSimpleMutexFallbackBehavior | yes | 4059136 | 4128768 | 69632 | 93552 | 93552 | 0 | 3985408 |  |
-| testSimpleSemaphoreFallbackBehavior | yes | 4128768 | 4128768 | 0 | 93552 | 93552 | 0 | 3985408 |  |
-| testSimpleRWLockFallbackBehavior | yes | 4128768 | 4128768 | 0 | 93552 | 93696 | 144 | 3985408 |  |
-| testSimpleCoreRuntimeFallbackBehavior | yes | 4128768 | 4128768 | 0 | 93696 | 93696 | 0 | 3985408 |  |
-| testAVLTreeErrorCodes | yes | 4128768 | 4128768 | 0 | 93696 | 93744 | 48 | 3985408 |  |
+| testArrayListBasicBehavior | yes | 3964928 | 3964928 | 0 | 77232 | 77504 | 272 | 3817472 |  |
+| testHashtableBasicBehavior | yes | 3964928 | 3973120 | 8192 | 77648 | 79776 | 2128 | 3817472 |  |
+| testSDListMemoryMode | yes | 3973120 | 3973120 | 0 | 79776 | 79872 | 96 | 3817472 |  |
+| testSDListFileIOMode | yes | 3973120 | 4169728 | 196608 | 79872 | 81120 | 1248 | 4079616 |  |
+| testCustomStringBehavior | yes | 4169728 | 4169728 | 0 | 81120 | 81120 | 0 | 4079616 |  |
+| testJSONRoundTrip | yes | 4169728 | 4304896 | 135168 | 81120 | 82592 | 1472 | 4210688 |  |
+| testArrayListChurnAndBoundaryHealth | yes | 4304896 | 4313088 | 8192 | 82592 | 85728 | 3136 | 4210688 |  |
+| testHashtableChurnAndBoundaryHealth | yes | 4313088 | 4415488 | 102400 | 85728 | 87264 | 1536 | 4341760 |  |
+| testSimpleVectorLifecycleStress | yes | 4415488 | 4415488 | 0 | 87264 | 87264 | 0 | 4341760 |  |
+| testJSONOptionalFeatureGateBehavior | yes | 4415488 | 4415488 | 0 | 89328 | 89328 | 0 | 4341760 |  |
+| testJSONFileRoundTrip | yes | 4415488 | 4415488 | 0 | 89328 | 89808 | 480 | 4341760 |  |
+| testSDListPersistenceStress | yes | 4415488 | 4415488 | 0 | 89760 | 90128 | 368 | 4341760 |  |
+| testJSONPersistenceStress | yes | 4415488 | 4415488 | 0 | 90128 | 91168 | 1040 | 4341760 |  |
+| testAVLTreeBasicBehavior | yes | 4415488 | 4415488 | 0 | 91168 | 91344 | 176 | 4341760 |  |
+| testAVLTreeChurnAndHeightHealth | yes | 4415488 | 4415488 | 0 | 91344 | 91504 | 160 | 4341760 |  |
+| testPredicatesBasicBehavior | yes | 4415488 | 4415488 | 0 | 91504 | 91504 | 0 | 4341760 |  |
+| testOperatorsBasicBehavior | yes | 4415488 | 4415488 | 0 | 91504 | 91504 | 0 | 4341760 |  |
+| testDynamicStorageLibraryRamMode | yes | 4415488 | 4415488 | 0 | 93552 | 93552 | 0 | 4341760 |  |
+| testSimpleThreadManagerFallbackBehavior | yes | 4415488 | 4415488 | 0 | 93552 | 93552 | 0 | 4341760 |  |
+| testSimpleMutexFallbackBehavior | yes | 4415488 | 4485120 | 69632 | 93552 | 93552 | 0 | 4341760 |  |
+| testSimpleSemaphoreFallbackBehavior | yes | 4485120 | 4485120 | 0 | 93552 | 93552 | 0 | 4341760 |  |
+| testSimpleRWLockFallbackBehavior | yes | 4485120 | 4485120 | 0 | 93552 | 93696 | 144 | 4341760 |  |
+| testSimpleCoreRuntimeFallbackBehavior | yes | 4485120 | 4485120 | 0 | 93696 | 93696 | 0 | 4341760 |  |
+| testAVLTreeErrorCodes | yes | 4485120 | 4485120 | 0 | 93696 | 93744 | 48 | 4341760 |  |
 
 ### Per-test Memory Stats: optional-sd
 
 | Test | Passed | BeforeRSS | AfterRSS | DeltaRSS | BeforeHeap | AfterHeap | DeltaHeap | PeakAfterTest | Error |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| testArrayListBasicBehavior | yes | 3624960 | 3624960 | 0 | 77040 | 77312 | 272 | 3538944 |  |
-| testHashtableBasicBehavior | yes | 3624960 | 3633152 | 8192 | 77456 | 79648 | 2192 | 3538944 |  |
-| testSDListMemoryMode | yes | 3633152 | 3633152 | 0 | 79648 | 79744 | 96 | 3538944 |  |
-| testSDListFileIOMode | yes | 3633152 | 3825664 | 192512 | 79744 | 80848 | 1104 | 3731456 |  |
-| testCustomStringBehavior | yes | 3825664 | 3825664 | 0 | 80848 | 80848 | 0 | 3731456 |  |
-| testJSONRoundTrip | yes | 3825664 | 3960832 | 135168 | 80848 | 82320 | 1472 | 3862528 |  |
-| testArrayListChurnAndBoundaryHealth | yes | 3960832 | 3964928 | 4096 | 82320 | 85456 | 3136 | 3862528 |  |
-| testHashtableChurnAndBoundaryHealth | yes | 3964928 | 4071424 | 106496 | 85456 | 87120 | 1664 | 3993600 |  |
-| testSimpleVectorLifecycleStress | yes | 4071424 | 4071424 | 0 | 87120 | 87120 | 0 | 3993600 |  |
-| testJSONOptionalFeatureGateBehavior | yes | 4071424 | 4071424 | 0 | 89184 | 89184 | 0 | 3993600 |  |
-| testJSONFileRoundTrip | yes | 4071424 | 4071424 | 0 | 89184 | 89664 | 480 | 3993600 |  |
-| testSDListPersistenceStress | yes | 4071424 | 4071424 | 0 | 89616 | 89680 | 64 | 3993600 |  |
-| testJSONPersistenceStress | yes | 4071424 | 4071424 | 0 | 89680 | 90384 | 704 | 3993600 |  |
-| testAVLTreeBasicBehavior | yes | 4071424 | 4071424 | 0 | 90384 | 90544 | 160 | 3993600 |  |
-| testAVLTreeChurnAndHeightHealth | yes | 4071424 | 4071424 | 0 | 90544 | 90784 | 240 | 3993600 |  |
-| testPredicatesBasicBehavior | yes | 4071424 | 4071424 | 0 | 90784 | 90784 | 0 | 3993600 |  |
-| testOperatorsBasicBehavior | yes | 4071424 | 4071424 | 0 | 90784 | 90784 | 0 | 3993600 |  |
-| testDynamicStorageLibraryRamMode | yes | 4071424 | 4071424 | 0 | 92832 | 92832 | 0 | 3993600 |  |
-| testSimpleThreadManagerFallbackBehavior | yes | 4071424 | 4071424 | 0 | 92832 | 92832 | 0 | 3993600 |  |
-| testSimpleMutexFallbackBehavior | yes | 4071424 | 4141056 | 69632 | 92832 | 92832 | 0 | 3993600 |  |
-| testSimpleSemaphoreFallbackBehavior | yes | 4141056 | 4141056 | 0 | 92832 | 92832 | 0 | 3993600 |  |
-| testSimpleRWLockFallbackBehavior | yes | 4141056 | 4141056 | 0 | 92832 | 92976 | 144 | 3993600 |  |
-| testSimpleCoreRuntimeFallbackBehavior | yes | 4141056 | 4141056 | 0 | 92976 | 93088 | 112 | 3993600 |  |
-| testAVLTreeErrorCodes | yes | 4141056 | 4141056 | 0 | 93088 | 93136 | 48 | 3993600 |  |
+| testArrayListBasicBehavior | yes | 3620864 | 3620864 | 0 | 77040 | 77312 | 272 | 3473408 |  |
+| testHashtableBasicBehavior | yes | 3620864 | 3629056 | 8192 | 77456 | 79648 | 2192 | 3473408 |  |
+| testSDListMemoryMode | yes | 3629056 | 3629056 | 0 | 79648 | 79744 | 96 | 3473408 |  |
+| testSDListFileIOMode | yes | 3629056 | 3821568 | 192512 | 79744 | 80848 | 1104 | 3665920 |  |
+| testCustomStringBehavior | yes | 3821568 | 3821568 | 0 | 80848 | 80848 | 0 | 3665920 |  |
+| testJSONRoundTrip | yes | 3821568 | 3956736 | 135168 | 80848 | 82320 | 1472 | 3796992 |  |
+| testArrayListChurnAndBoundaryHealth | yes | 3956736 | 3960832 | 4096 | 82320 | 85456 | 3136 | 3796992 |  |
+| testHashtableChurnAndBoundaryHealth | yes | 3960832 | 4067328 | 106496 | 85456 | 87120 | 1664 | 3928064 |  |
+| testSimpleVectorLifecycleStress | yes | 4067328 | 4067328 | 0 | 87120 | 87120 | 0 | 3928064 |  |
+| testJSONOptionalFeatureGateBehavior | yes | 4067328 | 4067328 | 0 | 89184 | 89184 | 0 | 3928064 |  |
+| testJSONFileRoundTrip | yes | 4067328 | 4067328 | 0 | 89184 | 89664 | 480 | 3928064 |  |
+| testSDListPersistenceStress | yes | 4067328 | 4067328 | 0 | 89616 | 89680 | 64 | 3928064 |  |
+| testJSONPersistenceStress | yes | 4067328 | 4067328 | 0 | 89680 | 90384 | 704 | 3928064 |  |
+| testAVLTreeBasicBehavior | yes | 4067328 | 4067328 | 0 | 90384 | 90544 | 160 | 3928064 |  |
+| testAVLTreeChurnAndHeightHealth | yes | 4067328 | 4067328 | 0 | 90544 | 90784 | 240 | 3928064 |  |
+| testPredicatesBasicBehavior | yes | 4067328 | 4067328 | 0 | 90784 | 90784 | 0 | 3928064 |  |
+| testOperatorsBasicBehavior | yes | 4067328 | 4067328 | 0 | 90784 | 90784 | 0 | 3928064 |  |
+| testDynamicStorageLibraryRamMode | yes | 4067328 | 4067328 | 0 | 92832 | 92832 | 0 | 3928064 |  |
+| testSimpleThreadManagerFallbackBehavior | yes | 4067328 | 4067328 | 0 | 92832 | 92832 | 0 | 3928064 |  |
+| testSimpleMutexFallbackBehavior | yes | 4067328 | 4136960 | 69632 | 92832 | 92832 | 0 | 4059136 |  |
+| testSimpleSemaphoreFallbackBehavior | yes | 4136960 | 4136960 | 0 | 92832 | 92832 | 0 | 4059136 |  |
+| testSimpleRWLockFallbackBehavior | yes | 4136960 | 4136960 | 0 | 92832 | 92976 | 144 | 4059136 |  |
+| testSimpleCoreRuntimeFallbackBehavior | yes | 4136960 | 4136960 | 0 | 92976 | 93088 | 112 | 4059136 |  |
+| testAVLTreeErrorCodes | yes | 4136960 | 4136960 | 0 | 93088 | 93136 | 48 | 4059136 |  |
 
 ### Per-test Memory Stats: sd
 
