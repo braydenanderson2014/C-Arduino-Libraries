@@ -1656,15 +1656,22 @@ jobs:
             -Ilib/ArrayList/src \
             -Ilib/AVLTree/src \
             -Ilib/DynamicStorageLibrary/src \
+            -Ilib/ExtremeVariant/src \
             -Ilib/Hashtable/src \
             -Ilib/Json/src \
+            -Ilib/LinkedList/src \
             -Ilib/MathLib/src \
             -Ilib/Operators/src \
+            -Ilib/Optional/src \
+            -Ilib/OrderedMap/src \
             -Ilib/Predicates/src \
+            -Ilib/Queue/src \
             -Ilib/SimpleVector/src \
             -Ilib/SDList/src \
+            -Ilib/Stack/src \
             -Ilib/String/src \
             -Ilib/TypeTraits/src \
+            -Ilib/Variant/src \
             lib/Json/src/JSON.cpp \
             test/host_arduino_sim/host_stress_tests.cpp \
             -o test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}

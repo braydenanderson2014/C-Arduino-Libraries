@@ -52,7 +52,9 @@
 #include "Predicates.h"
 #include "Queue.h"
 #include "SimpleVector.h"
+#include "ExtremeVariant.h"
 #include "Stack.h"
+#include "Variant.h"
 
 // Mask applied to std::size_t loop counters before casting to int/key, keeping
 // the value non-negative regardless of the platform's int width.
@@ -520,6 +522,16 @@ int main() {
     instanceProbes.push_back(probeInstanceCount<OrderedMap<int, int>>(
         "OrderedMap_int_int", limitBytes, maxInstances,
         []() { return new OrderedMap<int, int>(); }
+    ));
+
+    instanceProbes.push_back(probeInstanceCount<Variant<int>>(
+        "Variant_int", limitBytes, maxInstances,
+        []() { return new Variant<int>(); }
+    ));
+
+    instanceProbes.push_back(probeInstanceCount<ExtremeVariant<int, int>>(
+        "ExtremeVariant_int_int", limitBytes, maxInstances,
+        []() { return new ExtremeVariant<int, int>(); }
     ));
 
     // ── Element fill probes ──────────────────────────────────────────────────
@@ -1131,6 +1143,27 @@ int main() {
             String recoveryKey("__recovery__");
             try { c.put(recoveryKey, String("ok")); } catch (const std::bad_alloc&) { return c.size() == before; }
             return c.get(recoveryKey) == String("ok");
+        }
+    ));
+
+    // Variant<int>
+    fillProbes.push_back(probeElementFill<Variant<int>>(
+        "Variant", "int", limitBytes, maxElements,
+        []() { return Variant<int>(); },
+        [](Variant<int>& c, std::size_t i) {
+            c.addValue(static_cast<int>(i & MAX_POSITIVE_INT_MASK));
+        },
+        [](Variant<int>& c, std::size_t expected) {
+            return static_cast<std::size_t>(c.size()) == expected;
+        },
+        [](Variant<int>& c, std::size_t expected) {
+            if (expected == 0) return static_cast<std::uint64_t>(0);
+            return static_cast<std::uint64_t>(c.size());
+        },
+        [](Variant<int>& c, std::size_t expected) {
+            const int recoveryVal = -1;
+            try { c.addValue(recoveryVal); } catch (const std::bad_alloc&) { return true; }
+            return c.size() > 0;
         }
     ));
 
