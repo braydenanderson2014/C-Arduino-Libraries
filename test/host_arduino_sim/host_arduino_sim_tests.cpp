@@ -684,6 +684,86 @@ void testSimpleVectorLifecycleStress() {
     }
 }
 
+#ifdef SIMPLE_VECTOR_SMART_RESIZE
+void testSimpleVectorSmartResizeAdaptive() {
+    SimpleVector<int> vec;
+    for (int i = 0; i < 500; ++i) {
+        vec.put(i);
+    }
+    expect(vec.elements() == 500, "Smart-resize adaptive: element count mismatch");
+    for (int i = 0; i < 500; ++i) {
+        expect(vec.get(i) == i, "Smart-resize adaptive: element value mismatch");
+    }
+    expect(vec.size() >= 500, "Smart-resize adaptive: capacity must hold all elements");
+}
+
+void testSimpleVectorSmartResizeFixed() {
+    SimpleVector<int> vec;
+    vec.setResizeAmount(50);
+    for (int i = 0; i < 300; ++i) {
+        vec.put(i);
+    }
+    expect(vec.elements() == 300, "Smart-resize fixed: element count mismatch");
+    for (int i = 0; i < 300; ++i) {
+        expect(vec.get(i) == i, "Smart-resize fixed: element value mismatch");
+    }
+    expect(vec.size() >= 300, "Smart-resize fixed: capacity must hold all elements");
+    // Switch back to adaptive
+    vec.setResizeAmount(0);
+    vec.put(9999);
+    expect(vec.elements() == 301, "Smart-resize fixed->adaptive: element count mismatch");
+}
+
+void testSimpleVectorReserveEstimated() {
+    SimpleVector<int> vec;
+    vec.reserveEstimated(1000);
+    expect(vec.size() >= 1000, "reserveEstimated: capacity should be >= 1000");
+    expect(vec.elements() == 0, "reserveEstimated: element count should be 0 after reserve");
+    for (int i = 0; i < 1000; ++i) {
+        vec.put(i);
+    }
+    expect(vec.elements() == 1000, "reserveEstimated: element count after fill mismatch");
+    expect(vec.size() >= 1000, "reserveEstimated: capacity after fill too small");
+}
+
+void testSimpleVectorSmartShrink() {
+    SimpleVector<int> vec;
+    for (int i = 0; i < 200; ++i) {
+        vec.put(i);
+    }
+    // Remove half by erasing from end repeatedly
+    for (int i = 0; i < 100; ++i) {
+        vec.erase(static_cast<int>(vec.elements()) - 1);
+    }
+    expect(vec.elements() == 100, "smartShrinkToFit: element count before shrink mismatch");
+    unsigned int capBefore = vec.size();
+    vec.smartShrinkToFit();
+    expect(vec.size() <= capBefore, "smartShrinkToFit: capacity should not grow");
+    expect(vec.elements() == 100, "smartShrinkToFit: element count should be preserved");
+    for (int i = 0; i < 100; ++i) {
+        expect(vec.get(i) == i, "smartShrinkToFit: element value mismatch after shrink");
+    }
+}
+
+void testSimpleVectorResetCounters() {
+    SimpleVector<int> vec;
+    for (int i = 0; i < 100; ++i) {
+        vec.put(i);
+    }
+    vec.resetSmartResizeCounters();
+    // After reset, next resize should behave as early (2x) rather than large-step
+    unsigned int capBefore = vec.size();
+    // Fill to capacity to trigger one more resize
+    while (vec.elements() < vec.size()) {
+        vec.put(0);
+    }
+    vec.put(0); // triggers resize
+    unsigned int capAfter = vec.size();
+    expect(capAfter > capBefore, "resetSmartResizeCounters: capacity should grow after reset+fill");
+    expect(vec.elements() <= capAfter, "resetSmartResizeCounters: elements must fit in capacity");
+}
+#endif // SIMPLE_VECTOR_SMART_RESIZE
+
 void testSDListPersistenceStress(const std::filesystem::path& rootPath) {
     const std::filesystem::path dataFile = rootPath / "sdlist_persistence_stress.bin";
     std::error_code ec;
@@ -1146,6 +1226,13 @@ int main() {
         runTestWithMemoryStats("testArrayListChurnAndBoundaryHealth", testArrayListChurnAndBoundaryHealth, memoryStats);
         runTestWithMemoryStats("testHashtableChurnAndBoundaryHealth", testHashtableChurnAndBoundaryHealth, memoryStats);
         runTestWithMemoryStats("testSimpleVectorLifecycleStress", testSimpleVectorLifecycleStress, memoryStats);
+#ifdef SIMPLE_VECTOR_SMART_RESIZE
+        runTestWithMemoryStats("testSimpleVectorSmartResizeAdaptive", testSimpleVectorSmartResizeAdaptive, memoryStats);
+        runTestWithMemoryStats("testSimpleVectorSmartResizeFixed", testSimpleVectorSmartResizeFixed, memoryStats);
+        runTestWithMemoryStats("testSimpleVectorReserveEstimated", testSimpleVectorReserveEstimated, memoryStats);
+        runTestWithMemoryStats("testSimpleVectorSmartShrink", testSimpleVectorSmartShrink, memoryStats);
+        runTestWithMemoryStats("testSimpleVectorResetCounters", testSimpleVectorResetCounters, memoryStats);
+#endif // SIMPLE_VECTOR_SMART_RESIZE
         runTestWithMemoryStats(
             "testJSONOptionalFeatureGateBehavior",
             testJSONOptionalFeatureGateBehavior,
