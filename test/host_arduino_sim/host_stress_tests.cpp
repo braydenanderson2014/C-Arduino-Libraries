@@ -48,6 +48,7 @@
 #include "Hashtable.h"
 #include "JSON.h"
 #include "Operators.h"
+#include "Optional.h"
 #include "OrderedMap.h"
 #include "Predicates.h"
 #include "Queue.h"
@@ -532,6 +533,21 @@ int main() {
     instanceProbes.push_back(probeInstanceCount<ExtremeVariant<int, int>>(
         "ExtremeVariant_int_int", limitBytes, maxInstances,
         []() { return new ExtremeVariant<int, int>(); }
+    ));
+
+    instanceProbes.push_back(probeInstanceCount<Optional<int>>(
+        "Optional_int", limitBytes, maxInstances,
+        []() { return new Optional<int>(); }
+    ));
+
+    instanceProbes.push_back(probeInstanceCount<Optional<float>>(
+        "Optional_float", limitBytes, maxInstances,
+        []() { return new Optional<float>(); }
+    ));
+
+    instanceProbes.push_back(probeInstanceCount<Optional<String>>(
+        "Optional_String", limitBytes, maxInstances,
+        []() { return new Optional<String>(); }
     ));
 
     // ── Element fill probes ──────────────────────────────────────────────────
