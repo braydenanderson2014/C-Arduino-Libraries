@@ -7,15 +7,21 @@
 #include <Arduino.h>
 #include "../../TypeTraits/src/TypeTraits.h"
 
-//#define IKnowWhatIAmDoing   // Uncomment to unlock advanced memory-control functions; USE AT YOUR OWN RISK
-//#define SkinnyArray         // Uncomment to remove memory-intensive features and save flash/RAM on constrained devices
-//#define AL_NO_SERIAL        // Uncomment to suppress all Serial output from this library (useful when Serial is not initialized)
-//#define AL_SMART_RESIZE     // Uncomment to enable smart adaptive resizing (reduces resize frequency during bulk adds)
+//#define IKnowWhatIAmDoing         // Uncomment to unlock advanced memory-control functions; USE AT YOUR OWN RISK
+//#define SkinnyArray               // Uncomment to remove memory-intensive features and save flash/RAM on constrained devices
+//#define AL_NO_SERIAL              // Uncomment to suppress all Serial output from this library (useful when Serial is not initialized)
+//#define AL_SMART_RESIZE           // Uncomment to enable smart adaptive resizing (reduces resize frequency during bulk adds)
+//#define AL_ENABLE_NUMERIC_LIMITS  // Uncomment to enable numeric_limits integration (requires Numeric_Limits library — optional dependency)
 
 // PlatformIO users can also set any of the above via build_flags in platformio.ini, e.g.:
 //   build_flags = -DSkinnyArray -DAL_NO_SERIAL
 //   build_flags = -DSkinnyArray -DOverrideSort
 //   build_flags = -DAL_SMART_RESIZE
+//   build_flags = -DAL_ENABLE_NUMERIC_LIMITS
+
+#ifdef AL_ENABLE_NUMERIC_LIMITS
+    #include <Numeric_Limits.h>
+#endif
 
 /**
  * @attention When SkinnyArray is defined, the directives below can selectively restore
@@ -559,6 +565,37 @@ public:
     size_t size() const {
         return count;
     }
+
+#ifdef AL_ENABLE_NUMERIC_LIMITS
+    /**
+     * @brief Returns the memory currently used by the internal array (in bytes).
+     * @details Includes only the element storage array, not object overhead.
+     * @return Bytes consumed by the backing array.
+     */
+    size_t memoryUsage() const {
+        return arrayCapacity * sizeof(T);
+    }
+
+    /**
+     * @brief Returns the theoretical maximum number of elements this ArrayList
+     *        could hold, limited by the maximum value of size_t on this platform.
+     * @return The upper bound on element count as reported by numeric_limits.
+     */
+    size_t theoreticalMaxElements() const {
+        return static_cast<size_t>(numeric_limits<size_t>::Max());
+    }
+
+    /**
+     * @brief Returns the ratio of elements stored to the theoretical maximum
+     *        element count, expressed as a float in the range [0.0, 1.0].
+     * @return Memory utilization fraction (current count / theoretical max).
+     */
+    float memoryUtilization() const {
+        const size_t maxElems = theoreticalMaxElements();
+        if (maxElems == 0) return 0.0f;
+        return static_cast<float>(count) / static_cast<float>(maxElems);
+    }
+#endif // AL_ENABLE_NUMERIC_LIMITS
 
     /**
      * @brief Returns true if the ArrayList contains no elements.

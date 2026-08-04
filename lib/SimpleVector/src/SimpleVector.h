@@ -2,6 +2,14 @@
 #define SIMPLEVECTOR_H
 
 #include <Arduino.h>
+
+//#define SV_ENABLE_NUMERIC_LIMITS  // Uncomment to enable numeric_limits integration (requires Numeric_Limits library — optional dependency)
+// PlatformIO: build_flags = -DSV_ENABLE_NUMERIC_LIMITS
+
+#ifdef SV_ENABLE_NUMERIC_LIMITS
+    #include <Numeric_Limits.h>
+#endif
+
 #if defined(ESP32) || defined(ESPRESSIF32) || defined(ESP8266) || defined(ESP32S2) || defined(ESP32C3)
     //#include <initializer_list>
     #define useInit
@@ -483,6 +491,37 @@ bool operator==(const SimpleVector<T>& other) const {
         }
         return this -> count;
     }
+
+#ifdef SV_ENABLE_NUMERIC_LIMITS
+    /**
+     * @brief Returns the memory currently used by the internal array (in bytes).
+     * @details Includes only the element storage array, not object overhead.
+     * @return Bytes consumed by the backing array.
+     */
+    unsigned int memoryUsage() const {
+        return capacity * sizeof(T);
+    }
+
+    /**
+     * @brief Returns the theoretical maximum number of elements this SimpleVector
+     *        could hold, limited by the maximum value of unsigned int on this platform.
+     * @return The upper bound on element count as reported by numeric_limits.
+     */
+    unsigned int theoreticalMaxElements() const {
+        return numeric_limits<unsigned int>::Max();
+    }
+
+    /**
+     * @brief Returns the ratio of elements stored to the theoretical maximum
+     *        element count, expressed as a float in the range [0.0, 1.0].
+     * @return Memory utilization fraction (current count / theoretical max).
+     */
+    float memoryUtilization() const {
+        const unsigned int maxElems = theoreticalMaxElements();
+        if (maxElems == 0) return 0.0f;
+        return static_cast<float>(count) / static_cast<float>(maxElems);
+    }
+#endif // SV_ENABLE_NUMERIC_LIMITS
 
 // Get the element at the specified index
     /**
