@@ -1931,7 +1931,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Download host simulation artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           pattern: host-arduino-sim*
@@ -1939,7 +1939,7 @@ jobs:
           path: .artifacts/host-sim
 
       - name: Download compile smoke artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           pattern: host-*library-compile-*
@@ -1947,7 +1947,7 @@ jobs:
           path: .artifacts/host-compile
 
       - name: Download stress profile artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           pattern: host-stress-report-*
