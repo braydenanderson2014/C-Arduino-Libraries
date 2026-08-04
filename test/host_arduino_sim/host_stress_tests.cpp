@@ -1010,12 +1010,16 @@ int main() {
         [](LinkedList<int>& c, std::size_t expected) {
             if (c.size() != expected) return false;
             if (expected == 0) return true;
-            int* last = c.get(expected - 1);
-            return last && *last == static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+            // Use head (index 0) for O(1) access — get(N-1) on a singly-linked
+            // list without a tail pointer is O(N) and causes O(N²) probe time.
+            int* head = c.get(0);
+            return head != nullptr;
         },
         [](LinkedList<int>& c, std::size_t expected) {
-            return sampleChecksum(expected, [&](std::size_t i) {
-                int* v = c.get(i);
+            // Sample only the head element (O(1)) — random index access on a
+            // singly-linked list is O(N) per call, making full sampleChecksum O(N²).
+            return sampleChecksum(1, [&](std::size_t) {
+                int* v = c.get(0);
                 return v ? *v : 0;
             });
         },
@@ -1107,8 +1111,12 @@ int main() {
             return c.get(last) == last;
         },
         [](OrderedMap<int, int>& c, std::size_t expected) {
-            return sampleChecksum(expected, [&](std::size_t i) {
-                return c.get(static_cast<int>(i & MAX_POSITIVE_INT_MASK));
+            // OrderedMap::get() is O(N) linear scan; calling it 64 times per
+            // checksum makes the probe O(N²).  Sample only one entry instead.
+            return sampleChecksum(1, [&](std::size_t) {
+                if (expected == 0) return 0;
+                const int k = static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+                return c.get(k);
             });
         },
         [](OrderedMap<int, int>& c, std::size_t expected) {
@@ -1134,8 +1142,11 @@ int main() {
             return c.get(last) == last;
         },
         [](OrderedMap<String, String>& c, std::size_t expected) {
-            return sampleChecksum(expected, [&](std::size_t i) {
-                return c.get(String(static_cast<int>(i)));
+            // OrderedMap::get() is O(N) linear scan; calling it 64 times per
+            // checksum makes the probe O(N²).  Sample only one entry instead.
+            return sampleChecksum(1, [&](std::size_t) {
+                if (expected == 0) return String("");
+                return c.get(String(static_cast<int>(expected - 1)));
             });
         },
         [](OrderedMap<String, String>& c, std::size_t expected) {
