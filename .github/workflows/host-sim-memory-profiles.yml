@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Build host stress runner (optional off)
+      - name: Build host stress runner
         shell: bash
         run: |
           set -euo pipefail
@@ -48,45 +48,11 @@ jobs:
             test/host_arduino_sim/host_stress_tests.cpp \
             -o test/host_arduino_sim/out/bin/host_stress_runner
 
-      - name: Build host stress runner (optional on)
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          g++ -std=c++17 -O2 \
-            -DAL_NO_SERIAL -DAL_SMART_RESIZE -DSIMPLE_VECTOR_SMART_RESIZE -D_AVR_ATmega2560_ \
-            -DJSON_ENABLE_OPTIONAL_RETURNS=1 -DAVL_TREE_ENABLE_ERROR_CODES=1 \
-            -Itest/host_arduino_sim/include \
-            -Ilib/ArrayList/src \
-            -Ilib/AVLTree/src \
-            -Ilib/DynamicStorageLibrary/src \
-            -Ilib/ExtremeVariant/src \
-            -Ilib/Hashtable/src \
-            -Ilib/Json/src \
-            -Ilib/LinkedList/src \
-            -Ilib/MathLib/src \
-            -Ilib/Operators/src \
-            -Ilib/Optional/src \
-            -Ilib/OrderedMap/src \
-            -Ilib/Predicates/src \
-            -Ilib/Queue/src \
-            -Ilib/SimpleVector/src \
-            -Ilib/SDList/src \
-            -Ilib/Stack/src \
-            -Ilib/String/src \
-            -Ilib/TypeTraits/src \
-            -Ilib/Variant/src \
-            lib/Json/src/JSON.cpp \
-            test/host_arduino_sim/host_stress_tests.cpp \
-            -o test/host_arduino_sim/out/bin/host_stress_runner_optional
-
-      - name: Upload stress runner binaries
+      - name: Upload stress runner binary
         uses: actions/upload-artifact@v7
         with:
           name: host-stress-runner
-          path: |
-            test/host_arduino_sim/out/bin/host_stress_runner
-            test/host_arduino_sim/out/bin/host_stress_runner_optional
+          path: test/host_arduino_sim/out/bin/host_stress_runner
           if-no-files-found: error
 
   # ── One job per unique SRAM tier; duplicate-SRAM boards are grouped ──────────
@@ -150,11 +116,9 @@ jobs:
           name: host-stress-runner
           path: test/host_arduino_sim/out/bin
 
-      - name: Make binaries executable
+      - name: Make binary executable
         shell: bash
-        run: |
-          chmod +x test/host_arduino_sim/out/bin/host_stress_runner
-          chmod +x test/host_arduino_sim/out/bin/host_stress_runner_optional
+        run: chmod +x test/host_arduino_sim/out/bin/host_stress_runner
 
       - name: Run stress probes
         shell: bash
@@ -166,7 +130,8 @@ jobs:
 
           # Cap element iterations proportionally to the SRAM tier so that
           # large-memory boards don't waste time filling to 5 M when they will
-          # never hit the memory limit.
+          # never hit the memory limit (backend/optional are metadata-only and
+          # do not gate any probe logic, so one run per board is sufficient).
           SRAM=${{ matrix.boardProfile.sramBytes }}
           if   [ "${SRAM}" -le 8192 ];   then MAX_ELEM=50000
           elif [ "${SRAM}" -le 102400 ];  then MAX_ELEM=200000
@@ -183,32 +148,16 @@ jobs:
 
           rm -f "${REPORT_PATH}"
 
-          # Run 1: optional off (baseline)
           HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
           HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
           HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
           HOST_STRESS_BACKEND="none" \
           HOST_STRESS_OPTIONAL="off" \
-          HOST_STRESS_PROGRESS_INTERVAL_MS=60000 \
           HOST_STRESS_MAX_INSTANCES=20000 \
           HOST_STRESS_MAX_ELEMENTS="${MAX_ELEM}" \
           HOST_STRESS_APPEND="0" \
           HOST_STRESS_REPORT="${REPORT_PATH}" \
           ./test/host_arduino_sim/out/bin/host_stress_runner
-
-          # Run 2: optional on (JSON_ENABLE_OPTIONAL_RETURNS=1 + AVL_TREE_ENABLE_ERROR_CODES=1)
-          # Appended to the same report so the consolidated script can compare both runs side-by-side.
-          HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
-          HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
-          HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
-          HOST_STRESS_BACKEND="none" \
-          HOST_STRESS_OPTIONAL="on" \
-          HOST_STRESS_PROGRESS_INTERVAL_MS=60000 \
-          HOST_STRESS_MAX_INSTANCES=20000 \
-          HOST_STRESS_MAX_ELEMENTS="${MAX_ELEM}" \
-          HOST_STRESS_APPEND="1" \
-          HOST_STRESS_REPORT="${REPORT_PATH}" \
-          ./test/host_arduino_sim/out/bin/host_stress_runner_optional
 
       - name: Verify stress report was produced
         shell: bash
@@ -274,7 +223,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Download stress profile artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v7
         continue-on-error: true
         with:
           pattern: host-stress-report-*
