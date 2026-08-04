@@ -9,45 +9,9 @@ permissions:
   contents: read
 
 jobs:
-  host-stress-profiles:
+  # ── Build the stress runner binary once; all board jobs share it ─────────────
+  build-stress-runner:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        boardProfile:
-          - board: uno
-            sramBytes: 2048
-          - board: nano
-            sramBytes: 2048
-          - board: micro
-            sramBytes: 2560
-          - board: leonardo
-            sramBytes: 2560
-          - board: mega2560
-            sramBytes: 8192
-          - board: due
-            sramBytes: 98304
-          - board: zero
-            sramBytes: 32768
-          - board: uno_r4
-            sramBytes: 32768
-          - board: mkr1000
-            sramBytes: 32768
-          - board: esp8266
-            sramBytes: 81920
-          - board: esp32
-            sramBytes: 532480
-          - board: esp32s3
-            sramBytes: 524288
-          - board: esp32c3
-            sramBytes: 400000
-          - board: unoq
-            sramBytes: 32768
-          - board: ventunoq
-            sramBytes: 65536
-
-    name: Stress profile (${{ matrix.boardProfile.board }})
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -82,7 +46,79 @@ jobs:
             -Ilib/Variant/src \
             lib/Json/src/JSON.cpp \
             test/host_arduino_sim/host_stress_tests.cpp \
-            -o test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}
+            -o test/host_arduino_sim/out/bin/host_stress_runner
+
+      - name: Upload stress runner binary
+        uses: actions/upload-artifact@v7
+        with:
+          name: host-stress-runner
+          path: test/host_arduino_sim/out/bin/host_stress_runner
+          if-no-files-found: error
+
+  # ── One job per unique SRAM tier; duplicate-SRAM boards are grouped ──────────
+  host-stress-profiles:
+    needs: build-stress-runner
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        boardProfile:
+          # 2 KB  (uno & nano share this tier)
+          - board: uno
+            sramBytes: 2048
+            represents: "uno, nano"
+          # 2.5 KB  (micro & leonardo)
+          - board: micro
+            sramBytes: 2560
+            represents: "micro, leonardo"
+          # 8 KB
+          - board: mega2560
+            sramBytes: 8192
+            represents: "mega2560"
+          # 32 KB  (zero, uno_r4, mkr1000, unoq)
+          - board: zero
+            sramBytes: 32768
+            represents: "zero, uno_r4, mkr1000, unoq"
+          # 64 KB
+          - board: ventunoq
+            sramBytes: 65536
+            represents: "ventunoq"
+          # 80 KB
+          - board: esp8266
+            sramBytes: 81920
+            represents: "esp8266"
+          # 96 KB
+          - board: due
+            sramBytes: 98304
+            represents: "due"
+          # 390 KB
+          - board: esp32c3
+            sramBytes: 400000
+            represents: "esp32c3"
+          # 512 KB
+          - board: esp32s3
+            sramBytes: 524288
+            represents: "esp32s3"
+          # 520 KB
+          - board: esp32
+            sramBytes: 532480
+            represents: "esp32"
+
+    name: Stress profile (${{ matrix.boardProfile.board }})
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Download stress runner binary
+        uses: actions/download-artifact@v7
+        with:
+          name: host-stress-runner
+          path: test/host_arduino_sim/out/bin
+
+      - name: Make binary executable
+        shell: bash
+        run: chmod +x test/host_arduino_sim/out/bin/host_stress_runner
 
       - name: Run stress probes
         shell: bash
@@ -92,31 +128,36 @@ jobs:
           # Scale physical SRAM to a host-process heap-delta budget by 1024x.
           MEM_LIMIT_BYTES=$(( ${{ matrix.boardProfile.sramBytes }} * 1024 ))
 
+          # Cap element iterations proportionally to the SRAM tier so that
+          # large-memory boards don't waste time filling to 5 M when they will
+          # never hit the memory limit (backend/optional are metadata-only and
+          # do not gate any probe logic, so one run per board is sufficient).
+          SRAM=${{ matrix.boardProfile.sramBytes }}
+          if   [ "${SRAM}" -le 8192 ];   then MAX_ELEM=50000
+          elif [ "${SRAM}" -le 102400 ];  then MAX_ELEM=200000
+          elif [ "${SRAM}" -le 614400 ];  then MAX_ELEM=1000000
+          else MAX_ELEM=5000000
+          fi
+
           REPORT_PATH="test/host_arduino_sim/out/stress-${{ matrix.boardProfile.board }}.json"
 
-          echo "Board: ${{ matrix.boardProfile.board }}"
+          echo "Board: ${{ matrix.boardProfile.board }} (represents: ${{ matrix.boardProfile.represents }})"
           echo "SRAM bytes: ${{ matrix.boardProfile.sramBytes }}"
           echo "Host heap-delta limit bytes: ${MEM_LIMIT_BYTES}"
+          echo "Max elements cap: ${MAX_ELEM}"
 
           rm -f "${REPORT_PATH}"
 
-          append_mode=0
-          for backend in SD LittleFS; do
-            for optional in off on; do
-              echo "Running stress probe backend=${backend} optional=${optional} append=${append_mode}"
-              HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
-              HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
-              HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
-              HOST_STRESS_BACKEND="${backend}" \
-              HOST_STRESS_OPTIONAL="${optional}" \
-              HOST_STRESS_MAX_INSTANCES=20000 \
-              HOST_STRESS_MAX_ELEMENTS=5000000 \
-              HOST_STRESS_APPEND="${append_mode}" \
-              HOST_STRESS_REPORT="${REPORT_PATH}" \
-              ./test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}
-              append_mode=1
-            done
-          done
+          HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
+          HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
+          HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
+          HOST_STRESS_BACKEND="none" \
+          HOST_STRESS_OPTIONAL="off" \
+          HOST_STRESS_MAX_INSTANCES=20000 \
+          HOST_STRESS_MAX_ELEMENTS="${MAX_ELEM}" \
+          HOST_STRESS_APPEND="0" \
+          HOST_STRESS_REPORT="${REPORT_PATH}" \
+          ./test/host_arduino_sim/out/bin/host_stress_runner
 
       - name: Verify stress report was produced
         shell: bash
@@ -130,43 +171,40 @@ jobs:
             exit 1
           fi
 
-            python3 - "${REPORT_PATH}" <<'PY'
-            import json
-            import sys
+          python3 - "${REPORT_PATH}" <<'PY'
+          import json
+          import sys
 
-            report_path = sys.argv[1]
-            raw = open(report_path, encoding="utf-8").read()
-            decoder = json.JSONDecoder()
-            i = 0
-            n = len(raw)
-            runs = []
+          report_path = sys.argv[1]
+          raw = open(report_path, encoding="utf-8").read()
+          decoder = json.JSONDecoder()
+          i = 0
+          n = len(raw)
+          runs = []
 
-            while i < n:
-              while i < n and raw[i].isspace():
-                i += 1
-              if i >= n:
-                break
-              value, j = decoder.raw_decode(raw, i)
-              if isinstance(value, dict):
-                runs.append(value)
-              i = j
+          while i < n:
+            while i < n and raw[i].isspace():
+              i += 1
+            if i >= n:
+              break
+            value, j = decoder.raw_decode(raw, i)
+            if isinstance(value, dict):
+              runs.append(value)
+            i = j
 
-            if not runs:
-              raise SystemExit("Stress report appears empty.")
+          if not runs:
+            raise SystemExit("Stress report appears empty.")
 
-            if len(runs) < 4:
-              raise SystemExit(f"Expected at least 4 appended stress runs, found {len(runs)}")
+          total_instance = sum(len(run.get("instanceCountProbes", [])) for run in runs)
+          total_fill = sum(len(run.get("elementFillProbes", [])) for run in runs)
 
-            total_instance = sum(len(run.get("instanceCountProbes", [])) for run in runs)
-            total_fill = sum(len(run.get("elementFillProbes", [])) for run in runs)
+          print(f"Runs: {len(runs)}")
+          print(f"Instance probes total: {total_instance}")
+          print(f"Element fill probes total: {total_fill}")
 
-            print(f"Appended runs: {len(runs)}")
-            print(f"Instance probes total: {total_instance}")
-            print(f"Element fill probes total: {total_fill}")
-
-            if total_instance < 1 or total_fill < 1:
-              raise SystemExit("Stress report appears to have no probes.")
-            PY
+          if total_instance < 1 or total_fill < 1:
+            raise SystemExit("Stress report appears to have no probes.")
+          PY
 
       - name: Upload stress profile report
         if: always()
