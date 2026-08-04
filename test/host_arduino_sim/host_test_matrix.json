@@ -8,7 +8,7 @@
   "libraries": {
     ".": {
       "compile": {
-        "backends": ["sd", "littlefs"],
+        "backends": ["sd"],
         "optionalModes": ["off", "on"]
       }
     },
@@ -32,13 +32,13 @@
     },
     "lib/Json": {
       "compile": {
-        "backends": ["sd", "littlefs"],
+        "backends": ["sd"],
         "optionalModes": ["off", "on"]
       }
     },
     "lib/SDList": {
       "compile": {
-        "backends": ["sd", "littlefs"],
+        "backends": ["sd"],
         "optionalModes": ["off"]
       }
     },

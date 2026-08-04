@@ -535,21 +535,6 @@ int main() {
         []() { return new ExtremeVariant<int, int>(); }
     ));
 
-    instanceProbes.push_back(probeInstanceCount<Optional<int>>(
-        "Optional_int", limitBytes, maxInstances,
-        []() { return new Optional<int>(); }
-    ));
-
-    instanceProbes.push_back(probeInstanceCount<Optional<float>>(
-        "Optional_float", limitBytes, maxInstances,
-        []() { return new Optional<float>(); }
-    ));
-
-    instanceProbes.push_back(probeInstanceCount<Optional<String>>(
-        "Optional_String", limitBytes, maxInstances,
-        []() { return new Optional<String>(); }
-    ));
-
     // ── Element fill probes ──────────────────────────────────────────────────
     // Measures how many elements fit in a single container instance.
 
@@ -655,6 +640,38 @@ int main() {
         }
     ));
 
+    // ArrayList<Optional<int>>
+    // Measures how many Optional<int>-wrapped elements fit vs bare int (see ArrayList<int> above).
+    fillProbes.push_back(probeElementFill<ArrayList<Optional<int>>>(
+        "ArrayList", "Optional_int", limitBytes, maxElements,
+        []() { return ArrayList<Optional<int>>(ArrayList<Optional<int>>::DYNAMIC2, 8); },
+        [](ArrayList<Optional<int>>& c, std::size_t i) {
+            c.add(Optional<int>(static_cast<int>(i & MAX_POSITIVE_INT_MASK)));
+        },
+        [](ArrayList<Optional<int>>& c, std::size_t expected) {
+            if (c.size() != expected) return false;
+            if (expected == 0) return true;
+            const Optional<int> last = c.get(expected - 1);
+            return last.hasValue() && last.getValue() == static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+        },
+        [](ArrayList<Optional<int>>& c, std::size_t expected) {
+            return sampleChecksum(expected, [&](std::size_t i) {
+                const Optional<int> v = c.get(i);
+                return v.hasValue() ? static_cast<double>(v.getValue()) : 0.0;
+            });
+        },
+        [](ArrayList<Optional<int>>& c, std::size_t expected) {
+            const std::size_t before = c.size();
+            try {
+                if (!c.insert(before, Optional<int>(0x5a5a5a5a))) return c.size() == before;
+            } catch (const std::bad_alloc&) {
+                return c.size() == before;
+            }
+            c.remove(c.size() - 1);
+            return c.size() == before && before == expected;
+        }
+    ));
+
     // SimpleVector<int>
     fillProbes.push_back(probeElementFill<SimpleVector<int>>(
         "SimpleVector", "int", limitBytes, maxElements,
@@ -716,6 +733,38 @@ int main() {
             const unsigned int before = c.elements();
             try {
                 c.put(2.0);
+            } catch (const std::bad_alloc&) {
+                return c.elements() == before;
+            }
+            c.erase(static_cast<int>(c.elements() - 1));
+            return c.elements() == before && before == expected;
+        }
+    ));
+
+    // SimpleVector<Optional<int>>
+    // Measures how many Optional<int>-wrapped elements fit vs bare int (see SimpleVector<int> above).
+    fillProbes.push_back(probeElementFill<SimpleVector<Optional<int>>>(
+        "SimpleVector", "Optional_int", limitBytes, maxElements,
+        []() { return SimpleVector<Optional<int>>(); },
+        [](SimpleVector<Optional<int>>& c, std::size_t i) {
+            c.put(Optional<int>(static_cast<int>(i & MAX_POSITIVE_INT_MASK)));
+        },
+        [](SimpleVector<Optional<int>>& c, std::size_t expected) {
+            if (static_cast<std::size_t>(c.elements()) != expected) return false;
+            if (expected == 0) return true;
+            const Optional<int> last = c.get(static_cast<unsigned int>(expected - 1));
+            return last.hasValue() && last.getValue() == static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+        },
+        [](SimpleVector<Optional<int>>& c, std::size_t expected) {
+            return sampleChecksum(expected, [&](std::size_t i) {
+                const Optional<int> v = c.get(static_cast<unsigned int>(i));
+                return v.hasValue() ? static_cast<double>(v.getValue()) : 0.0;
+            });
+        },
+        [](SimpleVector<Optional<int>>& c, std::size_t expected) {
+            const unsigned int before = c.elements();
+            try {
+                c.put(Optional<int>(0x7f7f7f7f));
             } catch (const std::bad_alloc&) {
                 return c.elements() == before;
             }
