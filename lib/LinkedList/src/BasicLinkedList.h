@@ -32,6 +32,7 @@ template <typename T>
 class LinkedList {
 private:
     ListNode<T>* head;
+    ListNode<T>* tail;
     size_t Size;
 public:
 class ForwardIterator {
@@ -74,7 +75,7 @@ class ForwardIterator {
      * @brief Instantiate a new LinkedList object
      * 
     */
-    LinkedList() : head(nullptr), Size(0) {}
+    LinkedList() : head(nullptr), tail(nullptr), Size(0) {}
 
     /**
      * @brief Destructor
@@ -106,12 +107,10 @@ class ForwardIterator {
         ListNode<T>* newNode = new ListNode<T>(value);
         if (!head) {
             head = newNode;
+            tail = newNode;
         } else {
-            ListNode<T>* current = head;
-            while (current->next) {
-                current = current->next;
-            }
-            current->next = newNode;
+            tail->next = newNode;
+            tail = newNode;
         }
         Size++;
     }
@@ -126,6 +125,9 @@ class ForwardIterator {
         ListNode<T>* newNode = new ListNode<T>(value);
         newNode->next = head;
         head = newNode;
+        if (!tail) {
+            tail = newNode;
+        }
         Size++;
     }
 
@@ -152,6 +154,9 @@ class ForwardIterator {
             }
             newNode->next = current->next;
             current->next = newNode;
+            if (newNode->next == nullptr) {
+                tail = newNode;
+            }
             
             Size++;
         }
@@ -170,7 +175,7 @@ class ForwardIterator {
     void insert(const T& value, size_t position) {
         if (position == 0) {
             prepend(value);
-        } else if (position >= size) {
+        } else if (position >= Size) {
             append(value);
         } else {
             ListNode<T>* newNode = new ListNode<T>(value);
@@ -180,6 +185,9 @@ class ForwardIterator {
             }
             newNode->next = current->next;
             current->next = newNode;
+            if (newNode->next == nullptr) {
+                tail = newNode;
+            }
             Size++;
         }
     }
@@ -197,6 +205,9 @@ class ForwardIterator {
         if(index == 0){
             ListNode<T>* temp = head;
             head = head->next;
+            if (!head) {
+                tail = nullptr;
+            }
             delete temp;
             Size--;
             return LL_SUCCESS;
@@ -207,6 +218,9 @@ class ForwardIterator {
         }
         ListNode<T>* temp = current->next;
         current->next = temp->next;
+        if (temp == tail) {
+            tail = current;
+        }
         delete temp;
         Size--;
         return LL_SUCCESS;
@@ -223,6 +237,9 @@ class ForwardIterator {
         if (head->data == value) {
             ListNode<T>* temp = head;
             head = head->next;
+            if (!head) {
+                tail = nullptr;
+            }
             delete temp;
             Size--;
             return LL_SUCCESS;
@@ -233,6 +250,9 @@ class ForwardIterator {
             if (current->next->data == value) {
                 ListNode<T>* temp = current->next;
                 current->next = current->next->next;
+                if (temp == tail) {
+                    tail = current;
+                }
                 delete temp;
                 Size--;
                 return LL_SUCCESS;
@@ -354,6 +374,7 @@ return String("LL_OUT_OF_BOUNDS");
             head = head->next;
             delete temp;
         }
+        tail = nullptr;
         Size = 0;
     }
 
