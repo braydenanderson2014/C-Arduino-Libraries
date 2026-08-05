@@ -1,171 +1,504 @@
-# Properties Class
+# SimpleProperties
 
-The `Properties` class is a C++ class that provides a simple key-value store for managing properties. It allows you to store and retrieve key-value pairs, save properties to an SD card, load properties from an SD card, and perform other operations commonly used for managing configurations and settings.
+[![SimpleProperties](https://badges.registry.platformio.org/packages/braydenanderson2014/library/SimpleProperties.svg)](https://registry.platformio.org/libraries/braydenanderson2014/SimpleProperties)
 
-## Usage
+A C++ library for managing Java-style key/value properties on Arduino.  
+Supports **SD cards**, **LittleFS** (ESP32 / ESP8266), and any other `fs::FS`-compatible filesystem.  
+Backed by the `Hashtable` library and serialises to eight file formats.
 
-To use the `Properties` class, follow these steps:
+---
 
-1. Include the necessary header files (`Properties.h` and `Hashtable.h`) in your C++ program.
-2. Create an instance of the `Properties` class.
-3. Use the provided methods to set, get, remove, or manipulate properties as needed.
+## What's new in 1.2.1
+- Fully rewrote the example sketch with detailed, section-by-section coverage of every API.
+- Expanded README to include a complete API reference, all-format code examples, and corrected LittleFS patterns.
+- Documented `LittleFSProperties` shim, `setBypassSDBegin`, `setFilesystem`, and the `PropertiesIterator`.
+- Bumped version to 1.2.1.
+
+## What's new in 1.2.0
+- Added broader filesystem support for SD, LittleFS, and injected `fs::FS` backends.
+- Improved YAML, JSON, TOML, INI, and CSV parsing/serialisation behaviour.
+- Fixed issues around trailing commas, blank/comment line handling, and file-loading edge cases.
+- Refined API documentation and compatibility with the latest Hashtable and SimpleVector.
+
+---
+
+## Table of Contents
+1. [Installation](#installation)
+2. [Choosing a Backend](#choosing-a-backend)
+3. [Quick-Start Examples](#quick-start-examples)
+4. [API Reference](#api-reference)
+5. [Supported File Formats](#supported-file-formats)
+6. [Key/Value Separators (IDENTIFIERTYPE)](#keyvalue-separators-identifiertype)
+7. [LittleFSProperties Shim](#littlefspropertiesshim)
+8. [ChangeLog](#changelog)
+
+---
 
 ## Installation
 
-```powershell
-git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Properties.git" OR
-git clone "https://github.com/braydenanderson2014/SimpleProperties.git"
-
-git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Hashtable.git" OR
-git clone "https://github.com/braydenanderson2014/ArduinoHashtable.git"
-
-git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/SimpleVector.git" OR
-git clone "https://github.com/braydenanderson2014/SimpleVector.git"
-
-
-```
-## Header
-
-If you want to Utilize this Library. Please include the 
-```cpp 
-#include <Properties.h> 
+**PlatformIO** – add to `platformio.ini`:
+```ini
+lib_deps =
+    braydenanderson2014/SimpleProperties
+    braydenanderson2014/Hashtable
+    braydenanderson2014/SimpleVector
 ```
 
-If you use the Properties library outside of platformio, please also add the 
+**Arduino IDE** – install via the Library Manager, or clone manually:
+```bash
+git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
+```
+Then copy `lib/Properties`, `lib/Hashtable`, and `lib/SimpleVector` into your Arduino `libraries/` folder.
+
+---
+
+## Choosing a Backend
+
+`Properties.h` supports three backends. All file I/O (save, load, store, delete) is transparently routed through whichever backend is active.
+
+| Backend | How to activate | SD.begin() called? |
+|---|---|---|
+| **SD card** (default) | `props.begin(csPin)` | Yes (automatic) |
+| **LittleFS / SPIFFS / SD_MMC** | `props.begin(LittleFS)` or constructor injection | No |
+| **Bypass SD auto-init** | `props.setBypassSDBegin(true)` | Never (caller manages it) |
+
+> **Note:** `LittleFSProperties.h` is a thin backwards-compatible shim around `Properties.h`.
+> New code should use `Properties.h` directly.
+
+---
+
+## Quick-Start Examples
+
+### SD card (default)
 ```cpp
-#include <Hashtable.h>
-#include <SimpleVector.h>
-#include <iostream.h>
-```
+#include <Properties.h>
 
-You may also need:
-* RTCLib
-* LiquidCrystal
-* LiquidCrystal_I2C
-
-# LITTLEFSPROPERTIES:
-## ChangeLog
-### UNOFFICIAL RELEASE 1
-* Initital Untested/Unpublished Release
-### UNOFFICIAL RELEASE 2
-* Added Support for new MbedLittleFSWrapper Library (Also Unpublished as of 03/28/2024) [NOTE]: If you want to use the new LITTLEFSPROPERTIES library, you will need to download the necessary files from the github repository. You will need the littlefs-master and MbedLittleFSWrapper libraries contained inside the main repository: C-Arduino-Libraries.
-* Added new ChipSelect pin customizability to match Original Properties Library.
-
-
-# PROPERTIES
-
-# ARDUINO
-## ChangeLog
-### Version 1.0.0:
-* Initial Release
-### Version 1.0.1 - BETA: [CURRENT-RELEASE] -> [BETA]
-* Added Support for Several New File types Including (.csv, .json, .xml, .toml, .ini, .yaml)
-* Added Support for creating your own custom Key-Value Pair file. The saveToSD, store, and loadFromSD functions will read a new enum variable called IDENTIFIERTYPE. The Available options are: EQUALS (=), COLEN (:), SEMICOLEN (;), HYPHEN (-), COMMA (,), FORWARD_SLASH (\), BACKWARD_SLASH (/)
-### Version 1.0.1 - BETA_1
-* Added new ChipSelect pin customizability... you can now define what pin gets used as the chipselect pin. 
-
-
-# PlatformIO
-## ChangeLog
-### Version 1.0.0:
-* Initial Release 
-### Version 1.0.1:
-* Added the ability to get the number of properties in the file
-* Update to the Library Json File
-### Version 1.0.2:
-* Update to the Library Json File
-### Version 1.0.3:
-* Update to the Library Json File
-* Added This ChangeLog to the Library Json File
-* Library has been updated to work properly with the latest Hashtable Release.
-* This Library has been partially tested. USE AT YOUR OWN RISK. Library Considered [Semi-Stable].
-### Version 1.0.4:
-* Update to the Library Json File
-* Patching the iterator, and the save Function. Iterator may still have issues, Working toward fixing issue.
-* Patch is untested
-* This library has been partially tested and is now considered largely stable
-### Version 1.0.5:
-* Patched the Iterator. It now seems to work with no issues. [TESTED]
-* Patched the Save Function. It now seems to save and create files as expected. [PARTIALLY-TESTED]
-* Added Elements(); Function that returns the current number of elements in the properties.
-* Adjusted size() Function that returns the current capacity of the underlying table.
-### Version 1.0.6:
-* Added [PROPERTIES]: to the beginning of each Print Statement for easier debugging
-* Added a deleteFile() function to delete a file off of an SD Card.
-* Update to the README.md file
-* [WARNING]: Underlying Libraries that the Properties library depends on have been updated. This may cause issues. Please report any issues to the Author. This library will be tested and patched (if needed) as soon as possible.
-### Version 1.0.7:
-* [WARNING]: Underlying Libraries have been updated. This may cause issues. This library has been partially tested since the last update. Please report any issues to the Author.
-* Modified the Serial.print() statements so that they dont print by default. You have to pass a bool to the constructor to activate them.
-* Debug Variable gets passed to the Hashtable Constructor, so that library also conforms to your wishes.
-### Version 1.0.8:
-* Removed Debug Messages From Library to keep library imprint small... Plan is to create a secondary library that will be used for debugging.
-### Version 1.0.9:
-* Update to SaveToSD() Function... Function now returns a boolean (1 = true, 0 = false)
-* Update to LoadFromSD() Function... Function now returns a boolean (1 = true, 0 = false)
-* Added new save() Function ... This function just calls SaveToSD() but it is for those who like simpler functions
-* Added new load() function ... This function just calls the LoadfromSD() but it is for those who like simpler functions
-* Added new store() function ... This function is similar to SavetoSD() but allows for comments.
-* Added Function comments to all Functions.
-### Version 1.1.0:
-* Added Support for Several New File types Including (.csv, .json, .xml, .toml, .ini, .yaml)
-* Added Support for creating your own custom Key-Value Pair file. The saveToSD, store, and loadFromSD functions will read a new enum variable called IDENTIFIERTYPE. The Available options are: EQUALS (=), COLEN (:), SEMICOLEN (;), HYPHEN (-), COMMA (,), FORWARD_SLASH (\), BACKWARD_SLASH (/)
-### Version 1.1.1: 
-* Added Support for msgPack() (Store, Load);
-* Added exists(key) function
-* Added Overload to exists, exists(key, value);
-### Version 1.1.2_beta: -> [BETA]
-* EMERGENCY PATCH: Made an error and forgot to test compile, There was a redefinition error. Error has been patched
-### Version 1.1.2: [CURRENT-RELEASE] 
-* Added Support for custom chipSelect pin. You can now setChipSelect and getChipSelect which allows you to customize which pin gets used as the ChipSelect pin on an SD card reader. 
-* This Version moves the library back out of Beta status. Though the library may still have issues... If you spot any bugs, please do not hesitate to file an issue report.
-
-            
-## NEW ALPHA FEATURE
-* If you include the 
-```cpp 
-#include LittleFSProperties.h
-```     
-header file, you can use the new Features.. (This library now supports the LITTLE FS library. It is only an Alpha Build and may not work.) Must use the LittleFSProperties header in order for it to work. And you will lose normal sd functions. [WARNING]: Please do not include LittleFSProperties.h if you already have Properties.h included. This may cause unintended concequences. 
-
-Here's an example of how to use the `Properties` class:
-
-```cpp
-#include <Arduino.h>
-#include <SD.h>
-#include "Properties.h"
-
-Properties myProperties;
+Properties props;
 
 void setup() {
-    Serial.begin(9600);
-    // Initialize SD card (make sure SD card is properly connected)
-    if (!SD.begin(4)) {
-        Serial.println("Failed to initialize SD card.");
+    Serial.begin(115200);
+
+    // begin(csPin) calls SD.begin(csPin) internally.
+    if (!props.begin(4)) {
+        Serial.println("SD init failed");
+        return;
     }
+
+    props.setProperty("app.name", "MyApp");
+    props.setProperty("version",  "1.0.0");
+
+    // Save to key=value file
+    props.save("/config.properties");
+
+    // Load back
+    props.clear();
+    props.load("/config.properties");
+    Serial.println(props.getProperty("app.name")); // MyApp
 }
 
-void loop() {
-    // Set a property
-    myProperties.setProperty("name", "John");
-
-    // Get a property
-    String name = myProperties.getProperty("name");
-    Serial.println("Name: " + name);
-
-    // Check if a property exists
-    bool hasAge = myProperties.containsKey("age");
-    Serial.println("Property 'age' exists: " + String(hasAge ? "Yes" : "No"));
-
-    // Remove a property
-    myProperties.removeProperty("name");
-
-    // Check if the properties are empty
-    bool isEmpty = myProperties.isEmpty();
-    Serial.println("Properties are empty: " + String(isEmpty ? "Yes" : "No"));
-
-    delay(1000);
-}
-
-
+void loop() {}
 ```
+
+### LittleFS (ESP32 / ESP8266)
+```cpp
+#include <Properties.h>
+#include <LittleFS.h>
+
+Properties props;
+
+void setup() {
+    Serial.begin(115200);
+
+    // Mount LittleFS first; pass true to format on first use.
+    if (!LittleFS.begin(true)) {
+        Serial.println("LittleFS mount failed");
+        return;
+    }
+
+    // Pass the mounted filesystem to begin().
+    props.begin(LittleFS);
+
+    props.setProperty("device.id", "ESP32-001");
+    props.save("/device.properties");
+
+    props.clear();
+    props.load("/device.properties");
+    Serial.println(props.getProperty("device.id")); // ESP32-001
+}
+
+void loop() {}
+```
+
+### Inject a filesystem at construction time
+```cpp
+#include <Properties.h>
+#include <LittleFS.h>
+
+// Pass the filesystem to the constructor; no begin() call required.
+Properties props(LittleFS);
+
+void setup() {
+    LittleFS.begin(true);
+    props.setProperty("key", "value");
+    props.save("/data.properties");
+}
+
+void loop() {}
+```
+
+### Switch filesystem at any time
+```cpp
+props.setFilesystem(LittleFS);   // all subsequent operations use LittleFS
+props.setFilesystem(SD);         // switch back to SD (as a fs::FS reference)
+```
+
+### Bypass automatic SD.begin()
+```cpp
+// When your sketch already calls SD.begin(), prevent the library from
+// calling it again to avoid re-initialisation conflicts.
+SD.begin(4);
+
+Properties props;
+props.setChipSelect(4);
+props.setBypassSDBegin(true);
+props.save("/config.properties");
+```
+
+### store() – save with a comment header
+```cpp
+// Writes a millis() timestamp and your comment before the key=value pairs.
+props.store("/config.properties", "Application configuration");
+```
+Output file:
+```
+#12345
+# Application configuration
+app.name=MyApp
+version=1.0.0
+```
+
+### PropertiesIterator – iterate all pairs
+```cpp
+for (Properties::PropertiesIterator it = props.begin(); it != props.end(); ++it) {
+    Serial.print(it.key());
+    Serial.print(" = ");
+    Serial.println(it.value());
+}
+```
+
+---
+
+## API Reference
+
+### Constructors
+
+| Signature | Description |
+|---|---|
+| `Properties()` | Default constructor – uses SD card backend. |
+| `Properties(fs::FS& filesystem)` | Injects a filesystem at construction. No `SD.begin()` is ever called. |
+
+### Initialisation
+
+| Method | Description |
+|---|---|
+| `bool begin(size_t cs, IDENTIFIERTYPE = EQUALS)` | Use SD card with the given CS pin. Calls `SD.begin(cs)` unless bypassed. |
+| `bool begin(fs::FS& filesystem, IDENTIFIERTYPE = EQUALS)` | Use an injected filesystem (LittleFS, SPIFFS, SD_MMC, …). Never calls `SD.begin()`. |
+| `void setChipSelect(size_t cs)` | Change the CS pin used for internal `SD.begin()` calls. |
+| `size_t getChipSelect()` | Returns the current CS pin. |
+| `void setBypassSDBegin(bool bypass)` | When `true`, skip internal `SD.begin()` calls (caller manages SD init). |
+| `bool getBypassSDBegin()` | Returns the current bypass flag. |
+| `void setFilesystem(fs::FS& filesystem)` | Swap the backing filesystem without recreating the object. |
+| `void identify(IDENTIFIERTYPE)` | Change the key/value separator used for `.properties` files. |
+
+### In-Memory Operations
+
+| Method | Description |
+|---|---|
+| `void setProperty(const String& key, const String& value)` | Store a key/value pair in memory. |
+| `void setProperty(const String& key, const String& value, const String& filePath)` | Load `filePath`, set the pair, save back. |
+| `String getProperty(const String& key)` | Return the value, or an error string if not found. |
+| `String getProperty(const String& key, const String& defaultValue, const String& filePath)` | Load `filePath`, return value or `defaultValue`. |
+| `void removeProperty(const String& key)` | Remove a key from memory. |
+| `void clear()` | Remove all keys from memory (does **not** touch files). |
+| `int size()` | Capacity of the internal hash table. |
+| `int elements()` | Number of key/value pairs currently stored. |
+| `bool isEmpty()` | Returns `true` when no pairs are stored. |
+| `bool exists(const String& key)` | Returns `true` if the key is present. |
+| `bool exists(const String& key, const String& value)` | Returns `true` if the key exists with that exact value. |
+| `bool containsKey(const String& key)` | Alias for `exists(key)`. |
+
+### File Operations
+
+| Method | Description |
+|---|---|
+| `bool save(const String& filename)` | Save in key=value format (alias for `saveToSD`). |
+| `bool saveToSD(const String& filename)` | Save in key=value format. |
+| `bool load(const String& filename)` | Load from key=value format (alias for `loadFromSD`). |
+| `bool loadFromSD(const String& filename)` | Load from key=value format. Comment lines (`#`) and blank lines are skipped. |
+| `bool store(const String& filename, const String& comments)` | Save with a `millis()` timestamp comment header. |
+| `bool deleteFile(const String& filename)` | Delete a file from the active filesystem. |
+| `bool storeToJSON(const String& filename, const String& comments)` | Save in JSON format. |
+| `bool loadFromJSON(const String& filename)` | Load from JSON format. |
+| `bool storeToXML(const String& filename, const String& comments)` | Save in XML format. |
+| `bool loadFromXML(const String& filename)` | Load from XML format. |
+| `bool storeToYAML(const String& filename, const String& comments)` | Save in YAML format. |
+| `bool loadFromYAML(const String& filename)` | Load from YAML format. |
+| `bool storeToINI(const String& filename, const String& comments)` | Save in INI format. |
+| `bool loadFromINI(const String& filename)` | Load from INI format. |
+| `bool storeToCSV(const String& filename, const String& comments)` | Save in CSV format. |
+| `bool loadFromCSV(const String& filename)` | Load from CSV format. |
+| `bool storeToTOML(const String& filename, const String& comments)` | Save in TOML format. |
+| `bool loadFromTOML(const String& filename)` | Load from TOML format. |
+| `bool storeToMsgPack(const String& filename, const String& comments)` | Save in binary MessagePack format. |
+| `bool loadFromMsgPack(const String& filename)` | Load from binary MessagePack format. |
+
+> **Path normalisation:** All file paths are automatically prefixed with `/` if they do not already start with one, ensuring compatibility with LittleFS and other `fs::FS` implementations that require absolute paths.
+
+### Iterator
+
+```cpp
+// Forward-only iteration over all in-memory key/value pairs:
+for (Properties::PropertiesIterator it = props.begin(); it != props.end(); ++it) {
+    String k = it.key();
+    String v = it.value();
+}
+```
+
+---
+
+## Supported File Formats
+
+| Format | Store method | Load method | File extension |
+|---|---|---|---|
+| Properties (key=value) | `save()` / `saveToSD()` / `store()` | `load()` / `loadFromSD()` | `.properties`, `.txt`, or any |
+| JSON | `storeToJSON()` | `loadFromJSON()` | `.json` |
+| XML | `storeToXML()` | `loadFromXML()` | `.xml` |
+| YAML | `storeToYAML()` | `loadFromYAML()` | `.yaml` / `.yml` |
+| INI | `storeToINI()` | `loadFromINI()` | `.ini` |
+| CSV | `storeToCSV()` | `loadFromCSV()` | `.csv` |
+| TOML | `storeToTOML()` | `loadFromTOML()` | `.toml` |
+| MessagePack | `storeToMsgPack()` | `loadFromMsgPack()` | `.msgpack` |
+
+### Format examples
+
+#### JSON
+```json
+{
+  "app.name": "MyApp",
+  "version": "1.0.0"
+}
+```
+```cpp
+props.storeToJSON("/config.json", "App config");
+props.loadFromJSON("/config.json");
+```
+
+#### XML
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- App config -->
+<properties>
+  <property>
+    <key>app.name</key>
+    <value>MyApp</value>
+  </property>
+</properties>
+```
+```cpp
+props.storeToXML("/config.xml", "App config");
+props.loadFromXML("/config.xml");
+```
+
+#### YAML
+```yaml
+# App config
+app.name: MyApp
+version: 1.0.0
+```
+```cpp
+props.storeToYAML("/config.yaml", "App config");
+props.loadFromYAML("/config.yaml");
+```
+
+#### INI
+```ini
+# App config
+[properties]
+app.name=MyApp
+version=1.0.0
+```
+```cpp
+props.storeToINI("/config.ini", "App config");
+props.loadFromINI("/config.ini");
+```
+
+#### CSV
+```csv
+key,value
+app.name,MyApp
+version,1.0.0
+```
+```cpp
+props.storeToCSV("/config.csv", "App config");
+props.loadFromCSV("/config.csv");
+```
+
+#### TOML
+```toml
+# App config
+app.name = "MyApp"
+version = "1.0.0"
+```
+```cpp
+props.storeToTOML("/config.toml", "App config");
+props.loadFromTOML("/config.toml");
+```
+
+#### MessagePack
+Binary format — no human-readable representation.
+```cpp
+props.storeToMsgPack("/config.msgpack", "");
+props.loadFromMsgPack("/config.msgpack");
+```
+
+---
+
+## Key/Value Separators (IDENTIFIERTYPE)
+
+The default properties format uses `=` as the separator. You can change it at initialisation or at any time with `identify()`.
+
+| Enum value | Character | Example line |
+|---|---|---|
+| `EQUALS` (default) | `=` | `key=value` |
+| `COLEN` | `:` | `key:value` |
+| `SEMICOLEN` | `;` | `key;value` |
+| `HYPHEN` | `-` | `key-value` |
+| `COMMA` | `,` | `key,value` |
+| `FORWARD_SLASH` | `/` | `key/value` |
+| `BACKWARD_SLASH` | `\` | `key\value` |
+
+```cpp
+// Set at begin():
+props.begin(4, Properties::COLEN);
+
+// Change later:
+props.identify(Properties::SEMICOLEN);
+```
+
+> **Important:** The same separator must be used when saving and loading.
+> Mixing separators produces incorrect key/value splits.
+
+---
+
+## LittleFSProperties Shim
+
+`LittleFSProperties.h` is a thin subclass kept for backwards compatibility with sketches written before `Properties.h` gained direct `fs::FS` support.
+
+```cpp
+#include <LittleFSProperties.h>
+
+LittleFSProperties props;
+
+void setup() {
+    // Mount LittleFS and configure Properties in one call.
+    if (!props.beginLFS()) {
+        Serial.println("LittleFS init failed");
+        return;
+    }
+    props.setProperty("key", "value");
+    props.save("/data.properties");
+}
+```
+
+| Method | Description |
+|---|---|
+| `bool beginLFS(IDENTIFIERTYPE = EQUALS)` | Calls `LittleFS.begin()` and configures the LittleFS backend. Returns `false` if the platform does not support LittleFS or mounting fails. |
+| `bool beginSD(size_t cs = 4, IDENTIFIERTYPE = EQUALS)` | Delegates to `Properties::begin(cs, identifierType)` – uses the SD card backend. |
+
+> All other `Properties` methods are inherited and work identically.
+
+**Platform support for `beginLFS()`:**
+
+| Platform | Support |
+|---|---|
+| ESP8266 | ✅ (via `LittleFSWrapper.h`) |
+| ESP32, ESP32-S2, ESP32-C3 | ✅ (via `<LittleFS.h>`) |
+| All others | ❌ `beginLFS()` returns `false`; use `Properties::begin(LittleFS)` directly if your core provides LittleFS. |
+
+---
+
+## ChangeLog
+
+### Version 1.2.1: [CURRENT]
+* Fully rewrote the example sketch (`examples/example.cpp`) with highly detailed, section-by-section coverage of every API feature including SD, LittleFS, all eight file formats, custom separators, iterator, existence checks, file-path overloads, and bypass SD.begin().
+* Overhauled README: complete API reference table, all-format code examples with expected file output, corrected LittleFS patterns, LittleFSProperties shim documentation, and separator reference table.
+* Documented `setBypassSDBegin` / `getBypassSDBegin`, `setFilesystem`, `setChipSelect` / `getChipSelect`, and the `PropertiesIterator` in detail.
+* Fixed README installation instructions (removed broken git-clone paths; corrected library header list).
+* Fixed README LittleFS example to show correct `LittleFS.begin(true)` usage with the `formatOnFail` argument.
+
+### Version 1.2.0:
+* Added broader filesystem support for SD, LittleFS, and injected `fs::FS` backends.
+* Improved YAML, JSON, TOML, INI, and CSV parsing/serialisation behaviour.
+* Fixed issues around trailing commas, blank/comment line handling, and file-loading edge cases.
+* Refined the Properties API documentation and compatibility with the latest Hashtable and SimpleVector behaviour.
+
+### Version 1.1.2:
+* Added Support for custom chipSelect pin. You can now `setChipSelect` and `getChipSelect` which allows you to customize which pin gets used as the ChipSelect pin on an SD card reader.
+* This Version moves the library back out of Beta status. Though the library may still have issues — if you spot any bugs, please file an issue report.
+
+### Version 1.1.2_beta:
+* EMERGENCY PATCH: Fixed a redefinition compile error.
+
+### Version 1.1.1:
+* Added Support for MsgPack (`storeToMsgPack` / `loadFromMsgPack`).
+* Added `exists(key)` function.
+* Added overload `exists(key, value)`.
+
+### Version 1.1.0:
+* Added Support for Several New File types Including `.csv`, `.json`, `.xml`, `.toml`, `.ini`, `.yaml`.
+* Added Support for creating custom Key-Value Pair files via `IDENTIFIERTYPE` enum: `EQUALS`, `COLEN`, `SEMICOLEN`, `HYPHEN`, `COMMA`, `FORWARD_SLASH`, `BACKWARD_SLASH`.
+
+### Version 1.0.9:
+* Updated `saveToSD()` – now returns a boolean.
+* Updated `loadFromSD()` – now returns a boolean.
+* Added `save()` – alias for `saveToSD()`.
+* Added `load()` – alias for `loadFromSD()`.
+* Added `store()` – like `saveToSD()` but prepends a comment header.
+* Added function documentation to all methods.
+
+### Version 1.0.8:
+* Removed debug `Serial.print()` statements to keep library footprint small.
+
+### Version 1.0.7:
+* Modified debug output to be opt-in via a constructor parameter.
+* Debug variable is now passed through to the Hashtable constructor.
+
+### Version 1.0.6:
+* Added `[PROPERTIES]:` prefix to debug print statements.
+* Added `deleteFile()` to remove a file from the SD card.
+* Updated README.
+
+### Version 1.0.5:
+* Patched the iterator.
+* Patched the save function — files are now created correctly.
+* Added `elements()` — returns the number of stored key/value pairs.
+* Adjusted `size()` — returns the capacity of the underlying hash table.
+
+### Version 1.0.4:
+* Patched iterator and save function (partially tested).
+* Library considered largely stable.
+
+### Version 1.0.3:
+* Updated library JSON file.
+* Updated to work with the latest Hashtable release.
+* Library considered semi-stable.
+
+### Version 1.0.2:
+* Updated library JSON file.
+
+### Version 1.0.1:
+* Added `elements()` — returns the number of properties in the file.
+* Updated library JSON file.
+
+### Version 1.0.0:
+* Initial Release.

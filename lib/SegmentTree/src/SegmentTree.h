@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include <TypeTraits.h>
-#include <Math.h>
 #include <SimpleVector.h>
 #include <Numeric_Limits.h>
 
@@ -14,8 +13,16 @@ class SegmentTree {
 public:
     SegmentTree(SimpleVector<T>& arr) {
         n = arr.size();
-        int x = (int)(ceil(log2(n)));
-        int max_size = 2 * (int)pow(2, x) - 1;
+        if (n <= 0) {
+            n = 1;
+        }
+
+        int leafCount = 1;
+        while (leafCount < n) {
+            leafCount <<= 1;
+        }
+
+        int max_size = 2 * leafCount - 1;
         tree = new T[max_size] {};
         lazy = new T[max_size] {};
         build(arr, 0, n - 1, 0);
@@ -83,8 +90,8 @@ private:
 
       // If a part of this segment overlaps with the given range
       int mid = ss + (se - ss) / 2;
-      return max(getMaxUtil(ss, mid, qs, qe, 2 * si + 1),
-               getMaxUtil(mid + 1, se, qs, qe, 2 * si + 2));
+    return max(getMaxUtil(ss, mid, qs, qe, 2 * si + 1),
+             getMaxUtil(mid + 1, se, qs, qe, 2 * si + 2));
     }
 
     void build(SimpleVector<T>& arr, int ss, int se, int si) {

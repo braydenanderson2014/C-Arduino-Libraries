@@ -1,0 +1,1103 @@
+name: Sync Remote Library PR Back to Monorepo
+
+on:
+  schedule:
+    - cron: "47 * * * *"
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Optional: specific source issue number to process"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  sync-back:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Discover remote sync PR activity and plan back-syncs
+        id: discover
+        uses: actions/github-script@v9
+        env:
+          CONFIG_PATH: .github/library-sync-targets.json
+          SPECIFIC_ISSUE: ${{ inputs.issue_number || '' }}
+        with:
+          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+
+            const SYNC_PR_MARKER = "library-sync-pr";
+            const BACK_SYNC_STATUS_MARKER = "library-back-sync-status";
+            const ORIGINAL_SYNC_COMMIT_PATTERN = /^Sync .+ from monorepo \(#\d+\)$/i;
+            const OWNER = context.repo.owner;
+            const REPO = context.repo.repo;
+            const config = JSON.parse(fs.readFileSync(process.env.CONFIG_PATH, "utf8"));
+            const defaults = config.defaults || {};
+            const MAX_COMMENT_CHARS = 400;
+            const MAX_COMMITS_TO_SHOW = 15;
+            const MAX_FILES_TO_SHOW = 30;
+            const MAX_COMMENTS_TO_SHOW = 5;
+
+            const parseSyncPrMarker = (body) => {
+              const match = (body || "").match(
+                /<!--\s*library-sync-pr:\s*([^/\s]+)\/([^;>\s]+);branch=([^\s>]+)\s*-->/i
+              );
+              if (!match) return null;
+              return { owner: match[1].trim(), repo: match[2].trim(), branch: match[3].trim() };
+            };
+
+            const parseMarkerAttrs = (body, markerName) => {
+              const escaped = markerName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+              const match = (body || "").match(
+                new RegExp(`<!--\\s*${escaped}:\\s*([^>]+)\\s*-->`, "i")
+              );
+              if (!match) return {};
+              const attrs = {};
+              for (const part of match[1].split(";")) {
+                const eqIdx = part.indexOf("=");
+                if (eqIdx < 0) continue;
+                attrs[part.slice(0, eqIdx).trim()] = part.slice(eqIdx + 1).trim();
+              }
+              return attrs;
+            };
+
+            const trimBody = (body) => {
+              const s = String(body || "").replace(/\r/g, "").trim();
+              return s.length > MAX_COMMENT_CHARS ? `${s.slice(0, MAX_COMMENT_CHARS)}...` : s;
+            };
+
+            // Collect issues to process
+            let issues = [];
+            const specificIssue = String(process.env.SPECIFIC_ISSUE || "").trim();
+            if (specificIssue && /^\d+$/.test(specificIssue)) {
+              try {
+                const r = await github.rest.issues.get({
+                  owner: OWNER,
+                  repo: REPO,
+                  issue_number: Number.parseInt(specificIssue, 10)
+                });
+                issues = [r.data];
+              } catch (e) {
+                core.setFailed(`Could not fetch issue #${specificIssue}: ${e.message}`);
+                return;
+              }
+            } else {
+              issues = await github.paginate(github.rest.issues.listForRepo, {
+                owner: OWNER,
+                repo: REPO,
+                state: "all",
+                labels: "library-sync-request",
+                per_page: 100
+              });
+            }
+
+            const backSyncItems = [];
+
+            for (const issue of issues) {
+              const issueRef = `${OWNER}/${REPO}#${issue.number}`;
+
+              let allComments;
+              try {
+                allComments = await github.paginate(github.rest.issues.listComments, {
+                  owner: OWNER,
+                  repo: REPO,
+                  issue_number: issue.number,
+                  per_page: 100
+                });
+              } catch (e) {
+                core.warning(`Skipping ${issueRef}: could not list comments (${e.message})`);
+                continue;
+              }
+
+              let syncPrMarker = null;
+              let backSyncStatusComment = null;
+
+              for (const comment of allComments) {
+                if (!syncPrMarker) {
+                  const m = parseSyncPrMarker(comment.body || "");
+                  if (m) syncPrMarker = m;
+                }
+                if (!backSyncStatusComment && (comment.body || "").includes(`<!-- ${BACK_SYNC_STATUS_MARKER}:`)) {
+                  backSyncStatusComment = comment;
+                }
+              }
+
+              if (!syncPrMarker) continue;
+
+              const remoteRef = `${syncPrMarker.owner}/${syncPrMarker.repo}`;
+
+              let remotePr;
+              try {
+                const prs = await github.paginate(github.rest.pulls.list, {
+                  owner: syncPrMarker.owner,
+                  repo: syncPrMarker.repo,
+                  state: "all",
+                  head: `${syncPrMarker.owner}:${syncPrMarker.branch}`,
+                  per_page: 10
+                });
+                remotePr = prs[0];
+              } catch (e) {
+                core.warning(`Skipping ${issueRef}: could not list remote PRs in ${remoteRef} (${e.message})`);
+                continue;
+              }
+
+              if (!remotePr) {
+                core.info(`No remote PR found for branch ${syncPrMarker.branch} in ${remoteRef}. Skipping ${issueRef}.`);
+                continue;
+              }
+
+              const remotePrRef = `${remoteRef}#${remotePr.number}`;
+              const statusAttrs = parseMarkerAttrs(backSyncStatusComment?.body || "", BACK_SYNC_STATUS_MARKER);
+              const lastSeenSha = statusAttrs.lastSeenSha || "";
+              const lastSeenCommentId = Number.parseInt(statusAttrs.lastSeenCommentId || "0", 10);
+              const currentHeadSha = remotePr.head?.sha || "";
+
+              if (currentHeadSha && currentHeadSha === lastSeenSha) {
+                core.info(`No new activity on ${remotePrRef} for ${issueRef}. Skipping.`);
+                continue;
+              }
+
+              let commits = [];
+              let files = [];
+              let remotePrComments = [];
+
+              try {
+                commits = await github.paginate(github.rest.pulls.listCommits, {
+                  owner: syncPrMarker.owner,
+                  repo: syncPrMarker.repo,
+                  pull_number: remotePr.number,
+                  per_page: 100
+                });
+              } catch (e) {
+                core.warning(`Could not fetch commits for ${remotePrRef}: ${e.message}`);
+              }
+
+              try {
+                files = await github.paginate(github.rest.pulls.listFiles, {
+                  owner: syncPrMarker.owner,
+                  repo: syncPrMarker.repo,
+                  pull_number: remotePr.number,
+                  per_page: 100
+                });
+              } catch (e) {
+                core.warning(`Could not fetch files for ${remotePrRef}: ${e.message}`);
+              }
+
+              try {
+                remotePrComments = await github.paginate(github.rest.issues.listComments, {
+                  owner: syncPrMarker.owner,
+                  repo: syncPrMarker.repo,
+                  issue_number: remotePr.number,
+                  per_page: 100
+                });
+              } catch (e) {
+                core.warning(`Could not fetch comments for ${remotePrRef}: ${e.message}`);
+              }
+
+              const newRemoteComments = remotePrComments.filter(
+                (c) => Number(c.id || 0) > lastSeenCommentId
+              );
+              const latestRemoteCommentId = remotePrComments.reduce(
+                (max, c) => Math.max(max, Number(c.id || 0)),
+                lastSeenCommentId
+              );
+
+              // Build activity report
+              const commitLines = commits
+                .slice(-MAX_COMMITS_TO_SHOW)
+                .map((c) => {
+                  const sha = (c.sha || "").slice(0, 7);
+                  const msg = (c.commit?.message || "").split("\n")[0] || "(no message)";
+                  const author = c.author?.login || c.commit?.author?.name || "unknown";
+                  return `- \`${sha}\` ${msg} (@${author})`;
+                });
+
+              const fileLines = files
+                .slice(0, MAX_FILES_TO_SHOW)
+                .map((f) => {
+                  const status = (f.status || "modified").toUpperCase();
+                  return `- ${status} \`${f.filename}\` (+${Number(f.additions || 0)}/-${Number(f.deletions || 0)})`;
+                });
+
+              const commentLines = newRemoteComments
+                .slice(0, MAX_COMMENTS_TO_SHOW)
+                .flatMap((c) => {
+                  const author = c.user?.login || "unknown";
+                  const body = trimBody(c.body).replace(/\n/g, "\n> ");
+                  return [`> **@${author}** at ${c.created_at || "unknown"}:`, `> ${body}`];
+                });
+
+              const activityLines = [
+                `### Remote sync PR activity: [${remotePrRef}](${remotePr.html_url})`,
+                `Remote PR: ${remotePr.html_url}`,
+                `Status: ${remotePr.state}`,
+                `Head: \`${currentHeadSha.slice(0, 7)}\``,
+                ""
+              ];
+
+              activityLines.push(`#### Commits on remote PR (${commits.length} total)`);
+              activityLines.push(commitLines.length > 0 ? commitLines.join("\n") : "- (none)");
+              activityLines.push("");
+
+              if (files.length > 0) {
+                activityLines.push(`#### Changed files (${files.length} total)`);
+                activityLines.push(fileLines.join("\n"));
+                if (files.length > MAX_FILES_TO_SHOW) {
+                  activityLines.push(`_...and ${files.length - MAX_FILES_TO_SHOW} more files_`);
+                }
+                activityLines.push("");
+              }
+
+              if (newRemoteComments.length > 0) {
+                activityLines.push(`#### New comments on remote PR (${newRemoteComments.length})`);
+                activityLines.push(commentLines.join("\n"));
+                activityLines.push("");
+              }
+
+              const newStatusMarker = [
+                `<!-- ${BACK_SYNC_STATUS_MARKER}:`,
+                ` owner=${syncPrMarker.owner};repo=${syncPrMarker.repo};branch=${syncPrMarker.branch}`,
+                `;remotePr=${remotePr.number};lastSeenSha=${currentHeadSha}`,
+                `;lastSeenCommentId=${latestRemoteCommentId};updated=${new Date().toISOString()} -->`
+              ].join("");
+              activityLines.push(newStatusMarker);
+
+              const activityBody = activityLines.join("\n");
+
+              if (backSyncStatusComment) {
+                await github.rest.issues.updateComment({
+                  owner: OWNER,
+                  repo: REPO,
+                  comment_id: backSyncStatusComment.id,
+                  body: activityBody
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: OWNER,
+                  repo: REPO,
+                  issue_number: issue.number,
+                  body: activityBody
+                });
+              }
+
+              core.info(`Reported remote PR activity for ${issueRef} from ${remotePrRef}.`);
+
+              // Queue back-sync only when there are commits beyond the original outbound sync commit
+              const nonOriginalCommits = commits.filter(
+                (c) => !ORIGINAL_SYNC_COMMIT_PATTERN.test((c.commit?.message || "").split("\n")[0])
+              );
+
+              if (nonOriginalCommits.length === 0) {
+                core.info(`Only original sync commit found on ${remotePrRef}. Skipping back-sync for ${issueRef}.`);
+                continue;
+              }
+
+              // Find matching library config by remote repo name
+              const libraryEntry = Object.entries(config.libraries || {}).find(
+                ([, cfg]) => cfg.enabled !== false && cfg.targetRepo === syncPrMarker.repo
+              );
+
+              if (!libraryEntry) {
+                core.info(`No active library config found for remote repo ${syncPrMarker.repo}. Skipping back-sync.`);
+                continue;
+              }
+
+              const [library, libraryConfig] = libraryEntry;
+              backSyncItems.push({
+                issueNumber: issue.number,
+                library,
+                sourcePath: libraryConfig.sourcePath,
+                targetPath: libraryConfig.targetPath || defaults.targetPath || ".",
+                managedPaths: libraryConfig.managedPaths || defaults.managedPaths || [],
+                remoteOwner: syncPrMarker.owner,
+                remoteRepo: syncPrMarker.repo,
+                remoteBranch: syncPrMarker.branch,
+                remotePrNumber: remotePr.number,
+                remotePrUrl: remotePr.html_url,
+                headSha: currentHeadSha
+              });
+            }
+
+            const itemsPath = path.join(process.env.RUNNER_TEMP, "back_sync_items.json");
+            fs.writeFileSync(itemsPath, JSON.stringify(backSyncItems));
+
+            core.setOutput("has_back_sync", backSyncItems.length > 0 ? "true" : "false");
+            core.setOutput("items_path", itemsPath);
+            core.info(`Back-sync items queued: ${backSyncItems.length}`);
+
+      - name: Create back-sync branches
+        id: create_branches
+        if: steps.discover.outputs.has_back_sync == 'true'
+        env:
+          SYNC_TOKEN: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          ITEMS_PATH: ${{ steps.discover.outputs.items_path }}
+        run: |
+          set -e
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${SYNC_TOKEN}@github.com/${{ github.repository }}.git"
+
+          node <<'NODEEOF'
+          const { execFileSync } = require("child_process");
+          const fs = require("fs");
+          const path = require("path");
+          const syncToken = process.env.SYNC_TOKEN || "";
+
+          const redact = (value) => {
+            const str = String(value || "");
+            return syncToken ? str.split(syncToken).join("***") : str;
+          };
+
+          const exec = (file, args = [], opts = {}) => {
+            try {
+              return execFileSync(file, args, { stdio: "pipe", ...opts }).toString().trim();
+            } catch (e) {
+              const stderr = redact(e.stderr ? e.stderr.toString().trim() : "");
+              const fallback = redact(e.message || "");
+              throw new Error(stderr || fallback || `Command failed: ${file}`);
+            }
+          };
+
+          const copyRecursive = (src, dst) => {
+            const stat = fs.statSync(src);
+            if (stat.isDirectory()) {
+              fs.mkdirSync(dst, { recursive: true });
+              for (const entry of fs.readdirSync(src)) {
+                copyRecursive(path.join(src, entry), path.join(dst, entry));
+              }
+            } else {
+              fs.mkdirSync(path.dirname(dst), { recursive: true });
+              fs.copyFileSync(src, dst);
+            }
+          };
+
+          const slugify = (value) =>
+            String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+
+          const items = JSON.parse(fs.readFileSync(process.env.ITEMS_PATH, "utf8"));
+          const workspace = process.env.GITHUB_WORKSPACE;
+          const results = [];
+
+          for (const item of items) {
+            const { library, sourcePath, targetPath, managedPaths, remoteOwner, remoteRepo, remoteBranch, remotePrNumber, headSha } = item;
+            const librarySlug = slugify(library);
+            const remoteDir = path.join(process.env.RUNNER_TEMP, `back-sync-remote-${librarySlug}-${remotePrNumber}`);
+            const backSyncBranch = `back-sync/${librarySlug}/remote-pr-${remotePrNumber}`;
+            const worktreeDir = path.join(process.env.RUNNER_TEMP, `back-sync-wt-${librarySlug}-${remotePrNumber}`);
+
+            console.log(`Processing back-sync for ${library} (remote PR #${remotePrNumber}, head ${headSha.slice(0, 7)})...`);
+
+            try {
+              // Clone the remote library branch
+              exec("git", [
+                "clone",
+                "--depth",
+                "1",
+                "--branch",
+                remoteBranch,
+                `https://x-access-token:${syncToken}@github.com/${remoteOwner}/${remoteRepo}.git`,
+                remoteDir
+              ]);
+
+              // Create an isolated worktree for the back-sync branch based on HEAD of the monorepo
+              exec("git", ["worktree", "add", worktreeDir, "-B", backSyncBranch, "HEAD"], { cwd: workspace });
+
+              const sourceRoot = path.join(remoteDir, targetPath === "." ? "" : targetPath);
+              const destRoot = path.join(worktreeDir, sourcePath);
+              fs.mkdirSync(destRoot, { recursive: true });
+
+              for (const mp of managedPaths) {
+                const src = path.join(sourceRoot, mp);
+                const dst = path.join(destRoot, mp);
+                if (fs.existsSync(src)) {
+                  fs.rmSync(dst, { recursive: true, force: true });
+                  copyRecursive(src, dst);
+                } else {
+                  fs.rmSync(dst, { recursive: true, force: true });
+                }
+              }
+
+              exec("git", ["add", "-A"], { cwd: worktreeDir });
+              const diffStat = exec("git", ["diff", "--cached", "--stat"], { cwd: worktreeDir });
+
+              if (!diffStat) {
+                console.log(`No changes detected for ${library} back-sync. Skipping.`);
+                results.push({ ...item, backSyncBranch, pushed: false, skipped: true });
+              } else {
+                exec(
+                  "git",
+                  ["commit", "-m", `Back-sync ${library} from remote PR #${remotePrNumber} (${headSha.slice(0, 7)})`],
+                  { cwd: worktreeDir }
+                );
+                exec("git", ["push", "--force-with-lease", "origin", backSyncBranch], { cwd: worktreeDir });
+                results.push({ ...item, backSyncBranch, pushed: true });
+                console.log(`Pushed back-sync branch ${backSyncBranch} for ${library}.`);
+              }
+            } catch (e) {
+              console.error(`Failed to create back-sync branch for ${library}: ${e.message}`);
+              results.push({ ...item, backSyncBranch, pushed: false, error: e.message });
+            } finally {
+              try {
+                exec("git", ["worktree", "remove", "--force", worktreeDir], { cwd: workspace });
+              } catch {}
+            }
+          }
+
+          const resultsPath = path.join(process.env.RUNNER_TEMP, "back_sync_results.json");
+          fs.writeFileSync(resultsPath, JSON.stringify(results));
+          console.log(`Results written to ${resultsPath}.`);
+          NODEEOF
+
+          echo "results_path=$RUNNER_TEMP/back_sync_results.json" >> "$GITHUB_OUTPUT"
+
+      - name: Create back-sync pull requests and notify source issues
+        if: steps.discover.outputs.has_back_sync == 'true'
+        uses: actions/github-script@v9
+        env:
+          RESULTS_PATH: ${{ steps.create_branches.outputs.results_path }}
+        with:
+          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          script: |
+            const fs = require("fs");
+
+            const BACK_SYNC_PR_MARKER = "library-back-sync-pr";
+            const OWNER = context.repo.owner;
+            const REPO = context.repo.repo;
+
+            if (!process.env.RESULTS_PATH) {
+              core.warning("No results path available. Branch creation step may have been skipped.");
+              return;
+            }
+
+            let results;
+            try {
+              results = JSON.parse(fs.readFileSync(process.env.RESULTS_PATH, "utf8"));
+            } catch (e) {
+              core.warning(`Could not read results file: ${e.message}`);
+              return;
+            }
+
+            for (const item of results) {
+              const { library, backSyncBranch, remotePrNumber, remotePrUrl, remoteOwner, remoteRepo, headSha, issueNumber, pushed, skipped, error } = item;
+
+              if (skipped) {
+                core.info(`Back-sync for ${library} had no file changes. Skipping PR creation.`);
+                continue;
+              }
+
+              if (!pushed) {
+                const errorMsg = error || "Unknown error";
+                core.warning(`Back-sync branch for ${library} was not pushed: ${errorMsg}`);
+                try {
+                  await github.rest.issues.createComment({
+                    owner: OWNER,
+                    repo: REPO,
+                    issue_number: issueNumber,
+                    body: [
+                      `⚠️ Back-sync for **${library}** from remote PR [${remoteOwner}/${remoteRepo}#${remotePrNumber}](${remotePrUrl}) failed to create a branch.`,
+                      ``,
+                      `Error: \`${errorMsg}\``
+                    ].join("\n")
+                  });
+                } catch (commentError) {
+                  core.warning(`Could not post failure comment: ${commentError.message}`);
+                }
+                continue;
+              }
+
+              // Check if a back-sync PR already exists for this branch
+              const existingPrs = await github.paginate(github.rest.pulls.list, {
+                owner: OWNER,
+                repo: REPO,
+                state: "open",
+                head: `${OWNER}:${backSyncBranch}`,
+                base: "main",
+                per_page: 10
+              });
+
+              let backSyncPr = existingPrs[0];
+
+              if (!backSyncPr) {
+                const prBody = [
+                  `Back-sync of **${library}** from remote PR [${remoteOwner}/${remoteRepo}#${remotePrNumber}](${remotePrUrl}).`,
+                  ``,
+                  `This pull request brings changes made by automated reviews back into the monorepo.`,
+                  ``,
+                  `**Remote PR:** ${remotePrUrl}`,
+                  `**Remote branch:** \`${item.remoteBranch}\``,
+                  `**Remote head SHA:** \`${headSha}\``,
+                  `**Source issue:** [${OWNER}/${REPO}#${issueNumber}](https://github.com/${OWNER}/${REPO}/issues/${issueNumber})`,
+                  ``,
+                  `<!-- ${BACK_SYNC_PR_MARKER}: source=${remoteOwner}/${remoteRepo}#${remotePrNumber};library=${library};issueNumber=${issueNumber};headSha=${headSha};remoteBranch=${item.remoteBranch} -->`
+                ].join("\n");
+
+                const created = await github.rest.pulls.create({
+                  owner: OWNER,
+                  repo: REPO,
+                  title: `Back-sync ${library} from remote PR #${remotePrNumber}`,
+                  head: backSyncBranch,
+                  base: "main",
+                  body: prBody
+                });
+                backSyncPr = created.data;
+                core.info(`Created back-sync PR #${backSyncPr.number} for ${library}.`);
+              } else {
+                core.info(`Back-sync PR #${backSyncPr.number} already exists for ${library}.`);
+              }
+
+              await github.rest.issues.createComment({
+                owner: OWNER,
+                repo: REPO,
+                issue_number: issueNumber,
+                body: [
+                  `🔄 Back-sync PR opened for **${library}** from remote PR [${remoteOwner}/${remoteRepo}#${remotePrNumber}](${remotePrUrl}).`,
+                  ``,
+                  `Back-sync PR: ${backSyncPr.html_url}`,
+                  `Remote head SHA: \`${headSha}\``
+                ].join("\n")
+              });
+            }
+
+      - name: Forward back-sync PR activity to remote library PRs
+        id: forward_activity
+        uses: actions/github-script@v9
+        env:
+          CONFIG_PATH: .github/library-sync-targets.json
+        with:
+          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+
+            const BACK_SYNC_PR_MARKER = "library-back-sync-pr";
+            const FORWARD_STATUS_MARKER = "library-back-sync-forward-status";
+            const ORIGINAL_BACK_SYNC_COMMIT_PATTERN = /^Back-sync .+ from remote PR #\d+/i;
+            const OWNER = context.repo.owner;
+            const REPO = context.repo.repo;
+            const config = JSON.parse(fs.readFileSync(process.env.CONFIG_PATH, "utf8"));
+            const defaults = config.defaults || {};
+            const MAX_COMMENT_CHARS = 400;
+            const MAX_REVIEW_COMMENTS = 5;
+
+            const parseBackSyncPrMarker = (body) => {
+              const match = (body || "").match(
+                /<!--\s*library-back-sync-pr:\s*source=([^/\s]+)\/([^#\s]+)#(\d+);library=([^;>\s]+);issueNumber=(\d+);headSha=([^\s;>]+)(?:;remoteBranch=([^\s;>]+))?/i
+              );
+              if (!match) return null;
+              return {
+                remoteOwner: match[1].trim(),
+                remoteRepo: match[2].trim(),
+                remotePrNumber: Number.parseInt(match[3], 10),
+                library: match[4].trim(),
+                issueNumber: Number.parseInt(match[5], 10),
+                headSha: match[6].trim(),
+                remoteBranch: match[7] ? match[7].trim() : null
+              };
+            };
+
+            const parseForwardStatusAttrs = (body) => {
+              const match = (body || "").match(
+                new RegExp(`<!--\\s*${FORWARD_STATUS_MARKER}:\\s*([^>]+)\\s*-->`, "i")
+              );
+              if (!match) return {};
+              const attrs = {};
+              for (const part of match[1].split(";")) {
+                const eqIdx = part.indexOf("=");
+                if (eqIdx < 0) continue;
+                attrs[part.slice(0, eqIdx).trim()] = part.slice(eqIdx + 1).trim();
+              }
+              return attrs;
+            };
+
+            const trimBody = (body, max = MAX_COMMENT_CHARS) => {
+              const s = String(body || "").replace(/\r/g, "").trim();
+              return s.length > max ? `${s.slice(0, max)}...` : s;
+            };
+
+            const isSkippableComment = (comment) => {
+              const userType = (comment.user?.type || "").toLowerCase();
+              const login = (comment.user?.login || "").toLowerCase();
+              if (userType === "bot" || login.includes("[bot]")) return true;
+              const body = comment.body || "";
+              if (body.includes(`<!-- ${BACK_SYNC_PR_MARKER}:`) ||
+                  body.includes(`<!-- ${FORWARD_STATUS_MARKER}:`) ||
+                  body.includes("<!-- library-sync-pr:") ||
+                  body.includes("<!-- library-back-sync-status:") ||
+                  body.includes("<!-- library-back-sync-forward-status:")) {
+                return true;
+              }
+              return false;
+            };
+
+            const upsertForwardStatusComment = async (prNumber, body) => {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner: OWNER,
+                repo: REPO,
+                issue_number: prNumber,
+                per_page: 100
+              });
+
+              const needle = `<!-- ${FORWARD_STATUS_MARKER}:`;
+              const existing = comments.find((c) => (c.body || "").includes(needle));
+
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: OWNER,
+                  repo: REPO,
+                  comment_id: existing.id,
+                  body
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: OWNER,
+                  repo: REPO,
+                  issue_number: prNumber,
+                  body
+                });
+              }
+            };
+
+            // Find all open back-sync PRs
+            const allPrs = await github.paginate(github.rest.pulls.list, {
+              owner: OWNER,
+              repo: REPO,
+              state: "open",
+              per_page: 100
+            });
+
+            const backSyncPrs = allPrs.filter((pr) =>
+              (pr.head?.ref || "").startsWith("back-sync/") &&
+              (pr.body || "").includes(`<!-- ${BACK_SYNC_PR_MARKER}:`)
+            );
+
+            core.info(`Found ${backSyncPrs.length} open back-sync PR(s) to process.`);
+
+            const forwardItems = [];
+
+            for (const pr of backSyncPrs) {
+              const prRef = `${OWNER}/${REPO}#${pr.number}`;
+              const marker = parseBackSyncPrMarker(pr.body || "");
+
+              if (!marker) {
+                core.warning(`Could not parse back-sync marker from PR ${prRef}. Skipping.`);
+                continue;
+              }
+
+              const { remoteOwner, remoteRepo, remotePrNumber, library, issueNumber, headSha: originalHeadSha } = marker;
+              const remotePrRef = `${remoteOwner}/${remoteRepo}#${remotePrNumber}`;
+
+              // Fetch existing forwarding state
+              const prComments = await github.paginate(github.rest.issues.listComments, {
+                owner: OWNER,
+                repo: REPO,
+                issue_number: pr.number,
+                per_page: 100
+              });
+
+              const forwardStatusComment = prComments.find(
+                (c) => (c.body || "").includes(`<!-- ${FORWARD_STATUS_MARKER}:`)
+              );
+              const statusAttrs = parseForwardStatusAttrs(forwardStatusComment?.body || "");
+              const lastSeenCommentId = Number.parseInt(statusAttrs.lastSeenCommentId || "0", 10);
+              const lastSeenReviewId = Number.parseInt(statusAttrs.lastSeenReviewId || "0", 10);
+              const lastForwardedSha = statusAttrs.lastForwardedSha || "";
+
+              // Gather new issue comments on the back-sync PR
+              const newComments = prComments.filter((c) => {
+                if (Number(c.id || 0) <= lastSeenCommentId) return false;
+                return !isSkippableComment(c);
+              });
+
+              const latestCommentId = prComments.reduce(
+                (max, c) => Math.max(max, Number(c.id || 0)),
+                lastSeenCommentId
+              );
+
+              // Gather new PR reviews
+              let reviews = [];
+              try {
+                reviews = await github.paginate(github.rest.pulls.listReviews, {
+                  owner: OWNER,
+                  repo: REPO,
+                  pull_number: pr.number,
+                  per_page: 100
+                });
+              } catch (e) {
+                core.warning(`Could not fetch reviews for ${prRef}: ${e.message}`);
+              }
+
+              const newReviews = reviews.filter((r) => {
+                if (Number(r.id || 0) <= lastSeenReviewId) return false;
+                const userType = (r.user?.type || "").toLowerCase();
+                const login = (r.user?.login || "").toLowerCase();
+                return userType !== "bot" && !login.includes("[bot]");
+              });
+
+              const latestReviewId = reviews.reduce(
+                (max, r) => Math.max(max, Number(r.id || 0)),
+                lastSeenReviewId
+              );
+
+              // Gather new review comments (inline)
+              let reviewComments = [];
+              try {
+                reviewComments = await github.paginate(github.rest.pulls.listReviewComments, {
+                  owner: OWNER,
+                  repo: REPO,
+                  pull_number: pr.number,
+                  per_page: 100
+                });
+              } catch (e) {
+                core.warning(`Could not fetch review comments for ${prRef}: ${e.message}`);
+              }
+
+              const lastSeenReviewCommentId = Number.parseInt(statusAttrs.lastSeenReviewCommentId || "0", 10);
+              const newReviewComments = reviewComments.filter((rc) => {
+                if (Number(rc.id || 0) <= lastSeenReviewCommentId) return false;
+                const userType = (rc.user?.type || "").toLowerCase();
+                const login = (rc.user?.login || "").toLowerCase();
+                return userType !== "bot" && !login.includes("[bot]");
+              });
+
+              const latestReviewCommentId = reviewComments.reduce(
+                (max, rc) => Math.max(max, Number(rc.id || 0)),
+                lastSeenReviewCommentId
+              );
+
+              // Check for new commits on the back-sync branch (beyond the initial back-sync commit)
+              let prCommits = [];
+              try {
+                prCommits = await github.paginate(github.rest.pulls.listCommits, {
+                  owner: OWNER,
+                  repo: REPO,
+                  pull_number: pr.number,
+                  per_page: 100
+                });
+              } catch (e) {
+                core.warning(`Could not fetch commits for ${prRef}: ${e.message}`);
+              }
+
+              const currentHeadSha = pr.head?.sha || "";
+              const nonInitialCommits = prCommits.filter(
+                (c) => !ORIGINAL_BACK_SYNC_COMMIT_PATTERN.test((c.commit?.message || "").split("\n")[0])
+              );
+              const hasNewCommits = nonInitialCommits.length > 0 && currentHeadSha !== lastForwardedSha;
+
+              const hasActivity =
+                newComments.length > 0 ||
+                newReviews.length > 0 ||
+                newReviewComments.length > 0 ||
+                hasNewCommits;
+
+              if (!hasActivity) {
+                core.info(`No new activity on back-sync PR ${prRef} to forward to ${remotePrRef}.`);
+                continue;
+              }
+
+              // Build forwarding comment body for the remote library PR
+              const forwardLines = [
+                `### Activity from back-sync PR [${OWNER}/${REPO}#${pr.number}](${pr.html_url})`,
+                ""
+              ];
+
+              if (newComments.length > 0) {
+                forwardLines.push(`#### Comments (${newComments.length})`);
+                for (const c of newComments) {
+                  const author = c.user?.login || "unknown";
+                  forwardLines.push(`> **@${author}** at ${c.created_at || "unknown"}:`);
+                  forwardLines.push(`> ${trimBody(c.body).replace(/\n/g, "\n> ")}`);
+                  forwardLines.push("");
+                }
+              }
+
+              if (newReviews.length > 0) {
+                forwardLines.push(`#### Reviews (${newReviews.length})`);
+                for (const r of newReviews) {
+                  const author = r.user?.login || "unknown";
+                  const state = (r.state || "COMMENTED").toUpperCase();
+                  const body = trimBody(r.body);
+                  forwardLines.push(`> **@${author}** [${state}]${body ? `: ${body.replace(/\n/g, "\n> ")}` : ""}`);
+                  forwardLines.push("");
+                }
+              }
+
+              if (newReviewComments.length > 0) {
+                forwardLines.push(`#### Inline review comments (${newReviewComments.length})`);
+                for (const rc of newReviewComments.slice(0, MAX_REVIEW_COMMENTS)) {
+                  const author = rc.user?.login || "unknown";
+                  const file = rc.path || "(unknown file)";
+                  forwardLines.push(`> **@${author}** on \`${file}\`:`);
+                  forwardLines.push(`> ${trimBody(rc.body).replace(/\n/g, "\n> ")}`);
+                  forwardLines.push("");
+                }
+                if (newReviewComments.length > MAX_REVIEW_COMMENTS) {
+                  forwardLines.push(`_...and ${newReviewComments.length - MAX_REVIEW_COMMENTS} more inline comments_`);
+                  forwardLines.push("");
+                }
+              }
+
+              if (hasNewCommits) {
+                forwardLines.push(`#### New commits pushed to back-sync branch`);
+                for (const c of nonInitialCommits.slice(-8)) {
+                  const sha = (c.sha || "").slice(0, 7);
+                  const msg = (c.commit?.message || "").split("\n")[0] || "(no message)";
+                  const author = c.author?.login || c.commit?.author?.name || "unknown";
+                  forwardLines.push(`- \`${sha}\` ${msg} (@${author})`);
+                }
+                forwardLines.push(`_Full back-sync PR: ${pr.html_url}_`);
+                forwardLines.push("");
+              }
+
+              forwardLines.push(
+                `<!-- library-back-sync-activity: backSyncPr=${OWNER}/${REPO}#${pr.number};generated=${new Date().toISOString()} -->`
+              );
+
+              try {
+                await github.rest.issues.createComment({
+                  owner: remoteOwner,
+                  repo: remoteRepo,
+                  issue_number: remotePrNumber,
+                  body: forwardLines.join("\n")
+                });
+                core.info(`Forwarded activity from ${prRef} to ${remotePrRef}.`);
+              } catch (e) {
+                core.warning(`Could not post to ${remotePrRef}: ${e.message}`);
+                continue;
+              }
+
+              // Update forward-status tracking comment on the back-sync PR
+              const newStatusBody = [
+                `Forward-sync status for [${remotePrRef}](https://github.com/${remoteOwner}/${remoteRepo}/pull/${remotePrNumber}).`,
+                `Last sync: ${new Date().toISOString()}`,
+                `<!-- ${FORWARD_STATUS_MARKER}: lastSeenCommentId=${latestCommentId};lastSeenReviewId=${latestReviewId};lastSeenReviewCommentId=${latestReviewCommentId};lastForwardedSha=${hasNewCommits ? currentHeadSha : lastForwardedSha};updated=${new Date().toISOString()} -->`
+              ].join("\n");
+
+              await upsertForwardStatusComment(pr.number, newStatusBody);
+
+              if (hasNewCommits) {
+                const libraryConfig = config.libraries?.[library];
+                if (libraryConfig && libraryConfig.enabled !== false) {
+                  const branchPrefix = libraryConfig.branchPrefix || defaults.branchPrefix || "sync-library";
+                  const librarySlug = library.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 50);
+                  const resolvedRemoteBranch = marker.remoteBranch ||
+                    `${branchPrefix}/${librarySlug}/issue-${issueNumber}`;
+                  forwardItems.push({
+                    library,
+                    sourcePath: libraryConfig.sourcePath,
+                    targetPath: libraryConfig.targetPath || defaults.targetPath || ".",
+                    managedPaths: libraryConfig.managedPaths || defaults.managedPaths || [],
+                    remoteOwner,
+                    remoteRepo,
+                    remotePrNumber,
+                    remoteBranch: resolvedRemoteBranch,
+                    headSha: currentHeadSha,
+                    backSyncPrNumber: pr.number
+                  });
+                }
+              }
+            }
+
+            const itemsPath = path.join(process.env.RUNNER_TEMP, "forward_items.json");
+            fs.writeFileSync(itemsPath, JSON.stringify(forwardItems));
+            core.setOutput("has_forward_commits", forwardItems.length > 0 ? "true" : "false");
+            core.setOutput("forward_items_path", itemsPath);
+            core.info(`Forward commit items queued: ${forwardItems.length}`);
+
+      - name: Mirror back-sync branch changes to remote library branches
+        id: mirror_forward
+        if: steps.forward_activity.outputs.has_forward_commits == 'true'
+        env:
+          SYNC_TOKEN: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          ITEMS_PATH: ${{ steps.forward_activity.outputs.forward_items_path }}
+        run: |
+          set -e
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          node <<'NODEEOF'
+          const { execFileSync } = require("child_process");
+          const fs = require("fs");
+          const path = require("path");
+          const syncToken = process.env.SYNC_TOKEN || "";
+
+          const redact = (value) => {
+            const str = String(value || "");
+            return syncToken ? str.split(syncToken).join("***") : str;
+          };
+
+          const exec = (file, args = [], opts = {}) => {
+            try {
+              return execFileSync(file, args, { stdio: "pipe", ...opts }).toString().trim();
+            } catch (e) {
+              const stderr = redact(e.stderr ? e.stderr.toString().trim() : "");
+              const fallback = redact(e.message || "");
+              throw new Error(stderr || fallback || `Command failed: ${file}`);
+            }
+          };
+
+          const copyRecursive = (src, dst) => {
+            const stat = fs.statSync(src);
+            if (stat.isDirectory()) {
+              fs.mkdirSync(dst, { recursive: true });
+              for (const entry of fs.readdirSync(src)) {
+                copyRecursive(path.join(src, entry), path.join(dst, entry));
+              }
+            } else {
+              fs.mkdirSync(path.dirname(dst), { recursive: true });
+              fs.copyFileSync(src, dst);
+            }
+          };
+
+          const slugify = (value) =>
+            String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+
+          const items = JSON.parse(fs.readFileSync(process.env.ITEMS_PATH, "utf8"));
+          const workspace = process.env.GITHUB_WORKSPACE;
+          const results = [];
+
+          for (const item of items) {
+            const { library, sourcePath, targetPath, managedPaths, remoteOwner, remoteRepo, remoteBranch, remotePrNumber, headSha, backSyncPrNumber } = item;
+            const librarySlug = slugify(library);
+            const remoteDir = path.join(process.env.RUNNER_TEMP, `fwd-remote-${librarySlug}-${backSyncPrNumber}-${remotePrNumber}`);
+
+            console.log(`Mirroring back-sync PR #${backSyncPrNumber} changes for ${library} to remote branch ${remoteBranch}...`);
+
+            try {
+              // Clone the remote library sync branch
+              exec("git", [
+                "clone",
+                "--depth",
+                "1",
+                "--branch",
+                remoteBranch,
+                `https://x-access-token:${syncToken}@github.com/${remoteOwner}/${remoteRepo}.git`,
+                remoteDir
+              ]);
+
+              exec("git", ["config", "user.name", "github-actions[bot]"], { cwd: remoteDir });
+              exec("git", ["config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"], { cwd: remoteDir });
+
+              const sourceRoot = path.join(workspace, sourcePath);
+              const targetRoot = path.join(remoteDir, targetPath === "." ? "" : targetPath);
+              fs.mkdirSync(targetRoot, { recursive: true });
+
+              for (const mp of managedPaths) {
+                const src = path.join(sourceRoot, mp);
+                const dst = path.join(targetRoot, mp);
+                if (fs.existsSync(src)) {
+                  fs.rmSync(dst, { recursive: true, force: true });
+                  copyRecursive(src, dst);
+                } else {
+                  fs.rmSync(dst, { recursive: true, force: true });
+                }
+              }
+
+              exec("git", ["add", "-A"], { cwd: remoteDir });
+              const diffStat = exec("git", ["diff", "--cached", "--stat"], { cwd: remoteDir });
+
+              if (!diffStat) {
+                console.log(`No file changes to push for ${library} forward mirror.`);
+                results.push({ ...item, pushed: false, skipped: true });
+              } else {
+                exec(
+                  "git",
+                  ["commit", "-m", `Forward back-sync ${library} from monorepo PR #${backSyncPrNumber} (${headSha.slice(0, 7)})`],
+                  { cwd: remoteDir }
+                );
+                exec("git", ["push", "--force-with-lease", "origin", remoteBranch], { cwd: remoteDir });
+                results.push({ ...item, pushed: true });
+                console.log(`Pushed forward mirror for ${library} to ${remoteOwner}/${remoteRepo}:${remoteBranch}.`);
+              }
+            } catch (e) {
+              console.error(`Failed to mirror ${library} forward: ${e.message}`);
+              results.push({ ...item, pushed: false, error: e.message });
+            }
+          }
+
+          const resultsPath = path.join(process.env.RUNNER_TEMP, "forward_results.json");
+          fs.writeFileSync(resultsPath, JSON.stringify(results));
+          console.log(`Forward mirror results written to ${resultsPath}.`);
+          NODEEOF
+
+          echo "results_path=$RUNNER_TEMP/forward_results.json" >> "$GITHUB_OUTPUT"
+
+      - name: Report forward mirror results
+        if: steps.forward_activity.outputs.has_forward_commits == 'true'
+        uses: actions/github-script@v9
+        env:
+          RESULTS_PATH: ${{ steps.mirror_forward.outputs.results_path }}
+        with:
+          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          script: |
+            const fs = require("fs");
+
+            const OWNER = context.repo.owner;
+            const REPO = context.repo.repo;
+
+            if (!process.env.RESULTS_PATH) return;
+
+            let results;
+            try {
+              results = JSON.parse(fs.readFileSync(process.env.RESULTS_PATH, "utf8"));
+            } catch (e) {
+              core.warning(`Could not read forward results: ${e.message}`);
+              return;
+            }
+
+            for (const item of results) {
+              const { library, remoteOwner, remoteRepo, remoteBranch, remotePrNumber, headSha, backSyncPrNumber, pushed, skipped, error } = item;
+
+              if (skipped) {
+                core.info(`Forward mirror for ${library} had no file changes.`);
+                continue;
+              }
+
+              if (!pushed) {
+                core.warning(`Forward mirror for ${library} failed: ${error || "unknown error"}`);
+                await github.rest.issues.createComment({
+                  owner: OWNER,
+                  repo: REPO,
+                  issue_number: backSyncPrNumber,
+                  body: [
+                    `⚠️ Forward mirror of **${library}** to remote branch \`${remoteBranch}\` failed.`,
+                    ``,
+                    `Error: \`${error || "unknown"}\``
+                  ].join("\n")
+                });
+                continue;
+              }
+
+              core.info(`Forward mirror pushed for ${library} to ${remoteOwner}/${remoteRepo}:${remoteBranch}.`);
+              await github.rest.issues.createComment({
+                owner: OWNER,
+                repo: REPO,
+                issue_number: backSyncPrNumber,
+                body: [
+                  `✅ Changes from this back-sync PR were forwarded to **${library}** remote branch [\`${remoteBranch}\`](https://github.com/${remoteOwner}/${remoteRepo}/tree/${remoteBranch}).`,
+                  ``,
+                  `Remote PR: https://github.com/${remoteOwner}/${remoteRepo}/pull/${remotePrNumber}`
+                ].join("\n")
+              });
+
+              await github.rest.issues.createComment({
+                owner: remoteOwner,
+                repo: remoteRepo,
+                issue_number: remotePrNumber,
+                body: [
+                  `✅ Changes from monorepo back-sync PR [${OWNER}/${REPO}#${backSyncPrNumber}](https://github.com/${OWNER}/${REPO}/pull/${backSyncPrNumber}) were pushed to this branch.`,
+                  ``,
+                  `Head SHA: \`${headSha}\``
+                ].join("\n")
+              });
+            }

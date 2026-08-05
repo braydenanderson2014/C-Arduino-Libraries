@@ -1,0 +1,52 @@
+{
+  "defaults": {
+    "compile": {
+      "backends": ["sd"],
+      "optionalModes": ["off"]
+    }
+  },
+  "libraries": {
+    ".": {
+      "compile": {
+        "backends": ["sd"],
+        "optionalModes": ["off", "on"]
+      }
+    },
+    "lib/ArrayList": {
+      "compile": {
+        "backends": ["sd"],
+        "optionalModes": ["off"]
+      }
+    },
+    "lib/AVLTree": {
+      "compile": {
+        "backends": ["sd"],
+        "optionalModes": ["off", "on"]
+      }
+    },
+    "lib/Hashtable": {
+      "compile": {
+        "backends": ["sd"],
+        "optionalModes": ["off"]
+      }
+    },
+    "lib/Json": {
+      "compile": {
+        "backends": ["sd"],
+        "optionalModes": ["off", "on"]
+      }
+    },
+    "lib/SDList": {
+      "compile": {
+        "backends": ["sd"],
+        "optionalModes": ["off"]
+      }
+    },
+    "lib/SimpleVector": {
+      "compile": {
+        "backends": ["sd"],
+        "optionalModes": ["off"]
+      }
+    }
+  }
+}

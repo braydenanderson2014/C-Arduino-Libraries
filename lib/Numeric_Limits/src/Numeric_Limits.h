@@ -1,12 +1,104 @@
 #ifndef NUMERIC_LIMITS_H
 #define NUMERIC_LIMITS_H
 
+#include <stddef.h>
+
 // COMMENT THE FOLLOWING LINE IF YOU DON'T WANT TO USE A CUSTOM ARCHITECTURE, AND UNCOMMENT THE LINE BELOW IF YOU WANT TO USE A CUSTOM ARCHITECTURE
 //#define CUSTOM_ARCHITECTURE // Uncomment this line if you want to use a custom architecture
 /*
 
 0*/
 
+
+#define NUMERIC_LIMITS_BOARD_NAME_UNKNOWN "unknown"
+#define NUMERIC_LIMITS_SRAM_UNKNOWN 0UL
+#define NUMERIC_LIMITS_PROGRAM_SPACE_UNKNOWN 0UL
+
+#if defined(ARDUINO_AVR_UNO) || defined(__AVR_ATmega328P__)
+    #define NUMERIC_LIMITS_BOARD_NAME "Arduino Uno"
+    #define NUMERIC_LIMITS_SRAM_BYTES 2048UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 32256UL
+#elif defined(ARDUINO_AVR_NANO) || defined(__AVR_ATmega328P__)
+    #define NUMERIC_LIMITS_BOARD_NAME "Arduino Nano"
+    #define NUMERIC_LIMITS_SRAM_BYTES 2048UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 30720UL
+#elif defined(ARDUINO_AVR_MINI) || defined(__AVR_ATmega328P__)
+    #define NUMERIC_LIMITS_BOARD_NAME "Arduino Pro Mini"
+    #define NUMERIC_LIMITS_SRAM_BYTES 2048UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 30720UL
+#elif defined(ARDUINO_AVR_LEONARDO) || defined(__AVR_ATmega32U4__)
+    #define NUMERIC_LIMITS_BOARD_NAME "Arduino Leonardo"
+    #define NUMERIC_LIMITS_SRAM_BYTES 2560UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 28672UL
+#elif defined(ARDUINO_AVR_MICRO) || defined(__AVR_ATmega32U4__)
+    #define NUMERIC_LIMITS_BOARD_NAME "Arduino Micro"
+    #define NUMERIC_LIMITS_SRAM_BYTES 2560UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 28672UL
+#elif defined(_AVR_ATmega2560_) || defined(__AVR_ATmega2560__) || defined(ARDUINO_AVR_MEGA2560)
+    #define NUMERIC_LIMITS_BOARD_NAME "Arduino Mega 2560"
+    #define NUMERIC_LIMITS_SRAM_BYTES 8192UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 258048UL
+#elif defined(ARDUINO_AVR_MEGA) || defined(__AVR_ATmega1280__)
+    #define NUMERIC_LIMITS_BOARD_NAME "Arduino Mega"
+    #define NUMERIC_LIMITS_SRAM_BYTES 8192UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 126976UL
+#elif defined(ARDUINO_ARCH_RENESAS) || defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_UNOR4_MINIMA) || defined(ARDUINO_ARCH_RENESAS_UNO)
+    #define NUMERIC_LIMITS_BOARD_NAME "Arduino Uno R4"
+    #define NUMERIC_LIMITS_SRAM_BYTES 32768UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 262144UL
+#elif defined(ARDUINO_NANO_RP2040_CONNECT) || defined(ARDUINO_ARCH_MBED_NANO)
+    #define NUMERIC_LIMITS_BOARD_NAME "Arduino Nano RP2040 Connect"
+    #define NUMERIC_LIMITS_SRAM_BYTES 270336UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 16777216UL
+#elif defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_ARCH_RP2040)
+    #define NUMERIC_LIMITS_BOARD_NAME "RP2040"
+    #define NUMERIC_LIMITS_SRAM_BYTES 270336UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 2097152UL
+#elif defined(ARDUINO_GIGA) || defined(ARDUINO_GIGA_R1) || defined(ARDUINO_GIGA_R1_WIFI)
+    #define NUMERIC_LIMITS_BOARD_NAME "Arduino Giga R1 WiFi"
+    #define NUMERIC_LIMITS_SRAM_BYTES 1048576UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 2097152UL
+#elif defined(ARDUINO_PORTENTA_H7_M7) || defined(ARDUINO_PORTENTA_H7_M4)
+    #define NUMERIC_LIMITS_BOARD_NAME "Arduino Portenta H7"
+    #define NUMERIC_LIMITS_SRAM_BYTES 1048576UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 16777216UL
+#elif defined(ESP8266) || defined(ARDUINO_ARCH_ESP8266) || defined(_ESP8266_) || defined(_M_ESP8266)
+    #define NUMERIC_LIMITS_BOARD_NAME "ESP8266"
+    #define NUMERIC_LIMITS_SRAM_BYTES 81920UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 4194304UL
+#elif defined(ESP32S3) || defined(CONFIG_IDF_TARGET_ESP32S3)
+    #define NUMERIC_LIMITS_BOARD_NAME "ESP32-S3"
+    #define NUMERIC_LIMITS_SRAM_BYTES 524288UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 4194304UL
+#elif defined(ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32C3)
+    #define NUMERIC_LIMITS_BOARD_NAME "ESP32-C3"
+    #define NUMERIC_LIMITS_SRAM_BYTES 400000UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 4194304UL
+#elif defined(ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S2)
+    #define NUMERIC_LIMITS_BOARD_NAME "ESP32-S2"
+    #define NUMERIC_LIMITS_SRAM_BYTES 327680UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 4194304UL
+#elif defined(ESP32) || defined(ESPRESSIF32) || defined(ARDUINO_ARCH_ESP32) || defined(_ESP32_) || defined(_M_ESP32)
+    #define NUMERIC_LIMITS_BOARD_NAME "ESP32"
+    #define NUMERIC_LIMITS_SRAM_BYTES 520192UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 4194304UL
+#elif defined(ARDUINO_SAMD_MKRZERO) || defined(ARDUINO_SAMD_ZERO) || defined(_SAMD21G18A_) || defined(_M_SAMD21G18A)
+    #define NUMERIC_LIMITS_BOARD_NAME "SAMD21"
+    #define NUMERIC_LIMITS_SRAM_BYTES 32768UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 262144UL
+#elif defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT) || defined(__SAMD51__)
+    #define NUMERIC_LIMITS_BOARD_NAME "SAMD51"
+    #define NUMERIC_LIMITS_SRAM_BYTES 196608UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 524288UL
+#elif defined(ARDUINO_ARCH_STM32) || defined(_STM32F1_) || defined(_M_STM32F1) || defined(_STM32F4_) || defined(_M_STM32F4) || defined(_STM32F7_) || defined(_M_STM32F7) || defined(_STM32H7_) || defined(_M_STM32H7) || defined(_STM32L4_) || defined(_M_STM32L4)
+    #define NUMERIC_LIMITS_BOARD_NAME "STM32"
+    #define NUMERIC_LIMITS_SRAM_BYTES 65536UL
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES 524288UL
+#else
+    #define NUMERIC_LIMITS_BOARD_NAME NUMERIC_LIMITS_BOARD_NAME_UNKNOWN
+    #define NUMERIC_LIMITS_SRAM_BYTES NUMERIC_LIMITS_SRAM_UNKNOWN
+    #define NUMERIC_LIMITS_PROGRAM_SPACE_BYTES NUMERIC_LIMITS_PROGRAM_SPACE_UNKNOWN
+#endif
 
 #if defined(_i386_) || defined(_M_IX86) // x86 32-bit
     #define CHAR_MIN (-128)
@@ -377,7 +469,7 @@
 
     #define DBL_MIN FLT_MIN // On Arduino, double is often the same as float
     #define DBL_MAX FLT_MAX
-#elif defined (_AVR_ATmega2560_)
+#elif defined(_AVR_ATmega2560_) || defined(__AVR_ATmega2560__) || defined(ARDUINO_AVR_MEGA2560)
     #define CHAR_MIN (-128)
     #define CHAR_MAX 127
 
@@ -450,6 +542,9 @@ struct numeric_limits {
     static T Max() { return T(); }
     static bool is_signed() { return false; }
     static bool is_integer() { return false; }
+    static const char* board_name() { return NUMERIC_LIMITS_BOARD_NAME; }
+    static size_t sram_bytes() { return static_cast<size_t>(NUMERIC_LIMITS_SRAM_BYTES); }
+    static size_t program_space_bytes() { return static_cast<size_t>(NUMERIC_LIMITS_PROGRAM_SPACE_BYTES); }
 };
 
 template <>

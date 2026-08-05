@@ -32,6 +32,7 @@ template <typename T>
 class LinkedList {
 private:
     ListNode<T>* head;
+    ListNode<T>* tail;
     size_t Size;
 public:
 class ForwardIterator {
@@ -74,7 +75,15 @@ class ForwardIterator {
      * @brief Instantiate a new LinkedList object
      * 
     */
-    LinkedList() : head(nullptr), Size(0) {}
+    LinkedList() : head(nullptr), tail(nullptr), Size(0) {}
+
+    LinkedList(const LinkedList& other) : head(nullptr), tail(nullptr), Size(0) {
+        ListNode<T>* current = other.head;
+        while (current) {
+            append(current->data);
+            current = current->next;
+        }
+    }
 
     /**
      * @brief Destructor
@@ -106,12 +115,10 @@ class ForwardIterator {
         ListNode<T>* newNode = new ListNode<T>(value);
         if (!head) {
             head = newNode;
+            tail = newNode;
         } else {
-            ListNode<T>* current = head;
-            while (current->next) {
-                current = current->next;
-            }
-            current->next = newNode;
+            tail->next = newNode;
+            tail = newNode;
         }
         Size++;
     }
@@ -126,6 +133,9 @@ class ForwardIterator {
         ListNode<T>* newNode = new ListNode<T>(value);
         newNode->next = head;
         head = newNode;
+        if (!tail) {
+            tail = newNode;
+        }
         Size++;
     }
 
@@ -152,6 +162,9 @@ class ForwardIterator {
             }
             newNode->next = current->next;
             current->next = newNode;
+            if (newNode->next == nullptr) {
+                tail = newNode;
+            }
             
             Size++;
         }
@@ -170,7 +183,7 @@ class ForwardIterator {
     void insert(const T& value, size_t position) {
         if (position == 0) {
             prepend(value);
-        } else if (position >= size) {
+        } else if (position >= Size) {
             append(value);
         } else {
             ListNode<T>* newNode = new ListNode<T>(value);
@@ -180,6 +193,9 @@ class ForwardIterator {
             }
             newNode->next = current->next;
             current->next = newNode;
+            if (newNode->next == nullptr) {
+                tail = newNode;
+            }
             Size++;
         }
     }
@@ -197,6 +213,9 @@ class ForwardIterator {
         if(index == 0){
             ListNode<T>* temp = head;
             head = head->next;
+            if (!head) {
+                tail = nullptr;
+            }
             delete temp;
             Size--;
             return LL_SUCCESS;
@@ -207,6 +226,9 @@ class ForwardIterator {
         }
         ListNode<T>* temp = current->next;
         current->next = temp->next;
+        if (temp == tail) {
+            tail = current;
+        }
         delete temp;
         Size--;
         return LL_SUCCESS;
@@ -223,6 +245,9 @@ class ForwardIterator {
         if (head->data == value) {
             ListNode<T>* temp = head;
             head = head->next;
+            if (!head) {
+                tail = nullptr;
+            }
             delete temp;
             Size--;
             return LL_SUCCESS;
@@ -233,6 +258,9 @@ class ForwardIterator {
             if (current->next->data == value) {
                 ListNode<T>* temp = current->next;
                 current->next = current->next->next;
+                if (temp == tail) {
+                    tail = current;
+                }
                 delete temp;
                 Size--;
                 return LL_SUCCESS;
@@ -282,22 +310,21 @@ class ForwardIterator {
      * @return the element at the given position as a String
      * 
      * @details Returns the element at the given position in the list.
-     * If the position is out of bounds, nullptr is returned.
+     * If the position is out of bounds, LL_OUT_OF_BOUNDS is returned as a String.
      * Otherwise, the element at the given position is returned as a String
     */
     String getAsString(size_t position) const {
         ListNode<T>* current = head;
         for (size_t i = 0; i < position; i++) {
             if (!current) {
-                static String error_value = static_cast<String>(LL_OUT_OF_BOUNDS); // Static variable to hold the error code
-                return error_value; // Out of bounds
+return String("LL_OUT_OF_BOUNDS");
             }
             current = current->next;
         }
         if (current) {
             return String(current->data);
         } else {
-            return nullptr;
+            return String(LL_OUT_OF_BOUNDS);
         }
     }
     // Check if the list contains a specific element
@@ -355,6 +382,7 @@ class ForwardIterator {
             head = head->next;
             delete temp;
         }
+        tail = nullptr;
         Size = 0;
     }
 

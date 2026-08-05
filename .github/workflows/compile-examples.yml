@@ -5,13 +5,17 @@ on:
   push:
     paths:
       - ".github/workflows/compile-examples.yml"
+      - "lib/**"
       - "examples/**"
       - "src/**"
+      - "library.properties"
   pull_request:
     paths:
       - ".github/workflows/compile-examples.yml"
+      - "lib/**"
       - "examples/**"
       - "src/**"
+      - "library.properties"
   schedule:
     # Run every Tuesday at 8 AM UTC to catch breakage caused by changes to external resources (libraries, platforms).
     - cron: "0 8 * * TUE"
@@ -19,8 +23,93 @@ on:
   repository_dispatch:
 
 jobs:
-  build:
-    name: ${{ matrix.board.fqbn }}
+  discover-monorepo-libraries:
+    if: github.repository == 'braydenanderson2014/C-Arduino-Libraries'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+      hasTargets: ${{ steps.discover.outputs.hasTargets }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Discover library example paths
+        id: discover
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          entries = []
+          lib_root = Path("lib")
+
+          if lib_root.is_dir():
+              for child in sorted(lib_root.iterdir()):
+                  if not child.is_dir():
+                      continue
+                  if not (child / "library.properties").is_file():
+                      continue
+                  if not (child / "examples").is_dir():
+                      continue
+
+                  entries.append({
+                      "name": child.name,
+                      "path": child.as_posix(),
+                      "examples": (child / "examples").as_posix()
+                  })
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"matrix={json.dumps(entries)}\\n")
+              out.write(f"hasTargets={'true' if entries else 'false'}\\n")
+          PY
+
+  build-monorepo:
+    if: github.repository == 'braydenanderson2014/C-Arduino-Libraries'
+    needs: discover-monorepo-libraries
+    runs-on: ubuntu-latest
+
+    env:
+      SKETCHES_REPORTS_PATH: sketches-reports
+
+    strategy:
+      fail-fast: false
+      matrix:
+        library: ${{ fromJson(needs.discover-monorepo-libraries.outputs.matrix) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Compile examples for monorepo library
+        if: needs.discover-monorepo-libraries.outputs.hasTargets == 'true'
+        uses: arduino/compile-sketches@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fqbn: arduino:avr:mega
+          platforms: |
+            - name: arduino:avr
+          libraries: |
+            - source-path: ./${{ matrix.library.path }}
+          sketch-paths: |
+            - ./${{ matrix.library.examples }}
+          enable-deltas-report: true
+          sketches-report-path: ${{ env.SKETCHES_REPORTS_PATH }}/${{ matrix.library.name }}
+
+      - name: Save monorepo sketches report as workflow artifact
+        if: always() && needs.discover-monorepo-libraries.outputs.hasTargets == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          if-no-files-found: error
+          path: ${{ env.SKETCHES_REPORTS_PATH }}/${{ matrix.library.name }}
+          name: sketches-reports-${{ matrix.library.name }}
+
+  build-standalone:
+    if: github.repository != 'braydenanderson2014/C-Arduino-Libraries'
     runs-on: ubuntu-latest
 
     env:
@@ -87,23 +176,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Compile examples
+      - name: Compile examples (standalone Arduino library layout)
         uses: arduino/compile-sketches@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           fqbn: ${{ matrix.board.fqbn }}
           platforms: ${{ matrix.board.platforms }}
           libraries: |
-            # Install the library from the local path.
             - source-path: ./
-            # Additional library dependencies can be listed here.
-            # See: https://github.com/arduino/compile-sketches#libraries
           sketch-paths: |
             - examples
           enable-deltas-report: true
           sketches-report-path: ${{ env.SKETCHES_REPORTS_PATH }}
 
-      - name: Save sketches report as workflow artifact
+      - name: Save standalone sketches report as workflow artifact
         uses: actions/upload-artifact@v7
         with:
           if-no-files-found: error

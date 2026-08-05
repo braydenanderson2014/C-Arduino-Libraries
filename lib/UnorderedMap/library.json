@@ -1,6 +1,6 @@
 {
     "name": "UnorderedMap",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "This Library is an easy to use Library for Unordered Maps. This Library contains basic implementations of an Unordered Map. Please note that this library has been mostly tested but may not be completely stable. If you find any bugs, please report them to the Author",
     "keywords": ["UnorderedMap", "Map", "Key-Value Pairs", "List", "Hashtable", "Hash", "Table"],
     "repositories": [

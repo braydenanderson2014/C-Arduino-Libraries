@@ -37,13 +37,44 @@ jobs:
         shell: bash
         run: |
           set +e
-          arduino-lint \
-            --compliance specification \
-            --library-manager update \
-            --official \
-            --project-type library \
-            2>&1 | tee arduino-lint.log
-          LINT_EXIT_CODE=${PIPESTATUS[0]}
+          : > arduino-lint.log
+
+          mapfile -t libraries < <(
+            find lib -mindepth 1 -maxdepth 1 -type d \
+              ! -name "__ArduinoUnoQLibraryDevelopment__Experimental" \
+              -print | while read -r dir; do
+                if [[ -f "$dir/library.properties" || -f "$dir/library.json" ]]; then
+                  echo "$dir"
+                fi
+              done | sort
+          )
+
+          if [[ ${#libraries[@]} -eq 0 ]]; then
+            echo "No lintable Arduino libraries found under lib/." | tee -a arduino-lint.log
+            echo "has_errors=true" >> "$GITHUB_OUTPUT"
+            echo "lint_exit_code=1" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          LINT_EXIT_CODE=0
+
+          for lib_dir in "${libraries[@]}"; do
+            echo "Linting ${lib_dir}" | tee -a arduino-lint.log
+            arduino-lint \
+              --compliance specification \
+              --library-manager update \
+              --official \
+              --project-type library \
+              "$lib_dir" \
+              2>&1 | tee -a arduino-lint.log
+
+            run_exit=${PIPESTATUS[0]}
+            if [[ ${run_exit} -ne 0 ]]; then
+              LINT_EXIT_CODE=${run_exit}
+            fi
+
+            echo "" >> arduino-lint.log
+          done
 
           if grep -Eiq '(^|[^A-Z])ERROR([^A-Z]|$)' arduino-lint.log; then
             echo "has_errors=true" >> "$GITHUB_OUTPUT"
@@ -64,10 +95,10 @@ jobs:
 
       - name: Sync lint labels to private health repo and queue project health refresh
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork != true
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           TARGET_OWNER: braydenanderson2014
-          TARGET_REPO: C-Arduino-Libraries
+          TARGET_REPO: SystemCommands
           PASSING_LINT_ISSUE_NUMBER: "26"
           FAILED_LINT_ISSUE_NUMBER: "27"
           LIBRARY_LABEL: ${{ steps.library.outputs.library_label }}
@@ -81,6 +112,8 @@ jobs:
             const hasErrors = process.env.HAS_ERRORS === 'true';
             const passingIssue = Number.parseInt(process.env.PASSING_LINT_ISSUE_NUMBER || '26', 10);
             const failedIssue = Number.parseInt(process.env.FAILED_LINT_ISSUE_NUMBER || '27', 10);
+
+            core.info(`Lint label sync target: ${owner}/${repo} (passing issue #${passingIssue}, failed issue #${failedIssue})`);
 
             try {
               if (!libraryLabel) {
@@ -110,13 +143,44 @@ jobs:
                   });
 
                   try {
-                    await github.rest.issues.removeLabel({
-                      owner,
-                      repo,
-                      issue_number: issueToRemove,
-                      name: libraryLabel
-                    });
-                  } catch (error) {
+                              : > arduino-lint.log
+
+                              mapfile -t libraries < <(
+                                find lib -mindepth 1 -maxdepth 1 -type d \
+                                  ! -name "__ArduinoUnoQLibraryDevelopment__Experimental" \
+                                  -print | while read -r dir; do
+                                    if [[ -f "$dir/library.properties" || -f "$dir/library.json" ]]; then
+                                      echo "$dir"
+                                    fi
+                                  done | sort
+                              )
+
+                              if [[ ${#libraries[@]} -eq 0 ]]; then
+                                echo "No lintable Arduino libraries found under lib/." | tee -a arduino-lint.log
+                                echo "has_errors=true" >> "$GITHUB_OUTPUT"
+                                echo "lint_exit_code=1" >> "$GITHUB_OUTPUT"
+                                exit 0
+                              fi
+
+                              LINT_EXIT_CODE=0
+
+                              for lib_dir in "${libraries[@]}"; do
+                                echo "Linting ${lib_dir}" | tee -a arduino-lint.log
+                                arduino-lint \
+                                  --compliance specification \
+                                  --library-manager update \
+                                  --official \
+                                  --project-type library \
+                                  "$lib_dir" \
+                                  2>&1 | tee -a arduino-lint.log
+
+                                run_exit=${PIPESTATUS[0]}
+                                if [[ ${run_exit} -ne 0 ]]; then
+                                  LINT_EXIT_CODE=${run_exit}
+                                fi
+
+                                echo "" >> arduino-lint.log
+                              done
                     if (error.status !== 404) throw error;
                   }
                 }
@@ -144,7 +208,7 @@ jobs:
 
       - name: Create or update lint issue on errors
         if: steps.lint.outputs.has_errors == 'true' && github.event.pull_request.head.repo.fork != true
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           ISSUE_TITLE: "Arduino Lint errors detected"
         with:

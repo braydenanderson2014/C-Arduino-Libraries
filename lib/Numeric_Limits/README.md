@@ -5,7 +5,8 @@ The Numeric Limits library provides a way to determine the properties and limits
 ## Features
 * Type Limits: Obtain minimum and maximum values for various data types.
 * Type Properties: Check whether a type is signed, integer, or floating-point.
-* Compatibility: Designed with Arduino's 32-bit architecture in mind, ensuring compatibility with common Arduino boards.
+* Board Metadata: Query detected board name, SRAM capacity, and approximate program-space capacity.
+* Compatibility: Designed for common Arduino and embedded platforms, including AVR, Renesas, RP2040, ESP, SAMD, STM32, and desktop host builds.
 
 ## Usage
 To use the Numeric Limits library in your Arduino sketch, include it at the beginning of your code:
@@ -43,6 +44,17 @@ bool isIntSigned = numeric_limits<int>::is_signed();
 Serial.print("Is Int Signed: ");
 Serial.println(isIntSigned ? "Yes" : "No");
 ```
+### Checking Board Memory Metadata
+```cpp
+Serial.print("Board: ");
+Serial.println(numeric_limits<int>::board_name());
+
+Serial.print("SRAM bytes: ");
+Serial.println(numeric_limits<int>::sram_bytes());
+
+Serial.print("Program-space bytes: ");
+Serial.println(numeric_limits<int>::program_space_bytes());
+```
 ## Supported Types
 The library provides implementations for the following types:
 
@@ -60,6 +72,11 @@ Note: On Arduino, double is often equivalent to float, reflected in their shared
 The library supports the following boards/computers by default: (This library should auto detect the board if it is able to match it up...)
 
 * Arduino Giga (Must have the following build flag -> -D ARDUINO_GIGA... (This is based off of a custom board definition))
+* Arduino Uno / Nano / Pro Mini (ATmega328P): 2 KB SRAM, ~30-32 KB flash depending on bootloader reservation.
+* Arduino Leonardo / Micro (ATmega32U4): 2.5 KB SRAM, 28 KB usable flash.
+* Arduino Mega / Mega 2560: 8 KB SRAM, 128-256 KB flash with bootloader reservation accounted for.
+* Arduino Uno R4 Minima / WiFi: 32 KB SRAM, 256 KB flash.
+* Arduino Nano RP2040 Connect / RP2040 boards: ~264 KB SRAM with board-specific flash sizes.
 * x86 32-bit (_i386_, _M_IX86): Commonly used in desktops, laptops, and servers with 32-bit Intel or AMD processors.
 * x86 64-bit (_x86_64_, _M_X64): Commonly used in modern desktops, laptops, and servers with 64-bit Intel or AMD processors.
 * ARM 32-bit (_ARM_, _M_ARM): Supports a wide range of microcontrollers and microprocessors, including those used in many embedded systems, smartphones, tablets, and some lower-end laptops like Chromebooks.
@@ -69,11 +86,13 @@ The library supports the following boards/computers by default: (This library sh
 * AVR 8-bit (_AVR_, _M_AVR): Primarily used in Arduino boards like Arduino Uno, Mega, and Nano, which are popular in hobbyist and educational electronics.
 * ARC 32-bit (_ARC_, _M_ARC): Used in some embedded systems, particularly those requiring customization of the core.
 * SAMD21G18A 32-bit ARM (_SAMD21G18A_, _M_SAMD21G18A): Used in Arduino Zero and similar boards, suitable for more complex applications requiring low power consumption.
-* ESP8266 32-bit ARM (_ESP8266_, _M_ESP8266): Popular in IoT devices, known for Wi-Fi capabilities.
-* ESP32 32-bit ARM (_ESP32_, _M_ESP32): Successor to the ESP8266, known for its Wi-Fi and Bluetooth capabilities, used in a wide range of IoT and smart home devices.
+* ESP8266 (_ESP8266_, _M_ESP8266, `ARDUINO_ARCH_ESP8266`): Popular in IoT devices, known for Wi-Fi capabilities.
+* ESP32 / ESP32-S2 / ESP32-C3 / ESP32-S3: Wi-Fi and Bluetooth capable Espressif targets with board metadata for SRAM and approximate program space.
 * STM32F1, STM32F4, STM32F7, STM32H7, STM32L4 (_STM32F1_, _M_STM32F1, etc.): A wide range of STM32 microcontrollers from STMicroelectronics, used in professional and hobbyist projects for their balance of power and cost.
 * Portenta H7 M7 Core (ARDUINO_PORTENTA_H7_M7, _M_PORTENTA_H7_M7): High-performance boards designed for industrial applications, featuring dual-core processors.
 * Custom Architecture (CUSTOM_ARCHITECTURE): The code provides an option to define a custom architecture, indicating flexibility to support virtually any board or computer by customizing the architecture-specific definitions.
+
+If a board cannot be matched, `board_name()` returns `"unknown"` and the memory-capacity helpers return `0`.
 
 # ARDUINO:
 ## ChangeLog

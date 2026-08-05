@@ -11,10 +11,26 @@ private:
     bool isList; // true if ArrayList/SimpleVector (if you cant figure out why its called isList, then maybe you shouldnt be using this class :))    T singleValue;
     T singleValue; // Holds the single value
     #ifndef useSimpleVector
-    ArrayList<T> listValues; // ArrayList of values
+    ArrayList<T>* listValues; // Lazily allocated ArrayList of values
     #elif defined(useSimpleVector)
-    SimpleVector<T> listValues;
+    SimpleVector<T>* listValues; // Lazily allocated SimpleVector of values
     #endif
+
+    // Ensure listValues is allocated, seeding it with singleValue if transitioning from single mode.
+    void ensureList() {
+        if (!listValues) {
+            #ifndef useSimpleVector
+            listValues = new ArrayList<T>();
+            #else
+            listValues = new SimpleVector<T>();
+            #endif
+        }
+        if (!isList) {
+            listValues->clear();
+            listValues->add(singleValue);
+            isList = true;
+        }
+    }
 
 public:
     /**
@@ -23,7 +39,7 @@ public:
      * Creates a Variant object with a single value
      * 
     */
-    Variant() : isList(false), singleValue(T()) {} // Default to single value
+    Variant() : isList(false), singleValue(T()), listValues(nullptr) {} // Default to single value
     
     /**
      * @brief Constructor
@@ -32,7 +48,7 @@ public:
      * 
      * @param value The value to store
      */
-    Variant(const T& value) : isList(false), singleValue(value) {}
+    Variant(const T& value) : isList(false), singleValue(value), listValues(nullptr) {}
 
     #ifndef useSimpleVector
 
@@ -43,10 +59,52 @@ public:
      * 
      * @param values The ArrayList/SimpleVector of values to store
      */
-    Variant(const ArrayList<T>& values) : isList(true), listValues(values) {}
+    Variant(const ArrayList<T>& values) : isList(true), singleValue(T()), listValues(new ArrayList<T>(values)) {}
     #elif defined(useSimpleVector)
-    Variant(const SimpleVector<T>& values) : isList(true), listValues(values) {}
+    Variant(const SimpleVector<T>& values) : isList(true), singleValue(T()), listValues(new SimpleVector<T>(values)) {}
     #endif
+
+    /**
+     * @brief Copy constructor
+     */
+    Variant(const Variant<T>& other) : isList(other.isList), singleValue(other.singleValue), listValues(nullptr) {
+        if (other.listValues) {
+            #ifndef useSimpleVector
+            listValues = new ArrayList<T>(*other.listValues);
+            #else
+            listValues = new SimpleVector<T>(*other.listValues);
+            #endif
+        }
+    }
+
+    /**
+     * @brief Copy assignment operator
+     */
+    Variant<T>& operator=(const Variant<T>& other) {
+        if (this != &other) {
+            delete listValues;
+            listValues = nullptr;
+            isList = other.isList;
+            singleValue = other.singleValue;
+            if (other.listValues) {
+                #ifndef useSimpleVector
+                listValues = new ArrayList<T>(*other.listValues);
+                #else
+                listValues = new SimpleVector<T>(*other.listValues);
+                #endif
+            }
+        }
+        return *this;
+    }
+
+    /**
+     * @brief Destructor
+     */
+    ~Variant() {
+        delete listValues;
+        listValues = nullptr;
+    }
+
     /**
      * @brief Checks if the Variant is a single value
      * 
@@ -75,23 +133,35 @@ public:
     void setSingle(const T& value) {
         isList = false;
         singleValue = value;
-        listValues.clear();
+        if (listValues) {
+            listValues->clear();
+        }
     }
 
     /**
-     * @brief Sets the value of the Variant to an ArrayList
+     * @brief Sets the value of the Variant to a list
      * 
-     * @param values The ArrayList of values to set
+     * Uses ArrayList<T> by default, or SimpleVector<T> when useSimpleVector is defined.
+     * 
+     * @param values The list of values to set (ArrayList<T> or SimpleVector<T> depending on configuration)
      */
     #ifdef useSimpleVector
     void setList(const SimpleVector<T>& values) {
         isList = true;
-        listValues = values;
+        if (!listValues) {
+            listValues = new SimpleVector<T>(values);
+        } else {
+            *listValues = values;
+        }
     }
     #else
     void setList(const ArrayList<T>& values) {
         isList = true;
-        listValues = values;
+        if (!listValues) {
+            listValues = new ArrayList<T>(values);
+        } else {
+            *listValues = values;
+        }
     }
     #endif
 
@@ -101,17 +171,10 @@ public:
      * @return The single value of the Variant
      */
     T getSingle() const {
-        #ifdef useSimpleVector
-        if (isList) {
-            return listValues.elements() > 0 ? listValues[0] : T();
+        if (isList && listValues && listValues->size() > 0) {
+            return listValues->get(0);
         }
         return singleValue;
-        #else
-        if (isList) {
-            return listValues.size() > 0 ? listValues.get(0) : T();
-        }
-        return singleValue;
-        #endif
     }
 
 
@@ -122,12 +185,8 @@ public:
      * @return The ArrayList/SimpleVector of values of the Variant
      */
     ArrayList<T>& getList() {
-        if (!isList) {
-            listValues.clear();
-            listValues.add(singleValue);
-            isList = true;
-        }
-        return listValues;
+        ensureList();
+        return *listValues;
     }
 
     /**
@@ -136,16 +195,12 @@ public:
      * @return The ArrayList of values of the Variant
      */
     const ArrayList<T>& getList() const {
-        return listValues;
+        return *listValues;
     }
     #elif defined(useSimpleVector)
     SimpleVector<T>& getList() {
-        if (!isList) {
-            listValues.clear();
-            listValues.add(singleValue);
-            isList = true;
-        }
-        return listValues;
+        ensureList();
+        return *listValues;
     }
 
     /**
@@ -154,7 +209,7 @@ public:
      * @return The ArrayList of values of the Variant
      */
     const SimpleVector<T>& getList() const {
-        return listValues;
+        return *listValues;
     }
     #endif
 
@@ -166,12 +221,8 @@ public:
      * @note If the Variant is a single value, it will be converted to an ArrayList/SimpleVector
      */
     void addValue(const T& value) {
-        if (!isList) {
-            listValues.clear();
-            listValues.add(singleValue);
-            isList = true;
-        }
-        listValues.add(value);
+        ensureList();
+        listValues->add(value);
     }
 
     #ifndef useSimpleVector
@@ -181,11 +232,11 @@ public:
      * @return The size of the Variant
      */
     int size() const {
-        return isList ? listValues.size() : 1;
+        return isList && listValues ? listValues->size() : 1;
     }
     #elif defined(useSimpleVector)
     int size() const {
-        return isList ? listValues.elements() : 1;
+        return isList && listValues ? listValues->elements() : 1;
     }
     #endif
 
@@ -196,7 +247,9 @@ public:
     void clear() {
         isList = false;
         singleValue = T();
-        listValues.clear();
+        if (listValues) {
+            listValues->clear();
+        }
     }
 };
 

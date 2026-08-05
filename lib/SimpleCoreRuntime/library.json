@@ -1,0 +1,24 @@
+{
+  "name": "SimpleCoreRuntime",
+  "version": "1.0.0",
+  "description": "Core-aware runtime wrapper for multicore/threaded Arduino-class targets.",
+  "keywords": ["arduino", "multicore", "runtime", "task", "thread", "esp32", "mbed", "stm32", "concurrency"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
+  },
+  "authors": [
+    {
+      "name": "Brayden Anderson",
+      "email": "braydenanderson2014@gmail.com",
+      "url": "https://github.com/braydenanderson2014"
+    }
+  ],
+  "headers": ["SimpleCoreRuntime.h"],
+  "frameworks": ["arduino"],
+  "platforms": ["espressif32", "ststm32"],
+  "dependencies": {
+    "SimpleThreadManager": "*"
+  },
+  "license": "Apache-2.0"
+}

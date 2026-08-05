@@ -1,6 +1,6 @@
 {
     "name": "SimpleStack",
-    "version": "1.0.0-ALPHA",
+    "version": "1.0.1",
     "description": "A Simple Stack Implementation that is easy to use and understand. First in Last out type data structure.",
     "keywords": ["Stack", "Queue", "Data Structure", "data", "First in Last out", "Arduino"],
     "Repositories": [

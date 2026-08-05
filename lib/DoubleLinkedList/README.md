@@ -2,6 +2,14 @@
 
 A simple, templated linked list implementation for Arduino projects. This class allows you to create and manage a linked list of any data type.
 
+## What's new in 1.0.6
+
+- Added a convenience `add()` method that appends values to the list.
+- Expanded iterator support with forward, backward, and random traversal helpers.
+- Fixed `getElement()` so out-of-range access returns a safe default value instead of failing.
+- Improved list access and retrieval behavior for insert/remove workflows.
+- Refreshed the documentation and package metadata for easier Arduino and PlatformIO use.
+
 ## Features
 
 - Templated class: Can store any data type.
@@ -51,8 +59,12 @@ To use `DoubleLinkedList` in your Arduino sketch:
 * Added new remove function that takes in an index to remove to match other List Libraries.
 ### Version 1.0.5
 * Fixed an issue with the getElement() Function. The function will return the item if its found, or it will return a default constructed T() in the event an item is not found.
-### Version  1.0.6
-* Added new add() function that adds an element to the list.          
+### Version 1.0.6
+* Added a convenience `add()` method for appending values to the list.
+* Expanded iterator support with forward, backward, and random traversal helpers.
+* Fixed `getElement()` so out-of-range access returns a safe default value.
+* Improved list access and retrieval behavior for insert/remove workflows.
+* Refreshed the documentation and package metadata for Arduino and PlatformIO discovery.
 
 
 ## Usage
@@ -120,7 +132,7 @@ myList.clear();
 ```
 ## Example
 ```cpp
-LinkedList<int> myList;
+DoubleLinkedList<int> myList;
 myList.append(1);
 myList.append(2);
 myList.prepend(0);

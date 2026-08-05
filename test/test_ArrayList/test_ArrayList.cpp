@@ -428,6 +428,32 @@ void test_copy_constructor_copies_initial_size_and_sort_algorithm() {
     TEST_ASSERT_EQUAL_INT(20, copy.get(1));
 }
 
+void test_pointer_elements_work_with_copy_constructor_and_assignment() {
+    int first = 10;
+    int second = 20;
+
+    ArrayList<int*> original(ArrayList<int*>::DYNAMIC2, 4);
+    original.add(&first);
+    original.add(&second);
+
+    ArrayList<int*> copy(original);
+    ArrayList<int*> assigned(ArrayList<int*>::DYNAMIC2, 2);
+    assigned = original;
+
+    TEST_ASSERT_EQUAL_UINT((unsigned int)original.size(), (unsigned int)copy.size());
+    TEST_ASSERT_EQUAL_UINT((unsigned int)original.size(), (unsigned int)assigned.size());
+
+    TEST_ASSERT_EQUAL_PTR(&first, copy.get(0));
+    TEST_ASSERT_EQUAL_PTR(&second, copy.get(1));
+    TEST_ASSERT_EQUAL_PTR(&first, assigned.get(0));
+    TEST_ASSERT_EQUAL_PTR(&second, assigned.get(1));
+
+    TEST_ASSERT_EQUAL_INT(10, *copy.get(0));
+    TEST_ASSERT_EQUAL_INT(20, *copy.get(1));
+    TEST_ASSERT_EQUAL_INT(10, *assigned.get(0));
+    TEST_ASSERT_EQUAL_INT(20, *assigned.get(1));
+}
+
 void test_add_all_non_trivial_type_uses_assignment_path() {
     ArrayList<CopyTracked> list(ArrayList<CopyTracked>::DYNAMIC2, 8);
     list.add(CopyTracked(1));
@@ -622,6 +648,7 @@ void setup() {
     RUN_TEST(test_sort_on_empty_list_is_a_no_op);
     RUN_TEST(test_sort_algorithm_defaults_to_merge_sort);
     RUN_TEST(test_copy_constructor_copies_initial_size_and_sort_algorithm);
+    RUN_TEST(test_pointer_elements_work_with_copy_constructor_and_assignment);
     RUN_TEST(test_add_all_non_trivial_type_uses_assignment_path);
     RUN_TEST(test_insert_all_non_trivial_type_uses_assignment_for_inserted_block);
     RUN_TEST(test_to_array_non_trivial_type_uses_assignment_path);

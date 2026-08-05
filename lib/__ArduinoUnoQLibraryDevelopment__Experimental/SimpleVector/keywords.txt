@@ -1,0 +1,30 @@
+#######################################
+# Syntax Coloring Map For SimpleVector
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+SimpleVector	KEYWORD1
+SimpleVectorIterator	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+resize	KEYWORD2
+releaseMemory	KEYWORD2
+clear	KEYWORD2
+put	KEYWORD2
+remove	KEYWORD2
+operator[]	KEYWORD2
+size	KEYWORD2
+elements	KEYWORD2
+get	KEYWORD2
+indexOf	KEYWORD2
+begin	KEYWORD2
+end	KEYWORD2
+hasNext	KEYWORD2
+next	KEYWORD2
+operator++	KEYWORD2
+operator!=	KEYWORD2
+operator*	KEYWORD2

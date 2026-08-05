@@ -80,7 +80,7 @@ for (auto it = hashTable.begin(); it != hashTable.end(); ++it) {
 ---
 ## 📜 **PlatformIO Changelog**
 ### Latest Version:
-- **v1.1.4** (see changes below)
+- **v1.1.5** (see changes below)
 
 
 ### Previous Versions:
@@ -163,7 +163,7 @@ return Iterator(this, TABLE_SIZE, nullptr);
 ```
 which is exactly what end() already has inside. This is just to be neater.
 
-- **v1.1.4**
+- **v1.1.5**
              - Added `normalizeTableSize()` private helper: zero or negative initial capacities now safely default to `INITIAL_TABLE_SIZE` instead of causing undefined behavior.
              - Fixed `Hashtable(size_t initialCapacity, float loadFactor)` constructor to pass capacity through `normalizeTableSize()`.
              - Fixed `resize()` to use the normalized size throughout, preventing zero-size allocations.
@@ -173,10 +173,13 @@ which is exactly what end() already has inside. This is just to be neater.
              - Fixed `operator[](const K& key)` (non-const): now safely returns a `static V dummy` fallback if the internal `get()` call returns `nullptr` after `put()`.
              - Fixed `operator[](const K& key) const`: now returns a stable `static const V defaultValue` reference instead of a dangling reference to a temporary.
 
+- **v1.1.4**
+             - Previous maintenance release.
+
 ---
 ## 📜 **Arduino Changelog**
 ### Latest Version:
-- **v1.0.5** [ON-PAR] -> PlatformIO v1.1.4
+- **v1.0.5** [ON-PAR] -> PlatformIO v1.1.5
              - Added `normalizeTableSize()` private helper: zero or negative initial capacities now safely default to `INITIAL_TABLE_SIZE`.
              - Fixed `Hashtable(size_t initialCapacity, float loadFactor)` constructor to use `normalizeTableSize()`.
              - Fixed `resize()` to use the normalized size, preventing zero-size allocations.
