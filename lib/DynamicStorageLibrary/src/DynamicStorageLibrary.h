@@ -150,7 +150,7 @@ public:
 
         json.setNumber("list.count", listStorage.elements());
         for (size_t i = 0; i < listStorage.elements(); ++i) {
-            writeTypedValue(json, "list.values." + String(i), listStorage[i]);
+            writeTypedValue(json, "list.values." + String(static_cast<unsigned long>(i)), listStorage[i]);
         }
 
         SimpleVector<K> keys = mapStorage.keys();
@@ -160,14 +160,14 @@ public:
             const StoredValue* value = mapStorage.get(key);
             if (!value) continue;
 
-            const String base = "map.entries." + String(i);
+            const String base = "map.entries." + String(static_cast<unsigned long>(i));
             json.setString(base + ".key", keyToString(key));
             json.setBool(base + ".isList", value->isList);
 
             if (value->isList) {
                 json.setNumber(base + ".count", value->listValues.elements());
                 for (size_t j = 0; j < value->listValues.elements(); ++j) {
-                    writeTypedValue(json, base + ".values." + String(j), value->listValues[j]);
+                    writeTypedValue(json, base + ".values." + String(static_cast<unsigned long>(j)), value->listValues[j]);
                 }
             } else {
                 writeTypedValue(json, base + ".single", value->singleValue);
@@ -198,12 +198,12 @@ public:
 
         size_t listCount = static_cast<size_t>(json.getNumber("list.count", 0));
         for (size_t i = 0; i < listCount; ++i) {
-            listStorage.put(readTypedValue(json, "list.values." + String(i), T()));
+            listStorage.put(readTypedValue(json, "list.values." + String(static_cast<unsigned long>(i)), T()));
         }
 
         size_t mapCount = static_cast<size_t>(json.getNumber("map.count", 0));
         for (size_t i = 0; i < mapCount; ++i) {
-            const String base = "map.entries." + String(i);
+            const String base = "map.entries." + String(static_cast<unsigned long>(i));
             if (!json.hasKey(base + ".key")) continue;
 
             K key = stringToKey(json.getString(base + ".key", ""));
@@ -213,7 +213,7 @@ public:
             if (holder.isList) {
                 size_t count = static_cast<size_t>(json.getNumber(base + ".count", 0));
                 for (size_t j = 0; j < count; ++j) {
-                    holder.listValues.put(readTypedValue(json, base + ".values." + String(j), T()));
+                    holder.listValues.put(readTypedValue(json, base + ".values." + String(static_cast<unsigned long>(j)), T()));
                 }
             } else {
                 holder.singleValue = readTypedValue(json, base + ".single", T());
