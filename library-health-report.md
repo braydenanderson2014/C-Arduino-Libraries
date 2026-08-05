@@ -1,6 +1,6 @@
 # Library Health Report
 
-Generated: 2026-08-05T02:20:39.158Z
+Generated: 2026-08-05T19:32:36.829Z
 Source repo: braydenanderson2014/C-Arduino-Libraries
 Analyzer repo: braydenanderson2014/SystemCommands
 Confirmed labels: confirmed
@@ -9,8 +9,7 @@ Confirmed labels: confirmed
 
 - Libraries analyzed: 52
 - Stable: 38
-- Unstable: 1
-- Unsure: 13
+- Unsure: 14
 - Tested: 0
 - Not Tested: 0
 - Testing Unmanaged (externally managed): 52
@@ -47,7 +46,7 @@ Confirmed labels: confirmed
 | Map | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square) |
 | Math Lib | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square) |
 | Matrix Math | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square) |
-| Memory Manager | Unknown | ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square) | ![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square) |
+| Memory Manager | Unknown | ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square) | ![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square) |
 | My Dictionary | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square) |
 | Numeric Limits | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square) |
 | OC Tree | Likely Healthy | ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square) | ![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square) |
@@ -734,7 +733,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/2186.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/2062.)
 - No confirmed source issues linked.
 
 ### Math Lib
@@ -783,8 +782,8 @@ Confirmed labels: confirmed
 
 ### Memory Manager
 
-- Routed bucket: Unstable (#20)
-- Health badge: ![Health: Unstable](https://img.shields.io/badge/Health-Unstable-d73a49?style=flat-square)
+- Routed bucket: Unsure (#24)
+- Health badge: ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)
 - Testing status: Unmanaged (externally managed)
 - Testing badge: ![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)
 - Lint status: Unknown
@@ -793,7 +792,7 @@ Confirmed labels: confirmed
 - Compilation badge: ![Compilation: Unknown](https://img.shields.io/badge/Compilation-Unknown-9e9e9e?style=flat-square)
 - Failed testing bucket (#33): No
 - Computed bucket before override: Unsure
-- Manual category override applied: Yes
+- Manual category override applied: No
 - Manual issue count override applied: No
 - Confirmed issue lock active: No
 - Open unconfirmed issues: 0
