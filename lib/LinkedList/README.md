@@ -60,6 +60,8 @@ To use `LinkedList` in your Arduino sketch:
 ### Version 1.0.7 [Current-Release]
 * Fixed an issue with the getElement() Function. The function will return the item if its found, or it will return a default constructed T() in the event an item is not found.
 * Added new add() function that will append an item to the end of the list.
+### Version 1.0.8
+* Added an internal tail pointer so append/add operations no longer traverse the full list.
 
 
 ## Currently Tested Functions

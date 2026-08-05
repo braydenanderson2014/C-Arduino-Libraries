@@ -5,6 +5,15 @@
 #include <Arduino.h>
 #include <limits.h>
 
+//#define HT_NO_SERIAL             // Uncomment to suppress all Serial output from this library (useful when Serial is not initialized)
+//#define HT_ENABLE_NUMERIC_LIMITS // Uncomment to enable numeric_limits integration (requires Numeric_Limits library — optional dependency)
+// PlatformIO: build_flags = -DHT_NO_SERIAL
+//             build_flags = -DHT_ENABLE_NUMERIC_LIMITS
+
+#ifdef HT_ENABLE_NUMERIC_LIMITS
+    #include <Numeric_Limits.h>
+#endif
+
 // Forward declaration of KeyHash
 /**
  * @brief A functor that hashes a key of type K
@@ -729,6 +738,38 @@ public:
         return count;
     }
 
+#ifdef HT_ENABLE_NUMERIC_LIMITS
+    /**
+     * @brief Returns the memory currently used by the hash table's bucket array (in bytes).
+     * @details Includes only the top-level Entry pointer array; does not account for
+     *          per-entry heap allocations.
+     * @return Bytes consumed by the bucket pointer array.
+     */
+    size_t memoryUsage() const {
+        return static_cast<size_t>(TABLE_SIZE) * sizeof(Entry*);
+    }
+
+    /**
+     * @brief Returns the theoretical maximum number of entries this Hashtable
+     *        could hold, limited by the maximum value of int on this platform.
+     * @return The upper bound on element count as reported by numeric_limits.
+     */
+    int theoreticalMaxElements() const {
+        return numeric_limits<int>::Max();
+    }
+
+    /**
+     * @brief Returns the ratio of elements stored to the theoretical maximum
+     *        element count, expressed as a float in the range [0.0, 1.0].
+     * @return Memory utilization fraction (current count / theoretical max).
+     */
+    float memoryUtilization() const {
+        const int maxElems = theoreticalMaxElements();
+        if (maxElems <= 0) return 0.0f;
+        return static_cast<float>(count) / static_cast<float>(maxElems);
+    }
+#endif // HT_ENABLE_NUMERIC_LIMITS
+
     /**
      * @brief Get the keys in the hash table
      * @details This function gets the keys in the hash table.
@@ -916,17 +957,23 @@ public:
      * like trying to set it up yourself. :)
      */
     void debugIterator() {
+#ifndef HT_NO_SERIAL
         Serial.println("[HASHTABLE]: Debugging Iterator:");
+#endif
         auto it = begin();
         while (it != end()) {
             auto kv = *it;
+#ifndef HT_NO_SERIAL
             Serial.print("[HASHTABLE ITERATOR]: Key: ");
             Serial.print(kv.key);
             Serial.print(", Value: ");
             Serial.println(kv.value);
+#endif
             ++it;
         }
+#ifndef HT_NO_SERIAL
         Serial.println("[HASHTABLE]: Iterator completed successfully.");
+#endif
     }
 };
 

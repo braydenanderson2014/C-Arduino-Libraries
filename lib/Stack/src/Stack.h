@@ -3,6 +3,15 @@
 
 #include <Arduino.h>
 
+//#define ST_NO_SERIAL             // Uncomment to suppress all Serial output from this library (useful when Serial is not initialized)
+//#define ST_ENABLE_NUMERIC_LIMITS // Uncomment to enable numeric_limits integration (requires Numeric_Limits library — optional dependency)
+// PlatformIO: build_flags = -DST_NO_SERIAL
+//             build_flags = -DST_ENABLE_NUMERIC_LIMITS
+
+#ifdef ST_ENABLE_NUMERIC_LIMITS
+    #include <Numeric_Limits.h>
+#endif
+
 template <class T>
 class Stack {
 private:
@@ -13,7 +22,9 @@ private:
     void resize(){
         T *newStack = new T[size * 2];
         if(!newStack){
+#ifndef ST_NO_SERIAL
             Serial.println("Stack: memory allocation failed during resize.");
+#endif
             return;
         }
         copy(newStack);
@@ -33,7 +44,11 @@ public:
      * @brief Construct a new Stack with a default initial capacity of 10.
      */
     Stack() : stack(new T[10]), top(-1), size(10) {
-        if(!stack){ Serial.println("Stack: memory allocation failed."); }
+        if(!stack){
+#ifndef ST_NO_SERIAL
+            Serial.println("Stack: memory allocation failed.");
+#endif
+        }
     }
 
     /**
@@ -42,7 +57,11 @@ public:
      */
     Stack(int initialCapacity) : top(-1), size(initialCapacity > 0 ? initialCapacity : 10) {
         stack = new T[size];
-        if(!stack){ Serial.println("Stack: memory allocation failed."); }
+        if(!stack){
+#ifndef ST_NO_SERIAL
+            Serial.println("Stack: memory allocation failed.");
+#endif
+        }
     }
 
     /**
@@ -50,7 +69,12 @@ public:
      */
     Stack(const Stack &other) : top(other.top), size(other.size) {
         stack = new T[size];
-        if(!stack){ Serial.println("Stack: memory allocation failed."); return; }
+        if(!stack){
+#ifndef ST_NO_SERIAL
+            Serial.println("Stack: memory allocation failed.");
+#endif
+            return;
+        }
         for(int i = 0; i <= top; i++){
             stack[i] = other.stack[i];
         }
@@ -62,7 +86,12 @@ public:
     Stack &operator=(const Stack &other){
         if(this != &other){
             T *newStack = new T[other.size];
-            if(!newStack){ Serial.println("Stack: memory allocation failed."); return *this; }
+            if(!newStack){
+#ifndef ST_NO_SERIAL
+                Serial.println("Stack: memory allocation failed.");
+#endif
+                return *this;
+            }
             delete[] stack;
             top = other.top;
             size = other.size;
@@ -95,7 +124,9 @@ public:
         if(isFull()){
             resize();
             if(isFull()){
+#ifndef ST_NO_SERIAL
                 Serial.println("Stack: push failed (out of memory).");
+#endif
                 return;
             }
         }
@@ -147,9 +178,13 @@ public:
     void print() const {
         if(!stack) return;
         for(int i = 0; i <= top; i++){
+#ifndef ST_NO_SERIAL
             Serial.println(stack[i]);
+#endif
         }
+#ifndef ST_NO_SERIAL
         Serial.println();
+#endif
     }
 
     /**
@@ -165,6 +200,37 @@ public:
     void clear(){
         top = -1;
     }
+
+#ifdef ST_ENABLE_NUMERIC_LIMITS
+    /**
+     * @brief Returns the memory currently used by the backing array (in bytes).
+     * @details Includes only the element storage array, not object overhead.
+     * @return Bytes consumed by the backing array.
+     */
+    int memoryUsage() const {
+        return size * static_cast<int>(sizeof(T));
+    }
+
+    /**
+     * @brief Returns the theoretical maximum number of elements this Stack
+     *        could hold, limited by the maximum value of int on this platform.
+     * @return The upper bound on element count as reported by numeric_limits.
+     */
+    int theoreticalMaxElements() const {
+        return numeric_limits<int>::Max();
+    }
+
+    /**
+     * @brief Returns the ratio of elements stored to the theoretical maximum
+     *        element count, expressed as a float in the range [0.0, 1.0].
+     * @return Memory utilization fraction (current count / theoretical max).
+     */
+    float memoryUtilization() const {
+        const int maxElems = theoreticalMaxElements();
+        if (maxElems <= 0) return 0.0f;
+        return static_cast<float>(top + 1) / static_cast<float>(maxElems);
+    }
+#endif // ST_ENABLE_NUMERIC_LIMITS
 };
 
 #endif // STACK_h

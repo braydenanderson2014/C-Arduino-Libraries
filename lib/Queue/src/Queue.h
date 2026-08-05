@@ -3,6 +3,15 @@
 
 #include <Arduino.h>
 
+//#define Q_NO_SERIAL             // Uncomment to suppress all Serial output from this library (useful when Serial is not initialized)
+//#define Q_ENABLE_NUMERIC_LIMITS // Uncomment to enable numeric_limits integration (requires Numeric_Limits library — optional dependency)
+// PlatformIO: build_flags = -DQ_NO_SERIAL
+//             build_flags = -DQ_ENABLE_NUMERIC_LIMITS
+
+#ifdef Q_ENABLE_NUMERIC_LIMITS
+    #include <Numeric_Limits.h>
+#endif
+
 template <class T>
 class Queue {
 private:
@@ -19,7 +28,9 @@ private:
     void resize(){
         T *newQueue = new T[size * 2];
         if(!newQueue){
+#ifndef Q_NO_SERIAL
             Serial.println("Queue: memory allocation failed during resize.");
+#endif
             return;
         }
         for(int i = 0; i < elements; i++){
@@ -37,7 +48,11 @@ public:
      * @brief Construct a new Queue with a default initial capacity of 10.
      */
     Queue() : queue(new T[10]), front(0), rear(-1), size(10), elements(0) {
-        if(!queue){ Serial.println("Queue: memory allocation failed."); }
+        if(!queue){
+#ifndef Q_NO_SERIAL
+            Serial.println("Queue: memory allocation failed.");
+#endif
+        }
     }
 
     /**
@@ -47,7 +62,11 @@ public:
     Queue(int initialCapacity) : front(0), rear(-1), elements(0) {
         size = initialCapacity > 0 ? initialCapacity : 10;
         queue = new T[size];
-        if(!queue){ Serial.println("Queue: memory allocation failed."); }
+        if(!queue){
+#ifndef Q_NO_SERIAL
+            Serial.println("Queue: memory allocation failed.");
+#endif
+        }
     }
 
     /**
@@ -55,7 +74,12 @@ public:
      */
     Queue(const Queue &other) : front(0), rear(other.elements - 1), size(other.size), elements(other.elements) {
         queue = new T[size];
-        if(!queue){ Serial.println("Queue: memory allocation failed."); return; }
+        if(!queue){
+#ifndef Q_NO_SERIAL
+            Serial.println("Queue: memory allocation failed.");
+#endif
+            return;
+        }
         for(int i = 0; i < elements; i++){
             queue[i] = other.queue[other.front + i];
         }
@@ -67,7 +91,12 @@ public:
     Queue &operator=(const Queue &other){
         if(this != &other){
             T *newQueue = new T[other.size];
-            if(!newQueue){ Serial.println("Queue: memory allocation failed."); return *this; }
+            if(!newQueue){
+#ifndef Q_NO_SERIAL
+                Serial.println("Queue: memory allocation failed.");
+#endif
+                return *this;
+            }
             delete[] queue;
             size = other.size;
             elements = other.elements;
@@ -107,7 +136,9 @@ public:
                 // Backing array is truly full — expand and compact.
                 resize();
                 if(elements == size){
+#ifndef Q_NO_SERIAL
                     Serial.println("Queue: enqueue failed (out of memory).");
+#endif
                     return;
                 }
             } else {
@@ -171,7 +202,9 @@ public:
     void print() const {
         if(!queue) return;
         for(int i = 0; i < elements; i++){
+#ifndef Q_NO_SERIAL
             Serial.println(queue[front + i]);
+#endif
         }
     }
 
@@ -190,5 +223,36 @@ public:
     int count() const {
         return elements;
     }
+
+#ifdef Q_ENABLE_NUMERIC_LIMITS
+    /**
+     * @brief Returns the memory currently used by the backing array (in bytes).
+     * @details Includes only the element storage array, not object overhead.
+     * @return Bytes consumed by the backing array.
+     */
+    int memoryUsage() const {
+        return size * static_cast<int>(sizeof(T));
+    }
+
+    /**
+     * @brief Returns the theoretical maximum number of elements this Queue
+     *        could hold, limited by the maximum value of int on this platform.
+     * @return The upper bound on element count as reported by numeric_limits.
+     */
+    int theoreticalMaxElements() const {
+        return numeric_limits<int>::Max();
+    }
+
+    /**
+     * @brief Returns the ratio of elements stored to the theoretical maximum
+     *        element count, expressed as a float in the range [0.0, 1.0].
+     * @return Memory utilization fraction (current elements / theoretical max).
+     */
+    float memoryUtilization() const {
+        const int maxElems = theoreticalMaxElements();
+        if (maxElems <= 0) return 0.0f;
+        return static_cast<float>(elements) / static_cast<float>(maxElems);
+    }
+#endif // Q_ENABLE_NUMERIC_LIMITS
 };
 #endif // QUEUE_h

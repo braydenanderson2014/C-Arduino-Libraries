@@ -19,7 +19,42 @@ enum VariantType {
 template <typename K, typename V>
 class ExtremeVariant {
 public:
-    ExtremeVariant() : type(NONE) {}
+    ExtremeVariant() : type(NONE), singleValue(), listValues(nullptr), keyValuePairs(nullptr) {}
+
+    ExtremeVariant(const ExtremeVariant<K, V>& other)
+        : type(other.type), singleValue(other.singleValue), listValues(nullptr), keyValuePairs(nullptr) {
+        if (other.listValues) {
+            listValues = new SimpleVector<V>(*other.listValues);
+        }
+        if (other.keyValuePairs) {
+            keyValuePairs = new Hashtable<K, V>(*other.keyValuePairs);
+        }
+    }
+
+    ExtremeVariant<K, V>& operator=(const ExtremeVariant<K, V>& other) {
+        if (this != &other) {
+            delete listValues;
+            delete keyValuePairs;
+            listValues = nullptr;
+            keyValuePairs = nullptr;
+            type = other.type;
+            singleValue = other.singleValue;
+            if (other.listValues) {
+                listValues = new SimpleVector<V>(*other.listValues);
+            }
+            if (other.keyValuePairs) {
+                keyValuePairs = new Hashtable<K, V>(*other.keyValuePairs);
+            }
+        }
+        return *this;
+    }
+
+    ~ExtremeVariant() {
+        delete listValues;
+        delete keyValuePairs;
+        listValues = nullptr;
+        keyValuePairs = nullptr;
+    }
 
     // Set a single element
     void setSingle(const V& value) {
@@ -31,14 +66,22 @@ public:
     // Set a list of elements
     void setList(const SimpleVector<V>& values) {
         clear();
-        listValues = values;
+        if (!listValues) {
+            listValues = new SimpleVector<V>(values);
+        } else {
+            *listValues = values;
+        }
         type = SINGLE_LIST;
     }
 
     // Set key-value pairs
     void setKeyValuePairs(const Hashtable<K, V>& pairs) {
         clear();
-        keyValuePairs = pairs;
+        if (!keyValuePairs) {
+            keyValuePairs = new Hashtable<K, V>(pairs);
+        } else {
+            *keyValuePairs = pairs;
+        }
         type = KEY_VALUE_PAIRS;
     }
 
@@ -52,16 +95,16 @@ public:
 
     // Get the list of elements
     Optional<SimpleVector<V>> getList() const {
-        if (type == SINGLE_LIST) {
-            return Optional<SimpleVector<V>>(listValues);
+        if (type == SINGLE_LIST && listValues) {
+            return Optional<SimpleVector<V>>(*listValues);
         }
         return Optional<SimpleVector<V>>();
     }
 
     // Get the key-value pairs
     Optional<Hashtable<K, V>> getKeyValuePairs() const {
-        if (type == KEY_VALUE_PAIRS) {
-            return Optional<Hashtable<K, V>>(keyValuePairs);
+        if (type == KEY_VALUE_PAIRS && keyValuePairs) {
+            return Optional<Hashtable<K, V>>(*keyValuePairs);
         }
         return Optional<Hashtable<K, V>>();
     }
@@ -69,6 +112,12 @@ public:
     // Clear the variant
     void clear() {
         type = NONE;
+        if (listValues) {
+            listValues->clear();
+        }
+        if (keyValuePairs) {
+            keyValuePairs->clear();
+        }
     }
 
     // Get the current type
@@ -79,8 +128,8 @@ public:
 private:
     VariantType type;
     V singleValue;
-    SimpleVector<V> listValues;
-    Hashtable<K, V> keyValuePairs;
+    SimpleVector<V>* listValues;
+    Hashtable<K, V>* keyValuePairs;
 };
 
 #endif // EXTREME_VARIANT_H

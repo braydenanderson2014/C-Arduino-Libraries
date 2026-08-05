@@ -69,11 +69,14 @@
 #include "Hashtable.h"
 #include "JSON.h"
 #include "Operators.h"
+#include "Optional.h"
 #include "OrderedMap.h"
 #include "Predicates.h"
 #include "Queue.h"
 #include "SimpleVector.h"
+#include "ExtremeVariant.h"
 #include "Stack.h"
+#include "Variant.h"
 
 // Mask applied to std::size_t loop counters before casting to int/key, keeping
 // the value non-negative regardless of the platform's int width.
@@ -817,6 +820,16 @@ int main() {
         []() { return new OrderedMap<int, int>(); }
     ));
 
+    instanceProbes.push_back(probeInstanceCount<Variant<int>>(
+        "Variant_int", limitBytes, maxInstances,
+        []() { return new Variant<int>(); }
+    ));
+
+    instanceProbes.push_back(probeInstanceCount<ExtremeVariant<int, int>>(
+        "ExtremeVariant_int_int", limitBytes, maxInstances,
+        []() { return new ExtremeVariant<int, int>(); }
+    ));
+
     // ── Element fill probes ──────────────────────────────────────────────────
     // Measures how many elements fit in a single container instance.
 
@@ -922,6 +935,38 @@ int main() {
         }
     ));
 
+    // ArrayList<Optional<int>>
+    // Measures how many Optional<int>-wrapped elements fit vs bare int (see ArrayList<int> above).
+    fillProbes.push_back(probeElementFill<ArrayList<Optional<int>>>(
+        "ArrayList", "Optional_int", limitBytes, maxElements,
+        []() { return ArrayList<Optional<int>>(ArrayList<Optional<int>>::DYNAMIC2, 8); },
+        [](ArrayList<Optional<int>>& c, std::size_t i) {
+            c.add(Optional<int>(static_cast<int>(i & MAX_POSITIVE_INT_MASK)));
+        },
+        [](ArrayList<Optional<int>>& c, std::size_t expected) {
+            if (c.size() != expected) return false;
+            if (expected == 0) return true;
+            const Optional<int> last = c.get(expected - 1);
+            return last.hasValue() && last.getValue() == static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+        },
+        [](ArrayList<Optional<int>>& c, std::size_t expected) {
+            return sampleChecksum(expected, [&](std::size_t i) {
+                const Optional<int> v = c.get(i);
+                return v.hasValue() ? static_cast<double>(v.getValue()) : 0.0;
+            });
+        },
+        [](ArrayList<Optional<int>>& c, std::size_t expected) {
+            const std::size_t before = c.size();
+            try {
+                if (!c.insert(before, Optional<int>(0x5a5a5a5a))) return c.size() == before;
+            } catch (const std::bad_alloc&) {
+                return c.size() == before;
+            }
+            c.remove(c.size() - 1);
+            return c.size() == before && before == expected;
+        }
+    ));
+
     // SimpleVector<int>
     fillProbes.push_back(probeElementFill<SimpleVector<int>>(
         "SimpleVector", "int", limitBytes, maxElements,
@@ -983,6 +1028,38 @@ int main() {
             const unsigned int before = c.elements();
             try {
                 c.put(2.0);
+            } catch (const std::bad_alloc&) {
+                return c.elements() == before;
+            }
+            c.erase(static_cast<int>(c.elements() - 1));
+            return c.elements() == before && before == expected;
+        }
+    ));
+
+    // SimpleVector<Optional<int>>
+    // Measures how many Optional<int>-wrapped elements fit vs bare int (see SimpleVector<int> above).
+    fillProbes.push_back(probeElementFill<SimpleVector<Optional<int>>>(
+        "SimpleVector", "Optional_int", limitBytes, maxElements,
+        []() { return SimpleVector<Optional<int>>(); },
+        [](SimpleVector<Optional<int>>& c, std::size_t i) {
+            c.put(Optional<int>(static_cast<int>(i & MAX_POSITIVE_INT_MASK)));
+        },
+        [](SimpleVector<Optional<int>>& c, std::size_t expected) {
+            if (static_cast<std::size_t>(c.elements()) != expected) return false;
+            if (expected == 0) return true;
+            const Optional<int> last = c.get(static_cast<unsigned int>(expected - 1));
+            return last.hasValue() && last.getValue() == static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+        },
+        [](SimpleVector<Optional<int>>& c, std::size_t expected) {
+            return sampleChecksum(expected, [&](std::size_t i) {
+                const Optional<int> v = c.get(static_cast<unsigned int>(i));
+                return v.hasValue() ? static_cast<double>(v.getValue()) : 0.0;
+            });
+        },
+        [](SimpleVector<Optional<int>>& c, std::size_t expected) {
+            const unsigned int before = c.elements();
+            try {
+                c.put(Optional<int>(0x7f7f7f7f));
             } catch (const std::bad_alloc&) {
                 return c.elements() == before;
             }
@@ -1293,12 +1370,16 @@ int main() {
         [](LinkedList<int>& c, std::size_t expected) {
             if (c.size() != expected) return false;
             if (expected == 0) return true;
-            int* last = c.get(expected - 1);
-            return last && *last == static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+            // Use head (index 0) for O(1) access — get(N-1) on a singly-linked
+            // list without a tail pointer is O(N) and causes O(N²) probe time.
+            int* head = c.get(0);
+            return head != nullptr;
         },
         [](LinkedList<int>& c, std::size_t expected) {
-            return sampleChecksum(expected, [&](std::size_t i) {
-                int* v = c.get(i);
+            // Sample only the head element (O(1)) — random index access on a
+            // singly-linked list is O(N) per call, making full sampleChecksum O(N²).
+            return sampleChecksum(1, [&](std::size_t) {
+                int* v = c.get(0);
                 return v ? *v : 0;
             });
         },
@@ -1390,8 +1471,12 @@ int main() {
             return c.get(last) == last;
         },
         [](OrderedMap<int, int>& c, std::size_t expected) {
-            return sampleChecksum(expected, [&](std::size_t i) {
-                return c.get(static_cast<int>(i & MAX_POSITIVE_INT_MASK));
+            // OrderedMap::get() is O(N) linear scan; calling it 64 times per
+            // checksum makes the probe O(N²).  Sample only one entry instead.
+            return sampleChecksum(1, [&](std::size_t) {
+                if (expected == 0) return 0;
+                const int k = static_cast<int>((expected - 1) & MAX_POSITIVE_INT_MASK);
+                return c.get(k);
             });
         },
         [](OrderedMap<int, int>& c, std::size_t expected) {
@@ -1417,8 +1502,11 @@ int main() {
             return c.get(last) == last;
         },
         [](OrderedMap<String, String>& c, std::size_t expected) {
-            return sampleChecksum(expected, [&](std::size_t i) {
-                return c.get(String(static_cast<int>(i)));
+            // OrderedMap::get() is O(N) linear scan; calling it 64 times per
+            // checksum makes the probe O(N²).  Sample only one entry instead.
+            return sampleChecksum(1, [&](std::size_t) {
+                if (expected == 0) return String("");
+                return c.get(String(static_cast<int>(expected - 1)));
             });
         },
         [](OrderedMap<String, String>& c, std::size_t expected) {
