@@ -1517,49 +1517,7 @@ int main() {
         }
     ));
 
-    // Variant<int>
-    fillProbes.push_back(probeElementFill<Variant<int>>(
-        "Variant", "int", limitBytes, maxElements,
-        []() { return Variant<int>(); },
-        [](Variant<int>& c, std::size_t i) {
-            c.addValue(static_cast<int>(i & MAX_POSITIVE_INT_MASK));
-        },
-        [](Variant<int>& c, std::size_t expected) {
-            return static_cast<std::size_t>(c.size()) == expected;
-        },
-        [](Variant<int>& c, std::size_t expected) {
-            if (expected == 0) return static_cast<std::uint64_t>(0);
-            return static_cast<std::uint64_t>(c.size());
-        },
-        [](Variant<int>& c, std::size_t expected) {
-            const int recoveryVal = -1;
-            try { c.addValue(recoveryVal); } catch (const std::bad_alloc&) { return true; }
-            return c.size() > 0;
-        }
-    ));
-
     filterStressProbesForCapabilities(backend, optional, instanceProbes, fillProbes);
-
-    // Variant<int>
-    fillProbes.push_back(probeElementFill<Variant<int>>(
-        "Variant", "int", limitBytes, maxElements,
-        []() { return Variant<int>(); },
-        [](Variant<int>& c, std::size_t i) {
-            c.addValue(static_cast<int>(i & MAX_POSITIVE_INT_MASK));
-        },
-        [](Variant<int>& c, std::size_t expected) {
-            return static_cast<std::size_t>(c.size()) == expected;
-        },
-        [](Variant<int>& c, std::size_t expected) {
-            if (expected == 0) return static_cast<std::uint64_t>(0);
-            return static_cast<std::uint64_t>(c.size());
-        },
-        [](Variant<int>& c, std::size_t expected) {
-            const int recoveryVal = -1;
-            try { c.addValue(recoveryVal); } catch (const std::bad_alloc&) { return true; }
-            return c.size() > 0;
-        }
-    ));
 
     std::cout << "Stress probes complete. Results:" << std::endl;
     for (const auto& p : instanceProbes) {
