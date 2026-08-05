@@ -16,5 +16,6 @@
         "tuple": "cpp",
         "type_traits": "cpp",
         "utility": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "C:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/test/host_arduino_sim"
 }

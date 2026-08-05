@@ -17,9 +17,13 @@
 //   HOST_STRESS_APPEND          Append report objects to report file       (default: 0)
 //   HOST_STRESS_MAX_INSTANCES   Max instances to create per probe        (default: 5000)
 //   HOST_STRESS_MAX_ELEMENTS    Max elements to add per fill probe       (default: 1000000)
+//   HOST_STRESS_PROGRESS_INTERVAL_MS
+//                               Progress heartbeat interval in milliseconds (default: 60000)
 
 #include <algorithm>
 #include <array>
+#include <cctype>
+#include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -28,9 +32,26 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <new>
 #include <string>
+#include <unordered_set>
 #include <vector>
+
+#if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef NOUSER
+#define NOUSER
+#endif
+#include <windows.h>
+#else
+#include <thread>
+#endif
 
 #if defined(__linux__) || defined(__APPLE__)
 #include <sys/resource.h>
@@ -105,6 +126,166 @@ static bool envBool(const char* key, bool fallback) {
     return fallback;
 }
 
+struct HeartbeatState {
+    std::string phase;
+    std::string probeName;
+    std::size_t maxCount = 0;
+    std::size_t baselineBytes = 0;
+    std::size_t limitBytes = 0;
+    std::size_t currentCount = 0;
+    std::uint64_t startedMs = 0;
+    std::uint64_t lastAdvanceMs = 0;
+    std::uint64_t lastPulseMs = 0;
+    bool active = false;
+};
+
+static std::size_t gStressProgressIntervalMs = 60000u;
+static std::string gStressBoard = "unknown";
+static std::string gStressBackend = "unknown";
+static std::string gStressOptional = "off";
+static HeartbeatState gHeartbeat;
+static std::mutex gHeartbeatMutex;
+static bool gHeartbeatShutdown = false;
+
+static std::uint64_t monotonicMs() {
+    using namespace std::chrono;
+    return static_cast<std::uint64_t>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
+}
+
+static void logStressProgress(
+    const char* phase,
+    const std::string& probeName,
+    std::size_t currentCount,
+    std::size_t maxCount,
+    std::size_t baselineBytes,
+    std::size_t limitBytes,
+    std::uint64_t elapsedMs,
+    std::uint64_t stalledMs,
+    bool force = false
+) {
+    const std::size_t currentHeap = getHeapBytes();
+    const std::size_t heapDelta = (baselineBytes > 0 && currentHeap > baselineBytes) ? (currentHeap - baselineBytes) : 0;
+
+    std::cout << "[stress-progress]"
+              << " phase=" << phase
+              << " probe=" << probeName
+              << " board=" << gStressBoard
+              << " backend=" << gStressBackend
+              << " optional=" << gStressOptional
+              << " count=" << currentCount << "/" << maxCount
+              << " elapsedMs=" << elapsedMs
+              << " stalledMs=" << stalledMs;
+
+    if (baselineBytes > 0 && limitBytes > 0) {
+        const std::size_t pct = static_cast<std::size_t>((heapDelta * 100u) / limitBytes);
+        std::cout << " heapDelta=" << heapDelta
+                  << " limit=" << limitBytes
+                  << " fillPct=" << pct;
+    } else {
+        std::cout << " heapDelta=unknown"
+                  << " limit=" << limitBytes
+                  << " fillPct=unknown";
+    }
+
+    if (force) {
+        std::cout << " marker=forced";
+    }
+
+    std::cout << std::endl;
+}
+
+static void heartbeatStartProbe(
+    const std::string& phase,
+    const std::string& probeName,
+    std::size_t maxCount,
+    std::size_t baselineBytes,
+    std::size_t limitBytes
+) {
+    const std::uint64_t nowMs = monotonicMs();
+    {
+        std::lock_guard<std::mutex> lock(gHeartbeatMutex);
+        gHeartbeat.phase = phase;
+        gHeartbeat.probeName = probeName;
+        gHeartbeat.maxCount = maxCount;
+        gHeartbeat.baselineBytes = baselineBytes;
+        gHeartbeat.limitBytes = limitBytes;
+        gHeartbeat.currentCount = 0;
+        gHeartbeat.startedMs = nowMs;
+        gHeartbeat.lastAdvanceMs = nowMs;
+        gHeartbeat.lastPulseMs = nowMs;
+        gHeartbeat.active = true;
+    }
+    logStressProgress((phase + ":start").c_str(), probeName, 0, maxCount, baselineBytes, limitBytes, 0, 0, true);
+}
+
+static void heartbeatAdvance(std::size_t currentCount) {
+    const std::uint64_t nowMs = monotonicMs();
+    std::lock_guard<std::mutex> lock(gHeartbeatMutex);
+    if (!gHeartbeat.active) {
+        return;
+    }
+    gHeartbeat.currentCount = currentCount;
+    gHeartbeat.lastAdvanceMs = nowMs;
+}
+
+static void heartbeatEndProbe(std::size_t currentCount) {
+    HeartbeatState snapshot;
+    const std::uint64_t nowMs = monotonicMs();
+    {
+        std::lock_guard<std::mutex> lock(gHeartbeatMutex);
+        if (!gHeartbeat.active) {
+            return;
+        }
+        gHeartbeat.currentCount = currentCount;
+        snapshot = gHeartbeat;
+        gHeartbeat.active = false;
+    }
+    const std::uint64_t elapsedMs = (nowMs > snapshot.startedMs) ? (nowMs - snapshot.startedMs) : 0;
+    const std::uint64_t stalledMs = (nowMs > snapshot.lastAdvanceMs) ? (nowMs - snapshot.lastAdvanceMs) : 0;
+    logStressProgress((snapshot.phase + ":end").c_str(), snapshot.probeName, snapshot.currentCount, snapshot.maxCount,
+                      snapshot.baselineBytes, snapshot.limitBytes, elapsedMs, stalledMs, true);
+}
+
+static void heartbeatWorkerLoop() {
+    while (true) {
+        HeartbeatState snapshot;
+        {
+            std::lock_guard<std::mutex> lock(gHeartbeatMutex);
+            if (gHeartbeatShutdown) {
+                break;
+            }
+            snapshot = gHeartbeat;
+        }
+
+        if (snapshot.active && gStressProgressIntervalMs > 0) {
+            const std::uint64_t nowMs = monotonicMs();
+            if ((nowMs - snapshot.lastPulseMs) >= gStressProgressIntervalMs) {
+                const std::uint64_t elapsedMs = (nowMs > snapshot.startedMs) ? (nowMs - snapshot.startedMs) : 0;
+                const std::uint64_t stalledMs = (nowMs > snapshot.lastAdvanceMs) ? (nowMs - snapshot.lastAdvanceMs) : 0;
+                logStressProgress((snapshot.phase + ":running").c_str(), snapshot.probeName, snapshot.currentCount,
+                                  snapshot.maxCount, snapshot.baselineBytes, snapshot.limitBytes, elapsedMs, stalledMs, false);
+                std::lock_guard<std::mutex> lock(gHeartbeatMutex);
+                if (gHeartbeat.active) {
+                    gHeartbeat.lastPulseMs = nowMs;
+                }
+            }
+        }
+
+        #if defined(_WIN32)
+        Sleep(250);
+        #else
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+        #endif
+    }
+}
+
+#if defined(_WIN32)
+static DWORD WINAPI heartbeatThreadProc(LPVOID) {
+    heartbeatWorkerLoop();
+    return 0;
+}
+#endif
+
 // ─── JSON escaping ────────────────────────────────────────────────────────────
 
 static std::string escJson(const std::string& s) {
@@ -134,6 +315,7 @@ struct InstanceProbeResult {
     std::size_t baselineBytes = 0;
     std::size_t postCleanupBytes = 0;
     std::size_t postCleanupDelta = 0;
+    std::uint64_t durationMs = 0;
 };
 
 struct ElementFillProbeResult {
@@ -150,6 +332,7 @@ struct ElementFillProbeResult {
     std::size_t healthFailures = 0;
     bool        recoveryCheckPassed = true;
     std::uint64_t checksumAtStop = 0;
+    std::uint64_t durationMs = 0;
 };
 
 template <typename T>
@@ -193,6 +376,86 @@ static std::uint64_t sampleChecksum(std::size_t count, Getter getValue) {
     return hash;
 }
 
+static std::string toLowerCopy(std::string value) {
+    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+    });
+    return value;
+}
+
+static bool isOptionalOnMode(const std::string& optionalMode) {
+    return toLowerCopy(optionalMode) == "on";
+}
+
+static bool isSdBackendMode(const std::string& backendMode) {
+    const std::string normalized = toLowerCopy(backendMode);
+    return normalized == "sd";
+}
+
+static bool supportsOptionalOnForInstance(const std::string& typeName) {
+    static const std::unordered_set<std::string> kSupported = {
+        "JSON",
+        "AVLTree_int",
+    };
+    return kSupported.find(typeName) != kSupported.end();
+}
+
+static bool supportsOptionalOnForFill(const std::string& containerType, const std::string& elementType) {
+    const std::string key = containerType + "[" + elementType + "]";
+    static const std::unordered_set<std::string> kSupported = {
+        "AVLTree[int]",
+    };
+    return kSupported.find(key) != kSupported.end();
+}
+
+static bool requiresSdBackendForInstance(const std::string& typeName) {
+    (void)typeName;
+    return false;
+}
+
+static bool requiresSdBackendForFill(const std::string& containerType, const std::string& elementType) {
+    (void)containerType;
+    (void)elementType;
+    return false;
+}
+
+static void filterStressProbesForCapabilities(
+    const std::string& backend,
+    const std::string& optional,
+    std::vector<InstanceProbeResult>& instanceProbes,
+    std::vector<ElementFillProbeResult>& fillProbes
+) {
+    const bool optionalOn = isOptionalOnMode(optional);
+    const bool sdBackend = isSdBackendMode(backend);
+
+    std::vector<InstanceProbeResult> filteredInstances;
+    filteredInstances.reserve(instanceProbes.size());
+    for (const auto& probe : instanceProbes) {
+        if (optionalOn && !supportsOptionalOnForInstance(probe.typeName)) {
+            continue;
+        }
+        if (requiresSdBackendForInstance(probe.typeName) && !sdBackend) {
+            continue;
+        }
+        filteredInstances.push_back(probe);
+    }
+
+    std::vector<ElementFillProbeResult> filteredFills;
+    filteredFills.reserve(fillProbes.size());
+    for (const auto& probe : fillProbes) {
+        if (optionalOn && !supportsOptionalOnForFill(probe.containerType, probe.elementType)) {
+            continue;
+        }
+        if (requiresSdBackendForFill(probe.containerType, probe.elementType) && !sdBackend) {
+            continue;
+        }
+        filteredFills.push_back(probe);
+    }
+
+    instanceProbes.swap(filteredInstances);
+    fillProbes.swap(filteredFills);
+}
+
 // ─── Instance count probe ─────────────────────────────────────────────────────
 // Creates heap-allocated instances via factory(), counting how many can exist
 // simultaneously before the heap delta from baseline reaches limitBytes.
@@ -204,11 +467,14 @@ static InstanceProbeResult probeInstanceCount(
     std::size_t maxInstances,
     Factory factory
 ) {
+    const std::uint64_t startedMs = monotonicMs();
     InstanceProbeResult result;
     result.typeName   = typeName;
     result.limitBytes = limitBytes;
     result.baselineBytes = getHeapBytes();
     const std::size_t baseline = result.baselineBytes;
+
+    heartbeatStartProbe("instance", typeName, maxInstances, baseline, limitBytes);
 
     {
         std::vector<std::unique_ptr<T>> instances;
@@ -225,6 +491,7 @@ static InstanceProbeResult probeInstanceCount(
             }
 
             result.maxInstances = i + 1;
+            heartbeatAdvance(result.maxInstances);
 
             // Check every 16 instances; skip check when heap measurement unavailable.
             if ((i % 16) == 0 && baseline > 0) {
@@ -250,6 +517,9 @@ static InstanceProbeResult probeInstanceCount(
     if (baseline > 0 && result.bytesAtStop > baseline) {
         result.limitReached = (result.bytesAtStop - baseline) >= limitBytes;
     }
+    const std::uint64_t endedMs = monotonicMs();
+    result.durationMs = (endedMs > startedMs) ? (endedMs - startedMs) : 0;
+    heartbeatEndProbe(result.maxInstances);
     return result;
 }
 
@@ -270,6 +540,7 @@ static ElementFillProbeResult probeElementFill(
     Checksum      checksum,
     RecoveryCheck recoveryCheck
 ) {
+    const std::uint64_t startedMs = monotonicMs();
     ElementFillProbeResult result;
     result.containerType = containerType;
     result.elementType   = elementType;
@@ -277,6 +548,8 @@ static ElementFillProbeResult probeElementFill(
 
     result.baselineBytes = getHeapBytes();
     const std::size_t baseline = result.baselineBytes;
+    const std::string probeName = containerType + "<" + elementType + ">";
+    heartbeatStartProbe("fill", probeName, maxElements, baseline, limitBytes);
 
     try {
         auto container = makeContainer();
@@ -293,6 +566,7 @@ static ElementFillProbeResult probeElementFill(
             }
 
             result.maxElements = i + 1;
+            heartbeatAdvance(result.maxElements);
 
             if ((i % 128) == 0) {
                 ++result.healthChecks;
@@ -347,6 +621,9 @@ static ElementFillProbeResult probeElementFill(
     if (baseline > 0 && result.postCleanupBytes > baseline) {
         result.postCleanupDelta = result.postCleanupBytes - baseline;
     }
+    const std::uint64_t endedMs = monotonicMs();
+    result.durationMs = (endedMs > startedMs) ? (endedMs - startedMs) : 0;
+    heartbeatEndProbe(result.maxElements);
     return result;
 }
 
@@ -359,6 +636,7 @@ static void writeStressReport(
     std::size_t limitBytes,
     const std::string& backend,
     const std::string& optional,
+    std::uint64_t totalDurationMs,
     bool append,
     const std::vector<InstanceProbeResult>& instanceProbes,
     const std::vector<ElementFillProbeResult>& fillProbes
@@ -386,6 +664,7 @@ static void writeStressReport(
     out << "  \"limitBytes\": " << limitBytes << ",\n";
     out << "  \"backend\": \"" << escJson(backend) << "\",\n";
     out << "  \"optional\": \"" << escJson(optional) << "\",\n";
+    out << "  \"totalDurationMs\": " << totalDurationMs << ",\n";
 
     out << "  \"instanceCountProbes\": [\n";
     for (std::size_t i = 0; i < instanceProbes.size(); ++i) {
@@ -398,7 +677,8 @@ static void writeStressReport(
         out << "      \"limitBytes\": "     << p.limitBytes                            << ",\n";
         out << "      \"baselineBytes\": "  << p.baselineBytes                         << ",\n";
         out << "      \"postCleanupBytes\": " << p.postCleanupBytes                    << ",\n";
-        out << "      \"postCleanupDelta\": " << p.postCleanupDelta                    << "\n";
+        out << "      \"postCleanupDelta\": " << p.postCleanupDelta                    << ",\n";
+        out << "      \"durationMs\": " << p.durationMs                              << "\n";
         out << "    }";
         if (i + 1 < instanceProbes.size()) out << ",";
         out << "\n";
@@ -421,7 +701,8 @@ static void writeStressReport(
         out << "      \"healthChecks\": "   << p.healthChecks                          << ",\n";
         out << "      \"healthFailures\": " << p.healthFailures                        << ",\n";
         out << "      \"recoveryCheckPassed\": " << (p.recoveryCheckPassed ? "true" : "false") << ",\n";
-        out << "      \"checksumAtStop\": " << p.checksumAtStop                        << "\n";
+        out << "      \"checksumAtStop\": " << p.checksumAtStop                        << ",\n";
+        out << "      \"durationMs\": " << p.durationMs                              << "\n";
         out << "    }";
         if (i + 1 < fillProbes.size()) out << ",";
         out << "\n";
@@ -433,10 +714,12 @@ static void writeStressReport(
 // ─── main ─────────────────────────────────────────────────────────────────────
 
 int main() {
+    const std::uint64_t runStartedMs = monotonicMs();
     const std::size_t limitBytes   = envSize("HOST_MEM_LIMIT_BYTES",       8u * 1024u * 1024u);
     const std::size_t sramBytes    = envSize("HOST_STRESS_SRAM_BYTES",      0u);
     const std::size_t maxInstances = envSize("HOST_STRESS_MAX_INSTANCES",   5000u);
     const std::size_t maxElements  = envSize("HOST_STRESS_MAX_ELEMENTS",    1000000u);
+    const std::size_t progressIntervalMs = envSize("HOST_STRESS_PROGRESS_INTERVAL_MS", 60000u);
     const std::string board        = envStr ("HOST_STRESS_BOARD",           "unknown");
     const std::string backend      = envStr ("HOST_STRESS_BACKEND",         "SD");
     const std::string optional     = envStr ("HOST_STRESS_OPTIONAL",        "off");
@@ -446,12 +729,24 @@ int main() {
         "test/host_arduino_sim/out/host-stress-report.json"
     );
 
+    gStressProgressIntervalMs = progressIntervalMs;
+    gStressBoard = board;
+    gStressBackend = backend;
+    gStressOptional = optional;
+    gHeartbeatShutdown = false;
+    #if defined(_WIN32)
+    HANDLE heartbeatThread = CreateThread(nullptr, 0, heartbeatThreadProc, nullptr, 0, nullptr);
+    #else
+    std::thread heartbeatThread(heartbeatWorkerLoop);
+    #endif
+
     std::cout << "Host stress tester starting." << std::endl;
     std::cout << "Board: "        << board     << std::endl;
     std::cout << "SRAM bytes: "   << sramBytes << std::endl;
     std::cout << "Limit bytes: "  << limitBytes << std::endl;
     std::cout << "Max instances per probe: " << maxInstances << std::endl;
     std::cout << "Max elements per probe:  " << maxElements  << std::endl;
+    std::cout << "Progress interval (ms):  " << progressIntervalMs << std::endl;
     std::cout << "Append report mode: " << (appendReport ? "on" : "off") << std::endl;
 
     std::vector<InstanceProbeResult>    instanceProbes;
@@ -1134,6 +1429,8 @@ int main() {
         }
     ));
 
+    filterStressProbesForCapabilities(backend, optional, instanceProbes, fillProbes);
+
     std::cout << "Stress probes complete. Results:" << std::endl;
     for (const auto& p : instanceProbes) {
         std::cout << "  Instance[" << p.typeName << "]: " << p.maxInstances
@@ -1148,9 +1445,25 @@ int main() {
     // ── Write report ─────────────────────────────────────────────────────────
 
     std::cout << "Writing stress report to: " << reportPath << std::endl;
+    const std::uint64_t runEndedMs = monotonicMs();
+    const std::uint64_t totalDurationMs = (runEndedMs > runStartedMs) ? (runEndedMs - runStartedMs) : 0;
     writeStressReport(reportPath, board, sramBytes, limitBytes, backend, optional,
+                      totalDurationMs,
                       appendReport,
                       instanceProbes, fillProbes);
+    {
+        std::lock_guard<std::mutex> lock(gHeartbeatMutex);
+        gHeartbeatShutdown = true;
+        gHeartbeat.active = false;
+    }
+    #if defined(_WIN32)
+    if (heartbeatThread != nullptr) {
+        WaitForSingleObject(heartbeatThread, INFINITE);
+        CloseHandle(heartbeatThread);
+    }
+    #else
+    heartbeatThread.join();
+    #endif
     std::cout << "Stress report written successfully." << std::endl;
 
     return 0;

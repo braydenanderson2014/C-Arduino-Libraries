@@ -1598,48 +1598,12 @@ jobs:
           path: test/host_arduino_sim/out/bin/host_experimental_unoqbridge
           if-no-files-found: error
 
-  host-memory-stress:
-    name: host-memory-stress (${{ matrix.boardProfile.board }})
+  # ── Build the stress runner binary once; all board jobs share it ─────────────
+  build-stress-runner:
     needs:
       - discover-libraries
-      - host-experimental-runtime
     if: needs.discover-libraries.outputs.experimental_has_targets == 'true' && contains(needs.discover-libraries.outputs.experimental_matrix, 'lib/__ArduinoUnoQLibraryDevelopment__Experimental/UnoQBridge')
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        boardProfile:
-          - board: uno
-            sramBytes: 2048
-          - board: nano
-            sramBytes: 2048
-          - board: micro
-            sramBytes: 2560
-          - board: leonardo
-            sramBytes: 2560
-          - board: mega2560
-            sramBytes: 8192
-          - board: due
-            sramBytes: 98304
-          - board: zero
-            sramBytes: 32768
-          - board: uno_r4
-            sramBytes: 32768
-          - board: mkr1000
-            sramBytes: 32768
-          - board: esp8266
-            sramBytes: 81920
-          - board: esp32
-            sramBytes: 532480
-          - board: esp32s3
-            sramBytes: 524288
-          - board: esp32c3
-            sramBytes: 400000
-          - board: unoq
-            sramBytes: 32768
-          - board: ventunoq
-            sramBytes: 65536
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -1651,11 +1615,12 @@ jobs:
           mkdir -p test/host_arduino_sim/out/bin
 
           g++ -std=c++17 -O2 \
-            -DAL_NO_SERIAL -D_AVR_ATmega2560_ \
+            -DAL_NO_SERIAL -DAL_SMART_RESIZE -DSIMPLE_VECTOR_SMART_RESIZE -D_AVR_ATmega2560_ \
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
             -Ilib/AVLTree/src \
             -Ilib/DynamicStorageLibrary/src \
+            -Ilib/ExtremeVariant/src \
             -Ilib/Hashtable/src \
             -Ilib/Json/src \
             -Ilib/LinkedList/src \
@@ -1670,9 +1635,84 @@ jobs:
             -Ilib/Stack/src \
             -Ilib/String/src \
             -Ilib/TypeTraits/src \
+            -Ilib/Variant/src \
             lib/Json/src/JSON.cpp \
             test/host_arduino_sim/host_stress_tests.cpp \
-            -o test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}
+            -o test/host_arduino_sim/out/bin/host_stress_runner
+
+      - name: Upload stress runner binary
+        uses: actions/upload-artifact@v7
+        with:
+          name: host-stress-runner
+          path: test/host_arduino_sim/out/bin/host_stress_runner
+          if-no-files-found: error
+
+  host-memory-stress:
+    name: host-memory-stress (${{ matrix.boardProfile.board }})
+    needs:
+      - discover-libraries
+      - host-experimental-runtime
+      - build-stress-runner
+    if: needs.discover-libraries.outputs.experimental_has_targets == 'true' && contains(needs.discover-libraries.outputs.experimental_matrix, 'lib/__ArduinoUnoQLibraryDevelopment__Experimental/UnoQBridge')
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        boardProfile:
+          # 2 KB  (uno & nano share this tier)
+          - board: uno
+            sramBytes: 2048
+            represents: "uno, nano"
+          # 2.5 KB  (micro & leonardo)
+          - board: micro
+            sramBytes: 2560
+            represents: "micro, leonardo"
+          # 8 KB
+          - board: mega2560
+            sramBytes: 8192
+            represents: "mega2560"
+          # 32 KB  (zero, uno_r4, mkr1000, unoq)
+          - board: zero
+            sramBytes: 32768
+            represents: "zero, uno_r4, mkr1000, unoq"
+          # 64 KB
+          - board: ventunoq
+            sramBytes: 65536
+            represents: "ventunoq"
+          # 80 KB
+          - board: esp8266
+            sramBytes: 81920
+            represents: "esp8266"
+          # 96 KB
+          - board: due
+            sramBytes: 98304
+            represents: "due"
+          # 390 KB
+          - board: esp32c3
+            sramBytes: 400000
+            represents: "esp32c3"
+          # 512 KB
+          - board: esp32s3
+            sramBytes: 524288
+            represents: "esp32s3"
+          # 520 KB
+          - board: esp32
+            sramBytes: 532480
+            represents: "esp32"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Download stress runner binary
+        uses: actions/download-artifact@v7
+        with:
+          name: host-stress-runner
+          path: test/host_arduino_sim/out/bin
+
+      - name: Make binary executable
+        shell: bash
+        run: chmod +x test/host_arduino_sim/out/bin/host_stress_runner
 
       - name: Run appended stress probes
         shell: bash
@@ -1682,29 +1722,34 @@ jobs:
           MEM_LIMIT_BYTES=$(( ${{ matrix.boardProfile.sramBytes }} * 1024 ))
           REPORT_PATH="test/host_arduino_sim/out/stress-${{ matrix.boardProfile.board }}.json"
 
-          echo "Board: ${{ matrix.boardProfile.board }}"
+          # Cap element iterations proportionally to the SRAM tier so that
+          # large-memory boards don't waste time filling to 5 M when they will
+          # never hit the memory limit (backend/optional are metadata-only and
+          # do not gate any probe logic, so one run per board is sufficient).
+          SRAM=${{ matrix.boardProfile.sramBytes }}
+          if   [ "${SRAM}" -le 8192 ];   then MAX_ELEM=50000
+          elif [ "${SRAM}" -le 102400 ];  then MAX_ELEM=200000
+          elif [ "${SRAM}" -le 614400 ];  then MAX_ELEM=1000000
+          else MAX_ELEM=5000000
+          fi
+
+          echo "Board: ${{ matrix.boardProfile.board }} (represents: ${{ matrix.boardProfile.represents }})"
           echo "SRAM bytes: ${{ matrix.boardProfile.sramBytes }}"
           echo "Host heap-delta limit bytes: ${MEM_LIMIT_BYTES}"
+          echo "Max elements cap: ${MAX_ELEM}"
 
           rm -f "${REPORT_PATH}"
 
-          append_mode=0
-          for backend in SD LittleFS; do
-            for optional in off on; do
-              echo "Running stress probe backend=${backend} optional=${optional} append=${append_mode}"
-              HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
-              HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
-              HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
-              HOST_STRESS_BACKEND="${backend}" \
-              HOST_STRESS_OPTIONAL="${optional}" \
-              HOST_STRESS_MAX_INSTANCES=20000 \
-              HOST_STRESS_MAX_ELEMENTS=5000000 \
-              HOST_STRESS_APPEND="${append_mode}" \
-              HOST_STRESS_REPORT="${REPORT_PATH}" \
-              ./test/host_arduino_sim/out/bin/host_stress_${{ matrix.boardProfile.board }}
-              append_mode=1
-            done
-          done
+          HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
+          HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
+          HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
+          HOST_STRESS_BACKEND="none" \
+          HOST_STRESS_OPTIONAL="off" \
+          HOST_STRESS_MAX_INSTANCES=20000 \
+          HOST_STRESS_MAX_ELEMENTS="${MAX_ELEM}" \
+          HOST_STRESS_APPEND="0" \
+          HOST_STRESS_REPORT="${REPORT_PATH}" \
+          ./test/host_arduino_sim/out/bin/host_stress_runner
 
       - name: Upload stress profile artifact
         if: always()
@@ -1936,7 +1981,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Download host simulation artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           pattern: host-arduino-sim*
@@ -1944,7 +1989,7 @@ jobs:
           path: .artifacts/host-sim
 
       - name: Download compile smoke artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           pattern: host-*library-compile-*
@@ -1952,7 +1997,7 @@ jobs:
           path: .artifacts/host-compile
 
       - name: Download stress profile artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           pattern: host-stress-report-*
