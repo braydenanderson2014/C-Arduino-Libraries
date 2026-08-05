@@ -1,0 +1,37 @@
+{
+  "name": "DynamicStorageLibrary",
+  "version": "1.0.0",
+  "description": "A flexible Arduino storage helper that supports RAM, SD, and automatic mode switching for key/value and list-based data.",
+  "keywords": ["storage", "dynamic", "sd", "json", "arduino", "data structure"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/DynamicStorageLibrary"
+  },
+  "authors": [
+    {
+      "name": "Brayden Anderson",
+      "email": "braydenanderson2014@gmail.com",
+      "url": "https://github.com/braydenanderson2014"
+    }
+  ],
+  "dependencies": {
+    "SimpleVector": "*",
+    "Hashtable": "*",
+    "SdFat": "*"
+  },
+  "examples": [
+    {
+      "name": "Basic Usage",
+      "base": "examples",
+      "files": [
+        "BasicUsage/BasicUsage.ino"
+      ]
+    }
+  ],
+  "headers": [
+    "DynamicStorageLibrary.h"
+  ],
+  "header": "DynamicStorageLibrary.h",
+  "category": "Data Processing",
+  "license": "Apache-2.0"
+}

@@ -13,6 +13,12 @@ private:
         KDimensionalNode *left, *right;
     };
 
+    // Stack entry for the iterative nearest-neighbor search.
+    struct SearchEntry {
+        KDimensionalNode* node;
+        int depth;
+    };
+
     KDimensionalNode *root;
     int dimension;
 
@@ -103,25 +109,62 @@ private:
         return node;
     }
 
-    KDimensionalNode* nearestNeighbor(KDimensionalNode* node, const SimpleVector<T>& point, int depth) {
-        if (node == nullptr) return nullptr;
+    KDimensionalNode* nearestNeighbor(const SimpleVector<T>& point) {
+        if (root == nullptr || dimension <= 0) return nullptr;
 
-        int cd = depth % dimension;
+        // Iterative nearest-neighbor search with a heap-allocated explicit stack
+        // to prevent call-stack overflow on deep or unbalanced trees.
+        SimpleVector<SearchEntry> stack;
 
-        KDimensionalNode* nextNode = point[cd] < node->point[cd] ? node->left : node->right;
-        KDimensionalNode* otherNode = point[cd] < node->point[cd] ? node->right : node->left;
+        // Pre-seed best with root so no sentinel value is needed in the loop.
+        KDimensionalNode* best = root;
+        double bestDistSq = distanceSq(point, root->point);
 
-        KDimensionalNode* best = node;
-        KDimensionalNode* temp = nearestNeighbor(nextNode, point, depth + 1);
+        SearchEntry first;
+        first.node = root;
+        first.depth = 0;
+        stack.push_back(first);
 
-        if (temp && distance(point, temp->point) < distance(point, best->point)) {
-            best = temp;
-        }
+        while (stack.elements() > 0) {
+            unsigned int last = stack.elements() - 1;
+            SearchEntry e = stack.get(last);
+            stack.erase(static_cast<int>(last));
+            KDimensionalNode* node = e.node;
+            if (node == nullptr) continue;
 
-        if (abs(point[cd] - node->point[cd]) < distance(point, best->point)) {
-            temp = nearestNeighbor(otherNode, point, depth + 1);
-            if (temp && distance(point, temp->point) < distance(point, best->point)) {
-                best = temp;
+            int cd = e.depth % dimension;
+            double dSq = distanceSq(point, node->point);
+
+            if (dSq < bestDistSq) {
+                bestDistSq = dSq;
+                best = node;
+            }
+
+            double diff = static_cast<double>(point[cd]) - static_cast<double>(node->point[cd]);
+            double splitDistSq = diff * diff;
+
+            // Near child = same side as query point; explored first (pushed last in LIFO).
+            KDimensionalNode* nearChild = diff < 0 ? node->left : node->right;
+            // Far child = opposite side; only explore when the splitting-plane distance
+            // is <= the current best, meaning a closer point could exist there.
+            // When diff == 0 the query lies exactly on the plane (splitDistSq == 0),
+            // so the condition is always true and both subtrees are searched.
+            KDimensionalNode* farChild = diff < 0 ? node->right : node->left;
+
+            // Push farChild first (lower priority in LIFO — explored second).
+            if (farChild != nullptr && splitDistSq <= bestDistSq) {
+                SearchEntry fe;
+                fe.node = farChild;
+                fe.depth = e.depth + 1;
+                stack.push_back(fe);
+            }
+
+            // Push nearChild last (higher priority in LIFO — explored first).
+            if (nearChild != nullptr) {
+                SearchEntry ne;
+                ne.node = nearChild;
+                ne.depth = e.depth + 1;
+                stack.push_back(ne);
             }
         }
 
@@ -153,23 +196,43 @@ private:
         return true;
     }
 
-    double distance(const SimpleVector<T>& a, const SimpleVector<T>& b) {
+    double distanceSq(const SimpleVector<T>& a, const SimpleVector<T>& b) const {
         double sum = 0;
         for (int i = 0; i < dimension; i++) {
-            sum += (a[i] - b[i]) * (a[i] - b[i]);
+            double diff = static_cast<double>(a[i]) - static_cast<double>(b[i]);
+            sum += diff * diff;
         }
-        return Sqrt(sum); // assuming MathLib.h defines Sqrt()
+        return sum;
+    }
+
+    double distance(const SimpleVector<T>& a, const SimpleVector<T>& b) const {
+        return Sqrt(distanceSq(a, b));
     }
 
     void freeTree(KDimensionalNode* node) {
         if (!node) return;
-        freeTree(node->left);
-        freeTree(node->right);
-        delete node;
+        SimpleVector<KDimensionalNode*> stack;
+        stack.push_back(node);
+        while (stack.elements() > 0) {
+            unsigned int last = stack.elements() - 1;
+            KDimensionalNode* current = stack.get(last);
+            stack.erase(static_cast<int>(last));
+            if (current->left) stack.push_back(current->left);
+            if (current->right) stack.push_back(current->right);
+            delete current;
+        }
     }
 
 public:
     KDimensionalTree(int k) : root(nullptr), dimension(k) {}
+
+    ~KDimensionalTree() {
+        freeTree(root);
+    }
+
+    // Prevent shallow copies that would cause double-free on destruction.
+    KDimensionalTree(const KDimensionalTree&) = delete;
+    KDimensionalTree& operator=(const KDimensionalTree&) = delete;
 
     void insert(const SimpleVector<T>& point) {
         root = insert(root, point, 0);
@@ -188,8 +251,8 @@ public:
         root = nullptr;
     }
 
-    SimpleVector<T> nearestNeighbour(SimpleVector<T>& point) {
-        KDimensionalNode* nearest = nearestNeighbor(root, point, 0);
+    SimpleVector<T> nearestNeighbour(const SimpleVector<T>& point) {
+        KDimensionalNode* nearest = nearestNeighbor(point);
         return nearest ? nearest->point : SimpleVector<T>();
     }
 

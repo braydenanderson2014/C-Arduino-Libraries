@@ -7,13 +7,21 @@
 #include <Arduino.h>
 #include "../../TypeTraits/src/TypeTraits.h"
 
-//#define IKnowWhatIAmDoing   // Uncomment to unlock advanced memory-control functions; USE AT YOUR OWN RISK
-//#define SkinnyArray         // Uncomment to remove memory-intensive features and save flash/RAM on constrained devices
-//#define AL_NO_SERIAL        // Uncomment to suppress all Serial output from this library (useful when Serial is not initialized)
+//#define IKnowWhatIAmDoing         // Uncomment to unlock advanced memory-control functions; USE AT YOUR OWN RISK
+//#define SkinnyArray               // Uncomment to remove memory-intensive features and save flash/RAM on constrained devices
+//#define AL_NO_SERIAL              // Uncomment to suppress all Serial output from this library (useful when Serial is not initialized)
+//#define AL_SMART_RESIZE           // Uncomment to enable smart adaptive resizing (reduces resize frequency during bulk adds)
+//#define AL_ENABLE_NUMERIC_LIMITS  // Uncomment to enable numeric_limits integration (requires Numeric_Limits library — optional dependency)
 
 // PlatformIO users can also set any of the above via build_flags in platformio.ini, e.g.:
 //   build_flags = -DSkinnyArray -DAL_NO_SERIAL
 //   build_flags = -DSkinnyArray -DOverrideSort
+//   build_flags = -DAL_SMART_RESIZE
+//   build_flags = -DAL_ENABLE_NUMERIC_LIMITS
+
+#ifdef AL_ENABLE_NUMERIC_LIMITS
+    #include <Numeric_Limits.h>
+#endif
 
 /**
  * @attention When SkinnyArray is defined, the directives below can selectively restore
@@ -67,7 +75,11 @@ public:
      * @param initialSize Initial capacity (default 8).
      */
     ArrayList(SizeType type = DYNAMIC2, size_t initialSize = 8)
-                : arrayCapacity(initialSize), count(0), initialSize(initialSize), sizeType(type) {
+                : arrayCapacity(initialSize), count(0), initialSize(initialSize), sizeType(type)
+#ifdef AL_SMART_RESIZE
+                , smartResizeCount(0), smartShrinkCount(0), customResizeAmount(0)
+#endif
+    {
         array = new T[arrayCapacity];
         if (!array) {
 #ifndef AL_NO_SERIAL
@@ -95,6 +107,11 @@ public:
 #if !defined(SkinnyArray) || defined(OverrideSort)
         this->sortAlgorithm = list.sortAlgorithm;
 #endif
+#ifdef AL_SMART_RESIZE
+        this->smartResizeCount  = list.smartResizeCount;
+        this->smartShrinkCount  = list.smartShrinkCount;
+        this->customResizeAmount = list.customResizeAmount;
+#endif
     }
 #endif
 
@@ -120,7 +137,11 @@ public:
             return;
         }
         if (verifyResizeNeeded(1)) {
+#ifdef AL_SMART_RESIZE
+            smartResize();
+#else
             resize();
+#endif
         }
         if (count < arrayCapacity) {
             array[count++] = item;
@@ -139,7 +160,11 @@ public:
      */
     bool addAll(const ArrayList<T>& other) {
         if (verifyResizeNeeded(other.count)) {
+#ifdef AL_SMART_RESIZE
+            smartResize();
+#else
             resize();
+#endif
         }
         if (count + other.count <= arrayCapacity) {
             for (size_t i = 0; i < other.count; i++) {
@@ -187,7 +212,11 @@ public:
             return false;
         }
         if (verifyResizeNeeded(1)) {
+#ifdef AL_SMART_RESIZE
+            smartResize();
+#else
             resize();
+#endif
         }
         if (count >= arrayCapacity) {
             return false;
@@ -223,6 +252,11 @@ public:
         this->count         = list.count;
 #if !defined(SkinnyArray) || defined(OverrideSort)
         this->sortAlgorithm = list.sortAlgorithm;
+#endif
+#ifdef AL_SMART_RESIZE
+        this->smartResizeCount   = list.smartResizeCount;
+        this->smartShrinkCount   = list.smartShrinkCount;
+        this->customResizeAmount = list.customResizeAmount;
 #endif
         return *this;
     }
@@ -532,6 +566,37 @@ public:
         return count;
     }
 
+#ifdef AL_ENABLE_NUMERIC_LIMITS
+    /**
+     * @brief Returns the memory currently used by the internal array (in bytes).
+     * @details Includes only the element storage array, not object overhead.
+     * @return Bytes consumed by the backing array.
+     */
+    size_t memoryUsage() const {
+        return arrayCapacity * sizeof(T);
+    }
+
+    /**
+     * @brief Returns the theoretical maximum number of elements this ArrayList
+     *        could hold, limited by the maximum value of size_t on this platform.
+     * @return The upper bound on element count as reported by numeric_limits.
+     */
+    size_t theoreticalMaxElements() const {
+        return static_cast<size_t>(numeric_limits<size_t>::Max());
+    }
+
+    /**
+     * @brief Returns the ratio of elements stored to the theoretical maximum
+     *        element count, expressed as a float in the range [0.0, 1.0].
+     * @return Memory utilization fraction (current count / theoretical max).
+     */
+    float memoryUtilization() const {
+        const size_t maxElems = theoreticalMaxElements();
+        if (maxElems == 0) return 0.0f;
+        return static_cast<float>(count) / static_cast<float>(maxElems);
+    }
+#endif // AL_ENABLE_NUMERIC_LIMITS
+
     /**
      * @brief Returns true if the ArrayList contains no elements.
      */
@@ -682,6 +747,38 @@ public:
         }
     }
 #endif
+
+#ifdef AL_SMART_RESIZE
+    /**
+     * @brief Reset smart-resize counters (e.g. after a bulk operation is done).
+     */
+    void resetSmartResizeCounters() {
+        smartResizeCount = 0;
+        smartShrinkCount = 0;
+    }
+
+    /**
+     * @brief Set a fixed number of extra slots to allocate on each smart resize.
+     *        Set to 0 to return to adaptive behaviour.
+     * @param amount Number of extra slots per resize step.
+     */
+    void setResizeAmount(size_t amount) {
+        customResizeAmount = amount;
+    }
+
+    /**
+     * @brief Reserve at least @p estimatedTotal slots up front so that a
+     *        subsequent bulk-add of that many elements needs no intermediate
+     *        resizes at all.
+     * @param estimatedTotal Expected final element count.
+     */
+    void reserveEstimated(size_t estimatedTotal) {
+        if (estimatedTotal > arrayCapacity) {
+            ensureCapacity(estimatedTotal);
+            resetSmartResizeCounters();
+        }
+    }
+#endif // AL_SMART_RESIZE
 
 #if !defined(SkinnyArray) || defined(OverrideSort)
     /**
@@ -878,6 +975,14 @@ private:
 #if !defined(SkinnyArray) || defined(OverrideSort)
     SortAlgorithm sortAlgorithm;
 #endif
+#ifdef AL_SMART_RESIZE
+    size_t smartResizeCount;    // number of grow resizes since last reset
+    size_t smartShrinkCount;    // number of shrink resizes since last reset
+    size_t customResizeAmount;  // 0 = adaptive, >0 = fixed extra slots per resize
+    static const size_t AL_SMART_RESIZE_THRESHOLD  = 3; // resizes before switching to large steps
+    static const size_t AL_SMART_RESIZE_MULTIPLIER = 4; // growth multiplier once threshold hit
+    static const size_t AL_SMART_SHRINK_THRESHOLD  = 3; // shrinks before switching to large cuts
+#endif
 
     // ─── Private: Resize ─────────────────────────────────────────────────────
 
@@ -950,13 +1055,82 @@ private:
         }
         while (count + spacesNeeded > arrayCapacity) {
             size_t previousCapacity = arrayCapacity;
+#ifdef AL_SMART_RESIZE
+            smartResize();
+#else
             resize();
+#endif
             if (arrayCapacity == previousCapacity) {
                 return false;
             }
         }
         return true;
     }
+
+#ifdef AL_SMART_RESIZE
+    /**
+     * @brief Smart capacity growth: tracks resize frequency and grows by larger
+     *        steps once resizes happen frequently, reducing total allocations.
+     *
+     *        If a custom resize amount has been set via setResizeAmount(), that
+     *        fixed extra-slot count is always used instead of the adaptive logic.
+     */
+    void smartResize() {
+        if (sizeType == FIXED) return;
+        smartResizeCount++;
+        size_t newCapacity;
+        if (customResizeAmount > 0) {
+            newCapacity = arrayCapacity + customResizeAmount;
+        } else if (smartResizeCount >= AL_SMART_RESIZE_THRESHOLD) {
+            newCapacity = arrayCapacity * AL_SMART_RESIZE_MULTIPLIER;
+        } else if (sizeType == DYNAMIC) {
+            newCapacity = arrayCapacity * 2;
+        } else {
+            newCapacity = arrayCapacity + (arrayCapacity / 2);
+        }
+        if (newCapacity <= count) {
+            newCapacity = count + 1;
+        }
+        T* newArray = new T[newCapacity];
+        if (!newArray) return;
+        for (size_t i = 0; i < count; i++) {
+            newArray[i] = array[i];
+        }
+        delete[] array;
+        array         = newArray;
+        arrayCapacity = newCapacity;
+    }
+
+    /**
+     * @brief Smart shrink: tracks how often shrinking is requested and cuts
+     *        by larger steps once shrinks happen frequently.
+     */
+    void smartShrink() {
+        if (sizeType == FIXED || count >= arrayCapacity) return;
+        smartShrinkCount++;
+        size_t targetCapacity;
+        if (customResizeAmount > 0) {
+            targetCapacity = count + customResizeAmount;
+            if (targetCapacity >= arrayCapacity) return;
+        } else if (smartShrinkCount >= AL_SMART_SHRINK_THRESHOLD) {
+            targetCapacity = (count == 0) ? initialSize : count;
+        } else {
+            targetCapacity = count + count / 2;
+            if (targetCapacity >= arrayCapacity) return;
+        }
+        if (targetCapacity < 1) targetCapacity = 1;
+        T* newArray = new T[targetCapacity];
+        if (!newArray) return;
+        const size_t toCopy = count < targetCapacity ? count : targetCapacity;
+        for (size_t i = 0; i < toCopy; i++) {
+            newArray[i] = array[i];
+        }
+        delete[] array;
+        array         = newArray;
+        arrayCapacity = targetCapacity;
+        count         = toCopy;
+    }
+#endif // AL_SMART_RESIZE
 
 #if !defined(SkinnyArray) || defined(OverrideSort)
     // ─── Private: Sort helpers ───────────────────────────────────────────────

@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Sync mirrored issue state and PR digests
         uses: actions/github-script@v9
@@ -314,8 +314,8 @@ jobs:
                 per_page: 100
               });
 
-              const skippedSyncPullRequestTitle = /^Sync\s+.+\s+from monorepo\s*\(#\d+\)$/i;
-              const skippedSyncPullRequestBranch = /^sync-library\//i;
+              const skippedSyncPullRequestTitle = /^(?:Sync\s+.+\s+from monorepo\s*\(#\d+\)|Back-sync\s+.+\s+from remote PR\s*#\d+)$/i;
+              const skippedSyncPullRequestBranch = /^(?:sync-library|back-sync)\//i;
 
               return allPullRequests.filter((pullRequest) => {
                 if (!pullRequest.updated_at || pullRequest.updated_at < sinceIso) {

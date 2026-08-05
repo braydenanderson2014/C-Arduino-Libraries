@@ -1,6 +1,6 @@
 {
     "name": "SimpleQueue",
-    "version": "1.0.0-ALPHA",
+    "version": "1.0.1",
     "description": "This Library makes it easy to create and Manage OCTree's. This Library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
     "keywords": ["Queue", "Stack", "Data", "Data Structure"],
     "repositories": [

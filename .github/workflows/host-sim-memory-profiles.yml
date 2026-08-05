@@ -9,170 +9,297 @@ permissions:
   contents: read
 
 jobs:
-  host-memory-profiles:
+  # ── Build the stress runner binary once; all board jobs share it ─────────────
+  build-stress-runner:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        boardProfile:
-          - board: uno
-            sramBytes: 2048
-          - board: nano
-            sramBytes: 2048
-          - board: micro
-            sramBytes: 2560
-          - board: leonardo
-            sramBytes: 2560
-          - board: mega2560
-            sramBytes: 8192
-          - board: due
-            sramBytes: 98304
-          - board: zero
-            sramBytes: 32768
-          - board: uno_r4
-            sramBytes: 32768
-          - board: mkr1000
-            sramBytes: 32768
-          - board: esp8266
-            sramBytes: 81920
-          - board: esp32
-            sramBytes: 532480
-          - board: esp32s3
-            sramBytes: 524288
-          - board: esp32c3
-            sramBytes: 400000
-        backend: [sd, littlefs]
-        optional: [off, on]
-
-    name: Memory profile (${{ matrix.boardProfile.board }}, ${{ matrix.backend }}, optional-${{ matrix.optional }})
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Build host simulation runner
+      - name: Build host stress runner (optional off)
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p test/host_arduino_sim/out/bin
 
-          EXTRA_FLAGS=""
-          if [ "${{ matrix.backend }}" = "littlefs" ]; then
-            EXTRA_FLAGS="${EXTRA_FLAGS} -DUSE_LITTLEFS"
-          fi
-          if [ "${{ matrix.optional }}" = "on" ]; then
-            EXTRA_FLAGS="${EXTRA_FLAGS} -DJSON_ENABLE_OPTIONAL_RETURNS=1 -Ilib/Optional/src"
-          fi
-
           g++ -std=c++17 -O2 \
-            -DAL_NO_SERIAL -D_AVR_ATmega2560_ ${EXTRA_FLAGS} \
+            -DAL_NO_SERIAL -DAL_SMART_RESIZE -DSIMPLE_VECTOR_SMART_RESIZE -D_AVR_ATmega2560_ \
             -Itest/host_arduino_sim/include \
             -Ilib/ArrayList/src \
+            -Ilib/AVLTree/src \
+            -Ilib/DynamicStorageLibrary/src \
+            -Ilib/ExtremeVariant/src \
             -Ilib/Hashtable/src \
             -Ilib/Json/src \
+            -Ilib/LinkedList/src \
             -Ilib/MathLib/src \
+            -Ilib/Operators/src \
+            -Ilib/Optional/src \
+            -Ilib/OrderedMap/src \
+            -Ilib/Predicates/src \
+            -Ilib/Queue/src \
             -Ilib/SimpleVector/src \
             -Ilib/SDList/src \
+            -Ilib/Stack/src \
             -Ilib/String/src \
             -Ilib/TypeTraits/src \
+            -Ilib/Variant/src \
             lib/Json/src/JSON.cpp \
-            test/host_arduino_sim/host_arduino_sim_tests.cpp \
-            -o test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.boardProfile.board }}_${{ matrix.backend }}_${{ matrix.optional }}
+            test/host_arduino_sim/host_stress_tests.cpp \
+            -o test/host_arduino_sim/out/bin/host_stress_runner
 
-      - name: Run memory profile tests
+      - name: Build host stress runner (optional on)
         shell: bash
         run: |
           set -euo pipefail
 
-          # Scale physical SRAM to a host-process budget by 1024x.
+          g++ -std=c++17 -O2 \
+            -DAL_NO_SERIAL -DAL_SMART_RESIZE -DSIMPLE_VECTOR_SMART_RESIZE -D_AVR_ATmega2560_ \
+            -DJSON_ENABLE_OPTIONAL_RETURNS=1 -DAVL_TREE_ENABLE_ERROR_CODES=1 \
+            -Itest/host_arduino_sim/include \
+            -Ilib/ArrayList/src \
+            -Ilib/AVLTree/src \
+            -Ilib/DynamicStorageLibrary/src \
+            -Ilib/ExtremeVariant/src \
+            -Ilib/Hashtable/src \
+            -Ilib/Json/src \
+            -Ilib/LinkedList/src \
+            -Ilib/MathLib/src \
+            -Ilib/Operators/src \
+            -Ilib/Optional/src \
+            -Ilib/OrderedMap/src \
+            -Ilib/Predicates/src \
+            -Ilib/Queue/src \
+            -Ilib/SimpleVector/src \
+            -Ilib/SDList/src \
+            -Ilib/Stack/src \
+            -Ilib/String/src \
+            -Ilib/TypeTraits/src \
+            -Ilib/Variant/src \
+            lib/Json/src/JSON.cpp \
+            test/host_arduino_sim/host_stress_tests.cpp \
+            -o test/host_arduino_sim/out/bin/host_stress_runner_optional
+
+      - name: Upload stress runner binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: host-stress-runner
+          path: |
+            test/host_arduino_sim/out/bin/host_stress_runner
+            test/host_arduino_sim/out/bin/host_stress_runner_optional
+          if-no-files-found: error
+
+  # ── One job per unique SRAM tier; duplicate-SRAM boards are grouped ──────────
+  host-stress-profiles:
+    needs: build-stress-runner
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        boardProfile:
+          # 2 KB  (uno & nano share this tier)
+          - board: uno
+            sramBytes: 2048
+            represents: "uno, nano"
+          # 2.5 KB  (micro & leonardo)
+          - board: micro
+            sramBytes: 2560
+            represents: "micro, leonardo"
+          # 8 KB
+          - board: mega2560
+            sramBytes: 8192
+            represents: "mega2560"
+          # 32 KB  (zero, uno_r4, mkr1000, unoq)
+          - board: zero
+            sramBytes: 32768
+            represents: "zero, uno_r4, mkr1000, unoq"
+          # 64 KB
+          - board: ventunoq
+            sramBytes: 65536
+            represents: "ventunoq"
+          # 80 KB
+          - board: esp8266
+            sramBytes: 81920
+            represents: "esp8266"
+          # 96 KB
+          - board: due
+            sramBytes: 98304
+            represents: "due"
+          # 390 KB
+          - board: esp32c3
+            sramBytes: 400000
+            represents: "esp32c3"
+          # 512 KB
+          - board: esp32s3
+            sramBytes: 524288
+            represents: "esp32s3"
+          # 520 KB
+          - board: esp32
+            sramBytes: 532480
+            represents: "esp32"
+
+    name: Stress profile (${{ matrix.boardProfile.board }})
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Download stress runner binary
+        uses: actions/download-artifact@v8
+        with:
+          name: host-stress-runner
+          path: test/host_arduino_sim/out/bin
+
+      - name: Make binaries executable
+        shell: bash
+        run: |
+          chmod +x test/host_arduino_sim/out/bin/host_stress_runner
+          chmod +x test/host_arduino_sim/out/bin/host_stress_runner_optional
+
+      - name: Run stress probes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Scale physical SRAM to a host-process heap-delta budget by 1024x.
           MEM_LIMIT_BYTES=$(( ${{ matrix.boardProfile.sramBytes }} * 1024 ))
 
-          REPORT_PATH="test/host_arduino_sim/out/report-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json"
-          STATS_PATH="test/host_arduino_sim/out/stats-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json"
-          FS_ROOT="test/host_arduino_sim/out/fs-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}"
+          # Cap element iterations proportionally to the SRAM tier so that
+          # large-memory boards don't waste time filling to 5 M when they will
+          # never hit the memory limit.
+          SRAM=${{ matrix.boardProfile.sramBytes }}
+          if   [ "${SRAM}" -le 8192 ];   then MAX_ELEM=50000
+          elif [ "${SRAM}" -le 102400 ];  then MAX_ELEM=200000
+          elif [ "${SRAM}" -le 614400 ];  then MAX_ELEM=1000000
+          else MAX_ELEM=5000000
+          fi
 
-          echo "Board: ${{ matrix.boardProfile.board }}"
+          REPORT_PATH="test/host_arduino_sim/out/stress-${{ matrix.boardProfile.board }}.json"
+
+          echo "Board: ${{ matrix.boardProfile.board }} (represents: ${{ matrix.boardProfile.represents }})"
           echo "SRAM bytes: ${{ matrix.boardProfile.sramBytes }}"
-          echo "Host memory limit bytes: ${MEM_LIMIT_BYTES}"
+          echo "Host heap-delta limit bytes: ${MEM_LIMIT_BYTES}"
+          echo "Max elements cap: ${MAX_ELEM}"
 
+          rm -f "${REPORT_PATH}"
+
+          # Run 1: optional off (baseline)
           HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
-          HOST_MEM_ENFORCE_LIMIT="0" \
-          HOST_MEM_ENABLE_CAPACITY_PROBE="1" \
-          HOST_MEM_CAPACITY_PROBE_MAX_ELEMENTS="500000" \
-          HOST_SIM_REPORT="${REPORT_PATH}" \
-          HOST_SIM_STATS_REPORT="${STATS_PATH}" \
-          HOST_SIM_FS_ROOT="${FS_ROOT}" \
-          ./test/host_arduino_sim/out/bin/host_arduino_sim_${{ matrix.boardProfile.board }}_${{ matrix.backend }}_${{ matrix.optional }}
+          HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
+          HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
+          HOST_STRESS_BACKEND="none" \
+          HOST_STRESS_OPTIONAL="off" \
+          HOST_STRESS_PROGRESS_INTERVAL_MS=60000 \
+          HOST_STRESS_MAX_INSTANCES=20000 \
+          HOST_STRESS_MAX_ELEMENTS="${MAX_ELEM}" \
+          HOST_STRESS_APPEND="0" \
+          HOST_STRESS_REPORT="${REPORT_PATH}" \
+          ./test/host_arduino_sim/out/bin/host_stress_runner
 
-      - name: Verify all host tests were recorded in stats
+          # Run 2: optional on (JSON_ENABLE_OPTIONAL_RETURNS=1 + AVL_TREE_ENABLE_ERROR_CODES=1)
+          # Appended to the same report so the consolidated script can compare both runs side-by-side.
+          HOST_MEM_LIMIT_BYTES="${MEM_LIMIT_BYTES}" \
+          HOST_STRESS_BOARD="${{ matrix.boardProfile.board }}" \
+          HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
+          HOST_STRESS_BACKEND="none" \
+          HOST_STRESS_OPTIONAL="on" \
+          HOST_STRESS_PROGRESS_INTERVAL_MS=60000 \
+          HOST_STRESS_MAX_INSTANCES=20000 \
+          HOST_STRESS_MAX_ELEMENTS="${MAX_ELEM}" \
+          HOST_STRESS_APPEND="1" \
+          HOST_STRESS_REPORT="${REPORT_PATH}" \
+          ./test/host_arduino_sim/out/bin/host_stress_runner_optional
+
+      - name: Verify stress report was produced
         shell: bash
         run: |
           set -euo pipefail
 
-          STATS_PATH="test/host_arduino_sim/out/stats-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json"
-          TEST_COUNT="$(jq '.tests | length' "${STATS_PATH}")"
+          REPORT_PATH="test/host_arduino_sim/out/stress-${{ matrix.boardProfile.board }}.json"
 
-          # Keep this aligned with the host test runner's full test list.
-          MIN_EXPECTED_TESTS=8
-
-          echo "Recorded tests in stats: ${TEST_COUNT}"
-          if [ "${TEST_COUNT}" -lt "${MIN_EXPECTED_TESTS}" ]; then
-            echo "Expected at least ${MIN_EXPECTED_TESTS} tests in memory profile stats, got ${TEST_COUNT}."
+          if [ ! -f "${REPORT_PATH}" ]; then
+            echo "Stress report not found: ${REPORT_PATH}"
             exit 1
           fi
 
-      - name: Upload memory profile report
+          python3 - "${REPORT_PATH}" <<'PY'
+          import json
+          import sys
+
+          report_path = sys.argv[1]
+          raw = open(report_path, encoding="utf-8").read()
+          decoder = json.JSONDecoder()
+          i = 0
+          n = len(raw)
+          runs = []
+
+          while i < n:
+            while i < n and raw[i].isspace():
+              i += 1
+            if i >= n:
+              break
+            value, j = decoder.raw_decode(raw, i)
+            if isinstance(value, dict):
+              runs.append(value)
+            i = j
+
+          if not runs:
+            raise SystemExit("Stress report appears empty.")
+
+          total_instance = sum(len(run.get("instanceCountProbes", [])) for run in runs)
+          total_fill = sum(len(run.get("elementFillProbes", [])) for run in runs)
+
+          print(f"Runs: {len(runs)}")
+          print(f"Instance probes total: {total_instance}")
+          print(f"Element fill probes total: {total_fill}")
+
+          if total_instance < 1 or total_fill < 1:
+            raise SystemExit("Stress report appears to have no probes.")
+          PY
+
+      - name: Upload stress profile report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: host-memory-report-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}
-          path: test/host_arduino_sim/out/report-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json
+          name: host-stress-report-${{ matrix.boardProfile.board }}
+          path: test/host_arduino_sim/out/stress-${{ matrix.boardProfile.board }}.json
           if-no-files-found: error
 
-      - name: Upload memory profile stats
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: host-memory-stats-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}
-          path: test/host_arduino_sim/out/stats-memory-${{ matrix.boardProfile.board }}-${{ matrix.backend }}-optional-${{ matrix.optional }}.json
-          if-no-files-found: error
-
-  host-sim-memory-report:
-    needs: host-memory-profiles
+  host-sim-stress-report:
+    needs: host-stress-profiles
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Download memory profile artifacts
-        uses: actions/download-artifact@v4
+      - name: Download stress profile artifacts
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
-          pattern: host-memory-*
+          pattern: host-stress-report-*
           merge-multiple: true
-          path: .artifacts/host-memory
+          path: .artifacts/host-stress
 
-      - name: Generate consolidated memory profile report
+      - name: Generate consolidated stress report
         shell: bash
         run: |
           set -euo pipefail
 
           python3 scripts/generate_host_sim_report.py \
-            --mode memory-profiles \
+            --mode stress \
             --artifacts-dir .artifacts \
-            --output-md reports/host-sim-memory-profile-report.md \
-            --output-json reports/host-sim-memory-profile-report.json \
-            --compile-backend-count 2
+            --output-md reports/host-sim-stress-report.md \
+            --output-json reports/host-sim-stress-report.json
 
-          cat reports/host-sim-memory-profile-report.md >> "$GITHUB_STEP_SUMMARY"
+          cat reports/host-sim-stress-report.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload consolidated memory profile report
+      - name: Upload consolidated stress report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: host-sim-memory-profile-report
+          name: host-sim-stress-report
           path: |
-            reports/host-sim-memory-profile-report.md
-            reports/host-sim-memory-profile-report.json
+            reports/host-sim-stress-report.md
+            reports/host-sim-stress-report.json
           if-no-files-found: error

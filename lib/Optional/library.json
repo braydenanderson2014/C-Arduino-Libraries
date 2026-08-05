@@ -1,6 +1,6 @@
 {
     "name": "Optional",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "A simple and easy to use Optional Implementation that is easy to use and understand.",
     "keywords": ["Optional", "Boolean", "Data Structure", "Safety", "Type Safety"], 
     "repositories": [

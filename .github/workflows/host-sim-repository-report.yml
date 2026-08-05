@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download latest standard host report artifact
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v21
         continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -32,17 +32,17 @@ jobs:
           if_no_artifact_found: warn
           path: .artifacts/standard
 
-      - name: Download latest memory profile report artifact
-        uses: dawidd6/action-download-artifact@v6
+      - name: Download latest stress report artifact
+        uses: dawidd6/action-download-artifact@v21
         continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: host-sim-memory-profiles.yml
           workflow_conclusion: success
           branch: main
-          name: host-sim-memory-profile-report
+          name: host-sim-stress-report
           if_no_artifact_found: warn
-          path: .artifacts/memory
+          path: .artifacts/stress
 
       - name: Generate repository-level host simulation report
         shell: bash
@@ -51,14 +51,14 @@ jobs:
 
           python3 scripts/generate_host_sim_repository_report.py \
             --standard-dir .artifacts/standard \
-            --memory-dir .artifacts/memory \
+            --stress-dir .artifacts/stress \
             --output-md reports/host-sim-repository-report.md \
             --output-json reports/host-sim-repository-report.json
 
           cat reports/host-sim-repository-report.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload repository-level host simulation report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: host-sim-repository-report
           path: |

@@ -6,6 +6,7 @@
 # Datatypes (KEYWORD1)
 #######################################
 Timer	KEYWORD1
+TimerDateTime	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -16,26 +17,43 @@ reset	KEYWORD2
 clear	KEYWORD2
 pause	KEYWORD2
 resume	KEYWORD2
+restart	KEYWORD2
 elapsed	KEYWORD2
+elapsedSeconds	KEYWORD2
+elapsedMinutes	KEYWORD2
+elapsedHours	KEYWORD2
+lap	KEYWORD2
 isTimerRunning	KEYWORD2
+isTimerPaused	KEYWORD2
 checkTimer	KEYWORD2
+hasReachedTarget	KEYWORD2
+setRepeating	KEYWORD2
+getRepeating	KEYWORD2
+onTargetReached	KEYWORD2
 syncWithRTC	KEYWORD2
 getRTCTime	KEYWORD2
-isTimerPaused	KEYWORD2
+getRTCTimeString	KEYWORD2
+printRTCTime	KEYWORD2
+isRTCAvailable	KEYWORD2
+setTimezone	KEYWORD2
 setRTCTime	KEYWORD2
 setTargetDuration	KEYWORD2
 setTargetSeconds	KEYWORD2
 setTargetMinutes	KEYWORD2
 setTargetHours	KEYWORD2
-hasReachedTarget	KEYWORD2
+getTargetDuration	KEYWORD2
+getTargetSeconds	KEYWORD2
+getTargetMinutes	KEYWORD2
+getTargetHours	KEYWORD2
 remainingTime	KEYWORD2
+remainingTimeMillis	KEYWORD2
 updateRemainingTime	KEYWORD2
+printTimeRemaining	KEYWORD2
 setTimerName	KEYWORD2
 getTimerName	KEYWORD2
 setUseRTC	KEYWORD2
 getUseRTC	KEYWORD2
 begin	KEYWORD2
-printTimeRemaining	KEYWORD2
 
 #######################################
 # Constants (KEYWORD3)

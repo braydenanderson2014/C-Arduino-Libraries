@@ -2,6 +2,14 @@
 #define SIMPLEVECTOR_H
 
 #include <Arduino.h>
+
+//#define SV_ENABLE_NUMERIC_LIMITS  // Uncomment to enable numeric_limits integration (requires Numeric_Limits library — optional dependency)
+// PlatformIO: build_flags = -DSV_ENABLE_NUMERIC_LIMITS
+
+#ifdef SV_ENABLE_NUMERIC_LIMITS
+    #include <Numeric_Limits.h>
+#endif
+
 #if defined(ESP32) || defined(ESPRESSIF32) || defined(ESP8266) || defined(ESP32S2) || defined(ESP32C3)
     //#include <initializer_list>
     #define useInit
@@ -14,6 +22,16 @@ private:
     mutable unsigned int count;
     mutable unsigned int capacity;
     static const unsigned int MIN_CAPACITY = 4;
+
+#ifdef SIMPLE_VECTOR_SMART_RESIZE
+    // Smart-resize state
+    mutable unsigned int smartResizeCount;   // number of grow resizes since last reset
+    mutable unsigned int smartShrinkCount;   // number of shrink resizes since last reset
+    unsigned int         customResizeAmount; // 0 = adaptive, >0 = fixed extra slots per resize
+    static const unsigned int SMART_RESIZE_THRESHOLD  = 3; // resizes before switching to large steps
+    static const unsigned int SMART_RESIZE_MULTIPLIER = 4; // growth multiplier once threshold hit
+    static const unsigned int SMART_SHRINK_THRESHOLD  = 3; // shrinks before switching to large cuts
+#endif
 
     static unsigned int normalizeCapacity(unsigned int requestedCapacity) {
         return requestedCapacity == 0 ? DEFAULT_CAPACITY : requestedCapacity;
@@ -34,11 +52,15 @@ private:
             Serial.println("Memory allocation failed during resize.");
             return;
         }
-        for (unsigned int i = 0; i < count; i++) {
-            newArray[i] = array[i];
+        const unsigned int copiedCount = (count < targetCapacity) ? count : targetCapacity;
+        if (array != nullptr) {
+            for (unsigned int i = 0; i < copiedCount; i++) {
+                newArray[i] = array[i];
+            }
         }
         delete[] array;
         array = newArray;
+        count = copiedCount;
         capacity = targetCapacity;
     }
 
@@ -56,23 +78,64 @@ private:
             resize(2 * capacity);
         }
     }
+
+#ifdef SIMPLE_VECTOR_SMART_RESIZE
+    /**
+     * @brief Smart capacity growth: tracks resize frequency and grows by larger
+     *        steps once resizes happen frequently, reducing total allocations.
+     *
+     *        If a custom resize amount has been set via setResizeAmount(), that
+     *        fixed extra-slot count is always used instead of the adaptive logic.
+     */
+    void smartEnsureCapacity() {
+        if (capacity == 0 || array == nullptr) {
+            resize(DEFAULT_CAPACITY);
+            return;
+        }
+        if (count == capacity) {
+            smartResizeCount++;
+            unsigned int newCapacity;
+            if (customResizeAmount > 0) {
+                newCapacity = capacity + customResizeAmount;
+            } else if (smartResizeCount >= SMART_RESIZE_THRESHOLD) {
+                newCapacity = capacity * SMART_RESIZE_MULTIPLIER;
+            } else {
+                newCapacity = 2 * capacity;
+            }
+            resize(newCapacity);
+        }
+    }
+#endif // SIMPLE_VECTOR_SMART_RESIZE
+
 public:
     // The SimpleVectorIterator class will be defined below
     class SimpleVectorIterator;
 
-    SimpleVector() : array(new T[DEFAULT_CAPACITY]), count(0), capacity(DEFAULT_CAPACITY) {
+    SimpleVector() : array(new T[DEFAULT_CAPACITY]), count(0), capacity(DEFAULT_CAPACITY)
+#ifdef SIMPLE_VECTOR_SMART_RESIZE
+        , smartResizeCount(0), smartShrinkCount(0), customResizeAmount(0)
+#endif
+    {
         if(!array){
             Serial.println("Memory allocation failed.");
         }
     }
 
-    SimpleVector(unsigned int initialCapacity) : array(new T[normalizeCapacity(initialCapacity)]), count(0), capacity(normalizeCapacity(initialCapacity)) {
+    SimpleVector(unsigned int initialCapacity) : array(new T[normalizeCapacity(initialCapacity)]), count(0), capacity(normalizeCapacity(initialCapacity))
+#ifdef SIMPLE_VECTOR_SMART_RESIZE
+        , smartResizeCount(0), smartShrinkCount(0), customResizeAmount(0)
+#endif
+    {
         if(!array){
             Serial.println("Memory allocation failed.");
         }
     }
 
-    SimpleVector(const SimpleVector& other) : array(new T[other.capacity]), count(other.count), capacity(other.capacity) {
+    SimpleVector(const SimpleVector& other) : array(new T[other.capacity]), count(other.count), capacity(other.capacity)
+#ifdef SIMPLE_VECTOR_SMART_RESIZE
+        , smartResizeCount(other.smartResizeCount), smartShrinkCount(other.smartShrinkCount), customResizeAmount(other.customResizeAmount)
+#endif
+    {
         for (unsigned int i = 0; i < count; i++) {
             array[i] = other.array[i];
         }
@@ -136,16 +199,79 @@ public:
             if (capacity != MIN_CAPACITY || array == nullptr) {
                 resize(MIN_CAPACITY);
                 count = 0;
-                return true;
+                return array != nullptr && capacity == MIN_CAPACITY;
             }
             return false;
         }
         if (count < capacity) {
-            resize(count == 0 ? DEFAULT_CAPACITY : count);
-            return true;
+            const unsigned int targetCapacity = normalizeCapacity(count);
+            resize(targetCapacity);
+            return array != nullptr && capacity == targetCapacity;
         }
         return false;
     }
+
+#ifdef SIMPLE_VECTOR_SMART_RESIZE
+    /**
+     * @brief Smart shrink: tracks how often shrinking is requested and cuts
+     *        by larger steps once shrinks happen frequently.
+     *
+     *        Falls back to shrinkToFit() behaviour when usage is low.
+     */
+    bool smartShrinkToFit() {
+        if (count == 0) {
+            return shrinkToFit();
+        }
+        if (count < capacity) {
+            smartShrinkCount++;
+            unsigned int targetCapacity;
+            if (customResizeAmount > 0) {
+                targetCapacity = count + customResizeAmount;
+                if (targetCapacity > capacity) return false;
+            } else if (smartShrinkCount >= SMART_SHRINK_THRESHOLD) {
+                // Aggressive: shrink to exact count
+                targetCapacity = normalizeCapacity(count);
+            } else {
+                // Gentle: keep some headroom
+                targetCapacity = normalizeCapacity(count + count / 2);
+                if (targetCapacity >= capacity) return false;
+            }
+            resize(targetCapacity);
+            return array != nullptr;
+        }
+        return false;
+    }
+
+    /**
+     * @brief Reset smart-resize counters (e.g. after a bulk operation is done).
+     */
+    void resetSmartResizeCounters() {
+        smartResizeCount = 0;
+        smartShrinkCount = 0;
+    }
+
+    /**
+     * @brief Set a fixed number of extra slots to allocate on each smart resize.
+     *        Set to 0 to return to adaptive behaviour.
+     * @param amount Number of extra slots per resize step.
+     */
+    void setResizeAmount(unsigned int amount) {
+        customResizeAmount = amount;
+    }
+
+    /**
+     * @brief Reserve at least \p estimatedTotal slots up front so that a
+     *        subsequent bulk-add of that many elements needs no intermediate
+     *        resizes at all.
+     * @param estimatedTotal Expected final element count.
+     */
+    void reserveEstimated(unsigned int estimatedTotal) {
+        if (estimatedTotal > capacity) {
+            resize(estimatedTotal);
+            resetSmartResizeCounters();
+        }
+    }
+#endif // SIMPLE_VECTOR_SMART_RESIZE
 
     /**
     * @brief Clears the vector by setting all elements to their default value and resetting the count.
@@ -204,7 +330,14 @@ public:
      * 
     */
     void put(const T& item) {
+#ifdef SIMPLE_VECTOR_SMART_RESIZE
+        smartEnsureCapacity();
+#else
         ensureCapacity();
+#endif
+        if (array == nullptr || count >= capacity) {
+            return;
+        }
         array[count++] = item;
     }
 
@@ -217,14 +350,28 @@ public:
     }
 
     void emplace_back() {  
+#ifdef SIMPLE_VECTOR_SMART_RESIZE
+        smartEnsureCapacity();
+#else
         ensureCapacity();
+#endif
+        if (array == nullptr || count >= capacity) {
+            return;
+        }
         array[count].~T();
         new (array + count) T();
         count++;
     }
 
     void emplace_back(const T& value) {
+#ifdef SIMPLE_VECTOR_SMART_RESIZE
+        smartEnsureCapacity();
+#else
         ensureCapacity();
+#endif
+        if (array == nullptr || count >= capacity) {
+            return;
+        }
         array[count].~T();
         new (array + count) T(value);
         count++;
@@ -304,6 +451,11 @@ public:
             for (unsigned int i = 0; i < count; i++) {
                 array[i] = other.array[i];
             }
+#ifdef SIMPLE_VECTOR_SMART_RESIZE
+            smartResizeCount  = other.smartResizeCount;
+            smartShrinkCount  = other.smartShrinkCount;
+            customResizeAmount = other.customResizeAmount;
+#endif
         }
         return *this;
     }
@@ -339,6 +491,37 @@ bool operator==(const SimpleVector<T>& other) const {
         }
         return this -> count;
     }
+
+#ifdef SV_ENABLE_NUMERIC_LIMITS
+    /**
+     * @brief Returns the memory currently used by the internal array (in bytes).
+     * @details Includes only the element storage array, not object overhead.
+     * @return Bytes consumed by the backing array.
+     */
+    unsigned int memoryUsage() const {
+        return capacity * sizeof(T);
+    }
+
+    /**
+     * @brief Returns the theoretical maximum number of elements this SimpleVector
+     *        could hold, limited by the maximum value of unsigned int on this platform.
+     * @return The upper bound on element count as reported by numeric_limits.
+     */
+    unsigned int theoreticalMaxElements() const {
+        return numeric_limits<unsigned int>::Max();
+    }
+
+    /**
+     * @brief Returns the ratio of elements stored to the theoretical maximum
+     *        element count, expressed as a float in the range [0.0, 1.0].
+     * @return Memory utilization fraction (current count / theoretical max).
+     */
+    float memoryUtilization() const {
+        const unsigned int maxElems = theoreticalMaxElements();
+        if (maxElems == 0) return 0.0f;
+        return static_cast<float>(count) / static_cast<float>(maxElems);
+    }
+#endif // SV_ENABLE_NUMERIC_LIMITS
 
 // Get the element at the specified index
     /**
