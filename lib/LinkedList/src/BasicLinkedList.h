@@ -77,6 +77,14 @@ class ForwardIterator {
     */
     LinkedList() : head(nullptr), tail(nullptr), Size(0) {}
 
+    LinkedList(const LinkedList& other) : head(nullptr), tail(nullptr), Size(0) {
+        ListNode<T>* current = other.head;
+        while (current) {
+            append(current->data);
+            current = current->next;
+        }
+    }
+
     /**
      * @brief Destructor
      * @details Deletes all nodes in the list.
