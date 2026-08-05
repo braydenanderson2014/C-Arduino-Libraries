@@ -189,6 +189,7 @@ jobs:
           HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
           HOST_STRESS_BACKEND="none" \
           HOST_STRESS_OPTIONAL="off" \
+          HOST_STRESS_PROGRESS_INTERVAL_MS=60000 \
           HOST_STRESS_MAX_INSTANCES=20000 \
           HOST_STRESS_MAX_ELEMENTS="${MAX_ELEM}" \
           HOST_STRESS_APPEND="0" \
@@ -202,6 +203,7 @@ jobs:
           HOST_STRESS_SRAM_BYTES="${{ matrix.boardProfile.sramBytes }}" \
           HOST_STRESS_BACKEND="none" \
           HOST_STRESS_OPTIONAL="on" \
+          HOST_STRESS_PROGRESS_INTERVAL_MS=60000 \
           HOST_STRESS_MAX_INSTANCES=20000 \
           HOST_STRESS_MAX_ELEMENTS="${MAX_ELEM}" \
           HOST_STRESS_APPEND="1" \
