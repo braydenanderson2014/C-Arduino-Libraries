@@ -1,0 +1,118 @@
+Start testing: Aug 04 21:53 Mountain Daylight Time
+----------------------------------------------------------
+10/13 Testing: host_stress_uno_none_off
+10/13 Test: host_stress_uno_none_off
+Command: "C:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/test/host_arduino_sim/out/bin/Release/host_stress_off.exe"
+Directory: C:/Users/brayd/OneDrive/Documents/GitHub/C-Arduino-Libraries/test/host_arduino_sim/../..
+"host_stress_uno_none_off" start time: Aug 04 21:53 Mountain Daylight Time
+Output:
+----------------------------------------------------------
+Host stress tester starting.
+Board: uno
+SRAM bytes: 2048
+Limit bytes: 2097152
+Max instances per probe: 20000
+Max elements per probe:  5000000
+Progress interval (ms):  60000
+Append report mode: off
+Running instance count probes...
+[stress-progress] phase=instance:start probe=ArrayList_int board=uno backend=none optional=off count=0/20000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:end probe=ArrayList_int board=uno backend=none optional=off count=20000/20000 elapsedMs=6 stalledMs=2 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:start probe=SimpleVector_int board=uno backend=none optional=off count=0/20000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:end probe=SimpleVector_int board=uno backend=none optional=off count=20000/20000 elapsedMs=6 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:start probe=Hashtable_int_int board=uno backend=none optional=off count=0/20000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:end probe=Hashtable_int_int board=uno backend=none optional=off count=20000/20000 elapsedMs=6 stalledMs=2 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:start probe=JSON board=uno backend=none optional=off count=0/20000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:end probe=JSON board=uno backend=none optional=off count=20000/20000 elapsedMs=2768 stalledMs=4 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:start probe=AVLTree_int board=uno backend=none optional=off count=0/20000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:end probe=AVLTree_int board=uno backend=none optional=off count=20000/20000 elapsedMs=3 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:start probe=DynamicStorage_String_int board=uno backend=none optional=off count=0/20000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:end probe=DynamicStorage_String_int board=uno backend=none optional=off count=20000/20000 elapsedMs=11 stalledMs=3 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:start probe=Predicates_int board=uno backend=none optional=off count=0/20000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:end probe=Predicates_int board=uno backend=none optional=off count=20000/20000 elapsedMs=4 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:start probe=Operators_int board=uno backend=none optional=off count=0/20000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:end probe=Operators_int board=uno backend=none optional=off count=20000/20000 elapsedMs=4 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:start probe=Stack_int board=uno backend=none optional=off count=0/20000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:end probe=Stack_int board=uno backend=none optional=off count=20000/20000 elapsedMs=6 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:start probe=Queue_int board=uno backend=none optional=off count=0/20000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:end probe=Queue_int board=uno backend=none optional=off count=20000/20000 elapsedMs=6 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:start probe=LinkedList_int board=uno backend=none optional=off count=0/20000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:end probe=LinkedList_int board=uno backend=none optional=off count=20000/20000 elapsedMs=6 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:start probe=OrderedMap_int_int board=uno backend=none optional=off count=0/20000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=instance:end probe=OrderedMap_int_int board=uno backend=none optional=off count=20000/20000 elapsedMs=10 stalledMs=3 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+Running element fill probes...
+[stress-progress] phase=fill:start probe=ArrayList<int> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=ArrayList<int> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=311 stalledMs=2 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=ArrayList<float> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=ArrayList<float> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=308 stalledMs=2 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=ArrayList<double> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=ArrayList<double> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=310 stalledMs=3 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=ArrayList<String> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=ArrayList<String> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=958 stalledMs=31 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=SimpleVector<int> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=SimpleVector<int> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=310 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=SimpleVector<float> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=SimpleVector<float> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=320 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=SimpleVector<double> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=SimpleVector<double> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=318 stalledMs=3 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=Hashtable<int_int> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=Hashtable<int_int> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=899 stalledMs=201 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=Hashtable<String_String> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=Hashtable<String_String> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=2379 stalledMs=294 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=AVLTree<int> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=AVLTree<int> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=2928 stalledMs=269 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=DynamicStorage<String_int> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=DynamicStorage<String_int> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=3634 stalledMs=521 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=Stack<int> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=Stack<int> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=283 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=Stack<float> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=Stack<float> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=268 stalledMs=2 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=Stack<double> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=Stack<double> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=287 stalledMs=4 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=Stack<String> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=Stack<String> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=705 stalledMs=32 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=Queue<int> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=Queue<int> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=292 stalledMs=2 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=Queue<float> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=Queue<float> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=290 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=Queue<double> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=Queue<double> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=284 stalledMs=3 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=Queue<String> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:end probe=Queue<String> board=uno backend=none optional=off count=5000000/5000000 elapsedMs=706 stalledMs=31 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:start probe=LinkedList<int> board=uno backend=none optional=off count=0/5000000 elapsedMs=0 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown marker=forced
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=135583/5000000 elapsedMs=60175 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=176135/5000000 elapsedMs=120315 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=206735/5000000 elapsedMs=180354 stalledMs=2 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=230529/5000000 elapsedMs=240503 stalledMs=8 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=251584/5000000 elapsedMs=300717 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=271071/5000000 elapsedMs=360725 stalledMs=3 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=289153/5000000 elapsedMs=420747 stalledMs=15 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=305978/5000000 elapsedMs=480770 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=322145/5000000 elapsedMs=540994 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=337537/5000000 elapsedMs=601066 stalledMs=67 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=351920/5000000 elapsedMs=661239 stalledMs=3 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=365759/5000000 elapsedMs=721245 stalledMs=4 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=379137/5000000 elapsedMs=781352 stalledMs=85 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=391960/5000000 elapsedMs=841588 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=403302/5000000 elapsedMs=901699 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=414990/5000000 elapsedMs=961903 stalledMs=3 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=427777/5000000 elapsedMs=1021942 stalledMs=91 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=440775/5000000 elapsedMs=1082144 stalledMs=1 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=453028/5000000 elapsedMs=1142258 stalledMs=0 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=465153/5000000 elapsedMs=1202371 stalledMs=39 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=476660/5000000 elapsedMs=1262521 stalledMs=4 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=488193/5000000 elapsedMs=1322608 stalledMs=108 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=499546/5000000 elapsedMs=1382730 stalledMs=3 heapDelta=unknown limit=2097152 fillPct=unknown
+[stress-progress] phase=fill:running probe=LinkedList<int> board=uno backend=none optional=off count=510849/5000000 elapsedMs=1442819 stalledMs=27 heapDelta=unknown limit=2097152 fillPct=unknown
+<end of output>
+Test time = 1500.01 sec
+----------------------------------------------------------
+Test Failed.
+"host_stress_uno_none_off" end time: Aug 04 22:18 Mountain Daylight Time
+"host_stress_uno_none_off" time elapsed: 00:25:00
+----------------------------------------------------------
+
+End testing: Aug 04 22:18 Mountain Daylight Time
+
+stress = 1500.01 sec*proc
+
