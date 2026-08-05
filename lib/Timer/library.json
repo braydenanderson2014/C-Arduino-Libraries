@@ -1,8 +1,8 @@
 {
     "name": "SimpleArduinoTimer",
-    "version": "1.0.7",
-    "description": "A Simple Timer Library for Arduino that is non blocking. This means you can set multiple timers, or execute NON-BLOCKING Code. (USE millis() instead of delay()). Optionally supports RTC (DS3231) via #define useRTCModule.",
-    "keywords": ["Timer", "RTC", "Time", "Arduino", "Simple", "Non-Blocking", "SimpleTimer", "SimpleArduinoTimer"],
+    "version": "1.2.0",
+    "description": "A Simple non-blocking Timer for Arduino. Supports millis() or an optional RTC back-end. Supported RTCs: DS3231, DS1307, PCF8523, PCF8563, MCP7940N (via RTClib) and DS1302 (via Makuna RTC library). Select the chip with a compile-time macro.",
+    "keywords": ["Timer", "RTC", "Time", "Arduino", "Simple", "Non-Blocking", "SimpleTimer", "SimpleArduinoTimer", "DS3231", "DS1307", "DS1302", "PCF8523", "PCF8563", "MCP7940"],
     "repository": {
         "type": "git",
         "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Timer"
@@ -17,7 +17,7 @@
     "dependencies": {
         "Arduino": "*"
     },
-    "Notes": "RTClib (DS3231) support is optional. Add #define useRTCModule before including SimpleArduinoTimer.h and install RTClib to enable RTC functionality.",
+    "Notes": "RTC support is optional. Define useRTCModule and a chip macro (e.g. RTC_CHIP_DS3231) before including SimpleArduinoTimer.h. RTClib chips require the Adafruit RTClib library; DS1302 requires the Makuna RTC library.",
     "header": "SimpleArduinoTimer.h",
     "cpp": "Timer.cpp",
     "examples": [
