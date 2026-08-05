@@ -2,8 +2,8 @@
 
 ## Summary
 
-- Total runs: 4
-- Passed runs: 4
+- Total runs: 0
+- Passed runs: 0
 - Failed runs: 0
 - Max peak bytes: 4374528
 - Avg peak bytes: 4195328
@@ -16,12 +16,13 @@
 - Experimental optional modes covered: 13
 - Memory profile runs: 0
 - Runs that exceeded limit: 0
-- Runs with limit enforcement enabled: 4
+- Runs with limit enforcement enabled: 0
 - Runs with capacity probe enabled: 0
 - Runs where capacity probe reached limit: 0
 - Runs with first limit-crossing test identified: 0
-- Expected compile smoke objects: 50
-- Expected experimental compile results: 13
+- Expected compile smoke objects: 1
+- Expected experimental compile results: 0
+- Stress test runs loaded: 0
 
 ## Understanding
 
@@ -44,10 +45,6 @@
 
 | Run | MemoryProfileRun | ProbeEnabled | ProbeLimitReached | FirstLimitCrossingTest |
 | --- | --- | --- | --- | --- |
-| littlefs | no | no | no |  |
-| optional-littlefs | no | no | no |  |
-| optional-sd | no | no | no |  |
-| sd | no | no | no |  |
 
 ## Run Results
 

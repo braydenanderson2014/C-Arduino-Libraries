@@ -7,3 +7,13 @@ node_modules/
 package-lock.json
 *.ps1
 .vscode/c_cpp_properties.json
+
+# Keep repo scripts tracked even though local PowerShell files are ignored.
+!scripts/*.ps1
+
+# Host-simulation generated build/output artifacts.
+build/
+test/host_arduino_sim/out/bin/
+test/host_arduino_sim/out/stress-*.json
+test/host_arduino_sim/out/report-*.json
+test/host_arduino_sim/out/stats-*.json
