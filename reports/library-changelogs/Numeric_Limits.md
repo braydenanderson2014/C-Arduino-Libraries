@@ -4,8 +4,8 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.0-BETA**
 - Release boundary commit: `18c524a9` (2024-03-28)
-- Total commits touching this library on current history: **8**
-- Recent commits shown: **8**
+- Total commits touching this library on current history: **9**
+- Recent commits shown: **9**
 
 ## Next Release (Experimental / Unreleased)
 
@@ -13,11 +13,13 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Features
 
+- add scripts to generate library changelogs and sync health badges (`72cb3ed0`, 2026-08-05)
 - Add numeric limits board capacity metadata (`bf226daf`, 2026-08-04)
 - Enhance Arduino.h with conversion methods and min/max templates; update includes in various libraries to match casing conventions; add SegmentTree unit tests (`02af6e1f`, 2026-07-25)
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
 | 2026-08-04 | `bf226daf` | copilot-swe-agent[bot] | Add numeric limits board capacity metadata |
 | 2026-07-25 | `02af6e1f` | Brayden Anderson | Enhance Arduino.h with conversion methods and min/max templates; update includes in various libraries to match casing conventions; add SegmentTree unit tests |
 | 2024-03-28 | `18c524a9` | Brayden Anderson | Library updates |

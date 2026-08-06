@@ -4,12 +4,16 @@
 - Branch analyzed: `main`
 - Current manifest version: **2.0.0**
 - Release boundary commit: `15cea518` (2026-07-24)
-- Total commits touching this library on current history: **26**
-- Recent commits shown: **26**
+- Total commits touching this library on current history: **27**
+- Recent commits shown: **27**
 
 ## Next Release (Experimental / Unreleased)
 
 Changes listed here are auto-generated from commits after the latest manifest version change and are experimental until officially released.
+
+### Features
+
+- add scripts to generate library changelogs and sync health badges (`72cb3ed0`, 2026-08-05)
 
 ### Bug Fixes
 
@@ -21,9 +25,10 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
 | 2026-07-25 | `059b6c08` | Brayden Anderson | minor spell fix |
 | 2026-07-24 | `046182ee` | copilot-swe-agent[bot] | fix(SDList): guard null _mem in _memGrow; check set() return in remove() |
-| 2026-07-24 | `15cea518` | copilot-swe-agent[bot] | feat(SDList): v2 â€“ binary batch storage, no data corruption |
+| 2026-07-24 | `15cea518` | copilot-swe-agent[bot] | feat(SDList): v2 – binary batch storage, no data corruption |
 | 2025-12-06 | `504c8fed` | copilot-swe-agent[bot] | Fix SDList get() function to properly handle line separators and empty lines |
 | 2025-12-06 | `6c95e15e` | copilot-swe-agent[bot] | Copy SDList.txt to SDList.h to restore missing content |
 | 2025-02-05 | `5e6439a3` | Brayden Anderson | Library Updates |

@@ -4,7 +4,7 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.11**
 - Release boundary commit: `7e12be8d` (2025-12-10)
-- Total commits touching this library on current history: **47**
+- Total commits touching this library on current history: **48**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
@@ -13,6 +13,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Features
 
+- add scripts to generate library changelogs and sync health badges (`72cb3ed0`, 2026-08-05)
 - add optional numeric_limits integration to ArrayList, SimpleVector, and Hashtable (`520a61de`, 2026-08-04)
 - add SIMPLE_VECTOR_SMART_RESIZE compiler directive with adaptive/fixed resize and shrink strategies (`85f807fb`, 2026-08-04)
 
@@ -35,6 +36,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
 | 2026-08-04 | `520a61de` | copilot-swe-agent[bot] | feat: add optional numeric_limits integration to ArrayList, SimpleVector, and Hashtable |
 | 2026-08-04 | `85f807fb` | copilot-swe-agent[bot] | feat(SimpleVector): add SIMPLE_VECTOR_SMART_RESIZE compiler directive with adaptive/fixed resize and shrink strategies |
 | 2026-07-30 | `d570da42` | github-actions[bot] | Back-sync SimpleVector from remote PR #6 (26698ce) |
@@ -64,5 +66,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2024-03-12 | `6e0599ad` | Brayden Anderson | New Functions, New Functionality |
 | 2024-03-11 | `02dcf81e` | Brayden Anderson | Updates to Libraries... |
 | 2024-03-07 | `1669ba0f` | Brayden Anderson | New Library |
-| 2024-03-03 | `80338af8` | Brayden Anderson | LibraryPrepWork |
 
