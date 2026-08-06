@@ -1,5 +1,11 @@
 # TypeTraits Library for Arduino
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 
 The TypeTraits library provides a collection of template structures to facilitate type checking and type traits identification in Arduino programming. It offers a simple, compile-time mechanism to query the characteristics of types, such as whether a type is arithmetic, a character, a string, an integral type, a floating-point type, an array, a pointer, a reference, const-qualified, volatile-qualified, or whether two types are the same.

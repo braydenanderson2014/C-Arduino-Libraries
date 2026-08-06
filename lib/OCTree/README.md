@@ -1,5 +1,11 @@
 # Octree Library for Arduino
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 The Octree library offers a spatial partitioning structure for efficient querying of 3D space, optimized for Arduino environments. It allows for storing and manipulating data in a three-dimensional space, using a tree structure where each node has exactly eight children. This library is particularly useful for applications involving 3D graphics, spatial analysis, collision detection, and point cloud management.
 
@@ -72,4 +78,4 @@ The library includes mechanisms to manage memory efficiently, reusing nodes from
 The Octree library is designed to be extensible. Users can add more features such as balancing the tree, supporting dynamic resizing, and enhancing search capabilities.
 
 ## License
-This library is open-source and can be used and modified according to the terms specified in the license accompanying the library source. Contributions and improvements from the community are welcome. 
+This library is open-source and can be used and modified according to the terms specified in the license accompanying the library source. Contributions and improvements from the community are welcome.

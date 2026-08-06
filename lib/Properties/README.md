@@ -1,5 +1,11 @@
 # SimpleProperties
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 [![SimpleProperties](https://badges.registry.platformio.org/packages/braydenanderson2014/library/SimpleProperties.svg)](https://registry.platformio.org/libraries/braydenanderson2014/SimpleProperties)
 
 A C++ library for managing Java-style key/value properties on Arduino.  

@@ -1,5 +1,11 @@
 # Optional Library for Arduino & PlatformIO
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 The `Optional<T>` class is a lightweight implementation for handling optional values in **Arduino** and **PlatformIO** projects. This class provides a way to represent values that may or may not be present without using pointers or complex error-handling logic.
 
@@ -105,4 +111,3 @@ This project is open-source and licensed under the Apache License.
 ---
 
 Enjoy using `Optional<T>` in your Arduino and PlatformIO projects! 🚀
-

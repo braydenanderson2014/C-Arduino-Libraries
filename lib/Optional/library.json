@@ -6,7 +6,7 @@
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Optional.git"
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/Optional"
         }
     ],
     "authors": [

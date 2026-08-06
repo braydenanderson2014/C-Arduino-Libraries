@@ -2,11 +2,11 @@
 
 Reference version: `1.0.8-BETA`
 
-[![Health](https://img.shields.io/badge/Health-TODO-lightgrey)](./)
-[![Tests](https://img.shields.io/badge/Tests-TODO-lightgrey)](./)
-[![PlatformIO Popularity](https://img.shields.io/badge/PlatformIO%20Popularity-TODO-lightgrey)](./)
 
-<!-- Replace the badge placeholders above with workflow-backed badges when those workflows are ready. -->
+<!-- HEALTH_BADGES_START -->
+[![Health: Potentially Unhealthy](https://img.shields.io/badge/Health-Potentially%20Unhealthy-d73a49?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
 
 `ArrayList` is a templated container for Arduino projects with fixed-size and dynamically growing modes, bulk operations, iterators, sorting, cloning, and manual capacity controls for advanced use cases.
 

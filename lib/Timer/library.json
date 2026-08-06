@@ -5,7 +5,7 @@
     "keywords": ["Timer", "RTC", "Time", "Arduino", "Simple", "Non-Blocking", "SimpleTimer", "SimpleArduinoTimer", "DS3231", "DS1307", "DS1302", "PCF8523", "PCF8563", "MCP7940"],
     "repository": {
         "type": "git",
-        "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Timer"
+        "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/Timer"
     },
     "authors": [
         {

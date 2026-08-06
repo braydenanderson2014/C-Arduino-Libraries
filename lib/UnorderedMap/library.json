@@ -6,7 +6,7 @@
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/UnorderedMap.git"
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/UnorderedMap"
         }
     ],
     "Description": "This Library makes it easy to map a key to a value. It Utilizes the Hashtable Library (Designed by the same author) to create an UnorderedMap. Please note that this means it can use a bit more memory then just using the Hashtable Directly. This Library is designed to be simple and easy to use. This Library contains basic implementations of a UnorderedMap Structure. Please note that this library is still in development. Although it has been mostly tested and considered stable, bugs can till appear. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",

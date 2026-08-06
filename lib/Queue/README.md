@@ -1,5 +1,11 @@
 # Queue Library for Arduino
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 The Queue library provides a generic, dynamic queue implementation in C++ tailored for use in Arduino projects. It's designed to manage a collection of elements in a first-in, first-out (FIFO) manner. Ideal for tasks requiring a sequential processing order, such as event handling or task scheduling.
 

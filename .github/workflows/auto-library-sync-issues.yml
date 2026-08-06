@@ -1,0 +1,280 @@
+name: Auto File Library Sync Issues
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - lib/**
+      - .github/library-sync-targets.json
+      - .github/workflows/auto-library-sync-issues.yml
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: Optional base ref/sha override for change detection
+        required: false
+        type: string
+      head_ref:
+        description: Optional head ref/sha override for change detection
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  auto-file-sync-issues:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Create or update sync request issues for changed libraries
+        uses: actions/github-script@v9
+        env:
+          CONFIG_PATH: .github/library-sync-targets.json
+        with:
+          github-token: ${{ secrets.GH_PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const cp = require("child_process");
+
+            const configPath = process.env.CONFIG_PATH;
+            const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+            const defaults = config.defaults || {};
+            const libraries = config.libraries || {};
+
+            const eventBase = context.payload?.before;
+            const eventHead = context.payload?.after || context.sha;
+            const inputBase = String(context.payload?.inputs?.base_ref || "").trim();
+            const inputHead = String(context.payload?.inputs?.head_ref || "").trim();
+
+            const baseRef = inputBase || eventBase;
+            const headRef = inputHead || eventHead;
+
+            const isZeroRef = (value) => !value || /^0+$/.test(String(value));
+
+            const runGit = (args) => {
+              return cp.execFileSync("git", args, { encoding: "utf8" }).trim();
+            };
+
+            const getCommitSubjectsForPath = (sourcePath, base, head) => {
+              try {
+                let output = "";
+                if (!isZeroRef(base)) {
+                  output = runGit(["log", `${base}..${head}`, "--pretty=format:%s", "--", sourcePath]);
+                } else {
+                  output = runGit(["log", "-n", "12", "--pretty=format:%s", "--", sourcePath]);
+                }
+
+                const unique = [];
+                const seen = new Set();
+                for (const line of output.split(/\r?\n/)) {
+                  const subject = line.trim();
+                  if (!subject || seen.has(subject)) {
+                    continue;
+                  }
+                  seen.add(subject);
+                  unique.push(subject);
+                  if (unique.length >= 8) {
+                    break;
+                  }
+                }
+                return unique;
+              } catch (error) {
+                core.warning(`Unable to read commit subjects for ${sourcePath}: ${error.message}`);
+                return [];
+              }
+            };
+
+            const getChangedFiles = async (base, head) => {
+              if (!isZeroRef(base) && head) {
+                const files = [];
+                let page = 1;
+                while (true) {
+                  const response = await github.rest.repos.compareCommitsWithBasehead({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    basehead: `${base}...${head}`,
+                    per_page: 100,
+                    page,
+                  });
+
+                  const pageFiles = response.data?.files || [];
+                  files.push(...pageFiles.map((f) => f.filename));
+
+                  if (pageFiles.length < 100) {
+                    break;
+                  }
+                  page += 1;
+                }
+
+                return files;
+              }
+
+              const fallback = new Set();
+              for (const commit of context.payload?.commits || []) {
+                for (const name of commit.added || []) fallback.add(name);
+                for (const name of commit.modified || []) fallback.add(name);
+                for (const name of commit.removed || []) fallback.add(name);
+              }
+              return Array.from(fallback);
+            };
+
+            const changedFiles = await getChangedFiles(baseRef, headRef);
+            if (changedFiles.length === 0) {
+              core.info("No changed files detected. Nothing to do.");
+              return;
+            }
+
+            const enabledLibraries = Object.entries(libraries)
+              .filter(([_, cfg]) => {
+                if (!cfg || cfg.enabled === false || !cfg.sourcePath || !cfg.targetRepo) {
+                  return false;
+                }
+                return String(cfg.targetRepo).startsWith("Arduino");
+              });
+
+            const libraryChanges = new Map();
+            for (const [libraryName, cfg] of enabledLibraries) {
+              const sourcePath = String(cfg.sourcePath).replace(/\\/g, "/").replace(/\/$/, "");
+              const prefix = `${sourcePath}/`;
+              const touched = changedFiles.some((filePath) => {
+                const normalized = String(filePath).replace(/\\/g, "/");
+                return normalized === sourcePath || normalized.startsWith(prefix);
+              });
+
+              if (!touched) {
+                continue;
+              }
+
+              const targetOwner = cfg.targetOwner || defaults.targetOwner || context.repo.owner;
+              const targetRepo = cfg.targetRepo;
+              const variant = "arduino";
+              const commitSubjects = getCommitSubjectsForPath(sourcePath, baseRef, headRef);
+
+              libraryChanges.set(libraryName, {
+                sourcePath,
+                targetOwner,
+                targetRepo,
+                variant,
+                commitSubjects,
+              });
+            }
+
+            if (libraryChanges.size === 0) {
+              core.info("No configured library sync paths changed.");
+              return;
+            }
+
+            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              labels: "library-sync-request",
+              per_page: 100,
+            });
+
+            const makeBody = (libraryName, details) => {
+              const generatedAt = new Date().toISOString();
+              const compareLink = !isZeroRef(baseRef)
+                ? `https://github.com/${context.repo.owner}/${context.repo.repo}/compare/${baseRef}...${headRef}`
+                : "(compare range unavailable for this event)";
+
+              const summaryLines = [];
+              summaryLines.push("Auto-generated sync request based on detected monorepo changes.");
+              summaryLines.push(`- Source path: ${details.sourcePath}`);
+              summaryLines.push(`- Target repository: ${details.targetOwner}/${details.targetRepo}`);
+              summaryLines.push(`- Template variant: ${details.variant}`);
+              summaryLines.push(`- Detected from: ${context.eventName} (${context.ref || "unknown ref"})`);
+              summaryLines.push(`- Compare: ${compareLink}`);
+              if (details.commitSubjects.length > 0) {
+                summaryLines.push("- Commit highlights:");
+                for (const subject of details.commitSubjects) {
+                  summaryLines.push(`  - ${subject}`);
+                }
+              } else {
+                summaryLines.push("- Commit highlights: unavailable");
+              }
+
+              return [
+                "<!-- library-sync-request -->",
+                "<!-- auto-library-sync-request -->",
+                `<!-- sync-template-variant: ${details.variant} -->`,
+                `<!-- generated-at: ${generatedAt} -->`,
+                "",
+                "### Library",
+                libraryName,
+                "",
+                "### Pull request title",
+                `Sync ${libraryName} from monorepo (auto)` ,
+                "",
+                "### Target branch override",
+                "_No response_",
+                "",
+                "### Sync summary",
+                summaryLines.join("\n"),
+                "",
+                "### Pull request notes",
+                [
+                  "Auto-created by workflow: auto-library-sync-issues.yml",
+                  "Review generated summary and edit before processing if needed.",
+                ].join("\n"),
+                "",
+                "### Confirmations",
+                "- [x] I verified the library folder in this monorepo is ready to sync.",
+                "- [x] I understand this workflow only syncs configured library-managed paths, not the full repository.",
+              ].join("\n");
+            };
+
+            for (const [libraryName, details] of libraryChanges.entries()) {
+              const body = makeBody(libraryName, details);
+              const titlePrefix = "[Library Sync][Arduino]";
+              const title = `${titlePrefix} ${libraryName} -> ${details.targetOwner}/${details.targetRepo}`;
+
+              const existing = openIssues.find((issue) => {
+                if (issue.pull_request) {
+                  return false;
+                }
+                const issueBody = String(issue.body || "");
+                return issueBody.includes("<!-- auto-library-sync-request -->")
+                  && issueBody.includes(`### Library\n${libraryName}`);
+              });
+
+              if (existing) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existing.number,
+                  title,
+                  body,
+                });
+
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existing.number,
+                  body: [
+                    "Detected additional library changes and refreshed this auto-generated sync request.",
+                    `Latest head: ${headRef}`,
+                  ].join("\n"),
+                });
+
+                core.info(`Updated existing issue #${existing.number} for ${libraryName}`);
+                continue;
+              }
+
+              const created = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ["library-sync-request"],
+              });
+
+              core.info(`Created issue #${created.data.number} for ${libraryName}`);
+            }

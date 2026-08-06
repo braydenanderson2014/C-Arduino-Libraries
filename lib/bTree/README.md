@@ -1,4 +1,10 @@
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 # BTree Library for Arduino
 
 ## Overview
@@ -55,4 +61,4 @@ Adjust the minimum degree (t) of the B-Tree according to your dataset's size and
 We welcome contributions to the BTree library. Whether it's adding new features, optimizing existing ones, or fixing bugs, your input helps improve the library for the Arduino community.
 
 ## License
-This library is made available under an Apache. 
+This library is made available under an Apache.

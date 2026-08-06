@@ -6,7 +6,7 @@
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/ColorManager.git"
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/ColorManager"
         }
     ],
     "authors": [

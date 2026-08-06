@@ -6,7 +6,7 @@
     "Repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/SimpleVector.git"
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/__ArduinoUnoQLibraryDevelopment__Experimental/SimpleVector"
 
         }
     ],

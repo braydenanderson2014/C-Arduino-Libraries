@@ -1,5 +1,11 @@
 # Trie Tree Library for Arduino
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 The Trie Tree library is a specialized data structure for handling a dynamic set or associative array where the keys are strings. It excels in solving problems related to word validations, auto-completion, and prefix searching, making it ideal for applications that deal with large datasets of words or characters, such as dictionaries, word games, or text processing tools.
 

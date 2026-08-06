@@ -1,5 +1,11 @@
 # Binary Tree Library for Arduino
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 The Binary Tree library for Arduino provides a comprehensive implementation for managing binary trees. Binary trees are a fundamental data structure in computer science, used in various applications such as sorting, data storage, and more. This library enables the creation, manipulation, and traversal of binary trees directly on your Arduino projects.
 
@@ -56,4 +62,4 @@ You can extend the library to include additional tree operations as needed, such
 Contributions are welcome! If you have improvements or bug fixes, please feel free to contribute to the library. Your input is valuable in making this library more robust and feature-rich.
 
 ## License
-This library is released under an Apache license. 
+This library is released under an Apache license.

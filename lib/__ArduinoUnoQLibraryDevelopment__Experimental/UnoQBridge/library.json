@@ -5,7 +5,7 @@
   "keywords": ["arduino", "bridge", "experimental", "unoq", "ventunoq", "communication", "protocol", "binary"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
+    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/__ArduinoUnoQLibraryDevelopment__Experimental/UnoQBridge"
   },
   "authors": [
     {

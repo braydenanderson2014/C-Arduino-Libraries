@@ -1,5 +1,11 @@
 # Map Library for Arduino
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 The Map library provides a simple and efficient way to store and manage key-value pairs in Arduino projects. It's designed to offer easy insertion, removal, and search operations, making it suitable for various applications where associative arrays or dictionaries are needed.
 

@@ -1,4 +1,10 @@
 # Numeric Limits Library for Arduino
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 The Numeric Limits library provides a way to determine the properties and limits of arithmetic types in the Arduino environment. It covers a range of types including integers, floating-point numbers, and bytes, offering functionality similar to std::numeric_limits from the C++ Standard Library but tailored for Arduino's constraints and types.
 

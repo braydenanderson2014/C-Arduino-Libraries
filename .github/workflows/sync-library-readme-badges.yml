@@ -1,0 +1,58 @@
+name: Sync Library README Badges
+
+on:
+  workflow_run:
+    workflows:
+      - Generate Cross-Repo Library Health Report
+      - Arduino Host Simulation Tests
+      - JSON Host Mode Tests
+    types:
+      - completed
+  push:
+    paths:
+      - .github/workflows/sync-library-readme-badges.yml
+      - scripts/sync_library_health_badges.py
+      - library-health-report.md
+      - reports/library-health-report.md
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-readme-badges:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Sync library README badges from health report
+        run: |
+          python scripts/sync_library_health_badges.py
+
+      - name: Commit README badge updates if changed
+        run: |
+          README_FILES=$(find lib -type f -name README.md)
+
+          if [ -z "$README_FILES" ]; then
+            echo "No library README files found"
+            exit 0
+          fi
+
+          if echo "$README_FILES" | xargs git diff --quiet --; then
+            echo "No library README badge changes detected"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "$README_FILES" | xargs git add --
+          git commit -m "chore(readme): sync library health badges"
+          git push

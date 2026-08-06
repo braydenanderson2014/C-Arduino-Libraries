@@ -19,6 +19,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   json-host-mode-tests:
@@ -80,3 +81,142 @@ jobs:
         with:
           name: json-mode-report-${{ matrix.mode }}-${{ matrix.backend }}
           path: test/host_arduino_sim/out/report-json-${{ matrix.mode }}-${{ matrix.backend }}.json
+
+  sync-systemcommands-json-status:
+    needs:
+      - json-host-mode-tests
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync SystemCommands JSON testing labels
+        uses: actions/github-script@v9
+        env:
+          GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
+        with:
+          github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+          script: |
+            const tokenPresent = Boolean(process.env.GH_PROJECT_TOKEN && process.env.GH_PROJECT_TOKEN.trim());
+            if (!tokenPresent) {
+              core.notice('Skipping SystemCommands JSON testing sync because GH_PROJECT_TOKEN is not set.');
+              return;
+            }
+
+            const TARGET_OWNER = 'braydenanderson2014';
+            const TARGET_REPO = 'SystemCommands';
+            const ISSUE_TESTED = 22;
+            const ISSUE_NOT_TESTED = 23;
+            const ISSUE_TESTING_FAILED = 33;
+            const MANAGED_LABELS = ['Json', 'Optional'];
+
+            const normalize = (value) => String(value || '')
+              .toLowerCase()
+              .replace(/fs/g, 'filesystem')
+              .replace(/[^a-z0-9]/g, '');
+
+            const allRepoLabels = await github.paginate(github.rest.issues.listLabelsForRepo, {
+              owner: TARGET_OWNER,
+              repo: TARGET_REPO,
+              per_page: 100
+            });
+
+            const labelByNormalized = new Map();
+            for (const label of allRepoLabels) {
+              const key = normalize(label.name);
+              if (!labelByNormalized.has(key)) {
+                labelByNormalized.set(key, label.name);
+              }
+            }
+
+            const resolvedManagedLabels = MANAGED_LABELS
+              .map((name) => labelByNormalized.get(normalize(name)) || name)
+              .filter(Boolean);
+
+            const runJobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+              per_page: 100
+            });
+
+            const jsonJobs = runJobs.filter((job) => String(job.name || '').startsWith('JSON mode tests'));
+            if (!jsonJobs.length) {
+              core.info('No JSON mode test jobs found, nothing to sync.');
+              return;
+            }
+
+            const allSuccess = jsonJobs.every((job) => job.conclusion === 'success');
+
+            const tested = new Set(allSuccess ? resolvedManagedLabels : []);
+            const failedTesting = new Set(allSuccess ? [] : resolvedManagedLabels);
+            const notTested = new Set();
+
+            const desiredByIssue = new Map([
+              [ISSUE_TESTED, tested],
+              [ISSUE_NOT_TESTED, notTested],
+              [ISSUE_TESTING_FAILED, failedTesting]
+            ]);
+
+            const listIssueLabelNames = async (issueNumber) => {
+              const { data } = await github.rest.issues.get({
+                owner: TARGET_OWNER,
+                repo: TARGET_REPO,
+                issue_number: issueNumber
+              });
+
+              if (data.pull_request) {
+                throw new Error(`Target #${issueNumber} is a pull request, expected an issue.`);
+              }
+
+              return (data.labels || [])
+                .map((item) => (typeof item === 'string' ? item : item.name || ''))
+                .filter(Boolean);
+            };
+
+            const managedLower = new Set(resolvedManagedLabels.map((name) => name.toLowerCase()));
+            let addedTotal = 0;
+            let removedTotal = 0;
+
+            for (const [issueNumber, desiredSet] of desiredByIssue.entries()) {
+              const currentNames = await listIssueLabelNames(issueNumber);
+              const currentByLower = new Map();
+              for (const name of currentNames) {
+                currentByLower.set(name.toLowerCase(), name);
+              }
+
+              const desiredLower = new Set(Array.from(desiredSet).map((name) => name.toLowerCase()));
+              const toAdd = Array.from(desiredSet).filter((name) => !currentByLower.has(name.toLowerCase()));
+
+              if (toAdd.length) {
+                await github.rest.issues.addLabels({
+                  owner: TARGET_OWNER,
+                  repo: TARGET_REPO,
+                  issue_number: issueNumber,
+                  labels: toAdd
+                });
+                addedTotal += toAdd.length;
+              }
+
+              for (const [labelLower, exactName] of currentByLower.entries()) {
+                if (!managedLower.has(labelLower) || desiredLower.has(labelLower)) {
+                  continue;
+                }
+
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: TARGET_OWNER,
+                    repo: TARGET_REPO,
+                    issue_number: issueNumber,
+                    name: exactName
+                  });
+                  removedTotal += 1;
+                } catch (error) {
+                  if (error.status !== 404) {
+                    throw error;
+                  }
+                }
+              }
+            }
+
+            core.info(`SystemCommands JSON testing sync complete. Added labels: ${addedTotal}. Removed labels: ${removedTotal}.`);
+            core.info(`JSON tested: ${Array.from(tested).sort().join(', ') || '(none)'}`);
+            core.info(`JSON failed testing: ${Array.from(failedTesting).sort().join(', ') || '(none)'}`);

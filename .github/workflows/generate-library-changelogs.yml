@@ -1,0 +1,48 @@
+name: Generate Library Changelogs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - lib/**
+      - scripts/generate_library_changelogs.py
+      - .github/workflows/generate-library-changelogs.yml
+  schedule:
+    - cron: "15 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-changelogs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Generate per-library changelogs
+        run: |
+          python scripts/generate_library_changelogs.py
+
+      - name: Commit changelog updates if changed
+        run: |
+          if git diff --quiet -- reports/library-changelogs; then
+            echo "No changelog changes detected"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/library-changelogs
+          git commit -m "chore(reports): update library changelogs"
+          git push

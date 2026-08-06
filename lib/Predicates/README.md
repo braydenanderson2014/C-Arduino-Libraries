@@ -1,5 +1,11 @@
 # ArrayListPredicates Library for Arduino
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 The ArrayListPredicates library provides a comprehensive set of Predicates that can be performed on elements of an ArrayList or other list structure. This library is designed for Arduino projects and offers a wide range of mathematical and utility functions.
 
@@ -116,5 +122,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 * isPrime(T value)
 * isDivisibleBy(T value) 
 * isDivisibleBy(T value, T divisor) 
-* isDivisibleByTwo(T value) 
-   
+* isDivisibleByTwo(T value)

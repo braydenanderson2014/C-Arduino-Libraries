@@ -49,6 +49,7 @@
 #define NOUSER
 #endif
 #include <windows.h>
+#include <psapi.h>
 #else
 #include <thread>
 #endif
@@ -97,6 +98,18 @@ static std::size_t getHeapBytes() {
     struct mallinfo info = mallinfo();
     return static_cast<std::size_t>(info.uordblks);
 #endif
+#elif defined(_WIN32)
+    PROCESS_MEMORY_COUNTERS_EX counters {};
+    const BOOL ok = GetProcessMemoryInfo(
+        GetCurrentProcess(),
+        reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&counters),
+        sizeof(counters)
+    );
+    if (ok == 0) {
+        return 0;
+    }
+    // PrivateUsage is the process-private commit, suitable for monotonic stress deltas.
+    return static_cast<std::size_t>(counters.PrivateUsage);
 #else
     return 0;
 #endif

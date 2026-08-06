@@ -1,5 +1,11 @@
 # SDList
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Unstable](https://img.shields.io/badge/Health-Unstable-f59e0b?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 `SDList` is a paged, batch-buffered list for Arduino that offloads element storage
 to an SD card (or LittleFS) while keeping only a single fixed-size window of
 elements in RAM at a time.  It behaves like `ArrayList` / `SimpleVector` from the

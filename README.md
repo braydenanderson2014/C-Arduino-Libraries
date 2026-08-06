@@ -17,8 +17,9 @@
 
 This repo now relies heavily on workflows for health and stability reporting.
 
-- Library health summary: [library-health-report.md](library-health-report.md)
+- Library health summary: [reports/library-health-report.md](reports/library-health-report.md)
 - PlatformIO metrics report: [PLATFORMIO_METRICS.md](PLATFORMIO_METRICS.md)
+- Library changelog index: [reports/library-changelogs/README.md](reports/library-changelogs/README.md)
 - Host simulation and compile workflows: `.github/workflows/`
 
 ## Feature Snapshot
@@ -115,7 +116,7 @@ Track quality and CI status from these workflow/report entry points:
 - Host-level simulation tests: [![Arduino Host Simulation Tests](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/arduino-host-sim-tests.yml)
 - Build and compile coverage: [![Compile Examples](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/compile-examples.yml)
 - JSON host simulation tests: [![JSON Host Sim Tests](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/json-host-sim-tests.yml/badge.svg)](https://github.com/braydenanderson2014/C-Arduino-Libraries/actions/workflows/json-host-sim-tests.yml)
-- Aggregated health output: [library-health-report.md](library-health-report.md)
+- Aggregated health output: [reports/library-health-report.md](reports/library-health-report.md)
 - PlatformIO metrics and registry overview: [PLATFORMIO_METRICS.md](PLATFORMIO_METRICS.md)
 
 Notes:

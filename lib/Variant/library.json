@@ -6,7 +6,7 @@
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/Variant.git"
+            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/Variant"
         }
     ],
     "Description": "This Library allows storing either a single value or a list of values dynamically. It provides an easy-to-use interface for switching between single and list modes. The class supports ArrayList or SimpleVector, giving flexibility in memory management.",

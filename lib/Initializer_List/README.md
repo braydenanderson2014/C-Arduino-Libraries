@@ -1,5 +1,11 @@
 # Initializer List Library for Arduino
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 The Initializer List library provides a minimal and efficient implementation of initializer lists for Arduino, similar to the C++11 feature. It allows Arduino developers to initialize objects and arrays in a clean and concise way, improving code readability and maintainability.
 

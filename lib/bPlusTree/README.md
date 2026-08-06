@@ -1,5 +1,11 @@
 # B+ Tree Library for Arduino
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 The B+ Tree library for Arduino offers an efficient implementation of the B+ tree data structure, catering to applications that require a balanced tree for rapid data retrieval, insertion, and deletion. B+ trees are especially useful for database and filesystem implementations due to their ability to maintain sorted data and support efficient range queries.
 

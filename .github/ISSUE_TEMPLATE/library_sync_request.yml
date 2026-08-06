@@ -1,5 +1,5 @@
 name: Library Sync Request
-description: Maintainers only. Publish one library from this monorepo to its mapped remote repository.
+description: Maintainers only. Publish one Arduino-target library from this monorepo to its mapped remote repository.
 title: "[Library Sync] "
 labels: ["library-sync-request"]
 projects: ["braydenanderson2014/4"]
@@ -9,71 +9,22 @@ body:
     attributes:
       value: |
         <!-- library-sync-request -->
-        Use this form to push the current contents of one library folder to its configured remote repository.
+        <!-- sync-template-variant: arduino -->
+        Use this form to push one Arduino-target library folder to its configured remote repository.
 
   - type: dropdown
     id: library
     attributes:
       label: Library
-      description: Select the library folder that should be pushed to its remote repository.
+      description: Select the Arduino-target library folder that should be pushed to its remote repository.
       multiple: false
       options:
-        - AVLTree
         - ArrayList
-        - BinarySearchTree
-        - BinaryTree
-        - bPlusTree
-        - bTree
-        - ColorManager
-        - Dictionary
         - DoubleLinkedList
-        - DynamicStorageLibrary
-        - EthernetConnectionChecker
-        - EthernetMach2ConnectionChecker
-        - ExtremeVariant
-        - FenwickTree
         - Hashtable
-        - HeapTree
-        - Initializer_List
-        - IntervalTree
-        - iostream
-        - iterator
-        - Json
-        - kdimensionalTree
         - LinkedList
-        - Map
-        - MathLib
-        - MatrixMath
-        - MbedLittleFSWrapper
-        - MemoryManager
-        - MyDictionary
-        - NewArrayList (TEMP)
-        - Numeric_Limits
-        - OCTree
-        - Operators
-        - Optional
-        - OrderedMap
-        - Predicates
-        - Properties
-        - QuadTree
-        - Queue
-        - RTree
-        - RedBlackTree
-        - SD-master
         - SDList
-        - SegmentTree
-        - SimpleMutex
-        - SimpleThreadManager
-        - SimpleVector
-        - Stack
-        - String
-        - SuffixTree
         - Timer
-        - TrieTree
-        - TypeTraits
-        - UnorderedMap
-        - Variant
-        - littlefs-master
     validations:
       required: true
 

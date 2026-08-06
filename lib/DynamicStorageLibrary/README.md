@@ -1,5 +1,11 @@
 # DynamicStorageLibrary for Arduino
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Unstable](https://img.shields.io/badge/Health-Unstable-f59e0b?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 DynamicStorageLibrary is a flexible storage helper for Arduino projects that can keep data in RAM, on SD, or automatically switch between the two. It is designed for simple key/value storage, list storage, and lightweight persistence without requiring a full database layer.
 

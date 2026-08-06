@@ -13,7 +13,7 @@ on:
       output_path:
         description: Report path in source repository
         required: true
-        default: library-health-report.md
+        default: reports/library-health-report.md
       confirmed_labels:
         description: Comma-separated labels that mark confirmed issues
         required: true
@@ -80,7 +80,7 @@ jobs:
         env:
           GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
           SOURCE_REPO: ${{ github.event.inputs.source_repo || 'braydenanderson2014/C-Arduino-Libraries' }}
-          OUTPUT_PATH: ${{ github.event.inputs.output_path || 'library-health-report.md' }}
+          OUTPUT_PATH: ${{ github.event.inputs.output_path || 'reports/library-health-report.md' }}
           CONFIRMED_LABELS: ${{ github.event.inputs.confirmed_labels || 'Confirmed' }}
           STABLE_ISSUE_NUMBER: ${{ github.event.inputs.stable_issue_number || '21' }}
           UNSTABLE_ISSUE_NUMBER: ${{ github.event.inputs.unstable_issue_number || '20' }}
@@ -515,6 +515,7 @@ jobs:
                 unstable: 'Unstable',
                 tested: 'Tested',
                 not_tested: 'Not Tested',
+                testing_failed: 'Failed Testing',
                 unsure: 'Unsure',
                 potentially_unhealthy: 'Potentially Unhealthy'
               };
@@ -525,8 +526,17 @@ jobs:
               return bucketKey === 'stable' || bucketKey === 'tested';
             }
 
-            function isTestedLibrary(libraryLabel) {
-              return overrides.testedLabels.has(libraryLabel);
+            function resolveTestingStatus(libraryLabel, libraryLower) {
+              if (testingFailedLabels.has(libraryLower)) {
+                return 'testing_failed';
+              }
+              if (testedBucketLabels.has(libraryLower) || overrides.testedLabels.has(libraryLabel)) {
+                return 'tested';
+              }
+              if (notTestedBucketLabels.has(libraryLower)) {
+                return 'not_tested';
+              }
+              return 'not_tested';
             }
 
             function buildHealthyBadge(name) {
@@ -551,7 +561,8 @@ jobs:
             function testingBadge(testingKey) {
               const colorByTesting = {
                 tested: '2ea44f',
-                not_tested: '6f42c1'
+                not_tested: '6f42c1',
+                testing_failed: 'd73a49'
               };
 
               return buildStatusBadge('Testing', bucketDisplay(testingKey), colorByTesting[testingKey] || '9e9e9e');
@@ -726,6 +737,8 @@ jobs:
             const compilationPassedLabels = labelsFromIssue(statusIssues.compilation_passed);
             const compilationFailedLabels = labelsFromIssue(statusIssues.compilation_failed);
             const testingFailedLabels = labelsFromIssue(statusIssues.testing_failed);
+            const testedBucketLabels = labelsFromIssue(statusBucketIssues.tested);
+            const notTestedBucketLabels = labelsFromIssue(statusBucketIssues.not_tested);
 
             core.info('Reading PlatformIO metrics report from source repository...');
             const platformMetricsMd = await readSourceFile('PLATFORMIO_METRICS.md');
@@ -783,8 +796,8 @@ jobs:
                 }
               }
 
-              const testingStatus = isTestedLibrary(libraryLabel) ? 'tested' : 'not_tested';
               const libraryLower = libraryLabel.toLowerCase();
+              const testingStatus = resolveTestingStatus(libraryLabel, libraryLower);
               const lintStatus = lintPassedLabels.has(libraryLower)
                 ? 'passed'
                 : lintFailedLabels.has(libraryLower)
@@ -811,7 +824,9 @@ jobs:
                 unconfirmedIssueLinks: unconfirmedOpenForLibrary.map((i) => i.html_url),
                 bucketIssueNumber: bucketIssueNumbers[finalBucket],
                 testingStatus,
-                testingIssueNumber: bucketIssueNumbers[testingStatus],
+                testingIssueNumber: testingStatus === 'testing_failed'
+                  ? statusIssueNumbers.testing_failed
+                  : bucketIssueNumbers[testingStatus],
                 lintStatus,
                 lintIssueNumber: statusToIssueNumber(lintStatus, 'lint_passed', 'lint_failed'),
                 compilationStatus,
@@ -830,14 +845,11 @@ jobs:
               stable: [],
               unstable: [],
               unsure: [],
-              potentially_unhealthy: [],
-              tested: [],
-              not_tested: []
+              potentially_unhealthy: []
             };
 
             for (const row of reportRows) {
               assignmentsByBucket[row.final].push(row.library);
-              assignmentsByBucket[row.testingStatus].push(row.library);
             }
 
             const bucketLabelSets = {};
@@ -877,8 +889,8 @@ jobs:
             let labelsRemoved = 0;
             for (const row of reportRows) {
               const labelLower = row.library.toLowerCase();
-              const keptBuckets = new Set([row.final, row.testingStatus]);
-              for (const bucketKey of Object.keys(bucketIssueNumbers)) {
+              const keptBuckets = new Set([row.final]);
+              for (const bucketKey of Object.keys(assignmentsByBucket)) {
                 if (keptBuckets.has(bucketKey)) continue;
                 if (!bucketLabelSets[bucketKey].has(labelLower)) continue;
 
@@ -930,6 +942,7 @@ jobs:
             }, {});
             lines.push(`- Tested: ${testingTotals.tested || 0}`);
             lines.push(`- Not Tested: ${testingTotals.not_tested || 0}`);
+            lines.push(`- Failed Testing: ${testingTotals.testing_failed || 0}`);
             lines.push('');
             lines.push('## Results');
             lines.push('');
@@ -966,7 +979,8 @@ jobs:
             lines.push('');
             lines.push('## Notes');
             lines.push('');
-            lines.push('- Libraries are routed to private-repo status bucket issues by applying/removing library labels.');
+            lines.push('- Libraries are routed to private-repo health bucket issues by applying/removing library labels.');
+            lines.push('- Testing badges are derived from private-repo tested/not-tested/failed-testing label issues populated by CI workflows.');
             lines.push('- Open unconfirmed source issues take precedence and route a library to Potentially Unhealthy.');
             lines.push('- Any confirmed issue routes a library to Potentially Unhealthy (not Stable).');
             lines.push('- PlatformIO Signal is derived from rank and download trend in PLATFORMIO_METRICS.md.');

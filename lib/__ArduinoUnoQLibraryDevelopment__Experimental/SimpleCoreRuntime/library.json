@@ -5,7 +5,7 @@
   "keywords": ["arduino", "multicore", "runtime", "task", "thread", "esp32", "mbed", "stm32", "concurrency"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
+    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/__ArduinoUnoQLibraryDevelopment__Experimental/SimpleCoreRuntime"
   },
   "authors": [
     {

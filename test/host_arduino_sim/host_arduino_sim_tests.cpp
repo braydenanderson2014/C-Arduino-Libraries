@@ -23,6 +23,15 @@
 #endif
 
 #if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef NOUSER
+#define NOUSER
+#endif
 #include <windows.h>
 #include <psapi.h>
 #endif
@@ -126,6 +135,14 @@ std::size_t getCurrentHeapBytes() {
     struct mallinfo info = mallinfo();
     return static_cast<std::size_t>(info.uordblks);
 #endif
+#elif defined(_WIN32)
+    PROCESS_MEMORY_COUNTERS_EX counters {};
+    if (GetProcessMemoryInfo(GetCurrentProcess(), reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&counters), sizeof(counters)) == 0) {
+        return 0;
+    }
+    // PrivateUsage tracks process-private committed memory and is the closest
+    // cross-platform analogue we have here to allocator-owned heap growth.
+    return static_cast<std::size_t>(counters.PrivateUsage);
 #else
     return 0;
 #endif

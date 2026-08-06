@@ -1,5 +1,11 @@
 # OrderedMap Class
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Description
 Using the SDList Library which uses ArrayList in the background, Ordered List is a non hashed, in order, saveable map. It uses Key and Value Pairs, You can save the map to a file.
 
@@ -85,4 +91,3 @@ See the `Example/Example.cpp` file for more detailed examples.
 - `void deserializeFromJSON(const String& filename)` - Load map from JSON file (creates JSON object temporarily)
 
 **Note:** JSON objects are only created during serialization/deserialization operations, minimizing memory usage.
-

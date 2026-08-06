@@ -1,5 +1,11 @@
 # MatrixMath
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 The `MatrixMath` class provides an efficient and lightweight matrix manipulation library for Arduino. It supports operations like addition, subtraction, multiplication, transposition, scaling, and more while integrating with a custom `MemoryManager` for optimized dynamic memory allocation.
 
@@ -111,4 +117,3 @@ mat.print();
 
 ## License
 This project is open-source and available for modification and distribution.
-

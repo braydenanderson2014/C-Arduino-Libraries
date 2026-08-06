@@ -1,5 +1,11 @@
 # Fenwick Tree Library for Arduino
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 The Fenwick Tree, also known as a Binary Indexed Tree (BIT), offers an efficient way to update elements and calculate prefix sums in a table of numbers. This Arduino-compatible Fenwick Tree library enables easy manipulation of sequences of numbers, providing a powerful tool for handling cumulative frequency tables and range sum queries in embedded projects.
 

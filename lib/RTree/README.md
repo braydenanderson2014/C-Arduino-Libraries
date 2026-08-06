@@ -1,5 +1,11 @@
 # R-Tree Library for Arduino
 
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 ## Overview
 The R-Tree library for Arduino provides a spatial index structure for efficiently organizing and querying geometric data, such as rectangles or spatial objects. It's particularly useful for applications requiring spatial searches, like collision detection, viewport queries, or geographic information systems.
 

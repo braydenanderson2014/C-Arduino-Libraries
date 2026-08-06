@@ -256,6 +256,19 @@ jobs:
             const branchPrefix = libraryConfig.branchPrefix || defaults.branchPrefix || "sync-library";
             const managedPaths = libraryConfig.managedPaths || defaults.managedPaths || [];
 
+            if (!String(targetRepo || "").startsWith("Arduino")) {
+              await commentOnIssue(
+                issue.number,
+                [
+                  `Library sync requests are only supported for Arduino-target remotes at this time.`,
+                  `The configured target for '${library}' is '${targetOwner}/${targetRepo}', which is outside the Arduino sync scope.`
+                ].join("\n")
+              );
+              await closeIssue(issue.number);
+              core.setOutput("should_run", "false");
+              return;
+            }
+
             if (!sourcePath || !targetRepo || managedPaths.length === 0) {
               await commentOnIssue(
                 issue.number,
