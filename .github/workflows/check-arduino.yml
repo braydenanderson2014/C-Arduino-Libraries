@@ -10,10 +10,22 @@ on:
       - opened
       - synchronize
       - reopened
+  issues:
+    types:
+      - labeled
   schedule:
     # Run every Tuesday at 8 AM UTC to catch breakage caused by new rules added to Arduino Lint.
     - cron: "0 8 * * TUE"
   workflow_dispatch:
+    inputs:
+      library_manager_update:
+        description: "Run with --library-manager update (PlatformIO publish validation). Requires explicit opt-in."
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
   repository_dispatch:
 
 permissions:
@@ -22,6 +34,10 @@ permissions:
 
 jobs:
   lint:
+    # Skip if this was triggered by labeling an issue with a label other than 'platformio-publish'.
+    if: |
+      github.event_name != 'issues' ||
+      github.event.label.name == 'platformio-publish'
     runs-on: ubuntu-latest
 
     steps:
@@ -31,6 +47,30 @@ jobs:
       - name: Install Arduino Lint
         run: |
           curl -fsSL https://raw.githubusercontent.com/arduino/arduino-lint/main/install.sh | BINDIR=/usr/local/bin sh
+
+      - name: Determine library-manager lint mode
+        id: lm_mode
+        shell: bash
+        run: |
+          # Use --library-manager update (full publish validation) only when explicitly requested:
+          #   - workflow_dispatch with library_manager_update == 'true'
+          #   - issues: labeled with 'platformio-publish'
+          #   - schedule (Tuesday discovery run — informational only)
+          # All other triggers (push, pull_request, repository_dispatch) use --library-manager false
+          # to skip PlatformIO-specific checks that should not block normal development.
+          EVENT="${{ github.event_name }}"
+          WD_INPUT="${{ inputs.library_manager_update }}"
+          LABEL="${{ github.event.label.name }}"
+
+          if [[ "$EVENT" == "schedule" ]] \
+            || [[ "$EVENT" == "workflow_dispatch" && "$WD_INPUT" == "true" ]] \
+            || [[ "$EVENT" == "issues" && "$LABEL" == "platformio-publish" ]]; then
+            echo "lm_flag=--library-manager update" >> "$GITHUB_OUTPUT"
+            echo "lm_mode=update"
+          else
+            echo "lm_flag=--library-manager false" >> "$GITHUB_OUTPUT"
+            echo "lm_mode=false"
+          fi
 
       - name: Run Arduino Lint and capture logs
         id: lint
@@ -57,12 +97,14 @@ jobs:
           fi
 
           LINT_EXIT_CODE=0
+          LM_FLAG="${{ steps.lm_mode.outputs.lm_flag }}"
 
           for lib_dir in "${libraries[@]}"; do
             echo "Linting ${lib_dir}" | tee -a arduino-lint.log
+            # shellcheck disable=SC2086
             arduino-lint \
               --compliance specification \
-              --library-manager update \
+              $LM_FLAG \
               --official \
               --project-type library \
               "$lib_dir" \

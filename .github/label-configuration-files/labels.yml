@@ -9,3 +9,7 @@
 - name: "pull-request"
   color: "5319e7"
   description: "Marks pull requests that have been automatically triaged."
+
+- name: "platformio-publish"
+  color: "e06c00"
+  description: "Triggers a PlatformIO library-manager validation run for the specified library."

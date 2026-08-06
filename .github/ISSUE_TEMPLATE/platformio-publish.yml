@@ -1,0 +1,123 @@
+name: PlatformIO Package Publish Request
+description: Request a PlatformIO library-manager validation and package update for a specific library.
+title: "[PLATFORMIO PUBLISH] "
+labels: ["platformio-publish"]
+projects: ["braydenanderson2014/4"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form to request a PlatformIO library-manager validation run for one of the libraries
+        in this repository. Once submitted, the **Check Arduino** workflow will run with
+        `--library-manager update` enabled for the specified library.
+
+        > ⚠️ Only maintainers should submit this request. Automated runs on every push/PR are
+        > intentionally disabled to avoid spurious package-update failures.
+
+  - type: dropdown
+    id: library
+    attributes:
+      label: Library
+      description: Select the library you want to validate and publish to the PlatformIO registry.
+      multiple: false
+      options:
+        - AVLTree
+        - ArrayList
+        - BinarySearchTree
+        - BinaryTree
+        - bPlusTree
+        - bTree
+        - ColorManager
+        - Dictionary
+        - DoubleLinkedList
+        - DynamicStorageLibrary
+        - EthernetConnectionChecker
+        - EthernetMach2ConnectionChecker
+        - ExtremeVariant
+        - FenwickTree
+        - Hashtable
+        - HeapTree
+        - iostream
+        - Initializer_List
+        - IntervalTree
+        - iterator
+        - Json
+        - kdimensionalTree
+        - LinkedList
+        - Map
+        - MathLib
+        - MatrixMath
+        - MbedLittleFSWrapper
+        - MemoryManager
+        - MyDictionary
+        - Numeric_Limits
+        - OCTree
+        - Operators
+        - Optional
+        - OrderedMap
+        - Predicates
+        - Properties
+        - QuadTree
+        - Queue
+        - RTree
+        - RedBlackTree
+        - SDList
+        - SegmentTree
+        - SimpleChannel
+        - SimpleCoreRuntime
+        - SimpleMutex
+        - SimpleRWLock
+        - SimpleSemaphore
+        - SimpleThreadManager
+        - SimpleVector
+        - Stack
+        - String
+        - SuffixTree
+        - Timer
+        - TrieTree
+        - TypeTraits
+        - UnorderedMap
+        - Variant
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version being published
+      description: The version string as it appears in `library.properties` / `library.json` (e.g., `1.2.3`).
+      placeholder: e.g., 1.2.3
+    validations:
+      required: true
+
+  - type: textarea
+    id: changes
+    attributes:
+      label: Summary of changes
+      description: Briefly describe what changed in this release that warrants a PlatformIO update.
+      placeholder: |
+        - Fixed example sketch naming so PlatformIO accepts the package
+        - Updated API …
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-publish checklist
+      options:
+        - label: "`library.properties` version has been bumped"
+          required: true
+        - label: "`library.json` version matches `library.properties`"
+          required: true
+        - label: All examples use `.ino` sketch files named after their parent folder"
+          required: true
+        - label: Arduino Lint passes locally with `--library-manager update --compliance specification`
+          required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any other notes for the reviewer.
