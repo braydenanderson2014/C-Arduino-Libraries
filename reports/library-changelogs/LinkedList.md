@@ -4,17 +4,20 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.8**
 - Release boundary commit: `8b28875f` (2026-08-07)
-- Total commits touching this library on current history: **32**
+- Total commits touching this library on current history: **33**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
 
 Changes listed here are auto-generated from commits after the latest manifest version change and are experimental until officially released.
 
-_No unreleased commits detected after version 1.0.8._
+### Maintenance
+
+- Bump version to 1.0.8 and enhance library info (`d979abcf`, 2026-08-07)
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-07 | `d979abcf` | Brayden Anderson | Bump version to 1.0.8 and enhance library info |
 | 2026-08-07 | `8b28875f` | Brayden Anderson | Bump version to 1.0.8 and update library description |
 | 2026-08-07 | `31f1370c` | Brayden Anderson | Fix insert and remove methods in BasicLinkedList |
 | 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
@@ -44,5 +47,4 @@ _No unreleased commits detected after version 1.0.8._
 | 2023-11-10 | `08ca76d8` | Brayden Anderson | New Library |
 | 2023-11-01 | `5f286e4a` | Brayden Anderson | Update To README Files |
 | 2023-11-01 | `652251cb` | Brayden Anderson | Repairs to Broken Libraries. |
-| 2023-11-01 | `8bdaccab` | Brayden Anderson | WOAH NELLY, THATS A LOT OF UPDATING |
 
