@@ -2,13 +2,32 @@
     "name": "Operators",
     "version": "1.0.1",
     "description": "This Library is an easy to use Library to perform Mathmatical Operations on List structures such as Vectors, Lists, and ArrayLists. This Library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
-    "keywords": ["Operators", "Math", "Mathmatical", "MathOperators", "MathmaticalOperators", "ArrayListOperators", "vector", "simplevector", "list", "arraylist", "arraylistoperators", "vectoroperators", "listoperators", "LinkedList", "DoubleLinkedList", "LinkedListOperators", "DoubleLinkedListOperators"],
+    "keywords": [
+        "Operators",
+        "Math",
+        "Mathmatical",
+        "MathOperators",
+        "MathmaticalOperators",
+        "ArrayListOperators",
+        "vector",
+        "simplevector",
+        "list",
+        "arraylist",
+        "arraylistoperators",
+        "vectoroperators",
+        "listoperators",
+        "LinkedList",
+        "DoubleLinkedList",
+        "LinkedListOperators",
+        "DoubleLinkedListOperators"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/Operators"
+            "url": "https://github.com/braydenanderson2014/Operators.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/Operators/releases",
     "authors": [
         {
             "name": "Brayden Anderson",

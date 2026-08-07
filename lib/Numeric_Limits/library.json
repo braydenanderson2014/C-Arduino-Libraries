@@ -2,13 +2,24 @@
     "name": "Numeric_Limits",
     "version": "1.0.0-BETA",
     "description": "Helper library that provides a way to get the minimum and maximum values of different data types. (Currently based off of 32bit systems)",
-    "keywords": ["Datatypes", "data", "Min", "Max", "Arduino", "Minimum", "Maximum", "Numeric", "Limits"],
+    "keywords": [
+        "Datatypes",
+        "data",
+        "Min",
+        "Max",
+        "Arduino",
+        "Minimum",
+        "Maximum",
+        "Numeric",
+        "Limits"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/Numeric_Limits"
+            "url": "https://github.com/braydenanderson2014/Numeric_Limits.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/Numeric_Limits/releases",
     "authors": [
         {
             "name": "Brayden Anderson",
@@ -34,6 +45,4 @@
     "dependencies": {
         "braydenanderson2014/TypeTraits": "*"
     }
-    
-
 }

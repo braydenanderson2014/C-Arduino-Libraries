@@ -2,13 +2,19 @@
     "name": "SimpleQueue",
     "version": "1.0.1",
     "description": "This Library makes it easy to create and Manage OCTree's. This Library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
-    "keywords": ["Queue", "Stack", "Data", "Data Structure"],
+    "keywords": [
+        "Queue",
+        "Stack",
+        "Data",
+        "Data Structure"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/Queue"
+            "url": "https://github.com/braydenanderson2014/Queue.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/Queue/releases",
     "authors": [
         {
             "name": "Brayden Anderson",

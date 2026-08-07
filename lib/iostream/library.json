@@ -2,13 +2,20 @@
     "name": "BasicIOStream",
     "version": "1.0.1",
     "description": "This Library is an easy to use Library for lcd print functions, and serial print",
-    "keywords": ["IOStream", "Serial", "LCD", "I2CLCD", "IO"],
+    "keywords": [
+        "IOStream",
+        "Serial",
+        "LCD",
+        "I2CLCD",
+        "IO"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/iostream"
+            "url": "https://github.com/braydenanderson2014/iostream.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/iostream/releases",
     "authors": [
         {
             "name": "Brayden Anderson",
@@ -62,7 +69,7 @@
             "changes": [
                 "Initial release",
                 "Please Note, This Library Has not been Tested in any Shape or form, USE AT YOUR OWN RISK",
-                "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them." 
+                "Although this library has not been tested, We do encourage you to use this library so we can find bugs and fix them."
             ]
         },
         {
@@ -71,7 +78,6 @@
             "changes": [
                 "Fixed a dependency issue (SD.h)"
             ]
-
         }
     ]
 }

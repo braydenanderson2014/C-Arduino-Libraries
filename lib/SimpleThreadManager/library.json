@@ -1,21 +1,39 @@
 {
-  "name": "SimpleThreadManager",
-  "version": "1.0.0",
-  "description": "Cross-platform thread/task management wrapper for Arduino ecosystems with RTOS-aware implementations.",
-  "keywords": ["arduino", "thread", "task", "scheduler", "rtos", "freertos", "mbed", "multicore", "concurrency"],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/SimpleThreadManager"
-  },
-  "authors": [
-    {
-      "name": "Brayden Anderson",
-      "email": "braydenanderson2014@gmail.com",
-      "url": "https://github.com/braydenanderson2014"
-    }
-  ],
-  "headers": ["ThreadManager.h"],
-  "frameworks": ["arduino"],
-  "platforms": ["espressif32", "ststm32"],
-  "license": "Apache-2.0"
+    "name": "SimpleThreadManager",
+    "version": "1.0.0",
+    "description": "Cross-platform thread/task management wrapper for Arduino ecosystems with RTOS-aware implementations.",
+    "keywords": [
+        "arduino",
+        "thread",
+        "task",
+        "scheduler",
+        "rtos",
+        "freertos",
+        "mbed",
+        "multicore",
+        "concurrency"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/braydenanderson2014/SimpleThreadManager.git"
+    },
+    "homepage": "https://github.com/braydenanderson2014/SimpleThreadManager/releases",
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "headers": [
+        "ThreadManager.h"
+    ],
+    "frameworks": [
+        "arduino"
+    ],
+    "platforms": [
+        "espressif32",
+        "ststm32"
+    ],
+    "license": "Apache-2.0"
 }

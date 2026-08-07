@@ -2,13 +2,20 @@
     "name": "FenwickTree",
     "version": "1.0.0-ALPHA",
     "description": "A Tree Data Structure Library for Arduino. This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
-    "keywords": ["FenwickTree", "Tree", "Data Structure", "Fenwick", "Balanced Tree"],
+    "keywords": [
+        "FenwickTree",
+        "Tree",
+        "Data Structure",
+        "Fenwick",
+        "Balanced Tree"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/FenwickTree"
+            "url": "https://github.com/braydenanderson2014/FenwickTree.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/FenwickTree/releases",
     "authors": [
         {
             "name": "Brayden Anderson",
@@ -36,6 +43,4 @@
         "braydenanderson2014/TypeTraits": "*",
         "braydenanderson2014/SimpleVector": "*"
     }
-    
-
 }

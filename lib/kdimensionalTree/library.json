@@ -2,13 +2,20 @@
     "name": "KDimensonalTree",
     "version": "1.0.0",
     "description": "A KD-tree data structure library for Arduino with support for insertion, nearest-neighbor search, range search, deletion, and tree clearing.",
-    "keywords": ["kDimensional", "Tree", "Data Structure", "Arduino", "kDimensional Tree"],
+    "keywords": [
+        "kDimensional",
+        "Tree",
+        "Data Structure",
+        "Arduino",
+        "kDimensional Tree"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/kdimensionalTree"
+            "url": "https://github.com/braydenanderson2014/kdimensionalTree.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/kdimensionalTree/releases",
     "authors": [
         {
             "name": "Brayden Anderson",
@@ -36,6 +43,4 @@
     "header": "KDimensionalTree.h",
     "Notes": "This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
     "license": "Apache-2.0"
-    
-
 }
