@@ -4,8 +4,8 @@ Reference version: `1.0.8-BETA`
 
 
 <!-- HEALTH_BADGES_START -->
-[![Health: Potentially Unhealthy](https://img.shields.io/badge/Health-Potentially%20Unhealthy-d73a49?style=flat-square)](https://github.com/braydenanderson2014/C-Arduino-Libraries/blob/main/reports/library-health-report.md)
-[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](https://github.com/braydenanderson2014/C-Arduino-Libraries/blob/main/reports/library-health-report.md)
+[![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)](../../reports/library-health-report.md)
 <!-- HEALTH_BADGES_END -->
 
 `ArrayList` is a templated container for Arduino projects with fixed-size and dynamically growing modes, bulk operations, iterators, sorting, cloning, and manual capacity controls for advanced use cases.
