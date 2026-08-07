@@ -48,7 +48,7 @@ Compilation: ![Passed Compilation: 0](https://img.shields.io/badge/Passed%20Comp
 <!-- PLATFORMIO_BADGES_START -->
 ## PlatformIO Registry Badges
 
-Auto-generated from PlatformIO registry package data (2026-08-06 22:05 UTC).
+Auto-generated from PlatformIO registry package data (2026-08-07 01:11 UTC).
 
 Quick expectation notes: data structures, utility helpers (`Optional`, `Variant`, `TypeTraits`), and storage-facing support (`SD`/`SDList` and repo-level `LittleFS` integration paths).
 
