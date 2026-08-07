@@ -4,8 +4,8 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.7**
 - Release boundary commit: `6e0599ad` (2024-03-12)
-- Total commits touching this library on current history: **29**
-- Recent commits shown: **29**
+- Total commits touching this library on current history: **31**
+- Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
 
@@ -20,7 +20,12 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Bug Fixes
 
+- Fix insert and remove methods in BasicLinkedList (`31f1370c`, 2026-08-07)
 - remove F() macro from BasicLinkedList.h for host build compatibility (`41bf06ad`, 2026-07-30)
+
+### Documentation
+
+- sync library health badges (`915ef310`, 2026-08-07)
 
 ### Maintenance
 
@@ -32,6 +37,8 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-07 | `31f1370c` | Brayden Anderson | Fix insert and remove methods in BasicLinkedList |
+| 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
 | 2026-08-05 | `445e66cd` | Brayden Anderson | Potential fix for pull request finding |
 | 2026-08-04 | `7dae0b7f` | Brayden Anderson | Add stress test log for host Arduino simulation |
@@ -60,5 +67,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2023-11-01 | `652251cb` | Brayden Anderson | Repairs to Broken Libraries. |
 | 2023-11-01 | `8bdaccab` | Brayden Anderson | WOAH NELLY, THATS A LOT OF UPDATING |
 | 2023-10-30 | `f425f23d` | Brayden Anderson | Update to Libraries + New Libraries |
-| 2023-10-30 | `014d81e0` | Brayden Anderson | Update to Available Libraries |
 
