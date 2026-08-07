@@ -12,7 +12,7 @@ Auto-generated from git history for each library folder under `lib/`.
 | [bTree](bTree.md) | 2026-08-07 | 5 | 5 | 4 |
 | [ColorManager](ColorManager.md) | 2026-08-07 | 4 | 4 | 3 |
 | [Dictionary](Dictionary.md) | 2026-08-07 | 13 | 13 | 6 |
-| [DoubleLinkedList](DoubleLinkedList.md) | 2026-08-07 | 17 | 17 | 2 |
+| [DoubleLinkedList](DoubleLinkedList.md) | 2026-08-07 | 18 | 18 | 3 |
 | [DynamicStorageLibrary](DynamicStorageLibrary.md) | 2026-08-07 | 20 | 20 | 3 |
 | [EthernetConnectionChecker](EthernetConnectionChecker.md) | 2026-08-07 | 5 | 5 | 4 |
 | [EthernetMach2ConnectionChecker](EthernetMach2ConnectionChecker.md) | 2026-08-07 | 3 | 3 | 2 |
