@@ -3,7 +3,7 @@
 
 <!-- HEALTH_BADGES_START -->
 [![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
-[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Not Tested](https://img.shields.io/badge/Testing-Not%20Tested-6f42c1?style=flat-square)](../../reports/library-health-report.md)
 <!-- HEALTH_BADGES_END -->
 
 The `Iterator` class is a C++ template class that provides an abstract interface for creating iterators. Iterators are commonly used in C++ for traversing and manipulating data structures like arrays, linked lists, and containers. This class defines the core methods necessary for creating custom iterators.

@@ -3,7 +3,7 @@
 
 <!-- HEALTH_BADGES_START -->
 [![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
-[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)](../../reports/library-health-report.md)
 <!-- HEALTH_BADGES_END -->
 
 `UnorderedMap` is a custom hash map implementation designed for Arduino projects that require efficient key-value pair storage. The class provides basic hash map functionalities such as insertion, retrieval, and deletion of elements.
