@@ -549,8 +549,8 @@ def main() -> int:
         with open(args.output, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
             f.write("\n")
-
-    print(json.dumps(report, indent=2))
+    else:
+        print(json.dumps(report, indent=2))
     return 0
 
 
