@@ -4,8 +4,8 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.0-ALPHA**
 - Release boundary commit: `02dcf81e` (2024-03-11)
-- Total commits touching this library on current history: **11**
-- Recent commits shown: **11**
+- Total commits touching this library on current history: **12**
+- Recent commits shown: **12**
 
 ## Next Release (Experimental / Unreleased)
 
@@ -18,6 +18,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Bug Fixes
 
+- fix duplicate detection runtime and library metadata links (`07f70592`, 2026-08-07)
 - Fix nullptr crashes in Replace/remove and JSON safety issues (`6b76f52d`, 2026-07-26)
 - Fixed JSON to be more useful, and made changes to the Unordered Map Class. (`826bb850`, 2025-01-22)
 
@@ -34,6 +35,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
 | 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
 | 2026-07-26 | `6b76f52d` | copilot-swe-agent[bot] | Fix nullptr crashes in Replace/remove and JSON safety issues |

@@ -4,7 +4,7 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.11**
 - Release boundary commit: `7e12be8d` (2025-12-10)
-- Total commits touching this library on current history: **49**
+- Total commits touching this library on current history: **50**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
@@ -19,6 +19,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Bug Fixes
 
+- fix duplicate detection runtime and library metadata links (`07f70592`, 2026-08-07)
 - make count and capacity mutable for rpi core compile compatibility (`de8152af`, 2026-07-22)
 
 ### Documentation
@@ -37,6 +38,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
 | 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
 | 2026-08-04 | `520a61de` | copilot-swe-agent[bot] | feat: add optional numeric_limits integration to ArrayList, SimpleVector, and Hashtable |
@@ -66,5 +68,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2025-01-18 | `a1d0934e` | Brayden Anderson | ArrayList Changes |
 | 2025-01-07 | `69b4c081` | Brayden Anderson | Library Updates |
 | 2024-03-12 | `6e0599ad` | Brayden Anderson | New Functions, New Functionality |
-| 2024-03-11 | `02dcf81e` | Brayden Anderson | Updates to Libraries... |
 

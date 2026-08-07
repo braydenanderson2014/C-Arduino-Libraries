@@ -4,12 +4,16 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.8**
 - Release boundary commit: `8b28875f` (2026-08-07)
-- Total commits touching this library on current history: **34**
+- Total commits touching this library on current history: **35**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
 
 Changes listed here are auto-generated from commits after the latest manifest version change and are experimental until officially released.
+
+### Bug Fixes
+
+- fix duplicate detection runtime and library metadata links (`07f70592`, 2026-08-07)
 
 ### Maintenance
 
@@ -18,6 +22,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
 | 2026-08-07 | `02a4f040` | Brayden Anderson | Stress test log was inaccurate |
 | 2026-08-07 | `d979abcf` | Brayden Anderson | Bump version to 1.0.8 and enhance library info |
 | 2026-08-07 | `8b28875f` | Brayden Anderson | Bump version to 1.0.8 and update library description |
@@ -47,5 +52,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2023-11-11 | `c6716328` | Brayden Anderson | Added Debug Statements |
 | 2023-11-11 | `111022cf` | Brayden Anderson | modifying size variable in linked list libraries |
 | 2023-11-10 | `08ca76d8` | Brayden Anderson | New Library |
-| 2023-11-01 | `5f286e4a` | Brayden Anderson | Update To README Files |
 

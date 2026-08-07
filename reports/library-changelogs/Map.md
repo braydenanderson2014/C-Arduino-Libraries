@@ -4,8 +4,8 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.0-BETA**
 - Release boundary commit: `5cc983f0` (2024-05-20)
-- Total commits touching this library on current history: **15**
-- Recent commits shown: **15**
+- Total commits touching this library on current history: **16**
+- Recent commits shown: **16**
 
 ## Next Release (Experimental / Unreleased)
 
@@ -17,6 +17,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Bug Fixes
 
+- fix duplicate detection runtime and library metadata links (`07f70592`, 2026-08-07)
 - Fix Map.h operator->() doc comment and UnorderedMap.h compile errors (`8d7f7986`, 2026-07-28)
 - Fix Map and UnorderedMap core issues (`ea4b5ee8`, 2026-07-28)
 - Fixed Map class. (`edc759c5`, 2024-05-20)
@@ -32,6 +33,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
 | 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
 | 2026-07-28 | `8d7f7986` | copilot-swe-agent[bot] | Fix Map.h operator->() doc comment and UnorderedMap.h compile errors |
