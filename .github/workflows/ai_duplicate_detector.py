@@ -72,6 +72,13 @@ class DuplicateCandidate:
 class AIDuplicateDetector:
     """AI-powered duplicate detection system"""
 
+    # Issue title prefixes that should be skipped by duplicate detection.
+    # These correspond to maintainer-only templates that are not user-filed
+    # bug/feature reports and would generate false positives.
+    IGNORE_TITLE_PREFIXES = (
+        '[library sync]',
+    )
+
     def __init__(self, repo_owner: str, repo_name: str, token: str):
         self.repo_owner = repo_owner
         self.repo_name = repo_name
@@ -259,6 +266,11 @@ class AIDuplicateDetector:
             for j, issue_b in enumerate(issues[i+1:], i+1):
                 # Skip if either issue is excluded
                 if 'challenge-upheld' in issue_a.labels or 'challenge-upheld' in issue_b.labels:
+                    continue
+
+                # Skip pairs where either issue uses a maintainer-only template
+                if (issue_a.title.lower().startswith(self.IGNORE_TITLE_PREFIXES) or
+                        issue_b.title.lower().startswith(self.IGNORE_TITLE_PREFIXES)):
                     continue
 
                 # Skip if both are closed (less urgent)

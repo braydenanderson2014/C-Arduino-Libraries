@@ -113,6 +113,12 @@ jobs:
               AI_VERIFIED: 'ai-verified',
               TRAINING_DATA: 'training-data'
             },
+            // Title prefixes that should be excluded from duplicate detection entirely.
+            // Issues using these templates are maintainer-only actions (not user bugs/features)
+            // and would produce false positives if compared against each other.
+            IGNORE_TITLE_PREFIXES: [
+              '[library sync]'
+            ],
             RESPONSES: {
               DUPLICATE_FOUND: "🔄 **Potential Duplicate Detected** ({confidence}% confidence)\n\nThis issue appears to be similar to existing issue(s). Please review:\n\n**Similar Issues:**\n{duplicateLinks}\n\n**Next Steps:**\n• If this is indeed a duplicate, it may be automatically reclassified\n• If this is a unique issue, please add more specific details about your case\n• Explain how it differs from the linked issues above\n\n**Note:** Potential duplicates cannot be challenged yet. Wait for admin review or provide additional details to clarify uniqueness.\n\n<!-- AUTO-RESPONSE-ID: duplicate-found -->\n*This is an automated analysis. Human review will follow.*",
 
@@ -328,6 +334,14 @@ jobs:
                 return;
               }
 
+              // Skip issues that use maintainer-only templates (e.g. Library Sync) — they
+              // are not user-filed bug/feature reports and would cause false positives.
+              const lowerTitle = (issue.title || '').toLowerCase();
+              if (CONFIG.IGNORE_TITLE_PREFIXES.some(prefix => lowerTitle.startsWith(prefix))) {
+                console.log(`⏭️ Skipping issue #${issue.number} — title matches an ignored template prefix`);
+                return;
+              }
+
               // First, check AI-detected duplicates
               const aiDuplicates = aiResults.duplicates.filter(d => 
                 d.issue_a === issue.number || d.issue_b === issue.number
@@ -404,6 +418,10 @@ jobs:
                 // Skip self and already-confirmed child/duplicate issues
                 if (existingIssue.number === issue.number) continue;
                 if (existingIssue.labels.some(label => label.name.toLowerCase() === CONFIG.LABELS.CHILD.toLowerCase())) {
+                  continue;
+                }
+                // Skip issues that belong to ignored-template categories
+                if (CONFIG.IGNORE_TITLE_PREFIXES.some(prefix => (existingIssue.title || '').toLowerCase().startsWith(prefix))) {
                   continue;
                 }
                 
