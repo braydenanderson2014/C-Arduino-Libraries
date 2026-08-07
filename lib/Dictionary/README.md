@@ -3,7 +3,7 @@
 
 <!-- HEALTH_BADGES_START -->
 [![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
-[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)](../../reports/library-health-report.md)
 <!-- HEALTH_BADGES_END -->
 
 The `Dictionary` class is a C++ template class that provides a basic interface for implementing dictionaries (associative arrays) in your code. It allows you to store and manipulate key-value pairs, similar to a dictionary or a map in other programming languages.
