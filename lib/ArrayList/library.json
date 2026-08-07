@@ -2,11 +2,28 @@
     "name": "ArrayList",
     "version": "1.0.8",
     "description": "A Basic ArrayList Structure which supports Dynamic and Fixed Arrays",
-    "keywords": ["ArrayList", "Dynamic List", "Fixed List", "List", "Array", "Dynamic Array", "Fixed Array", "Array List", "Dynamic Array List", "Fixed Array List", "Dynamic List Array", "Fixed List Array", "Data Structure", "Utilities", "Dynamic Data Structure"],
+    "keywords": [
+        "ArrayList",
+        "Dynamic List",
+        "Fixed List",
+        "List",
+        "Array",
+        "Dynamic Array",
+        "Fixed Array",
+        "Array List",
+        "Dynamic Array List",
+        "Fixed Array List",
+        "Dynamic List Array",
+        "Fixed List Array",
+        "Data Structure",
+        "Utilities",
+        "Dynamic Data Structure"
+    ],
     "repository": {
         "type": "git",
-        "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
+        "url": "https://github.com/braydenanderson2014/ArduinoArrayList.git"
     },
+    "homepage": "https://github.com/braydenanderson2014/ArduinoArrayList/releases",
     "authors": [
         {
             "name": "Brayden Anderson",
@@ -38,7 +55,10 @@
         }
     ],
     "header": "ArrayList.h",
-    "headers": ["ArrayList.h", "Operators.h", "Predicates.h"],
-
+    "headers": [
+        "ArrayList.h",
+        "Operators.h",
+        "Predicates.h"
+    ],
     "Notes": "This library is a work in progress. It has been mostly tested and found to be stable. Please use at your own risk. (EXCEPTION: The New functions have not been tested yet)"
 }

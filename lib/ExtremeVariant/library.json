@@ -2,13 +2,22 @@
     "name": "ExtremeVariant",
     "version": "1.0.0-BETA",
     "description": "This library takes a normal Variant Class to the Extreme by adding 1 more layer. This allows for more complex data structures to be created and used. This library supports single item, list of items, and key value pair's of items (Hashtable)",
-    "keywords": ["ExtremeVariant", "Variant", "Hashtable", "Optional", "Dynamic Data Structures", "SimpleVector", "Data Structures"],
+    "keywords": [
+        "ExtremeVariant",
+        "Variant",
+        "Hashtable",
+        "Optional",
+        "Dynamic Data Structures",
+        "SimpleVector",
+        "Data Structures"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/ExtremeVariant"
+            "url": "https://github.com/braydenanderson2014/ExtremeVariant.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/ExtremeVariant/releases",
     "authors": [
         {
             "name": "Brayden Anderson",

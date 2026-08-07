@@ -38,7 +38,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v7
       with:
-        node-version: '18'
+        node-version: '20.19.0'
         
     - name: Setup Python
       uses: actions/setup-python@v7
@@ -72,6 +72,7 @@ jobs:
           --min-confidence 0.8 \
           --max-candidates 10 \
           --output ai_duplicates.json
+        test -f ai_duplicates.json
           
     - name: Detect Duplicates
       uses: actions/github-script@v9
@@ -83,6 +84,9 @@ jobs:
           // Load AI results
           let aiResults = { duplicates: [] };
           try {
+            if (!fs.existsSync('scripts/ai_duplicates.json')) {
+              throw new Error('scripts/ai_duplicates.json was not created');
+            }
             const aiData = fs.readFileSync('scripts/ai_duplicates.json', 'utf8');
             aiResults = JSON.parse(aiData);
             console.log(`🤖 AI found ${aiResults.duplicates.length} potential duplicates`);
@@ -1033,12 +1037,16 @@ jobs:
           // Remove auto duplicate labels and add AI training for negative cases
           async function removeAutoDuplicateLabels(issue) {
             try {
+              const currentLabels = new Set((issue.labels || []).map(label => label.name.toLowerCase()));
               const labelsToRemove = [
                 CONFIG.LABELS.AUTO_POTENTIAL_DUPLICATE,
                 CONFIG.LABELS.POTENTIAL_DUPLICATE
               ];
               
               for (const label of labelsToRemove) {
+                if (!currentLabels.has(label.toLowerCase())) {
+                  continue;
+                }
                 try {
                   await github.rest.issues.removeLabel({
                     owner: context.repo.owner,
@@ -1047,7 +1055,9 @@ jobs:
                     name: label
                   });
                 } catch (e) {
-                  // Label might not exist, continue
+                  if (e.status !== 404) {
+                    throw e;
+                  }
                 }
               }
               

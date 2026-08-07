@@ -2,13 +2,32 @@
     "name": "Predicates",
     "version": "1.0.2",
     "description": "This Library is an easy to use Library to perform Mathmatical Operations on List structures such as Vectors, Lists, and ArrayLists. This Library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
-    "keywords": ["Predicates", "boolean", "Conditionals", "MathPredicates", "MathmaticalPredicates", "ArrayListPredicates", "vector", "simplevector", "list", "arraylist", "arraylistpredicates", "vectorpredicates", "listpredicates", "LinkedList", "DoubledLinkedList", "LinkedListPredicates", "DoubleLinkedListPredicates"],
+    "keywords": [
+        "Predicates",
+        "boolean",
+        "Conditionals",
+        "MathPredicates",
+        "MathmaticalPredicates",
+        "ArrayListPredicates",
+        "vector",
+        "simplevector",
+        "list",
+        "arraylist",
+        "arraylistpredicates",
+        "vectorpredicates",
+        "listpredicates",
+        "LinkedList",
+        "DoubledLinkedList",
+        "LinkedListPredicates",
+        "DoubleLinkedListPredicates"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/Predicates"
+            "url": "https://github.com/braydenanderson2014/Predicates.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/Predicates/releases",
     "authors": [
         {
             "name": "Brayden Anderson",

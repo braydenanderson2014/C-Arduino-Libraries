@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Node.js dependencies for GitHub Actions workflows",
   "private": true,
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "dependencies": {
     "natural": "^8.1.1",
     "similarity": "^1.2.1"

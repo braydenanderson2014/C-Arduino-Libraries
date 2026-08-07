@@ -2,13 +2,23 @@
     "name": "BasicLinkedList",
     "version": "1.0.8",
     "description": "A lightweight templated singly linked list library for Arduino with basic insertion, removal, lookup, and utility operations.",
-    "keywords": ["LinkedList", "List", "BasicLinkedList", "Dynamic Data Structures", "Data Structures", "Utilities", "Data Structures", "Key-Value Pairs"],
+    "keywords": [
+        "LinkedList",
+        "List",
+        "BasicLinkedList",
+        "Dynamic Data Structures",
+        "Data Structures",
+        "Utilities",
+        "Data Structures",
+        "Key-Value Pairs"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/LinkedList"
+            "url": "https://github.com/braydenanderson2014/ArduinoLinkedList.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/ArduinoLinkedList/releases",
     "authors": [
         {
             "name": "Brayden Anderson",

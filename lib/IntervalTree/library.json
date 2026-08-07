@@ -2,13 +2,20 @@
     "name": "IntervalTree",
     "version": "1.0.0-ALPHA",
     "description": "A Tree Data Structure Library for Arduino. This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
-    "keywords": ["Interval", "Tree", "Data Structure", "Arduino", "Interval Tree"],
+    "keywords": [
+        "Interval",
+        "Tree",
+        "Data Structure",
+        "Arduino",
+        "Interval Tree"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/IntervalTree"
+            "url": "https://github.com/braydenanderson2014/IntervalTree.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/IntervalTree/releases",
     "authors": [
         {
             "name": "Brayden Anderson",
@@ -34,6 +41,4 @@
     "dependencies": {
         "braydenanderson2014/TypeTraits": "*"
     }
-    
-
 }

@@ -2,13 +2,20 @@
     "name": "BTree",
     "version": "1.0.0-ALPHA",
     "description": "A Tree Data Structure Library for Arduino. This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
-    "keywords": ["BTree", "Tree", "Data Structure", "B Tree", "Balanced Tree"],
+    "keywords": [
+        "BTree",
+        "Tree",
+        "Data Structure",
+        "B Tree",
+        "Balanced Tree"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/bTree"
+            "url": "https://github.com/braydenanderson2014/bTree.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/bTree/releases",
     "authors": [
         {
             "name": "Brayden Anderson",
@@ -31,6 +38,4 @@
     "header": "BTree.h",
     "Notes": "This Library is still in development and may not be stable. Please report any issues to the GitHub Repository.",
     "license": "Apache-2.0"
-    
-
 }

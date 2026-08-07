@@ -2,13 +2,22 @@
     "name": "DoubleLinkedList",
     "version": "1.0.6",
     "description": "A templated double-linked list library for Arduino with append, prepend, insert, remove, iteration, and element access helpers.",
-    "keywords": ["LinkedList", "List", "BasicLinkedList", "DoubleLinkedList", "Dynamic Data Structures", "Chain", "Data Structures"],
+    "keywords": [
+        "LinkedList",
+        "List",
+        "BasicLinkedList",
+        "DoubleLinkedList",
+        "Dynamic Data Structures",
+        "Chain",
+        "Data Structures"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/DoubleLinkedList"
+            "url": "https://github.com/braydenanderson2014/ArduinoDoubleLinkedList.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/ArduinoDoubleLinkedList/releases",
     "authors": [
         {
             "name": "Brayden Anderson",
