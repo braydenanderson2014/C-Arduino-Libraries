@@ -4,7 +4,7 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.1.5**
 - Release boundary commit: `45acb524` (2026-07-29)
-- Total commits touching this library on current history: **48**
+- Total commits touching this library on current history: **49**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
@@ -22,10 +22,12 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Maintenance
 
+- Back-sync Hashtable from remote PR #9 (b2ab30e) (`16665f79`, 2026-08-07)
 - Back-sync Hashtable from remote PR #8 (e16f4dd) (`e5c24d60`, 2026-07-30)
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-07 | `16665f79` | github-actions[bot] | Back-sync Hashtable from remote PR #9 (b2ab30e) |
 | 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
 | 2026-08-04 | `520a61de` | copilot-swe-agent[bot] | feat: add optional numeric_limits integration to ArrayList, SimpleVector, and Hashtable |
@@ -55,5 +57,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2023-11-08 | `8a9fb239` | Brayden Anderson | Testing Fixes For Unordered Mapa |
 | 2023-11-08 | `fa33c26b` | Brayden Anderson | Patching UnorderedMap |
 | 2023-11-07 | `2ac122d9` | Brayden Anderson | Bug Fix |
-| 2023-11-06 | `62ef0727` | Brayden Anderson | Possible Repair to Hashtable and Properties Iterator |
 

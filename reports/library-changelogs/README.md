@@ -18,7 +18,7 @@ Auto-generated from git history for each library folder under `lib/`.
 | [EthernetMach2ConnectionChecker](EthernetMach2ConnectionChecker.md) | 2026-08-07 | 3 | 3 | 2 |
 | [ExtremeVariant](ExtremeVariant.md) | 2026-08-07 | 6 | 6 | 5 |
 | [FenwickTree](FenwickTree.md) | 2026-08-07 | 4 | 4 | 3 |
-| [Hashtable](Hashtable.md) | 2026-08-07 | 48 | 30 | 4 |
+| [Hashtable](Hashtable.md) | 2026-08-07 | 49 | 30 | 5 |
 | [HeapTree](HeapTree.md) | 2026-08-07 | 5 | 5 | 4 |
 | [Initializer_List](Initializer_List.md) | 2026-08-07 | 6 | 6 | 2 |
 | [IntervalTree](IntervalTree.md) | 2026-08-07 | 4 | 4 | 3 |
