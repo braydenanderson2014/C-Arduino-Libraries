@@ -1,7 +1,7 @@
 {
     "name": "BasicLinkedList",
-    "version": "1.0.7",
-    "description": "This Library is an easy to use Library for Linked Lists. This Library contains basic implementations of the LinkedList functions. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "version": "1.0.8",
+    "description": "A lightweight templated singly linked list library for Arduino with basic insertion, removal, lookup, and utility operations.",
     "keywords": ["LinkedList", "List", "BasicLinkedList", "Dynamic Data Structures", "Data Structures", "Utilities", "Data Structures", "Key-Value Pairs"],
     "repositories": [
         {
@@ -33,7 +33,7 @@
         "BasicLinkedList.h"
     ],
     "header": "BasicLinkedList.h",
-    "Notes": "This library is designed to be simple and easy to use. This Library contains basic implementations of a LinkedList Structure. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
+    "Notes": "This library is designed to provide a simple linked list implementation for Arduino projects. Please report any issues you find so the standalone mirror and monorepo stay in sync.",
     "license": "Apache-2.0",
     "readme": "README.md",
     "Categories": [
