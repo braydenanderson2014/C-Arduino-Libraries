@@ -529,10 +529,18 @@ def main() -> int:
     detector = AIDuplicateDetector(args.repo_owner, args.repo_name, args.token)
 
     try:
-        report = detector.analyze_and_report_duplicates(
-            min_confidence=args.min_confidence,
-            max_candidates=args.max_candidates
-        )
+        if args.output:
+            from contextlib import redirect_stdout
+            with redirect_stdout(sys.stderr):
+                report = detector.analyze_and_report_duplicates(
+                    min_confidence=args.min_confidence,
+                    max_candidates=args.max_candidates
+                )
+        else:
+            report = detector.analyze_and_report_duplicates(
+                min_confidence=args.min_confidence,
+                max_candidates=args.max_candidates
+            )
     except Exception as exc:
         report = {
             "error": str(exc),
