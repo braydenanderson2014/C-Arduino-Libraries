@@ -26,7 +26,7 @@ Auto-generated from git history for each library folder under `lib/`.
 | [iterator](iterator.md) | 2026-08-07 | 4 | 4 | 3 |
 | [Json](Json.md) | 2026-07-26 | 17 | 17 | 0 |
 | [kdimensionalTree](kdimensionalTree.md) | 2026-08-07 | 14 | 14 | 2 |
-| [LinkedList](LinkedList.md) | 2026-08-07 | 31 | 30 | 12 |
+| [LinkedList](LinkedList.md) | 2026-08-07 | 32 | 30 | 0 |
 | [Map](Map.md) | 2026-08-07 | 15 | 15 | 7 |
 | [MathLib](MathLib.md) | 2026-08-07 | 8 | 8 | 7 |
 | [MatrixMath](MatrixMath.md) | 2026-08-07 | 9 | 9 | 2 |

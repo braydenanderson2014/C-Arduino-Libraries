@@ -2,41 +2,20 @@
 
 - Source path: `lib/LinkedList`
 - Branch analyzed: `main`
-- Current manifest version: **1.0.7**
-- Release boundary commit: `6e0599ad` (2024-03-12)
-- Total commits touching this library on current history: **31**
+- Current manifest version: **1.0.8**
+- Release boundary commit: `8b28875f` (2026-08-07)
+- Total commits touching this library on current history: **32**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
 
 Changes listed here are auto-generated from commits after the latest manifest version change and are experimental until officially released.
 
-### Features
-
-- add scripts to generate library changelogs and sync health badges (`72cb3ed0`, 2026-08-05)
-- Add stress test log for host Arduino simulation (`7dae0b7f`, 2026-08-04)
-- Add linked list tail pointer (`6273eeb3`, 2026-08-05)
-- Refactor Arduino.h and related files for improved string handling and include corrections; add mock classes for SdFat and LZ4 to support host simulation (`f0b8365e`, 2026-07-25)
-
-### Bug Fixes
-
-- Fix insert and remove methods in BasicLinkedList (`31f1370c`, 2026-08-07)
-- remove F() macro from BasicLinkedList.h for host build compatibility (`41bf06ad`, 2026-07-30)
-
-### Documentation
-
-- sync library health badges (`915ef310`, 2026-08-07)
-
-### Maintenance
-
-- Potential fix for pull request finding (`445e66cd`, 2026-08-05)
-- Potential fix for pull request finding (`809bf475`, 2026-07-30)
-- Back-sync LinkedList from remote PR #1 (cb813dd) (`effa5574`, 2026-07-30)
-- Library Updates (`5e6439a3`, 2025-02-05)
-- library updates. Do not use yet (`712e3f1d`, 2025-02-01)
+_No unreleased commits detected after version 1.0.8._
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-07 | `8b28875f` | Brayden Anderson | Bump version to 1.0.8 and update library description |
 | 2026-08-07 | `31f1370c` | Brayden Anderson | Fix insert and remove methods in BasicLinkedList |
 | 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
@@ -66,5 +45,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2023-11-01 | `5f286e4a` | Brayden Anderson | Update To README Files |
 | 2023-11-01 | `652251cb` | Brayden Anderson | Repairs to Broken Libraries. |
 | 2023-11-01 | `8bdaccab` | Brayden Anderson | WOAH NELLY, THATS A LOT OF UPDATING |
-| 2023-10-30 | `f425f23d` | Brayden Anderson | Update to Libraries + New Libraries |
 
