@@ -1,8 +1,8 @@
 # **Hashtable Library**
 
 <!-- HEALTH_BADGES_START -->
-[![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
-[![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)](../../reports/library-health-report.md)
+[![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](https://github.com/braydenanderson2014/C-Arduino-Libraries/blob/main/reports/library-health-report.md)
+[![Testing: Unmanaged](https://img.shields.io/badge/Testing-Unmanaged-9e9e9e?style=flat-square)](https://github.com/braydenanderson2014/C-Arduino-Libraries/blob/main/reports/library-health-report.md)
 <!-- HEALTH_BADGES_END -->
 
 🚀 **A lightweight and efficient Hashtable implementation for Arduino**
@@ -12,6 +12,13 @@ The `Hashtable` library provides an efficient way to store key-value pairs in an
 
 ---
 ## 📚 **API Reference**
+
+### 🔹 **Optional Feature Flags**
+
+| Flag | Description |
+|------|-------------|
+| `HT_NO_SERIAL` | Suppresses the library's `Serial` output, including `debugIterator()`, for environments where `Serial` is unavailable or not initialized. |
+| `HT_ENABLE_NUMERIC_LIMITS` | Enables the optional Numeric_Limits integration and the related memory/introspection APIs listed below. |
 
 ### 🔹 **Hashtable Methods**
 
@@ -39,6 +46,16 @@ The `Hashtable` library provides an efficient way to store key-value pairs in an
 | `V& operator[](const K& key)` | Accesses elements by key. If key does not exist, inserts a new default value. Falls back to a static dummy reference if insertion fails. |
 | `const V& operator[](const K& key) const` | Read-only access by key. Returns a static default-constructed value if the key does not exist. |
 | `void debugIterator()` | Prints all key-value pairs in the hashtable using an iterator. |
+
+### 🔹 **Optional Numeric_Limits Methods**
+
+Available only when `HT_ENABLE_NUMERIC_LIMITS` is defined.
+
+| Function | Description |
+|----------|-------------|
+| `size_t memoryUsage() const` | Returns the bytes currently used by the table's top-level bucket array. |
+| `int theoreticalMaxElements() const` | Returns the theoretical maximum number of elements supported on the current platform. |
+| `float memoryUtilization() const` | Returns the current element count as a fraction of the theoretical maximum. |
 
 ---
 ## 🛠 **Usage Examples**

@@ -5,7 +5,7 @@
     "keywords": ["Hashtable", "Hashtable Iterator", "Hash", "Table", "Dynamic Hashtable", "Arduino Hashtable", "Arduino Hash", "Arduino Table", "Arduino Dynamic Hashtable", "Hashset", "Arduino Hashset", "Arduino Dynamic Hashset", "Key-Value Pairs"],
     "repository": {
         "type": "git",
-        "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/Hashtable"
+        "url": "https://github.com/braydenanderson2014/ArduinoHashtable.git"
     },
     "authors": [
         {
