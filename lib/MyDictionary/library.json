@@ -2,13 +2,23 @@
     "name": "MyDictionary",
     "version": "1.0.5",
     "description": "This Library is an easy to use Library for Dictionary.h, It takes Dictionary.h and expands it into an implementation for use. Please note that this library is still in development and may not be stable. USE AT YOUR OWN RISK! If you find any bugs, please report them to the Author",
-    "keywords": ["Dictionary", "MyDictionary", "UnorderedMap", "Interface", "Data Structures", "Dynamic Data Structures", "Utilities", "Key-Value Pairs"],
+    "keywords": [
+        "Dictionary",
+        "MyDictionary",
+        "UnorderedMap",
+        "Interface",
+        "Data Structures",
+        "Dynamic Data Structures",
+        "Utilities",
+        "Key-Value Pairs"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/MyDictionary"
+            "url": "https://github.com/braydenanderson2014/MyDictionary.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/MyDictionary/releases",
     "authors": [
         {
             "name": "Brayden Anderson",

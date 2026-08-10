@@ -149,7 +149,7 @@ class ForwardIterator {
      * Otherwise, the value is inserted at the random position.
     */
     void insert(const T& value){
-        int randomNum = random(0, Size);
+        int randomNum = random(0, Size + 1);
         if (randomNum == 0) {
             prepend(value);
         } else if (randomNum >= Size) {
@@ -210,6 +210,9 @@ class ForwardIterator {
      * Otherwise, the element at the given position is removed.
     */
     int remove(const int index){
+        if (Size == 0 || index < 0 || (size_t)index >= Size) {
+            return LL_OUT_OF_BOUNDS;
+        }
         if(index == 0){
             ListNode<T>* temp = head;
             head = head->next;
@@ -324,7 +327,7 @@ return String("LL_OUT_OF_BOUNDS");
         if (current) {
             return String(current->data);
         } else {
-            return String(LL_OUT_OF_BOUNDS);
+            return String("LL_OUT_OF_BOUNDS");
         }
     }
     // Check if the list contains a specific element

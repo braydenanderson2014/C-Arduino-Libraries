@@ -4,7 +4,7 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.2.1**
 - Release boundary commit: `af7b6d6f` (2026-07-31)
-- Total commits touching this library on current history: **53**
+- Total commits touching this library on current history: **55**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
@@ -16,8 +16,18 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 - add scripts to generate library changelogs and sync health badges (`72cb3ed0`, 2026-08-05)
 - add PlatformIO registry badge to README (`7d25bc0b`, 2026-07-31)
 
+### Bug Fixes
+
+- fix duplicate detection runtime and library metadata links (`07f70592`, 2026-08-07)
+
+### Documentation
+
+- sync library health badges (`915ef310`, 2026-08-07)
+
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
+| 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
 | 2026-07-31 | `7d25bc0b` | copilot-swe-agent[bot] | docs(Properties): add PlatformIO registry badge to README |
 | 2026-07-31 | `af7b6d6f` | copilot-swe-agent[bot] | docs(Properties): overhaul README, example, bump version to 1.2.1 |
@@ -46,6 +56,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2024-02-23 | `51ac0b14` | Brayden Anderson | AdditionalItemsForIOStream |
 | 2024-02-21 | `ce981fe8` | Brayden Anderson | Update to the Properties Library |
 | 2024-02-19 | `85294804` | Brayden Anderson | Updates |
-| 2024-02-17 | `b9fc99af` | Brayden Anderson | Adding Library.properties for each Library |
-| 2024-02-16 | `f544f448` | Brayden Anderson | Updates to the Properties Library |
 

@@ -511,3 +511,56 @@ class AIDuplicateDetector:
         affected_parents = list(set(affected_parents))
 
         return affected_parents
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Analyze GitHub issues for likely duplicates")
+    parser.add_argument("--repo-owner", required=True, help="GitHub repository owner")
+    parser.add_argument("--repo-name", required=True, help="GitHub repository name")
+    parser.add_argument("--token", required=True, help="GitHub token with issue read access")
+    parser.add_argument("--min-confidence", type=float, default=0.8, help="Minimum AI confidence threshold")
+    parser.add_argument("--max-candidates", type=int, default=20, help="Maximum number of duplicate candidates to report")
+    parser.add_argument("--output", help="Optional JSON output path")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    detector = AIDuplicateDetector(args.repo_owner, args.repo_name, args.token)
+
+    try:
+        if args.output:
+            from contextlib import redirect_stdout
+            with redirect_stdout(sys.stderr):
+                report = detector.analyze_and_report_duplicates(
+                    min_confidence=args.min_confidence,
+                    max_candidates=args.max_candidates
+                )
+        else:
+            report = detector.analyze_and_report_duplicates(
+                min_confidence=args.min_confidence,
+                max_candidates=args.max_candidates
+            )
+    except Exception as exc:
+        report = {
+            "error": str(exc),
+            "duplicates": []
+        }
+        print(f"Duplicate analysis failed: {exc}", file=sys.stderr)
+        if args.output:
+            with open(args.output, "w", encoding="utf-8") as f:
+                json.dump(report, f, indent=2)
+                f.write("\n")
+        return 1
+
+    if args.output:
+        with open(args.output, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2)
+            f.write("\n")
+    else:
+        print(json.dumps(report, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

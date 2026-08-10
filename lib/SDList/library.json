@@ -2,13 +2,27 @@
     "name": "SDList",
     "version": "2.0.0",
     "description": "Paged, batch-buffered list that offloads elements to SD card or LittleFS using binary storage. Any trivially-copyable type (int, float, struct) is stored without text serialisation, eliminating data corruption. A fixed in-memory batch window keeps RAM predictable while a pre-allocated file prevents fragmentation.",
-    "keywords": ["SDList", "List", "SD", "ArrayList", "Dynamic Storage", "Data Storage", "SD Card", "LittleFS", "Paged", "Binary Storage", "Batch", "Utilities"],
+    "keywords": [
+        "SDList",
+        "List",
+        "SD",
+        "ArrayList",
+        "Dynamic Storage",
+        "Data Storage",
+        "SD Card",
+        "LittleFS",
+        "Paged",
+        "Binary Storage",
+        "Batch",
+        "Utilities"
+    ],
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/SDList"
+            "url": "https://github.com/braydenanderson2014/ArduinoSDList.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/ArduinoSDList/releases",
     "Readme": "README.md",
     "authors": [
         {

@@ -4,7 +4,7 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.8**
 - Release boundary commit: `39094be6` (2026-07-25)
-- Total commits touching this library on current history: **52**
+- Total commits touching this library on current history: **56**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
@@ -17,8 +17,25 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 - add optional numeric_limits integration to ArrayList, SimpleVector, and Hashtable (`520a61de`, 2026-08-04)
 - Add AL_SMART_RESIZE to ArrayList and enable it in stress test workflows (`165cf39a`, 2026-08-04)
 
+### Bug Fixes
+
+- fix duplicate detection runtime and library metadata links (`07f70592`, 2026-08-07)
+
+### Documentation
+
+- sync library health badges (`3f3fbd39`, 2026-08-07)
+- sync library health badges (`915ef310`, 2026-08-07)
+
+### Maintenance
+
+- Back-sync ArrayList from remote PR #4 (ebb88c1) (`c93f6e14`, 2026-08-07)
+
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
+| 2026-08-07 | `3f3fbd39` | github-actions[bot] | chore(readme): sync library health badges |
+| 2026-08-07 | `c93f6e14` | github-actions[bot] | Back-sync ArrayList from remote PR #4 (ebb88c1) |
+| 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
 | 2026-08-04 | `520a61de` | copilot-swe-agent[bot] | feat: add optional numeric_limits integration to ArrayList, SimpleVector, and Hashtable |
 | 2026-08-04 | `165cf39a` | copilot-swe-agent[bot] | Add AL_SMART_RESIZE to ArrayList and enable it in stress test workflows |
@@ -45,8 +62,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2025-01-15 | `e05a4a59` | Brayden Anderson | Update library.json |
 | 2025-01-15 | `847c1163` | Brayden Anderson | Update library.properties |
 | 2025-01-15 | `f3589f67` | Brayden Anderson | Update README.md |
-| 2025-01-14 | `6ff5d748` | friedjof@noweck.info | Docs: Update `set` function description for clarity and accuracy |
-| 2025-01-14 | `8fd3048f` | friedjof@noweck.info | Fix: Ensure `set` function always returns a value to resolve compiler warning |
-| 2025-01-09 | `66925354` | Brayden Anderson | Merge branch 'main' into Development-Branch |
-| 2025-01-07 | `69b4c081` | Brayden Anderson | Library Updates |
 

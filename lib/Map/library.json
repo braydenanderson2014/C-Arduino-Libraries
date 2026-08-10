@@ -2,14 +2,24 @@
     "name": "Map",
     "version": "1.0.0-BETA",
     "description": "A lightweight and efficient implementation of a dynamic array, suitable for use in memory-constrained environments.",
-    "keywords": ["Arduino", "Map", "Data", "Data Structure", "Maps", "Dynamic Array", "Array", "List", "Key Value Pair"],
+    "keywords": [
+        "Arduino",
+        "Map",
+        "Data",
+        "Data Structure",
+        "Maps",
+        "Dynamic Array",
+        "Array",
+        "List",
+        "Key Value Pair"
+    ],
     "Repositories": [
         {
             "type": "git",
-            "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/Map"
-
+            "url": "https://github.com/braydenanderson2014/Map.git"
         }
     ],
+    "homepage": "https://github.com/braydenanderson2014/Map/releases",
     "authors": [
         {
             "name": "Brayden Anderson",
@@ -21,7 +31,6 @@
         "SimpleVector.h",
         "Map.h"
     ],
-    
     "examples": [
         {
             "name": "Example",
@@ -36,5 +45,4 @@
     "dependencies": {
         "braydenanderson2014/SimpleVector": "*"
     }
-    
 }

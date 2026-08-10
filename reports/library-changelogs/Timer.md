@@ -4,8 +4,8 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.2.0**
 - Release boundary commit: `ff982d11` (2026-08-03)
-- Total commits touching this library on current history: **23**
-- Recent commits shown: **23**
+- Total commits touching this library on current history: **25**
+- Recent commits shown: **25**
 
 ## Next Release (Experimental / Unreleased)
 
@@ -16,8 +16,18 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 - add scripts to generate library changelogs and sync health badges (`72cb3ed0`, 2026-08-05)
 - Update README for version 1.2.0 features and changes (`9e6fe9fd`, 2026-08-03)
 
+### Bug Fixes
+
+- fix duplicate detection runtime and library metadata links (`07f70592`, 2026-08-07)
+
+### Documentation
+
+- sync library health badges (`915ef310`, 2026-08-07)
+
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
+| 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
 | 2026-08-03 | `9e6fe9fd` | Brayden Anderson | Update README for version 1.2.0 features and changes |
 | 2026-08-03 | `ff982d11` | copilot-swe-agent[bot] | feat(Timer): add QOL features - restart, repeating, callback, lap, elapsed helpers, getters, RTC utils (v1.2.0) |

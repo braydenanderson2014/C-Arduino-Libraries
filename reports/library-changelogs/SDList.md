@@ -4,8 +4,8 @@
 - Branch analyzed: `main`
 - Current manifest version: **2.0.0**
 - Release boundary commit: `15cea518` (2026-07-24)
-- Total commits touching this library on current history: **27**
-- Recent commits shown: **27**
+- Total commits touching this library on current history: **29**
+- Recent commits shown: **29**
 
 ## Next Release (Experimental / Unreleased)
 
@@ -17,7 +17,12 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Bug Fixes
 
+- fix duplicate detection runtime and library metadata links (`07f70592`, 2026-08-07)
 - guard null _mem in _memGrow; check set() return in remove() (`046182ee`, 2026-07-24)
+
+### Documentation
+
+- sync library health badges (`915ef310`, 2026-08-07)
 
 ### Maintenance
 
@@ -25,6 +30,8 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
+| 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
 | 2026-07-25 | `059b6c08` | Brayden Anderson | minor spell fix |
 | 2026-07-24 | `046182ee` | copilot-swe-agent[bot] | fix(SDList): guard null _mem in _memGrow; check set() return in remove() |

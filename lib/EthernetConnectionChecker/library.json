@@ -1,47 +1,48 @@
 {
-  "name": "EthernetConnectionChecker",
-  "version": "1.0.0",
-  "description": "Mega + Ethernet Shield connectivity diagnostics, SD logging, and built-in management dashboard.",
-  "keywords": [
-    "ethernet",
-    "sd",
-    "webserver",
-    "diagnostics",
-    "network checker",
-    "arduino mega"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/braydenanderson2014/C-Arduino-Libraries/tree/main/lib/EthernetConnectionChecker"
-  },
-  "authors": [
-    {
-      "name": "Brayden Anderson",
-      "email": "braydenanderson2014@gmail.com",
-      "url": "https://github.com/braydenanderson2014"
-    }
-  ],
-  "dependencies": {
-    "Arduino": "*",
-    "ArrayList": "*",
-    "Optional": "*",
-    "Variant": "*"
-  },
-  "categories": [
-    "Communication",
-    "Data Storage"
-  ],
-  "examples": [
-    {
-      "name": "Shield Diagnostics",
-      "base": "examples/ShieldDiagnostics",
-      "files": [
-        "ShieldDiagnostics.ino"
-      ]
-    }
-  ],
-  "header": "EthernetConnectionChecker.h",
-  "headers": [
-    "EthernetConnectionChecker.h"
-  ]
+    "name": "EthernetConnectionChecker",
+    "version": "1.0.0",
+    "description": "Mega + Ethernet Shield connectivity diagnostics, SD logging, and built-in management dashboard.",
+    "keywords": [
+        "ethernet",
+        "sd",
+        "webserver",
+        "diagnostics",
+        "network checker",
+        "arduino mega"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/braydenanderson2014/EthernetConnectionChecker.git"
+    },
+    "homepage": "https://github.com/braydenanderson2014/EthernetConnectionChecker/releases",
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "dependencies": {
+        "Arduino": "*",
+        "ArrayList": "*",
+        "Optional": "*",
+        "Variant": "*"
+    },
+    "categories": [
+        "Communication",
+        "Data Storage"
+    ],
+    "examples": [
+        {
+            "name": "Shield Diagnostics",
+            "base": "examples/ShieldDiagnostics",
+            "files": [
+                "ShieldDiagnostics.ino"
+            ]
+        }
+    ],
+    "header": "EthernetConnectionChecker.h",
+    "headers": [
+        "EthernetConnectionChecker.h"
+    ]
 }
