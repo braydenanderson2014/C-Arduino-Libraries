@@ -1,27 +1,71 @@
 #!/usr/bin/env python3
 """
-Experimental thread-memory service for UNO Q bridge workflows.
+ThreadMemoryHandler — standalone entry point and backward-compat re-export.
 
-This service stores lightweight per-thread records that can be routed from
-UnoQBridgeService.py or used directly by a bridge process.
+Business logic lives in handlers/threadmemory.py.
+Run this file directly only for isolated testing; production use goes through
+UnoQBridgeService.py where the threadmemory domain is registered automatically.
 
-Protocol summary:
-- Request:  {"id": <any>, "op": <string>, ...args }
-- Response: {"id": <same>, "ok": true, "result": <object>}
-            {"id": <same>, "ok": false, "error": {"code": "...", "message": "..."}}
-
-Transport modes:
-- MessagePack stream (default): back-to-back packed objects via stdio.
-- JSON lines (--mode json): one JSON object per line via stdio.
-- Binary frames (--mode binary): framed packets with a small binary header.
-
-Supported operations:
-- ping
-- record(thread, message, kind="note", tags=[])
-- read(thread, limit=50)
-- threads()
-- clear(thread=None)
+    python3 ThreadMemoryHandler.py --mode json
+    python3 ThreadMemoryHandler.py --once '{"id":1,"op":"ping"}'
 """
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from typing import Any, Dict
+
+# Re-export for backward compatibility (other code may import from here)
+from handlers.threadmemory import ThreadMemoryBackend, dispatch  # noqa: F401
+
+
+def _err(request_id: Any, code: str, message: str) -> Dict[str, Any]:
+	return {"id": request_id, "ok": False, "error": {"code": code, "message": message}}
+
+
+def _run_json_loop(backend: ThreadMemoryBackend) -> int:
+	for line in sys.stdin:
+		line = line.strip()
+		if not line:
+			continue
+		try:
+			request = json.loads(line)
+			response = dispatch(backend, request) if isinstance(request, dict) else _err(None, "INVALID_REQUEST", "Request must be an object")
+		except json.JSONDecodeError as exc:
+			response = _err(None, "INVALID_JSON", str(exc))
+		sys.stdout.write(json.dumps(response, ensure_ascii=True) + "\n")
+		sys.stdout.flush()
+	return 0
+
+
+def main() -> int:
+	parser = argparse.ArgumentParser(description="UnoQ thread-memory handler (standalone)")
+	parser.add_argument("--mode", choices=("json",), default="json", help="Transport format (json only in standalone mode)")
+	parser.add_argument("--once", default="", help="Process one JSON request and exit")
+	args = parser.parse_args()
+
+	backend = ThreadMemoryBackend()
+
+	if args.once:
+		try:
+			request = json.loads(args.once)
+		except json.JSONDecodeError as exc:
+			sys.stdout.write(json.dumps(_err(None, "INVALID_JSON", str(exc)), ensure_ascii=True) + "\n")
+			return 1
+		if not isinstance(request, dict):
+			sys.stdout.write(json.dumps(_err(None, "INVALID_REQUEST", "Request must be an object"), ensure_ascii=True) + "\n")
+			return 1
+		sys.stdout.write(json.dumps(dispatch(backend, request), ensure_ascii=True) + "\n")
+		return 0
+
+	return _run_json_loop(backend)
+
+
+if __name__ == "__main__":
+	raise SystemExit(main())
+
 
 from __future__ import annotations
 

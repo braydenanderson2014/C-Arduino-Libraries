@@ -1,6 +1,6 @@
 {
   "name": "UnoQBridge",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Experimental binary sketch-side bridge scaffold for UNO Q and related Arduino helper workflows.",
   "keywords": ["arduino", "bridge", "experimental", "unoq", "ventunoq", "communication", "protocol", "binary"],
   "repository": {
