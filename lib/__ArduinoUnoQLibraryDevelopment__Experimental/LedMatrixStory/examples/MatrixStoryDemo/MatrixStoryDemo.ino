@@ -83,14 +83,14 @@ static LedMatrixScene makeDiagonalSweep(uint8_t diagIndex, uint8_t brightness = 
 // ALL use provide_safe — they call matrix.draw() which must run in loop context.
 // NEVER call Bridge.call() or Monitor.print() inside these functions.
 
-bool matrix_load_scene(const char* csv, int index) {
+bool matrix_load_scene(String csv, int index) {
     LedMatrixScene s = LedMatrixScene::fromString(csv);
     snprintf(s.name, sizeof(s.name), "scene_%d", index);
     bool ok = story.setScene(static_cast<uint8_t>(index), s);
     return ok;
 }
 
-bool matrix_preview(const char* csv) {
+bool matrix_preview(String csv) {
     LedMatrixScene s = LedMatrixScene::fromString(csv);
     story.previewScene(s);
     return true;
@@ -101,22 +101,22 @@ bool matrix_play(int delayMs, bool looping) {
     return true;
 }
 
-bool matrix_pause(const char*) {
+bool matrix_pause() {
     story.pause();
     return true;
 }
 
-bool matrix_stop(const char*) {
+bool matrix_stop() {
     story.stop();
     return true;
 }
 
-bool matrix_next(const char*) {
+bool matrix_next() {
     story.nextFrame();
     return true;
 }
 
-bool matrix_prev(const char*) {
+bool matrix_prev() {
     story.prevFrame();
     return true;
 }
@@ -126,7 +126,7 @@ bool matrix_goto(int index) {
     return true;
 }
 
-bool matrix_clear(const char*) {
+bool matrix_clear() {
     story.clearAll();
     story.blank();
     return true;
@@ -138,7 +138,7 @@ bool matrix_set_delay(int ms) {
 }
 
 // Returns "sceneCount,currentFrame,isPlaying" — small string, safe for Bridge
-String matrix_get_info(const char*) {
+String matrix_get_info() {
     String info = String(story.sceneCount()) + "," +
                   String(story.currentFrame()) + "," +
                   String(story.isPlaying() ? 1 : 0);
@@ -164,18 +164,20 @@ void setup() {
 
     story.play(150);           // 150 ms per frame, loops
 
-    // ── Register Bridge callbacks ────────────────────────────────────────────
-    Bridge.provide_safe("matrix_load_scene", matrix_load_scene);
-    Bridge.provide_safe("matrix_preview",    matrix_preview);
-    Bridge.provide_safe("matrix_play",       matrix_play);
-    Bridge.provide_safe("matrix_pause",      matrix_pause);
-    Bridge.provide_safe("matrix_stop",       matrix_stop);
-    Bridge.provide_safe("matrix_next",       matrix_next);
-    Bridge.provide_safe("matrix_prev",       matrix_prev);
-    Bridge.provide_safe("matrix_goto",       matrix_goto);
-    Bridge.provide_safe("matrix_clear",      matrix_clear);
-    Bridge.provide_safe("matrix_set_delay",  matrix_set_delay);
-    Bridge.provide_safe("matrix_get_info",   matrix_get_info);
+    // ── Register Bridge callbacks ─────────────────────────────────────────────
+    // Use mcu_ prefix: Python calls "mcu_matrix_*" to reach these, while
+    // the sketch calls Python's "matrix_*" (no prefix). Prevents loopback routing.
+    Bridge.provide_safe("mcu_matrix_load_scene", matrix_load_scene);
+    Bridge.provide_safe("mcu_matrix_preview",    matrix_preview);
+    Bridge.provide_safe("mcu_matrix_play",       matrix_play);
+    Bridge.provide_safe("mcu_matrix_pause",      matrix_pause);
+    Bridge.provide_safe("mcu_matrix_stop",       matrix_stop);
+    Bridge.provide_safe("mcu_matrix_next",       matrix_next);
+    Bridge.provide_safe("mcu_matrix_prev",       matrix_prev);
+    Bridge.provide_safe("mcu_matrix_goto",       matrix_goto);
+    Bridge.provide_safe("mcu_matrix_clear",      matrix_clear);
+    Bridge.provide_safe("mcu_matrix_set_delay",  matrix_set_delay);
+    Bridge.provide_safe("mcu_matrix_get_info",   matrix_get_info);
 
     Serial.println("[matrix] ready — " + String(story.sceneCount()) + " scenes");
 }

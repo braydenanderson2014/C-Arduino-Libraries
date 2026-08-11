@@ -29,6 +29,7 @@ The sketch must register its side with Bridge.provide_safe():
 
 from __future__ import annotations
 
+import queue
 from typing import Any, Dict, List, Optional
 
 MATRIX_ROWS   = 8
@@ -38,10 +39,25 @@ MATRIX_PIXELS = MATRIX_ROWS * MATRIX_COLS  # 104
 # ─── Plugin state ─────────────────────────────────────────────────────────────
 
 _bridge: Optional[Any] = None
-_scenes: List[str] = []        # CSV strings, one per scene
+_scenes: List[str] = []
 _current_frame: int  = 0
 _playing: bool       = False
 _frame_delay: int    = 200
+
+# Frames queued for MCU rendering — populated in Bridge callbacks, drained in loop()
+# Large size prevents queue.Full when the loop thread is blocked on a slow MCU call
+_preview_queue: queue.Queue = queue.Queue(maxsize=64)
+_mcu_available: bool = False  # set True after first successful MCU call
+
+
+def _queue(item: str) -> bool:
+    """Put an item in the command queue; returns False silently if full."""
+    try:
+        _preview_queue.put_nowait(item)
+        return True
+    except queue.Full:
+        print(f"[ledmatrix] queue full, dropped: {item[:40]}")
+        return False
 
 
 def setup(bridge: Any, backends: Dict[str, Any]) -> None:
@@ -51,16 +67,64 @@ def setup(bridge: Any, backends: Dict[str, Any]) -> None:
     print("[ledmatrix] plugin ready — sketch must Bridge.provide_safe() its side")
 
 
+# Plugin loop — runs in a background thread via PluginLoader.
+# This is the ONLY place that calls Bridge.call() to the MCU from this plugin;
+# calling Bridge.call() inside a Bridge.provide() callback causes a deadlock.
+PLUGIN_LOOP_INTERVAL = 0.1  # seconds — drain preview queue promptly
+
+def loop() -> None:
+    """Drain the command queue and relay to MCU — safe, runs outside any Bridge callback."""
+    if _bridge is None:
+        return
+    try:
+        item = _preview_queue.get_nowait()
+    except queue.Empty:
+        return
+
+    if item == "__clear__":
+        _mcu("mcu_matrix_clear")
+    elif item == "__pause__":
+        _mcu("mcu_matrix_pause")
+    elif item == "__stop__":
+        _mcu("mcu_matrix_stop")
+    elif item == "__next__":
+        _mcu("mcu_matrix_next")
+    elif item == "__prev__":
+        _mcu("mcu_matrix_prev")
+    elif item.startswith("__goto__"):
+        _mcu("mcu_matrix_goto", int(item[8:]))
+    elif item.startswith("__delay__"):
+        _mcu("mcu_matrix_set_delay", int(item[9:]))
+    elif item.startswith("__load__"):
+        parts = item[8:].split("__", 1)
+        if len(parts) == 2:
+            _mcu("mcu_matrix_load_scene", parts[1], int(parts[0]))
+    elif item.startswith("__play__"):
+        parts = item[8:].split("__", 1)
+        if len(parts) == 2:
+            _mcu("mcu_matrix_play", int(parts[0]), parts[1] == "1")
+    else:
+        _mcu("mcu_matrix_preview", item)
+
+
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
 def _mcu(method: str, *args) -> Any:
     """Call an MCU-side Bridge.call() function. NOT safe inside provide() callbacks."""
+    global _mcu_available
     if _bridge is None:
         return None
     try:
-        return _bridge.call(method, *args)
+        result = _bridge.call(method, *args)
+        _mcu_available = True
+        return result
     except Exception as exc:
-        print(f"[ledmatrix] Bridge.call({method!r}) ERROR: {exc}")
+        err = str(exc)
+        # 'method not available' (error 2) means sketch didn't register it — stop retrying
+        if "not available" in err or "(2)" in err:
+            pass  # silent: MCU simply doesn't have this sketch loaded
+        else:
+            print(f"[ledmatrix] Bridge.call({method!r}) ERROR: {exc}")
         return None
 
 
@@ -72,12 +136,12 @@ def _valid_csv(csv: str) -> bool:
 
 # ─── Bridge functions (ARDUINO calls these → Python handles) ──────────────────
 
-def matrix_status() -> str:
+def matrix_status(*args) -> str:
     """Return 'sceneCount,currentFrame,isPlaying' — safe short string."""
     return f"{len(_scenes)},{_current_frame},{1 if _playing else 0}"
 
 
-def matrix_store_scene(csv: str, index: int) -> bool:
+def matrix_store_scene(csv: str, index: int, *args) -> bool:
     """Store a 104-value CSV pixel frame into slot `index`."""
     global _scenes
     if not _valid_csv(csv):
@@ -92,75 +156,91 @@ def matrix_store_scene(csv: str, index: int) -> bool:
 
 
 def matrix_preview(csv: str) -> bool:
-    """Render a frame immediately on the MCU without storing it."""
+    """Queue a frame for MCU rendering. Returns immediately — no MCU call here.
+
+    Calling Bridge.call() (via _mcu) from inside a Bridge.provide() callback
+    deadlocks the router. The plugin loop() drains this queue from its own thread.
+    """
     if not _valid_csv(csv):
+        print(f"[ledmatrix] matrix_preview: invalid CSV ({len(csv.split(','))} values, expected {MATRIX_PIXELS})")
         return False
-    result = _mcu("matrix_preview", csv)
-    return result is not False
+    try:
+        _preview_queue.put_nowait(csv)
+        print(f"[ledmatrix] matrix_preview: queued for MCU render")
+        return True
+    except queue.Full:
+        print("[ledmatrix] matrix_preview: queue full, dropped frame")
+        return False
 
 
-def matrix_play(delay: int = 200, loop: bool = True) -> bool:
-    """Start animation on the MCU. Syncs all stored scenes first."""
+def matrix_play(delay: int = 200, loop: bool = True, *args) -> bool:
+    """Sync all stored scenes to MCU and start playback."""
     global _playing, _frame_delay
     _frame_delay = int(delay)
     _playing = True
-    # Sync all scenes to MCU before playing
-    _mcu("matrix_clear", "")
+    _queue("__clear__")
     for i, csv in enumerate(_scenes):
-        _mcu("matrix_load_scene", csv, i)
-    result = _mcu("matrix_play", int(delay), bool(loop))
-    print(f"[ledmatrix] play: {len(_scenes)} scenes @ {delay}ms, loop={loop}")
-    return result is not False
+        _queue(f"__load__{i}__{csv}")
+    _queue(f"__play__{delay}__{1 if loop else 0}")
+    print(f"[ledmatrix] matrix_play: queued {len(_scenes)} scene(s) @ {delay}ms, loop={loop}")
+    return True
 
 
-def matrix_pause() -> bool:
+def matrix_pause(*args) -> bool:
     global _playing
     _playing = False
-    return _mcu("matrix_pause", "") is not False
+    _queue("__pause__")
+    return True
 
 
-def matrix_stop() -> bool:
+def matrix_stop(*args) -> bool:
     global _playing, _current_frame
     _playing = False
     _current_frame = 0
-    return _mcu("matrix_stop", "") is not False
+    _queue("__stop__")
+    return True
 
 
-def matrix_next() -> bool:
+def matrix_next(*args) -> bool:
     global _current_frame
     if _scenes:
         _current_frame = (_current_frame + 1) % len(_scenes)
-    return _mcu("matrix_next", "") is not False
+    _queue("__next__")
+    return True
 
 
-def matrix_prev() -> bool:
+def matrix_prev(*args) -> bool:
     global _current_frame
     if _scenes:
         _current_frame = (_current_frame - 1) % len(_scenes)
-    return _mcu("matrix_prev", "") is not False
+    _queue("__prev__")
+    return True
 
 
-def matrix_goto(index: int) -> bool:
+def matrix_goto(index: int, *args) -> bool:
     global _current_frame
     _current_frame = int(index)
-    return _mcu("matrix_goto", int(index)) is not False
+    _queue(f"__goto__{int(index)}")
+    return True
 
 
-def matrix_clear() -> bool:
+def matrix_clear(*args) -> bool:
     global _scenes, _current_frame, _playing
     _scenes = []
     _current_frame = 0
     _playing = False
-    return _mcu("matrix_clear", "") is not False
+    _queue("__clear__")
+    return True
 
 
-def matrix_set_delay(ms: int) -> bool:
+def matrix_set_delay(ms: int, *args) -> bool:
     global _frame_delay
     _frame_delay = int(ms)
-    return _mcu("matrix_set_delay", int(ms)) is not False
+    _queue(f"__delay__{int(ms)}")
+    return True
 
 
-def matrix_scene_count() -> int:
+def matrix_scene_count(*args) -> int:
     return len(_scenes)
 
 

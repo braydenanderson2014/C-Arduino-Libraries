@@ -733,6 +733,7 @@ Bridge.provide("net_post",   net_post)
 # Arduino → Python push callbacks (sketch calls Bridge.notify to reach these)
 Bridge.provide("on_sensor_data", on_sensor_data)
 Bridge.provide("on_gpio_event",  on_gpio_event)
+Bridge.provide("blink_enable",   lambda active: _set_blink(bool(active)))
 
 print("[UnoQ] Bridge handlers registered — container ready")
 print(f"[UnoQ] Filesystem root: {_fs.root}")
@@ -752,15 +753,71 @@ _loader.load_all()
 
 
 # ---------------------------------------------------------------------------
-# Optional periodic loop — runs repeatedly while the container is alive
-# Remove user_loop=loop from App.run() if you don't need a periodic task
+# MCU output helpers callable from Python code
 # ---------------------------------------------------------------------------
 
-def loop():
-    tm_record("system", "heartbeat", kind="event")
-    print("[UnoQ] heartbeat")
-    time.sleep(30)
+def mcu_set_led(state: bool) -> bool:
+    """Python → Arduino: call set_led(bool) registered in BridgeBlink sketch."""
+    print(f"[mcu] set_led({state})")
+    try:
+        return bool(Bridge.call("set_led", bool(state)))
+    except Exception as exc:
+        print(f"[mcu] set_led ERROR: {exc}")
+        return False
 
+
+# ---------------------------------------------------------------------------
+# Blink state — Python-driven LED toggling, independent of any sketch logic
+# ---------------------------------------------------------------------------
+
+_blink_active   = False
+_blink_state    = False
+_blink_interval = 1.0   # seconds between toggles
+
+def _set_blink(active: bool) -> None:
+    global _blink_active
+    _blink_active = active
+    print(f"[blink] {'started' if active else 'stopped'}")
+
+
+# ---------------------------------------------------------------------------
+# Main loop — time-based multitasking so every task runs at its own interval
+# without blocking others.  Add new periodic work by tracking _last_* times.
+# ---------------------------------------------------------------------------
+
+_last_heartbeat = 0.0
+_last_blink     = 0.0
+
+def loop():
+    global _blink_state, _last_heartbeat, _last_blink
+    now = time.time()
+
+    # Heartbeat every 30 s
+    if now - _last_heartbeat >= 30.0:
+        _last_heartbeat = now
+        tm_record("system", "heartbeat", kind="event")
+        print("[UnoQ] heartbeat")
+
+    # LED blink at _blink_interval when enabled
+    if _blink_active and now - _last_blink >= _blink_interval:
+        _last_blink  = now
+        _blink_state = not _blink_state
+        mcu_set_led(_blink_state)
+
+    # Short sleep so loop runs ~20×/s without busy-spinning
+    time.sleep(0.05)
+
+
+# ---------------------------------------------------------------------------
+# Start the LED Matrix web UI — runs in a background daemon thread on port 5000.
+# Access from any device on the same network: http://<UnoQ-IP>:5000
+# Requires matrixwebserver.py to be in the same folder as main.py (python/).
+# ---------------------------------------------------------------------------
+try:
+    import matrixwebserver
+    matrixwebserver.start()
+except ImportError:
+    print("[webserver] matrixwebserver.py not found in python/ — web UI disabled")
 
 # ---------------------------------------------------------------------------
 # App.run() — MUST be the last call. Keeps the container alive.

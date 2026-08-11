@@ -56,9 +56,9 @@
 // ─── Shared state ────────────────────────────────────────────────────────────
 
 // Flags set by Bridge callbacks, acted on in loop() to avoid deadlock.
-static volatile int  _pendingPinMode = -1;
-static volatile int  _pendingPinModeMode = -1;
-static volatile bool _pendingPinModeReady = false;
+static volatile int  _pendingPin     = -1;
+static volatile int  _pendingMode    = -1;
+static volatile bool _pendingModeSet = false;
 
 // ─── Functions Python can call ───────────────────────────────────────────────
 
@@ -79,7 +79,8 @@ bool pwm_write(int pin, int value) {
     return true;
 }
 
-int adc_read(int pin) {
+// Prefixed to avoid collision with Zephyr's adc_read() driver function
+int bridge_adc_read(int pin) {
     return analogRead(pin);
 }
 
@@ -120,7 +121,7 @@ void setup() {
     Bridge.provide_safe("pin_write",  pin_write);
     Bridge.provide_safe("pin_read",   pin_read);
     Bridge.provide_safe("pwm_write",  pwm_write);
-    Bridge.provide_safe("adc_read",   adc_read);
+    Bridge.provide_safe("adc_read",   bridge_adc_read);  // bridge_ prefix avoids Zephyr clash
     Bridge.provide_safe("pin_mode",   pin_mode_set);
     Bridge.provide_safe("led_set",    led_set);
     Bridge.provide_safe("multi_write",multi_write);

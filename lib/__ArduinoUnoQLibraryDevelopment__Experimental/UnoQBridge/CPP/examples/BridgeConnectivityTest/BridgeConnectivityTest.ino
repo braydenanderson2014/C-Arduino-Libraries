@@ -53,6 +53,51 @@
  */
 
 #include <Arduino_RouterBridge.h>
+#include "LedMatrixStory.h"
+
+// ─── Matrix (optional: tests skip gracefully if matrix not available) ────────
+
+Arduino_LED_Matrix hw;
+LedMatrixStory story(hw);
+
+// Handlers for Python → MCU matrix commands (mcu_ prefix to avoid name collision)
+
+bool mcu_matrix_load_scene(String csv, int index) {
+    LedMatrixScene s = LedMatrixScene::fromString(csv);
+    return story.setScene(static_cast<uint8_t>(index), s);
+}
+
+bool mcu_matrix_preview(String csv) {
+    LedMatrixScene s = LedMatrixScene::fromString(csv);
+    story.previewScene(s);
+    return true;
+}
+
+bool mcu_matrix_play(int delayMs, bool looping) {
+    story.play(static_cast<unsigned long>(delayMs), looping);
+    return true;
+}
+
+bool mcu_matrix_pause() {
+    story.pause();
+    return true;
+}
+
+bool mcu_matrix_stop() {
+    story.stop();
+    return true;
+}
+
+bool mcu_matrix_clear() {
+    story.clearAll();
+    story.blank();
+    return true;
+}
+
+// ─── Test infrastructure ──────────────────────────────────────────────────────
+
+// Max CSV string length for a 104-pixel (Uno Q) matrix frame: "1," × 104 = 208 chars
+static constexpr int MATRIX_PIXELS_CSV_LEN = 210;
 
 static uint8_t  passed    = 0;
 static uint8_t  failed    = 0;
@@ -90,6 +135,19 @@ static String fs_read_full(const String& path, int chunkSize = 128) {
 void setup() {
     Monitor.begin(115200);
     Bridge.begin();
+
+    // Initialize LED matrix if available
+    hw.begin();
+    hw.setGrayscaleBits(3);  // 8 brightness levels
+
+    // Register matrix handlers so Python can call them
+    Bridge.provide_safe("mcu_matrix_load_scene", mcu_matrix_load_scene);
+    Bridge.provide_safe("mcu_matrix_preview",    mcu_matrix_preview);
+    Bridge.provide_safe("mcu_matrix_play",       mcu_matrix_play);
+    Bridge.provide_safe("mcu_matrix_pause",      mcu_matrix_pause);
+    Bridge.provide_safe("mcu_matrix_stop",       mcu_matrix_stop);
+    Bridge.provide_safe("mcu_matrix_clear",      mcu_matrix_clear);
+
     // Bridge.call() in setup() always fails — the TCP link to the container
     // hasn't finished establishing yet. Tests run from loop() after a warm-up.
     Monitor.println("[UnoQ] waiting for bridge...");
@@ -264,8 +322,71 @@ static void runTests() {
     check("net_ping 8.8.8.8",                 ok && reachable);
 
     bool httpOk = false;
-    ok = Bridge.call("net_check", String("http://example.com")).result(httpOk);
-    check("net_check http://example.com",     ok && httpOk);
+    ok = Bridge.call("net_check", String("http://neverssl.com")).result(httpOk);
+    check("net_check http://neverssl.com",    ok && httpOk);
+
+    // ─── LED Matrix ───────────────────────────────────────────────────────────
+    // Requires ledmatrix.py plugin in handlers/ — tests are skipped gracefully
+    // if the plugin is absent (calls return false without crashing).
+
+    Monitor.println("--- LED Matrix ---");
+
+    // Build an all-on test frame (104 pixels for Uno Q, 96 for R4)
+    String allOn;
+    allOn.reserve(MATRIX_PIXELS_CSV_LEN);
+    const int MPIX = 104;  // Uno Q; change to 96 for Uno R4 WiFi
+    for (int i = 0; i < MPIX; ++i) {
+        allOn += '1';
+        if (i < MPIX - 1) allOn += ',';
+    }
+
+    // Checkerboard: alternating on/off pixels
+    String checker;
+    checker.reserve(MATRIX_PIXELS_CSV_LEN);
+    for (int i = 0; i < MPIX; ++i) {
+        checker += (i % 2 == 0) ? '1' : '0';
+        if (i < MPIX - 1) checker += ',';
+    }
+
+    // scene_count before loading
+    int scenesBefore = 0;
+    ok = Bridge.call("matrix_scene_count").result(scenesBefore);
+    check("matrix_scene_count ok",            ok);
+
+    // Store two scenes
+    bool stored = false;
+    ok = Bridge.call("matrix_store_scene", allOn,   (int)0).result(stored);
+    check("matrix_store_scene[0] all-on",    ok && stored);
+    ok = Bridge.call("matrix_store_scene", checker, (int)1).result(stored);
+    check("matrix_store_scene[1] checker",   ok && stored);
+
+    // Preview the all-on frame directly on the physical matrix
+    bool previewed = false;
+    ok = Bridge.call("matrix_preview", allOn).result(previewed);
+    check("matrix_preview all-on",           ok && previewed);
+    Monitor.println("  (matrix should now be fully lit)");
+
+    // Play the 2-scene story at 500 ms/frame
+    bool playing = false;
+    ok = Bridge.call("matrix_play", (int)500, true).result(playing);
+    check("matrix_play",                     ok && playing);
+
+    // Poll status — returns "sceneCount,currentFrame,isPlaying"
+    String matStatus;
+    ok = Bridge.call("matrix_status").result(matStatus);
+    check("matrix_status ok",                ok && matStatus.length() > 0);
+    Monitor.print("  status: "); Monitor.println(matStatus);
+
+    delay(1500);  // let the animation run a couple of frames
+
+    // Pause and clear
+    bool paused = false;
+    ok = Bridge.call("matrix_pause").result(paused);
+    check("matrix_pause",                    ok && paused);
+
+    bool cleared = false;
+    ok = Bridge.call("matrix_clear").result(cleared);
+    check("matrix_clear",                    ok && cleared);
 
     // ─── Summary ─────────────────────────────────────────────────────────────
 
@@ -276,160 +397,41 @@ static void runTests() {
 }
 
 void loop() {
+    // Update matrix animation every frame (no blocking)
+    story.update();
+
     if (!testsDone) {
-        // 5 s warm-up gives the Bridge TCP connection time to establish.
-        // Increase to 8000 if tests still show ok=0 on first call.
-        delay(5000);
-        Monitor.println("[UnoQ] bridge ready — running tests");
+        // Poll tm_record until Python responds — reliable regardless of container start time.
+        static uint8_t attempts = 0;
+        bool ready = false;
+        Bridge.call("tm_record", String("sketch"), String("boot_ping")).result(ready);
+        if (!ready) {
+            ++attempts;
+            Monitor.print("[UnoQ] waiting for Python... attempt ");
+            Monitor.println(attempts);
+            delay(2000);
+            return;
+        }
+        Monitor.print("[UnoQ] Python ready after ");
+        Monitor.print(attempts * 2);
+        Monitor.println("s — running tests");
         runTests();
         testsDone = true;
         return;
     }
 
-    // Periodic smoke-test — keeps the Python tab active so you can see heartbeats.
-    delay(15000);
-    bool recorded = false;
-    bool ok = Bridge.call("tm_record", String("sketch"), String("loop ping")).result(recorded);
-    Monitor.print("[loop] ping ");
-    Monitor.println((ok && recorded) ? "ok" : "FAIL");
-}
-
-
-#include <Arduino_RouterBridge.h>
-
-static uint8_t  passed    = 0;
-static uint8_t  failed    = 0;
-static bool     testsDone = false;
-
-static void check(const char* label, bool condition) {
-    if (condition) { Monitor.print("[PASS] "); ++passed; }
-    else           { Monitor.print("[FAIL] "); ++failed; }
-    Monitor.println(label);
-}
-
-// Read any file in safe chunks regardless of size.
-// Returns full content or "" on error. chunkSize <= 200 is recommended.
-static String fs_read_full(const String& path, int chunkSize = 128) {
-    int fileSize = -1;
-    if (!Bridge.call("fs_read_size", path).result(fileSize) || fileSize <= 0) {
-        return "";
+    // Periodic smoke-test — heartbeat every 15 s, but keep loop responsive for matrix
+    static unsigned long _lastHeartbeat = 0;
+    unsigned long now = millis();
+    if (now - _lastHeartbeat >= 15000UL) {
+        _lastHeartbeat = now;
+        bool recorded = false;
+        bool ok = Bridge.call("tm_record", String("sketch"), String("loop ping")).result(recorded);
+        Monitor.print("[loop] ping ");
+        Monitor.println((ok && recorded) ? "ok" : "FAIL");
     }
-    String content;
-    content.reserve(static_cast<unsigned int>(fileSize) + 1);
-    int offset = 0;
-    while (offset < fileSize) {
-        String chunk;
-        if (!Bridge.call("fs_read_chunk", path, offset, chunkSize).result(chunk)) break;
-        if (chunk.length() == 0) break;
-        content += chunk;
-        offset  += static_cast<int>(chunk.length());
-    }
-    return content;
 }
 
-void setup() {
-    Monitor.begin(115200);
-    Bridge.begin();
-    Monitor.println("[UnoQ] waiting for bridge...");
-}
-
-static void runTests() {
-    Monitor.println("=== Bridge Connectivity Test ===");
-
-    // -----------------------------------------------------------------------
-    // File lifecycle: create → verify → mkdir → move → verify moved
-    // -----------------------------------------------------------------------
-    Monitor.println("--- File Lifecycle ---");
-
-    String fileContents;
-    bool ok = Bridge.call("fs_hello", String("Hello from Arduino Uno Q!")).result(fileContents);
-    check("fs_hello call succeeded",           ok);
-    check("fs_hello returned content",         fileContents.length() > 0);
-    Monitor.println("  (see Python tab for file contents)");
-
-    bool exists = false;
-    ok = Bridge.call("fs_exists", String("helloworld.txt")).result(exists);
-    check("helloworld.txt exists before move", ok && exists);
-
-    bool madeDir = false;
-    ok = Bridge.call("fs_mkdir", String("greenhouse_data")).result(madeDir);
-    check("fs_mkdir greenhouse_data/",         ok && madeDir);
-
-    bool moved = false;
-    ok = Bridge.call("fs_move",
-                     String("helloworld.txt"),
-                     String("greenhouse_data/helloworld.txt")).result(moved);
-    check("fs_move succeeded",                 ok && moved);
-
-    bool stillThere = true;
-    ok = Bridge.call("fs_exists", String("helloworld.txt")).result(stillThere);
-    check("helloworld.txt gone from root",     ok && !stillThere);
-
-    bool atNewPath = false;
-    ok = Bridge.call("fs_exists",
-                     String("greenhouse_data/helloworld.txt")).result(atNewPath);
-    check("file exists at greenhouse_data/",   ok && atNewPath);
-
-    // List entire filesystem root — full tree printed to Python tab
-    String summary;
-    ok = Bridge.call("fs_list", String(""), (int)1).result(summary);
-    check("fs_list root ok",                   ok);
-    Monitor.print("  root contents: "); Monitor.println(summary);
-
-    // Chunked read — safe for any file size
-    Monitor.println("--- Chunked Read ---");
-    int fileSize = -1;
-    ok = Bridge.call("fs_read_size",
-                     String("greenhouse_data/helloworld.txt")).result(fileSize);
-    check("fs_read_size > 0",                  ok && fileSize > 0);
-    Monitor.print("  file size: "); Monitor.println(fileSize);
-
-    String fullContent = fs_read_full("greenhouse_data/helloworld.txt");
-    check("fs_read_full assembled correctly",  fullContent.length() == (unsigned)fileSize);
-    Monitor.print("  assembled "); Monitor.print(fullContent.length()); Monitor.println(" chars:");
-    Monitor.println(fullContent);
-
-    // -----------------------------------------------------------------------
-    // Networking: ping + HTTP GET
-    // -----------------------------------------------------------------------
-    Monitor.println("--- Networking ---");
-
-    bool reachable = false;
-    ok = Bridge.call("net_ping", String("8.8.8.8")).result(reachable);
-    check("net_ping 8.8.8.8",                 ok && reachable);
-
-    // net_check returns just a bool — avoids RPC timeout on large response bodies
-    bool httpOk = false;
-    ok = Bridge.call("net_check", String("http://example.com")).result(httpOk);
-    check("net_check http://example.com",     ok && httpOk);
-    Monitor.println("  (Python tab shows full response)");
-
-    // -----------------------------------------------------------------------
-    // Summary
-    // -----------------------------------------------------------------------
-    Monitor.println("================================");
-    Monitor.print(passed); Monitor.print(" passed, ");
-    Monitor.print(failed); Monitor.println(" failed");
-    Monitor.println(failed == 0 ? "=== ALL TESTS PASSED ===" : "=== SOME TESTS FAILED ===");
-}
-
-void loop() {
-    if (!testsDone) {
-        // Wait for bridge to fully establish before first call
-        delay(5000);
-        Monitor.println("[UnoQ] bridge ready — running tests");
-        runTests();
-        testsDone = true;
-        return;
-    }
-
-    delay(15000);
-
-    bool recorded = false;
-    bool ok = Bridge.call("tm_record", String("sketch"), String("loop ping")).result(recorded);
-    Monitor.print("[loop] ping ");
-    Monitor.println((ok && recorded) ? "ok" : "FAIL");
-}
 
 
 
