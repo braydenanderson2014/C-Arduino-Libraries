@@ -146,7 +146,7 @@ jobs:
             console.log(`ℹ️ First-time reporter: ${firstTimer}`);
 
             if (firstTimer) {
-              await addLabels([CONFIG.LABELS.GOOD_FIRST_ISSUE, CONFIG.LABELS.FIRST_TIMER]);
+              await addLabels([CONFIG.LABELS.FIRST_TIMER]);
             }
 
             await postWelcomeComment(firstTimer);
