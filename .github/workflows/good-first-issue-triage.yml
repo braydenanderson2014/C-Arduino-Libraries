@@ -80,17 +80,14 @@ jobs:
 
             // ── Check whether the reporter has filed any previous issue ─────────
             async function isFirstTimeReporter() {
-              // Search for issues (and PRs, which share the issue API) by this user in this repo
-              const { data } = await github.rest.issues.listForRepo({
-                owner,
-                repo,
-                creator: reporter,
-                state: "all",
-                per_page: 2   // We only need to know if there is MORE than 1 (the current one)
+              const { data } = await github.rest.search.issuesAndPullRequests({
+                q: `repo:${owner}/${repo} is:issue author:${reporter}`,
+                sort: "created",
+                order: "desc",
+                per_page: 2
               });
 
-              // data includes the issue just opened; first-timer == only 1 result
-              return data.length <= 1;
+              return (data.total_count || 0) <= 1;
             }
 
             // ── Post welcome comment (idempotent) ──────────────────────────────
