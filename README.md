@@ -287,6 +287,8 @@ What this means in practice:
 - 📦 PlatformIO owner page: https://registry.platformio.org/search?q=owner%3Abraydenanderson2014
 - 💬 Discussions: https://github.com/braydenanderson2014/C-Arduino-Libraries/discussions
 - 🐛 Issues: https://github.com/braydenanderson2014/C-Arduino-Libraries/issues
+- 🤝 Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
+- 📜 Code of Conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 ## Support
 
