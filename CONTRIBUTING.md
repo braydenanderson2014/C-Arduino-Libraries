@@ -207,7 +207,7 @@ Before marking your PR ready for review, confirm:
 
 ## 🤝 Code of Conduct
 
-This project follows our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold it. Please report unacceptable behaviour to the project maintainers via a private message or by opening a confidential issue.
+This project follows our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold it. Please report unacceptable behaviour to the project maintainers via a private message.
 
 ---
 
