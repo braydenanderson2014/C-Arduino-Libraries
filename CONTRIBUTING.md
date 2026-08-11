@@ -20,7 +20,6 @@ Before diving in, please familiarise yourself with how the codebase is organised
 | `test/test_[LibraryName]/` | Unity-based unit tests (run via PlatformIO) |
 | `test/host_arduino_sim/` | Host-side simulation / stress tests (compiled with GCC, no hardware required) |
 | `platformio.ini` | PlatformIO project configuration — board environments, lib dependencies, test settings |
-
 ### The Experimental Folder
 
 `lib/__ArduinoUnoQLibraryDevelopment__Experimental/` is the incubation area for the **Arduino UnoQ** platform — a dual-core workflow where an Arduino sketch runs on an STM32 MCU while Python runs in a Linux container on the Qualcomm MPU. Libraries here are **not yet stable** and may change or be removed without notice. If you want to contribute to this area:
