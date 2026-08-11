@@ -109,7 +109,7 @@ jobs:
                 body =
                   `👋 **Welcome to C-Arduino-Libraries, @${reporter}!** 🎉\n\n` +
                   "Thanks for opening your first issue — we're glad you're here!\n\n" +
-                  "We've tagged this issue as **good first issue** so other newcomers can find it too. " +
+                  "We've tagged this issue as **first-time reporter** so maintainers know to provide extra guidance. " +
                   "A maintainer will review it shortly and let you know if any additional details are needed.\n\n" +
                   "**Helpful links while you wait:**\n" +
                   "- 📖 [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md) — how to set up the project and submit a PR\n" +
