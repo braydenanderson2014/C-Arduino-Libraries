@@ -99,11 +99,17 @@ jobs:
                 per_page: 100
               });
 
-              if (existing.some(c => (c.body || "").includes(CONFIG.COMMENT_MARKER))) {
+              const alreadyPostedByThisWorkflow = existing.some(c => (c.body || "").includes(CONFIG.COMMENT_MARKER));
+              if (alreadyPostedByThisWorkflow) {
                 console.log("ℹ️ Welcome comment already posted");
                 return;
               }
 
+              const hasOtherAutoResponse = existing.some(c => /<!--\s*AUTO-RESPONSE-ID:/i.test(c.body || ""));
+              if (hasOtherAutoResponse) {
+                console.log("ℹ️ Another automated response already exists on this issue - skipping.");
+                return;
+              }
               let body;
               if (isFirstTimer) {
                 body =
