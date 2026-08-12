@@ -1,7 +1,7 @@
 {
     "name": "SDList",
-    "version": "2.0.0",
-    "description": "Paged, batch-buffered list that offloads elements to SD card or LittleFS using binary storage. Any trivially-copyable type (int, float, struct) is stored without text serialisation, eliminating data corruption. A fixed in-memory batch window keeps RAM predictable while a pre-allocated file prevents fragmentation.",
+    "version": "2.0.1",
+    "description": "Paged, batch-buffered list that offloads elements to SD card, LittleFS, or optional UnoQ bridge storage using binary data. Any trivially-copyable type (int, float, struct) is stored without text serialisation, eliminating data corruption. A fixed in-memory batch window keeps RAM predictable while a pre-allocated file prevents fragmentation.",
     "keywords": [
         "SDList",
         "List",
@@ -11,6 +11,7 @@
         "Data Storage",
         "SD Card",
         "LittleFS",
+        "UnoQ",
         "Paged",
         "Binary Storage",
         "Batch",
@@ -41,6 +42,15 @@
     "license": "Apache-2.0",
     "readme": "README.md",
     "ChangeLog": [
+        {
+            "version": "2.0.1",
+            "date": "2026-08-12",
+            "changes": [
+                "Added optional UnoQ bridge backend support through compile-time header detection.",
+                "Added beginUnoQ() overloads for UnoQFileTransferClient-backed storage.",
+                "Kept SD and LittleFS backends as the default paths without introducing a hard UnoQ dependency."
+            ]
+        },
         {
             "version": "2.0.0",
             "date": "2025-07-24",
