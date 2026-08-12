@@ -7,13 +7,13 @@
 - Failed runs: 0
 - Max peak bytes: 0
 - Avg peak bytes: 0
-- Compile smoke objects found: 1
-- Experimental compile results found: 1
-- Experimental compile successes: 1
+- Compile smoke objects found: 0
+- Experimental compile results found: 0
+- Experimental compile successes: 0
 - Experimental compile failures: 0
-- Experimental libraries covered: 1
-- Experimental backends covered: 1
-- Experimental optional modes covered: 1
+- Experimental libraries covered: 0
+- Experimental backends covered: 0
+- Experimental optional modes covered: 0
 - Memory profile runs: 0
 - Runs that exceeded limit: 0
 - Runs with limit enforcement enabled: 0
@@ -50,11 +50,3 @@
 
 | Run | Success | Backend | PeakBytes | LimitBytes | LimitExceeded | LimitEnforced | FirstLimitCrossingTest | CrossingPeakBytes | ProbeElementsAtStop | ProbeCurrentBytesAtStop |
 | --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: |
-
-## Experimental Compile Results
-
-_Each row is one experimental compile matrix entry (library + backend + optional mode)._
-
-| Library | Backend | Optional | Success | ReturnCode | Artifact |
-| --- | --- | --- | --- | ---: | --- |
-| lib/__ArduinoUnoQLibraryDevelopment__Experimental/SDList | sd | off | yes | 0 | test/host_arduino_sim/out/experimental-library-smoke/lib___ArduinoUnoQLibraryDevelopment__Experimental_SDList/sd/off |
