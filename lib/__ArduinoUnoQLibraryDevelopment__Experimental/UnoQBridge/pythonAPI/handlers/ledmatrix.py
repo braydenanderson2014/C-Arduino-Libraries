@@ -45,8 +45,8 @@ _playing: bool       = False
 _frame_delay: int    = 200
 
 # Frames queued for MCU rendering — populated in Bridge callbacks, drained in loop()
-# Large size prevents queue.Full when the loop thread is blocked on a slow MCU call
-_preview_queue: queue.Queue = queue.Queue(maxsize=64)
+# Unbounded so large scene sets cannot drop the final __play__ command.
+_preview_queue: queue.Queue = queue.Queue()
 _mcu_available: bool = False  # set True after first successful MCU call
 
 
@@ -76,35 +76,36 @@ def loop() -> None:
     """Drain the command queue and relay to MCU — safe, runs outside any Bridge callback."""
     if _bridge is None:
         return
-    try:
-        item = _preview_queue.get_nowait()
-    except queue.Empty:
-        return
+    while True:
+        try:
+            item = _preview_queue.get_nowait()
+        except queue.Empty:
+            return
 
-    if item == "__clear__":
-        _mcu("mcu_matrix_clear")
-    elif item == "__pause__":
-        _mcu("mcu_matrix_pause")
-    elif item == "__stop__":
-        _mcu("mcu_matrix_stop")
-    elif item == "__next__":
-        _mcu("mcu_matrix_next")
-    elif item == "__prev__":
-        _mcu("mcu_matrix_prev")
-    elif item.startswith("__goto__"):
-        _mcu("mcu_matrix_goto", int(item[8:]))
-    elif item.startswith("__delay__"):
-        _mcu("mcu_matrix_set_delay", int(item[9:]))
-    elif item.startswith("__load__"):
-        parts = item[8:].split("__", 1)
-        if len(parts) == 2:
-            _mcu("mcu_matrix_load_scene", parts[1], int(parts[0]))
-    elif item.startswith("__play__"):
-        parts = item[8:].split("__", 1)
-        if len(parts) == 2:
-            _mcu("mcu_matrix_play", int(parts[0]), parts[1] == "1")
-    else:
-        _mcu("mcu_matrix_preview", item)
+        if item == "__clear__":
+            _mcu("mcu_matrix_clear")
+        elif item == "__pause__":
+            _mcu("mcu_matrix_pause")
+        elif item == "__stop__":
+            _mcu("mcu_matrix_stop")
+        elif item == "__next__":
+            _mcu("mcu_matrix_next")
+        elif item == "__prev__":
+            _mcu("mcu_matrix_prev")
+        elif item.startswith("__goto__"):
+            _mcu("mcu_matrix_goto", int(item[8:]))
+        elif item.startswith("__delay__"):
+            _mcu("mcu_matrix_set_delay", int(item[9:]))
+        elif item.startswith("__load__"):
+            parts = item[8:].split("__", 1)
+            if len(parts) == 2:
+                _mcu("mcu_matrix_load_scene", parts[1], int(parts[0]))
+        elif item.startswith("__play__"):
+            parts = item[8:].split("__", 1)
+            if len(parts) == 2:
+                _mcu("mcu_matrix_play", int(parts[0]), parts[1] == "1")
+        else:
+            _mcu("mcu_matrix_preview", item)
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────

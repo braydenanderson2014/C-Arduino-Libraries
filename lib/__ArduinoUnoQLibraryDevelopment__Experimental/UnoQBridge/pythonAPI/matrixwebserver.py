@@ -57,13 +57,26 @@ if HAS_FLASK:
 # In-memory scene store
 _scenes: List[Dict[str, Any]] = []
 
+
+def _normalize_scenes(raw: Any) -> List[Dict[str, Any]]:
+    """Coerce legacy or malformed persisted scene data into a scene list."""
+    if isinstance(raw, list):
+        return [s for s in raw if isinstance(s, dict)]
+    if isinstance(raw, dict):
+        if isinstance(raw.get("scenes"), list):
+            return [s for s in raw["scenes"] if isinstance(s, dict)]
+        if all(isinstance(v, dict) for v in raw.values()):
+            return [v for v in raw.values() if isinstance(v, dict)]
+    return []
+
 def _load_scenes() -> None:
     global _scenes
     if os.path.exists(ANIMATIONS_FILE):
         try:
             with open(ANIMATIONS_FILE, "r") as f:
-                _scenes = json.load(f)
+                _scenes = _normalize_scenes(json.load(f))
             print(f"[webserver] Loaded {len(_scenes)} scenes")
+            _sync_ledmatrix_scenes()
         except Exception as e:
             print(f"[webserver] Error loading scenes: {e}")
 
@@ -73,6 +86,17 @@ def _save_scenes() -> None:
             json.dump(_scenes, f, indent=2)
     except Exception as e:
         print(f"[webserver] Error saving scenes: {e}")
+
+
+def _sync_ledmatrix_scenes() -> None:
+    """Push the webserver's scene list into the ledmatrix plugin cache."""
+    if not HAS_LEDMATRIX:
+        return
+    ledmatrix.matrix_clear()
+    for i, scene in enumerate(_scenes):
+        frame = scene.get("frame", [])
+        if isinstance(frame, list) and _valid_frame(frame):
+            ledmatrix.matrix_store_scene(_list_to_csv(frame), i)
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -716,11 +740,7 @@ def api_delete_scene(idx):
         return jsonify({"success": False, "error": "Scene not found"}), 404
     _scenes.pop(idx)
     _save_scenes()
-    if HAS_LEDMATRIX:
-        # Re-sync all remaining scenes after deletion
-        ledmatrix.matrix_clear()
-        for i, s in enumerate(_scenes):
-            ledmatrix.matrix_store_scene(_list_to_csv(s.get("frame", [])), i)
+    _sync_ledmatrix_scenes()
     return jsonify({"success": True})
 
 
@@ -733,13 +753,9 @@ def api_import_scenes():
     valid = [s for s in incoming if isinstance(s.get('frame', None), list) and _valid_frame(s['frame'])]
     if not valid:
         return jsonify({"success": False, "error": "No valid scenes in payload"}), 400
-    _scenes.clear()
-    _scenes.extend(valid)
+    _scenes[:] = valid
     _save_scenes()
-    if HAS_LEDMATRIX:
-        ledmatrix.matrix_clear()
-        for i, s in enumerate(_scenes):
-            ledmatrix.matrix_store_scene(_list_to_csv(s['frame']), i)
+    _sync_ledmatrix_scenes()
     return jsonify({"success": True, "count": len(_scenes)})
 
 
