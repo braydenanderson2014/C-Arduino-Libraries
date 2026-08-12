@@ -1,0 +1,90 @@
+{
+    "name": "SDList",
+    "version": "2.0.0",
+    "description": "Paged, batch-buffered list that offloads elements to SD card or LittleFS using binary storage. Any trivially-copyable type (int, float, struct) is stored without text serialisation, eliminating data corruption. A fixed in-memory batch window keeps RAM predictable while a pre-allocated file prevents fragmentation.",
+    "keywords": [
+        "SDList",
+        "List",
+        "SD",
+        "ArrayList",
+        "Dynamic Storage",
+        "Data Storage",
+        "SD Card",
+        "LittleFS",
+        "Paged",
+        "Binary Storage",
+        "Batch",
+        "Utilities"
+    ],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/braydenanderson2014/ArduinoSDList.git"
+        }
+    ],
+    "homepage": "https://github.com/braydenanderson2014/ArduinoSDList/releases",
+    "Readme": "README.md",
+    "authors": [
+        {
+            "name": "Brayden Anderson",
+            "email": "braydenanderson2014@gmail.com",
+            "url": "https://github.com/braydenanderson2014"
+        }
+    ],
+    "srcDir": "src",
+    "dependencies": {
+        "Arduino": "*",
+        "SD": "*",
+        "SPI": "*"
+    },
+    "build.header": "SDList.h",
+    "license": "Apache-2.0",
+    "readme": "README.md",
+    "ChangeLog": [
+        {
+            "version": "2.0.0",
+            "date": "2025-07-24",
+            "changes": [
+                "Complete rewrite: binary storage replaces text serialisation, eliminating data corruption for all trivially-copyable types.",
+                "Fixed batch window: one pre-allocated T[BATCH_SIZE] buffer, never reallocated.",
+                "Pre-allocated file with grow-on-demand: no fragmentation.",
+                "set() method added for direct element overwrite.",
+                "flush() and isReady() added.",
+                "insert() and remove() now correctly shift elements in binary mode.",
+                "LittleFS support via -DUSE_LITTLEFS compile flag.",
+                "Dropped ArrayList dependency.",
+                "SDListMode enum replaces Mode enum to avoid name collisions."
+            ]
+        },
+        {
+            "version": "1.0.5",
+            "date": "2024-02-14",
+            "changes": [
+                "Added getUnderlyingStructure()."
+            ]
+        },
+        {
+            "version": "1.0.3",
+            "date": "2024-02-04",
+            "changes": [
+                "Reimplemented using ArrayList for in-memory storage."
+            ]
+        },
+        {
+            "version": "1.0.0",
+            "date": "2023-10-25",
+            "changes": [
+                "Initial release."
+            ]
+        }
+    ],
+    "examples": [
+        {
+            "name": "Example",
+            "base": "examples/Example",
+            "files": [
+                "Example.ino"
+            ]
+        }
+    ]
+}
