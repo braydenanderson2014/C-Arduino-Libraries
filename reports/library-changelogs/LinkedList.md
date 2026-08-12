@@ -4,7 +4,7 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.8**
 - Release boundary commit: `8b28875f` (2026-08-07)
-- Total commits touching this library on current history: **35**
+- Total commits touching this library on current history: **36**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
@@ -17,11 +17,13 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Maintenance
 
+- Back-sync LinkedList from remote PR #4 (8df58c5) (`66211c2e`, 2026-08-12)
 - Stress test log was inaccurate (`02a4f040`, 2026-08-07)
 - Bump version to 1.0.8 and enhance library info (`d979abcf`, 2026-08-07)
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-12 | `66211c2e` | github-actions[bot] | Back-sync LinkedList from remote PR #4 (8df58c5) |
 | 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
 | 2026-08-07 | `02a4f040` | Brayden Anderson | Stress test log was inaccurate |
 | 2026-08-07 | `d979abcf` | Brayden Anderson | Bump version to 1.0.8 and enhance library info |
@@ -51,5 +53,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2023-11-12 | `e78fefe8` | Brayden Anderson | Added Iterator Support |
 | 2023-11-11 | `c6716328` | Brayden Anderson | Added Debug Statements |
 | 2023-11-11 | `111022cf` | Brayden Anderson | modifying size variable in linked list libraries |
-| 2023-11-10 | `08ca76d8` | Brayden Anderson | New Library |
 

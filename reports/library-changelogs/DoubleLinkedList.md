@@ -4,8 +4,8 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.6**
 - Release boundary commit: `45acb524` (2026-07-29)
-- Total commits touching this library on current history: **20**
-- Recent commits shown: **20**
+- Total commits touching this library on current history: **21**
+- Recent commits shown: **21**
 
 ## Next Release (Experimental / Unreleased)
 
@@ -26,10 +26,12 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Maintenance
 
+- Back-sync DoubleLinkedList from remote PR #3 (7114568) (`e0559405`, 2026-08-12)
 - Back-sync DoubleLinkedList from remote PR #2 (f9e30fb) (`87d3f9b2`, 2026-08-07)
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-12 | `e0559405` | github-actions[bot] | Back-sync DoubleLinkedList from remote PR #3 (7114568) |
 | 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
 | 2026-08-07 | `3f3fbd39` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-07 | `87d3f9b2` | github-actions[bot] | Back-sync DoubleLinkedList from remote PR #2 (f9e30fb) |

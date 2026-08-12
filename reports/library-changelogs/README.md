@@ -4,7 +4,7 @@ Auto-generated from git history for each library folder under `lib/`.
 
 | Library | Last Change | Total Commits | Recent Entries | Unreleased Entries |
 | --- | --- | ---: | ---: | ---: |
-| [ArrayList](ArrayList.md) | 2026-08-07 | 56 | 30 | 7 |
+| [ArrayList](ArrayList.md) | 2026-08-12 | 57 | 30 | 8 |
 | [AVLTree](AVLTree.md) | 2026-08-07 | 16 | 16 | 4 |
 | [BinarySearchTree](BinarySearchTree.md) | 2026-08-07 | 5 | 5 | 4 |
 | [BinaryTree](BinaryTree.md) | 2026-08-07 | 5 | 5 | 4 |
@@ -12,13 +12,13 @@ Auto-generated from git history for each library folder under `lib/`.
 | [bTree](bTree.md) | 2026-08-07 | 6 | 6 | 5 |
 | [ColorManager](ColorManager.md) | 2026-08-07 | 5 | 5 | 4 |
 | [Dictionary](Dictionary.md) | 2026-08-07 | 14 | 14 | 7 |
-| [DoubleLinkedList](DoubleLinkedList.md) | 2026-08-07 | 20 | 20 | 5 |
+| [DoubleLinkedList](DoubleLinkedList.md) | 2026-08-12 | 21 | 21 | 6 |
 | [DynamicStorageLibrary](DynamicStorageLibrary.md) | 2026-08-07 | 21 | 21 | 0 |
 | [EthernetConnectionChecker](EthernetConnectionChecker.md) | 2026-08-07 | 6 | 6 | 0 |
 | [EthernetMach2ConnectionChecker](EthernetMach2ConnectionChecker.md) | 2026-08-07 | 4 | 4 | 0 |
 | [ExtremeVariant](ExtremeVariant.md) | 2026-08-07 | 7 | 7 | 6 |
 | [FenwickTree](FenwickTree.md) | 2026-08-07 | 5 | 5 | 4 |
-| [Hashtable](Hashtable.md) | 2026-08-07 | 51 | 30 | 7 |
+| [Hashtable](Hashtable.md) | 2026-08-12 | 52 | 30 | 8 |
 | [HeapTree](HeapTree.md) | 2026-08-07 | 6 | 6 | 5 |
 | [Initializer_List](Initializer_List.md) | 2026-08-07 | 7 | 7 | 3 |
 | [IntervalTree](IntervalTree.md) | 2026-08-07 | 5 | 5 | 4 |
@@ -26,7 +26,7 @@ Auto-generated from git history for each library folder under `lib/`.
 | [iterator](iterator.md) | 2026-08-07 | 4 | 4 | 3 |
 | [Json](Json.md) | 2026-07-26 | 17 | 17 | 0 |
 | [kdimensionalTree](kdimensionalTree.md) | 2026-08-07 | 15 | 15 | 3 |
-| [LinkedList](LinkedList.md) | 2026-08-07 | 35 | 30 | 3 |
+| [LinkedList](LinkedList.md) | 2026-08-12 | 36 | 30 | 4 |
 | [Map](Map.md) | 2026-08-07 | 16 | 16 | 8 |
 | [MathLib](MathLib.md) | 2026-08-07 | 9 | 9 | 8 |
 | [MatrixMath](MatrixMath.md) | 2026-08-07 | 10 | 10 | 3 |
