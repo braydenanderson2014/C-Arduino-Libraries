@@ -6,6 +6,14 @@
 #include <SD.h>
 #include "../../UnoQFileTransferClient.h"
 
+// Define PROPERTIES_USE_BRIDGE before including to add Bridge-backed save/load.
+#ifdef PROPERTIES_USE_BRIDGE
+  #include <Arduino_RouterBridge.h>
+  #ifndef PROPERTIES_BRIDGE_CHUNK_SIZE
+    #define PROPERTIES_BRIDGE_CHUNK_SIZE 128
+  #endif
+#endif
+
 #if defined(__has_include) && __has_include(<FS.h>)
   #include <FS.h>
 #else
@@ -75,6 +83,14 @@ private:
         bool loadFromSD(const String& filename);
         bool saveToUnoQ(UnoQFileTransferClient& client, const String& remotePath);
         bool loadFromUnoQ(UnoQFileTransferClient& client, const String& remotePath);
+
+#ifdef PROPERTIES_USE_BRIDGE
+        // Write all key=value pairs to the Python container filesystem.
+        bool saveToBridge(const String& remotePath);
+        // Read and parse a properties file from the Python container filesystem.
+        bool loadFromBridge(const String& remotePath);
+#endif
+
         bool save(const String& filename);
         bool load(const String& filename);
         bool store(const String& filename, const String& comments);

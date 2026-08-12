@@ -1424,3 +1424,42 @@ char* JSON::strdupSafe(const char* src, size_t length) const {
     copy[length] = '\0';
     return copy;
 }
+
+// ── Bridge-backed methods ────────────────────────────────────────────────────
+// Only compiled when JSON_USE_BRIDGE is defined before including JSON.h.
+
+#ifdef JSON_USE_BRIDGE
+
+int JSON::readFromBridge(const String& remotePath) {
+    int fileSize = -1;
+    if (!Bridge.call("fs_read_size", remotePath).result(fileSize) || fileSize <= 0) {
+        return JSON_FILE_NOT_FOUND;
+    }
+
+    String content;
+    content.reserve(static_cast<unsigned int>(fileSize) + 1);
+    int offset = 0;
+    while (offset < fileSize) {
+        String chunk;
+        if (!Bridge.call("fs_read_chunk", remotePath, offset, (int)JSON_BRIDGE_CHUNK_SIZE).result(chunk)) {
+            return JSON_FILE_READ_ERROR;
+        }
+        if (chunk.length() == 0) break;
+        content += chunk;
+        offset  += static_cast<int>(chunk.length());
+    }
+
+    return readFromString(content.c_str()) ? JSON_READ_SUCCESS : JSON_FILE_PARSE_ERROR;
+}
+
+int JSON::writeToBridge(const String& remotePath, bool pretty) {
+    char* raw = writeToString(pretty);
+    if (!raw) return JSON_FILE_WRITE_ERROR;
+
+    bool wrote = false;
+    bool ok = Bridge.call("fs_write", remotePath, String(raw)).result(wrote) && wrote;
+    free(raw);
+    return ok ? JSON_WRITE_SUCCESS : JSON_FILE_WRITE_ERROR;
+}
+
+#endif  // JSON_USE_BRIDGE

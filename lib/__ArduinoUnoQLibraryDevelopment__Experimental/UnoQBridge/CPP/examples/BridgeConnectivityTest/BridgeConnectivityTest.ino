@@ -54,7 +54,14 @@
 
 #include <Arduino_RouterBridge.h>
 #include "LedMatrixStory.h"
-
+// Define BRIDGETEST_THREAD_SAFE to protect the story object with a Mutex.
+#ifdef BRIDGETEST_THREAD_SAFE
+  #include <Mutex.h>
+  static Mutex _storyMutex;
+  #define STORY_LOCK() Mutex::LockGuard _lg(_storyMutex)
+#else
+  #define STORY_LOCK() ((void)0)
+#endif
 // ─── Matrix (optional: tests skip gracefully if matrix not available) ────────
 
 Arduino_LED_Matrix hw;
@@ -398,7 +405,7 @@ static void runTests() {
 
 void loop() {
     // Update matrix animation every frame (no blocking)
-    story.update();
+    { STORY_LOCK(); story.update(); }
 
     if (!testsDone) {
         // Poll tm_record until Python responds — reliable regardless of container start time.

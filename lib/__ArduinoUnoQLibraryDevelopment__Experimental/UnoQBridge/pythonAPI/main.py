@@ -735,6 +735,11 @@ Bridge.provide("on_sensor_data", on_sensor_data)
 Bridge.provide("on_gpio_event",  on_gpio_event)
 Bridge.provide("blink_enable",   lambda active: _set_blink(bool(active)))
 
+# Initialise the thread-safe MCU dispatcher and register its push callbacks
+_mcu.setup(Bridge, backends={})
+for _name, _fn in _mcu.BRIDGE_FUNCTIONS.items():
+    Bridge.provide(_name, _fn)
+
 print("[UnoQ] Bridge handlers registered — container ready")
 print(f"[UnoQ] Filesystem root: {_fs.root}")
 print("[UnoQ] MCU functions available (sketch must provide_safe these):")
@@ -759,11 +764,7 @@ _loader.load_all()
 def mcu_set_led(state: bool) -> bool:
     """Python → Arduino: call set_led(bool) registered in BridgeBlink sketch."""
     print(f"[mcu] set_led({state})")
-    try:
-        return bool(Bridge.call("set_led", bool(state)))
-    except Exception as exc:
-        print(f"[mcu] set_led ERROR: {exc}")
-        return False
+    return bool(_mcu.call_safe("set_led", bool(state)))
 
 
 # ---------------------------------------------------------------------------
@@ -797,6 +798,9 @@ def loop():
         _last_heartbeat = now
         tm_record("system", "heartbeat", kind="event")
         print("[UnoQ] heartbeat")
+
+    # Drain the mcu async call queue each tick (thread-safe dispatcher)
+    _mcu.loop()
 
     # LED blink at _blink_interval when enabled
     if _blink_active and now - _last_blink >= _blink_interval:

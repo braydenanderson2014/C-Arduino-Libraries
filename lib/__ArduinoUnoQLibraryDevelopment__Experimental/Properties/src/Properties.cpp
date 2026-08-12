@@ -917,3 +917,64 @@ bool Properties::loadFromMsgPack(const String& filename) {
     }
     return false;
 }
+
+// ── Bridge-backed methods ────────────────────────────────────────────────────
+// Only compiled when PROPERTIES_USE_BRIDGE is defined before including Properties.h.
+
+#ifdef PROPERTIES_USE_BRIDGE
+
+bool Properties::saveToBridge(const String& remotePath) {
+    String payload;
+    char sep = getSeparator();
+    for (PropertiesIterator it = begin(); it != end(); ++it) {
+        if (it.value().length() > 0) {
+            payload += it.key();
+            payload += sep;
+            payload += it.value();
+            payload += '\n';
+        }
+    }
+
+    bool wrote = false;
+    return Bridge.call("fs_write", remotePath, payload).result(wrote) && wrote;
+}
+
+bool Properties::loadFromBridge(const String& remotePath) {
+    int fileSize = -1;
+    if (!Bridge.call("fs_read_size", remotePath).result(fileSize) || fileSize <= 0) {
+        return false;
+    }
+
+    String payload;
+    payload.reserve(static_cast<unsigned int>(fileSize) + 1);
+    int offset = 0;
+    while (offset < fileSize) {
+        String chunk;
+        if (!Bridge.call("fs_read_chunk", remotePath, offset, (int)PROPERTIES_BRIDGE_CHUNK_SIZE).result(chunk)) {
+            return false;
+        }
+        if (chunk.length() == 0) break;
+        payload += chunk;
+        offset  += static_cast<int>(chunk.length());
+    }
+
+    // Parse key=value lines (same logic as loadFromUnoQ)
+    int start = 0;
+    while (start <= static_cast<int>(payload.length())) {
+        int end = payload.indexOf('\n', start);
+        if (end < 0) end = payload.length();
+        String line = payload.substring(start, end);
+        line.trim();
+        if (line.length() > 0 && !line.startsWith("#")) {
+            int sepIdx = line.indexOf(getSeparator());
+            if (sepIdx > 0) {
+                setProperty(line.substring(0, sepIdx), line.substring(sepIdx + 1));
+            }
+        }
+        if (end >= static_cast<int>(payload.length())) break;
+        start = end + 1;
+    }
+    return true;
+}
+
+#endif  // PROPERTIES_USE_BRIDGE

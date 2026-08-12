@@ -6,6 +6,15 @@
 #include <SPI.h>
 #include "../../UnoQFileTransferClient.h"
 
+// Define EM2_USE_BRIDGE before including this header to enable Bridge-backed
+// networking and logging. Boards without Arduino_RouterBridge are unaffected.
+#ifdef EM2_USE_BRIDGE
+  #include <Arduino_RouterBridge.h>
+  #ifndef EM2_BRIDGE_CHUNK_SIZE
+    #define EM2_BRIDGE_CHUNK_SIZE 128
+  #endif
+#endif
+
 #if defined(__has_include) && __has_include(<FS.h>)
     #include <FS.h>
 #else
@@ -185,6 +194,17 @@ public:
     bool uploadSnapshotsToUnoQ(UnoQFileTransferClient& client, const String& basePath = "/em2");
     bool saveSnapshotsToFilesystem(fs::FS& filesystem, const String& basePath = "/em2");
 
+#ifdef EM2_USE_BRIDGE
+    // Bridge mode: skip Ethernet init; use Python container for networking and logging.
+    bool beginBridge(const EM2ServerTarget& server);
+    // Run probes via Bridge net_ping / net_check — no Ethernet hardware required.
+    bool runChecksBridge();
+    // Write all snapshot JSONs to the Python container filesystem.
+    bool uploadSnapshotsToBridge(const String& basePath = "em2");
+    // Push heartbeat JSON via Bridge tm_record for lightweight keep-alive logging.
+    bool sendHeartbeatBridge();
+#endif
+
     const String& getLastServerResponse() const;
     const String& getLastError() const;
 
@@ -193,6 +213,10 @@ private:
     uint8_t _sdCSPin;
     bool _ethernetReady;
     bool _autoChecks;
+
+#ifdef EM2_USE_BRIDGE
+    bool _bridgeMode = false;
+#endif
 
     unsigned long _checkIntervalMs;
     unsigned long _heartbeatIntervalMs;

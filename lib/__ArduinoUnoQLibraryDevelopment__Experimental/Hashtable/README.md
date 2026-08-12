@@ -1,25 +1,24 @@
 # **Hashtable Library**
+
+<!-- HEALTH_BADGES_START -->
+[![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
+
 🚀 **A lightweight and efficient Hashtable implementation for Arduino**
-
-## UnoQ Experimental Status
-
-- This copy is included in the UnoQ experimental folder as a shared dependency.
-- It is used by experimental Properties, DynamicStorageLibrary, and related code.
-- Core Hashtable APIs are unchanged in this branch; updates here are for dependency alignment.
-
-
-## UnoQ Metadata
-
-- Scope: UnoQ experimental branch
-- Stability: Experimental
-- Documentation label: UnoQ-Experimental-2026-07-29
-- Library role: Core key/value dependency used by multiple UnoQ experimental libraries
 
 ## 📖 **Overview**
 The `Hashtable` library provides an efficient way to store key-value pairs in an Arduino environment. It supports various key types, handles collisions, and allows dynamic resizing for optimal performance.
 
 ---
 ## 📚 **API Reference**
+
+### 🔹 **Optional Feature Flags**
+
+| Flag | Description |
+|------|-------------|
+| `HT_NO_SERIAL` | Suppresses the library's `Serial` output, including `debugIterator()`, for environments where `Serial` is unavailable or not initialized. |
+| `HT_ENABLE_NUMERIC_LIMITS` | Enables the optional Numeric_Limits integration and the related memory/introspection APIs listed below. |
 
 ### 🔹 **Hashtable Methods**
 
@@ -47,6 +46,16 @@ The `Hashtable` library provides an efficient way to store key-value pairs in an
 | `V& operator[](const K& key)` | Accesses elements by key. If key does not exist, inserts a new default value. Falls back to a static dummy reference if insertion fails. |
 | `const V& operator[](const K& key) const` | Read-only access by key. Returns a static default-constructed value if the key does not exist. |
 | `void debugIterator()` | Prints all key-value pairs in the hashtable using an iterator. |
+
+### 🔹 **Optional Numeric_Limits Methods**
+
+Available only when `HT_ENABLE_NUMERIC_LIMITS` is defined.
+
+| Function | Description |
+|----------|-------------|
+| `size_t memoryUsage() const` | Returns the bytes currently used by the table's top-level bucket array. |
+| `int theoreticalMaxElements() const` | Returns the theoretical maximum number of elements supported on the current platform. |
+| `float memoryUtilization() const` | Returns the current element count as a fraction of the theoretical maximum. |
 
 ---
 ## 🛠 **Usage Examples**
@@ -178,11 +187,6 @@ return Iterator(this, TABLE_SIZE, nullptr);
 which is exactly what end() already has inside. This is just to be neater.
 
 - **v1.1.5**
-             - Hardened defensive behavior around edge cases in the Hashtable implementation.
-             - Improved compatibility and stability for defensive access paths and test coverage.
-             - Kept the existing capacity normalization and fallback behavior intact for safer embedded use.
-
-- **v1.1.4**
              - Added `normalizeTableSize()` private helper: zero or negative initial capacities now safely default to `INITIAL_TABLE_SIZE` instead of causing undefined behavior.
              - Fixed `Hashtable(size_t initialCapacity, float loadFactor)` constructor to pass capacity through `normalizeTableSize()`.
              - Fixed `resize()` to use the normalized size throughout, preventing zero-size allocations.
@@ -192,10 +196,13 @@ which is exactly what end() already has inside. This is just to be neater.
              - Fixed `operator[](const K& key)` (non-const): now safely returns a `static V dummy` fallback if the internal `get()` call returns `nullptr` after `put()`.
              - Fixed `operator[](const K& key) const`: now returns a stable `static const V defaultValue` reference instead of a dangling reference to a temporary.
 
+- **v1.1.4**
+             - Previous maintenance release.
+
 ---
 ## 📜 **Arduino Changelog**
 ### Latest Version:
-- **v1.0.5** [ON-PAR] -> PlatformIO v1.1.4
+- **v1.0.5** [ON-PAR] -> PlatformIO v1.1.5
              - Added `normalizeTableSize()` private helper: zero or negative initial capacities now safely default to `INITIAL_TABLE_SIZE`.
              - Fixed `Hashtable(size_t initialCapacity, float loadFactor)` constructor to use `normalizeTableSize()`.
              - Fixed `resize()` to use the normalized size, preventing zero-size allocations.

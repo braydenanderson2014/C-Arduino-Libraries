@@ -1,17 +1,10 @@
 # SimpleVector
 
-## UnoQ Metadata
 
-- Scope: UnoQ experimental branch
-- Stability: Experimental
-- Documentation label: UnoQ-Experimental-2026-07-29
-- Library role: Core vector dependency used by UnoQ experimental libraries
-
-## UnoQ Experimental Status
-
-- This copy is included in the UnoQ experimental folder as a shared dependency.
-- It is used by MemoryManager, Properties, DynamicStorageLibrary, and JSON internals.
-- Core SimpleVector APIs are unchanged in this branch; documentation here reflects dependency alignment for UnoQ testing.
+<!-- HEALTH_BADGES_START -->
+[![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)](../../reports/library-health-report.md)
+<!-- HEALTH_BADGES_END -->
 
 ## Overview
 **SimpleVector** is a lightweight and efficient dynamic array implementation for **Arduino and C++ projects**. It provides **fast and flexible** storage with **easy-to-use methods** for adding, removing, and accessing elements.
@@ -21,6 +14,7 @@
 ✅ Supports **bulk addition**, **iterators**, and **sorting**
 ✅ STL-like interface for ease of use
 ✅ **Optimized for ESP32, ESP8266, and Arduino platforms**
+✅ Optional **smart resizing** that adapts to usage patterns for fewer re-allocations
 
 ## Installation
 To use **SimpleVector**, simply include the header file:
@@ -73,12 +67,60 @@ Your contributions help keep this project alive and growing! 🚀
 | `int indexOf(const T& element)` | Finds the index of an element, or `-1` if not found. |
 | **Memory Management** | |
 | `void releaseMemory()` | Manually releases allocated memory. |
+| **Smart Resize (compile with `-DSIMPLE_VECTOR_SMART_RESIZE`)** | |
+| `void setResizeAmount(unsigned int amount)` | Sets a fixed number of extra slots added on each smart resize (0 = adaptive). |
+| `void reserveEstimated(unsigned int estimatedTotal)` | Pre-allocates capacity for at least `estimatedTotal` elements, avoiding intermediate resizes. |
+| `bool smartShrinkToFit()` | Shrinks adaptively; gentle headroom early, aggressive shrink after repeated calls. |
+| `void resetSmartResizeCounters()` | Resets the internal resize-frequency counters. |
 | **Iterator Support** | |
 | `SimpleVectorIterator begin()` | Returns an iterator to the first element. |
 | `SimpleVectorIterator end()` | Returns an iterator to the last element. |
 
+---
 
-## Changelog
+## Smart Resizing
+
+By default **SimpleVector** doubles its capacity on each resize (standard exponential growth).  When you compile with `-DSIMPLE_VECTOR_SMART_RESIZE` an alternative growth strategy is activated that **adapts to how often resizing is needed**, reducing the total number of re-allocations in tight loops.
+
+### How it works
+
+| Situation | Behaviour |
+|-----------|-----------|
+| First few resizes | Standard 2× growth (same as default) |
+| After `SMART_RESIZE_THRESHOLD` (3) resizes | Switches to 4× growth to stay ahead of demand |
+| Custom fixed step (`setResizeAmount`) | Always adds exactly that many extra slots |
+| Pre-sized hint (`reserveEstimated`) | One upfront allocation, zero intermediate resizes |
+| Shrinking (first few calls) | Keeps 50 % headroom |
+| Shrinking (after `SMART_SHRINK_THRESHOLD`) | Aggressive: shrinks to exact element count |
+
+### Usage example
+
+```cpp
+#define SIMPLE_VECTOR_SMART_RESIZE
+#include <SimpleVector.h>
+
+// Option A – let the vector adapt automatically
+SimpleVector<int> v;
+for (int i = 0; i < 10000; i++) v.put(i);   // far fewer resizes than default
+
+// Option B – fixed extra slots per resize (good when growth rate is known)
+SimpleVector<int> v2;
+v2.setResizeAmount(256);
+for (int i = 0; i < 10000; i++) v2.put(i);
+
+// Option C – reserve upfront (zero resizes during fill)
+SimpleVector<int> v3;
+v3.reserveEstimated(10000);
+for (int i = 0; i < 10000; i++) v3.put(i);
+
+// Smart shrink after removal
+v3.smartShrinkToFit();
+```
+
+> **Note:** The standard `put()`, `push_back()`, and `emplace_back()` methods automatically use smart resizing when the directive is defined — no API changes are needed.
+
+
+
 
 ### Arduino Library Manager:
 

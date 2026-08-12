@@ -1420,3 +1420,83 @@ String EthernetConnectionChecker::resultsJson() const {
 String EthernetConnectionChecker::dashboardHtmlSnapshot() const {
     return dashboardHtml();
 }
+
+// ── Bridge-backed methods ────────────────────────────────────────────────────
+// Only compiled when ECC_USE_BRIDGE is defined before including the header.
+
+#ifdef ECC_USE_BRIDGE
+
+bool EthernetConnectionChecker::beginBridge() {
+    _bridgeMode = true;
+    _ethernetReady = true;  // skip hardware init; Bridge provides networking
+    recordEvent(String("[ecc] Bridge mode active"));
+    return true;
+}
+
+bool EthernetConnectionChecker::runChecksBridge() {
+    if (!_bridgeMode) {
+        return runChecks();
+    }
+
+    _results.clear();
+    bool allHealthy = true;
+
+    for (size_t i = 0; i < _endpoints.size(); ++i) {
+        const ECCEndpoint& ep = _endpoints.getReference(i);
+        ECCProbeResult result;
+        result.endpointName  = ep.name;
+        result.host          = ep.host;
+        result.path          = ep.path;
+        result.minAcceptedStatus = ep.minAcceptedStatus;
+        result.maxAcceptedStatus = ep.maxAcceptedStatus;
+        result.checkedAtMs   = millis();
+
+        unsigned long t0 = millis();
+
+        // Use Bridge net_check for HTTP reachability
+        String url = String("http://") + ep.host;
+        if (ep.port != 80) { url += String(":") + ep.port; }
+        url += ep.path;
+
+        bool httpOk = false;
+        bool callOk = Bridge.call("net_check", url).result(httpOk);
+        result.latencyMs    = millis() - t0;
+        result.connected    = callOk;
+        result.statusCode   = httpOk ? 200 : -1;   // net_check only returns bool
+        result.acceptedStatus = callOk && httpOk;
+
+        if (!result.acceptedStatus) {
+            allHealthy = false;
+            result.notes.setSingle(callOk ? String("HTTP check failed") : String("Bridge call failed"));
+        }
+
+        _results.add(result);
+
+        // Log each result via tm_record
+        String logLine = ep.name + String(" ") + url
+            + String(" connected=") + String(result.connected ? "1" : "0")
+            + String(" latency=") + result.latencyMs + String("ms");
+        Bridge.call("tm_record", String("ecc"), logLine);
+    }
+
+    _lastCheckAt = millis();
+    recordEvent(String("[ecc] Bridge checks done. healthy=") + String(allHealthy ? "1" : "0"));
+    return allHealthy;
+}
+
+bool EthernetConnectionChecker::uploadSnapshotsToBridge(const String& basePath) {
+    String root = basePath;
+    if (root.length() == 0) { root = "ecc"; }
+
+    bool wrote = false;
+    bool okDiag    = Bridge.call("fs_write", root + String("/diagnostics.json"), diagnosticsJson()).result(wrote) && wrote;
+    bool okResults = Bridge.call("fs_write", root + String("/results.json"),     resultsJson()).result(wrote) && wrote;
+
+    // Also push a summary line to thread memory for quick dashboard visibility
+    Bridge.call("tm_record", String("ecc"),
+        String("snapshot written healthy=" + String(okDiag && okResults ? "1" : "0")));
+
+    return okDiag && okResults;
+}
+
+#endif  // ECC_USE_BRIDGE

@@ -33,6 +33,12 @@ import queue
 import time
 from typing import Any, Dict, List, Optional
 
+# mcu.py is the single thread-safe gateway for all Python → MCU Bridge.call()s.
+try:
+    from handlers import mcu as _mcu_module
+except ImportError:
+    _mcu_module = None  # type: ignore
+
 MATRIX_ROWS   = 8
 MATRIX_COLS   = 13
 MATRIX_PIXELS = MATRIX_ROWS * MATRIX_COLS  # 104
@@ -69,6 +75,9 @@ def setup(bridge: Any, backends: Dict[str, Any]) -> None:
     """Called by PluginLoader at startup — receives the Bridge object."""
     global _bridge
     _bridge = bridge
+    # Also initialise mcu.py if it hasn't been set up yet
+    if _mcu_module is not None and _mcu_module._bridge is None:
+        _mcu_module.setup(bridge, backends)
     print("[ledmatrix] plugin ready — sketch must Bridge.provide_safe() its side")
 
 
@@ -150,8 +159,14 @@ def _software_playback_tick() -> None:
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
 def _mcu(method: str, *args) -> Any:
-    """Call an MCU-side Bridge.call() function. NOT safe inside provide() callbacks."""
+    """Thread-safe MCU call routed through mcu.call_safe when available."""
     global _mcu_available
+    if _mcu_module is not None and _mcu_module._bridge is not None:
+        result = _mcu_module.call_safe(method, *args)
+        if result is not None:
+            _mcu_available = True
+        return result
+    # Fallback: direct call (legacy path, not thread-safe)
     if _bridge is None:
         return None
     try:
@@ -160,7 +175,6 @@ def _mcu(method: str, *args) -> Any:
         return result
     except Exception as exc:
         err = str(exc)
-        # 'method not available' (error 2) means sketch didn't register it — stop retrying
         if "not available" in err or "(2)" in err:
             pass  # silent: MCU simply doesn't have this sketch loaded
         else:

@@ -1074,3 +1074,93 @@ String EthernetMach2ConnectionChecker::readLine(EthernetClient& client, unsigned
 
     return line;
 }
+
+// ── Bridge-backed methods ────────────────────────────────────────────────────
+// Only compiled when EM2_USE_BRIDGE is defined before including the header.
+
+#ifdef EM2_USE_BRIDGE
+
+bool EthernetMach2ConnectionChecker::beginBridge(const EM2ServerTarget& server) {
+    _serverTarget  = server;
+    _bridgeMode    = true;
+    _ethernetReady = true;  // skip hardware init; Bridge provides networking
+    recordEvent(String("[em2] Bridge mode active"));
+    return true;
+}
+
+bool EthernetMach2ConnectionChecker::runChecksBridge() {
+    if (!_bridgeMode) {
+        return runChecks();
+    }
+
+    _results.clear();
+    bool allAccepted = true;
+
+    for (size_t i = 0; i < _probes.size(); ++i) {
+        const EM2Probe& probe = _probes.getReference(i);
+        EM2ProbeResult result;
+        result.name          = probe.name;
+        result.host          = probe.host;
+        result.path          = probe.path;
+        result.checkedAtMs   = millis();
+
+        unsigned long t0 = millis();
+
+        String url = String("http://") + probe.host;
+        if (probe.port != 80) { url += String(":") + probe.port; }
+        url += probe.path;
+
+        bool httpOk = false;
+        bool callOk = Bridge.call("net_check", url).result(httpOk);
+        result.latencyMs  = millis() - t0;
+        result.connected  = callOk;
+        result.statusCode = httpOk ? 200 : -1;
+        result.accepted   = callOk && httpOk;
+
+        if (!result.accepted) {
+            allAccepted = false;
+            result.note = callOk ? String("HTTP check failed") : String("Bridge call failed");
+        }
+
+        _results.add(result);
+
+        String logLine = probe.name + String(" ") + url
+            + String(" connected=") + String(result.connected ? "1" : "0")
+            + String(" latency=") + result.latencyMs + String("ms");
+        Bridge.call("tm_record", String("em2"), logLine);
+    }
+
+    _lastCheckAt = millis();
+    recordEvent(String("[em2] Bridge checks done. allAccepted=") + String(allAccepted ? "1" : "0"));
+    return allAccepted;
+}
+
+bool EthernetMach2ConnectionChecker::uploadSnapshotsToBridge(const String& basePath) {
+    String root = basePath;
+    if (root.length() == 0) { root = "em2"; }
+
+    bool wrote = false;
+    bool okDiag = Bridge.call("fs_write", root + String("/diagnostics.json"),  diagnosticsJson()).result(wrote)  && wrote;
+    bool okRes  = Bridge.call("fs_write", root + String("/results.json"),       resultsJson()).result(wrote)      && wrote;
+    bool okReg  = Bridge.call("fs_write", root + String("/registration.json"),  registrationJson()).result(wrote) && wrote;
+    bool okHb   = Bridge.call("fs_write", root + String("/heartbeat.json"),     heartbeatJson()).result(wrote)    && wrote;
+
+    Bridge.call("tm_record", String("em2"),
+        String("snapshot written ok=") + String((okDiag && okRes && okReg && okHb) ? "1" : "0"));
+
+    return okDiag && okRes && okReg && okHb;
+}
+
+bool EthernetMach2ConnectionChecker::sendHeartbeatBridge() {
+    if (!_bridgeMode) {
+        return sendHeartbeat();
+    }
+    bool wrote = false;
+    bool ok = Bridge.call("fs_write",
+        String("em2/heartbeat.json"), heartbeatJson()).result(wrote) && wrote;
+    Bridge.call("tm_record", String("em2"), String("heartbeat ok=") + String(ok ? "1" : "0"));
+    if (ok) { _lastHeartbeatAt = millis(); }
+    return ok;
+}
+
+#endif  // EM2_USE_BRIDGE

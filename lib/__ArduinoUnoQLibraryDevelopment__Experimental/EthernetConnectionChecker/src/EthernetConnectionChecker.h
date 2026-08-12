@@ -7,6 +7,15 @@
 #include <SD.h>
 #include "../../UnoQFileTransferClient.h"
 
+// Define ECC_USE_BRIDGE before including this header to enable Bridge-backed
+// networking and logging. Boards without Arduino_RouterBridge are unaffected.
+#ifdef ECC_USE_BRIDGE
+  #include <Arduino_RouterBridge.h>
+  #ifndef ECC_BRIDGE_CHUNK_SIZE
+    #define ECC_BRIDGE_CHUNK_SIZE 128
+  #endif
+#endif
+
 #if defined(__has_include) && __has_include(<FS.h>)
     #include <FS.h>
 #else
@@ -203,6 +212,15 @@ public:
     String dashboardHtmlSnapshot() const;
     bool uploadSnapshotsToUnoQ(UnoQFileTransferClient& client, const String& basePath = "/ecc");
 
+#ifdef ECC_USE_BRIDGE
+    // Bridge mode: skip Ethernet/SD init; use Python container for networking and logging.
+    bool beginBridge();
+    // Run connectivity checks via Bridge net_ping / net_check calls.
+    bool runChecksBridge();
+    // Write diagnostics + results JSON to the Python container filesystem.
+    bool uploadSnapshotsToBridge(const String& basePath = "ecc");
+#endif
+
     // Local device tracking
     void addLocalDevice(
         const String& name,
@@ -255,6 +273,10 @@ private:
     uint8_t _serialBufLen;
 
     Optional<String> _lastError;
+
+#ifdef ECC_USE_BRIDGE
+    bool _bridgeMode = false;
+#endif
 
     void flashCode(uint8_t count, uint16_t onMs = 120, uint16_t offMs = 120);
     void recordEvent(const String& message);

@@ -9,6 +9,16 @@
 #include <stdlib.h>
 #include "../../UnoQFileTransferClient.h"
 
+// Define DYNAMIC_STORAGE_USE_BRIDGE before including this header to enable
+// Bridge-backed save/load on boards that have Arduino_RouterBridge available.
+#ifdef DYNAMIC_STORAGE_USE_BRIDGE
+  #include <Arduino_RouterBridge.h>
+  // Chunk size for chunked Bridge reads — keep well under RPC timeout
+  #ifndef DS_BRIDGE_CHUNK_SIZE
+    #define DS_BRIDGE_CHUNK_SIZE 128
+  #endif
+#endif
+
 #define DS_SUCCESS "DS0"
 #define DS_SD_ERROR "DS5"
 #define DS_FILE_NOT_FOUND "DS6"
@@ -317,6 +327,115 @@ public:
 
         return DS_FILE_READ_SUCCESS;
     }
+
+#ifdef DYNAMIC_STORAGE_USE_BRIDGE
+    // ── Bridge-backed persistence (Uno Q App Lab) ────────────────────────────
+    // Requires DYNAMIC_STORAGE_USE_BRIDGE to be defined before including this header.
+    // Python container must have handlers/filesystem.py loaded (standard main.py setup).
+
+    String saveBlocksToBridge(const String& remoteFilename = "") {
+        const String target = remoteFilename.length() > 0 ? remoteFilename : filename;
+
+        JSON json;
+        json.setNumber("meta.blockSize", blockSize);
+
+        json.setNumber("list.count", listStorage.elements());
+        for (size_t i = 0; i < listStorage.elements(); ++i) {
+            writeTypedValue(json, "list.values." + String(i), listStorage[i]);
+        }
+
+        SimpleVector<K> keys = mapStorage.keys();
+        json.setNumber("map.count", keys.elements());
+        for (size_t i = 0; i < keys.elements(); ++i) {
+            const K& key = keys[i];
+            const StoredValue* value = mapStorage.get(key);
+            if (!value) continue;
+
+            const String base = "map.entries." + String(i);
+            json.setString(base + ".key", keyToString(key));
+            json.setBool(base + ".isList", value->isList);
+
+            if (value->isList) {
+                json.setNumber(base + ".count", value->listValues.elements());
+                for (size_t j = 0; j < value->listValues.elements(); ++j) {
+                    writeTypedValue(json, base + ".values." + String(j), value->listValues[j]);
+                }
+            } else {
+                writeTypedValue(json, base + ".single", value->singleValue);
+            }
+        }
+
+        char* raw = json.writeToString(false);  // compact (no pretty-print) saves Bridge bandwidth
+        if (!raw) return DS_FILE_WRITE_ERROR;
+
+        bool wrote = false;
+        bool ok = Bridge.call("fs_write", target, String(raw)).result(wrote);
+        free(raw);
+        return (ok && wrote) ? DS_FILE_WRITE_SUCCESS : DS_FILE_WRITE_ERROR;
+    }
+
+    String loadBlocksFromBridge(const String& remoteFilename = "") {
+        const String target = remoteFilename.length() > 0 ? remoteFilename : filename;
+
+        // Check file exists and get its size
+        int fileSize = -1;
+        if (!Bridge.call("fs_read_size", target).result(fileSize) || fileSize <= 0) {
+            listStorage.clear();
+            mapStorage.clear();
+            return DS_FILE_NOT_FOUND;
+        }
+
+        // Assemble file content in chunks to avoid Bridge RPC timeout
+        String content;
+        content.reserve(static_cast<unsigned int>(fileSize) + 1);
+        int offset = 0;
+        while (offset < fileSize) {
+            String chunk;
+            if (!Bridge.call("fs_read_chunk", target, offset, (int)DS_BRIDGE_CHUNK_SIZE).result(chunk)) {
+                return DS_FILE_READ_ERROR;
+            }
+            if (chunk.length() == 0) break;
+            content += chunk;
+            offset += static_cast<int>(chunk.length());
+        }
+
+        JSON json;
+        if (!json.readFromString(content.c_str())) return DS_FILE_PARSE_ERROR;
+
+        listStorage.clear();
+        mapStorage.clear();
+
+        blockSize = static_cast<int>(json.getNumber("meta.blockSize", blockSize));
+
+        size_t listCount = static_cast<size_t>(json.getNumber("list.count", 0));
+        for (size_t i = 0; i < listCount; ++i) {
+            listStorage.put(readTypedValue(json, "list.values." + String(i), T()));
+        }
+
+        size_t mapCount = static_cast<size_t>(json.getNumber("map.count", 0));
+        for (size_t i = 0; i < mapCount; ++i) {
+            const String base = "map.entries." + String(i);
+            if (!json.hasKey(base + ".key")) continue;
+
+            K key = stringToKey(json.getString(base + ".key", ""));
+            StoredValue holder;
+            holder.isList = json.getBool(base + ".isList", false);
+
+            if (holder.isList) {
+                size_t count = static_cast<size_t>(json.getNumber(base + ".count", 0));
+                for (size_t j = 0; j < count; ++j) {
+                    holder.listValues.put(readTypedValue(json, base + ".values." + String(j), T()));
+                }
+            } else {
+                holder.singleValue = readTypedValue(json, base + ".single", T());
+            }
+
+            mapStorage.put(key, holder);
+        }
+
+        return DS_FILE_READ_SUCCESS;
+    }
+#endif  // DYNAMIC_STORAGE_USE_BRIDGE
 
 private:
     template <typename U>

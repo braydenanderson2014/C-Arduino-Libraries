@@ -22,6 +22,15 @@
 
 #include "../../UnoQFileTransferClient.h"
 
+// Define JSON_USE_BRIDGE before including this header to add Bridge-backed
+// readFromBridge / writeToBridge methods. Non-Bridge boards are unaffected.
+#ifdef JSON_USE_BRIDGE
+  #include <Arduino_RouterBridge.h>
+  #ifndef JSON_BRIDGE_CHUNK_SIZE
+    #define JSON_BRIDGE_CHUNK_SIZE 128
+  #endif
+#endif
+
 #ifndef JSON_ENABLE_OPTIONAL_RETURNS
 #define JSON_ENABLE_OPTIONAL_RETURNS 0
 #endif
@@ -108,6 +117,13 @@ public:
 
     int readFromUnoQ(UnoQFileTransferClient& client, const String& remotePath);
     int writeToUnoQ(UnoQFileTransferClient& client, const String& remotePath, bool pretty = true);
+
+#ifdef JSON_USE_BRIDGE
+    // Read JSON from the Python container filesystem via Bridge chunked read.
+    int readFromBridge(const String& remotePath);
+    // Write JSON to the Python container filesystem via Bridge fs_write.
+    int writeToBridge(const String& remotePath, bool pretty = false);
+#endif
 
     bool readFromString(const char* jsonStr);
     bool readFromString(const String& jsonStr) { return readFromString(jsonStr.c_str()); }

@@ -28,6 +28,14 @@
     #define MM_HAS_UNOQ_TRANSFER 0
 #endif
 
+// Define MM_USE_BRIDGE before including to add Bridge-backed export/log methods.
+#ifdef MM_USE_BRIDGE
+  #include <Arduino_RouterBridge.h>
+  #ifndef MM_BRIDGE_CHUNK_SIZE
+    #define MM_BRIDGE_CHUNK_SIZE 128
+  #endif
+#endif
+
 // Error Codes
 #define MM_SUCCESS 0
 #define MM_MEMORY_LEAK_ERROR 1
@@ -502,6 +510,46 @@ public:
         bool wrote = remoteTransfer->writeBytesBase64(remotePath, b64, false);
         lastError = wrote ? MM_SUCCESS : MM_FILE_WRITE_ERROR;
         return wrote;
+    }
+#endif
+
+#ifdef MM_USE_BRIDGE
+    // Export allocation table as JSON to the Python container filesystem.
+    bool exportAllocationsToBridge(const String& remotePath = "memory_manager/allocations.json") {
+        String json;
+        json.reserve(256 + memoryBlocks.elements() * 120);
+        json += "{\"blocks\":[";
+        bool first = true;
+        for (size_t i = 0; i < memoryBlocks.elements(); ++i) {
+            MemoryBlock* b = memoryBlocks.get(i);
+            if (!b) continue;
+            if (!first) json += ',';
+            first = false;
+            json += "{\"id\":"  + String(b->id)
+                 + ",\"size\":" + String(b->size)
+                 + ",\"freed\":" + String(b->freed ? "true" : "false")
+                 + ",\"storage\":\"" + String(storageKindName(static_cast<MMStorageKind>(b->storageKind))) + "\""
+                 + ",\"tag\":\"" + b->storageTag + "\""
+                 + ",\"file\":\"" + String(b->file ? b->file : "") + "\""
+                 + ",\"line\":" + String(b->line)
+                 + "}";
+        }
+        json += "],\"count\":" + String(memoryBlocks.elements()) + "}";
+
+        bool wrote = false;
+        bool ok = Bridge.call("fs_write", remotePath, json).result(wrote) && wrote;
+        lastError = ok ? MM_SUCCESS : MM_FILE_WRITE_ERROR;
+        return ok;
+    }
+
+    // Push a one-line allocation summary to Python thread memory for live monitoring.
+    bool logAllocToBridge(const String& tag, unsigned int bytes) {
+        String msg = String("alloc tag=") + tag
+                   + String(" bytes=") + bytes
+                   + String(" total=") + memoryBlocks.elements();
+        bool ok = false;
+        Bridge.call("tm_record", String("mm"), msg).result(ok);
+        return ok;
     }
 #endif
 

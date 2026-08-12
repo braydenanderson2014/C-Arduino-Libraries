@@ -55,60 +55,81 @@
 #include <Arduino_RouterBridge.h>
 #include "LedMatrixStory.h"
 
+// Define MATRIXSERVICE_THREAD_SAFE to protect story with a Mutex.
+// Required if Bridge.provide() (not provide_safe) is used, or if a background
+// ThreadManager thread also touches the story object.
+#ifdef MATRIXSERVICE_THREAD_SAFE
+  #include <Mutex.h>
+  static Mutex _storyMutex;
+  #define STORY_LOCK() Mutex::LockGuard _lg(_storyMutex)
+#else
+  #define STORY_LOCK() ((void)0)
+#endif
+
 // ─── Hardware ────────────────────────────────────────────────────────────────
 
 Arduino_LED_Matrix hw;
 LedMatrixStory story(hw);
 
-// ─── Matrix handlers ─────────────────────────────────────────────────────────
+// ─── Matrix handlers ───────────────────────────────────────────────────────────────
 
 bool mcu_matrix_load_scene(String csv, int index) {
+    STORY_LOCK();
     LedMatrixScene s = LedMatrixScene::fromString(csv);
     return story.setScene(static_cast<uint8_t>(index), s);
 }
 
 bool mcu_matrix_preview(String csv) {
+    STORY_LOCK();
     story.previewScene(LedMatrixScene::fromString(csv));
     return true;
 }
 
 bool mcu_matrix_play(int delayMs, bool looping) {
+    STORY_LOCK();
     story.play(static_cast<unsigned long>(delayMs), looping);
     return true;
 }
 
 bool mcu_matrix_pause() {
+    STORY_LOCK();
     story.pause();
     return true;
 }
 
 bool mcu_matrix_stop() {
+    STORY_LOCK();
     story.stop();
     return true;
 }
 
 bool mcu_matrix_next() {
+    STORY_LOCK();
     story.nextFrame();
     return true;
 }
 
 bool mcu_matrix_prev() {
+    STORY_LOCK();
     story.prevFrame();
     return true;
 }
 
 bool mcu_matrix_goto(int index) {
+    STORY_LOCK();
     story.gotoFrame(static_cast<uint8_t>(index));
     return true;
 }
 
 bool mcu_matrix_clear() {
+    STORY_LOCK();
     story.clearAll();
     story.blank();
     return true;
 }
 
 bool mcu_matrix_set_delay(int ms) {
+    STORY_LOCK();
     story.setFrameDelay(static_cast<unsigned long>(ms));
     return true;
 }
@@ -183,7 +204,7 @@ void setup() {
 
 void loop() {
     // Advance animation — MUST be called every iteration for frames to advance
-    story.update();
+    { STORY_LOCK(); story.update(); }
 
     // Wait for Python to be ready before sending anything
     static bool _ready = false;
