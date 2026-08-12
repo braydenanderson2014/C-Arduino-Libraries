@@ -7,9 +7,10 @@
 <!-- HEALTH_BADGES_END -->
 
 `SDList` is a paged, batch-buffered list for Arduino that offloads element storage
-to an SD card (or LittleFS) while keeping only a single fixed-size window of
-elements in RAM at a time.  It behaves like `ArrayList` / `SimpleVector` from the
-user's perspective but lets you hold far more elements than would fit in RAM.
+to an SD card, LittleFS, or an optional UnoQ bridge filesystem while keeping only
+a single fixed-size window of elements in RAM at a time.  It behaves like
+`ArrayList` / `SimpleVector` from the user's perspective but lets you hold far more
+elements than would fit in RAM.
 
 ## How it works
 
@@ -26,6 +27,8 @@ user's perspective but lets you hold far more elements than would fit in RAM.
   time) if you add more elements than originally reserved.
 * **LittleFS support** — compile with `-DUSE_LITTLEFS` to route all filesystem calls
   through `LittleFS` instead of the SD library.
+* **Optional UnoQ bridge support** — if `UnoQBridgeClient.h` is available, call
+  `beginUnoQ(client, path)` to store the backing file through UnoQ's remote FS API.
 
 ### File format
 
@@ -84,12 +87,25 @@ void setup() {
 
 ---
 
+
+### UnoQ bridge variant (optional)
+
+```cpp
+#include <UnoQBridgeClient.h>
+#include "SDList.h"
+
+// Configure your UnoQ transport/client first, then:
+SDList<int, 8> remoteList(SDCARD, 32);
+remoteList.beginUnoQ(unoqClient, "lists/ints.bin");
+```
+
 ## API
 
 | Method | Description |
 |--------|-------------|
 | `begin(csPin [, filename])` | Initialise SD card and open / create the backing file. Returns `false` and falls back to MEMORY mode if the card is unavailable. |
 | `beginLFS([filename])` | Initialise using LittleFS (requires `-DUSE_LITTLEFS`). |
+| `beginUnoQ(client [, filename])` | Initialise using an UnoQ bridge client when UnoQ headers are available at compile time. |
 | `append(element)` | Add element to the end. Returns `bool`. |
 | `add(element)` | Alias for `append()`. |
 | `get(index)` | Return element at index (or `T()` if out of range). |
@@ -149,7 +165,9 @@ fragmentation on the FAT filesystem.
 ## Dependencies
 
 * Arduino
-* SD + SPI  (or LittleFS when compiled with `-DUSE_LITTLEFS`)
+* SD + SPI  (default local backend)
+* LittleFS (when compiled with `-DUSE_LITTLEFS`)
+* UnoQBridgeClient (optional; auto-detected when header is available)
 
 ---
 
