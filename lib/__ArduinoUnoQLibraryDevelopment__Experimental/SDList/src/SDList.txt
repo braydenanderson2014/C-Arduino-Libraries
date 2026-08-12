@@ -484,6 +484,7 @@ class SDList {
             uint8_t v3 = 0;
             bool pad2 = (c2 == '=');
             bool pad3 = (c3 == '=');
+            if (pad2 && !pad3) return false;
             if (!pad2) {
                 v2 = _decodeB64Char(c2);
                 if (v2 == 255) return false;
