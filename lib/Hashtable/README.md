@@ -1,8 +1,8 @@
 # **Hashtable Library**
 
 <!-- HEALTH_BADGES_START -->
-[![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](https://github.com/braydenanderson2014/C-Arduino-Libraries/blob/main/reports/library-health-report.md)
-[![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)](https://github.com/braydenanderson2014/C-Arduino-Libraries/blob/main/reports/library-health-report.md)
+[![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)](../../reports/library-health-report.md)
+[![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)](../../reports/library-health-report.md)
 <!-- HEALTH_BADGES_END -->
 
 🚀 **A lightweight and efficient Hashtable implementation for Arduino**
