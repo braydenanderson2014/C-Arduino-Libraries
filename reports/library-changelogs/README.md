@@ -4,7 +4,7 @@ Auto-generated from git history for each library folder under `lib/`.
 
 | Library | Last Change | Total Commits | Recent Entries | Unreleased Entries |
 | --- | --- | ---: | ---: | ---: |
-| [ArrayList](ArrayList.md) | 2026-08-12 | 57 | 30 | 8 |
+| [ArrayList](ArrayList.md) | 2026-08-12 | 58 | 30 | 9 |
 | [AVLTree](AVLTree.md) | 2026-08-07 | 16 | 16 | 4 |
 | [BinarySearchTree](BinarySearchTree.md) | 2026-08-07 | 5 | 5 | 4 |
 | [BinaryTree](BinaryTree.md) | 2026-08-07 | 5 | 5 | 4 |
@@ -12,13 +12,13 @@ Auto-generated from git history for each library folder under `lib/`.
 | [bTree](bTree.md) | 2026-08-07 | 6 | 6 | 5 |
 | [ColorManager](ColorManager.md) | 2026-08-07 | 5 | 5 | 4 |
 | [Dictionary](Dictionary.md) | 2026-08-07 | 14 | 14 | 7 |
-| [DoubleLinkedList](DoubleLinkedList.md) | 2026-08-12 | 21 | 21 | 6 |
+| [DoubleLinkedList](DoubleLinkedList.md) | 2026-08-12 | 22 | 22 | 7 |
 | [DynamicStorageLibrary](DynamicStorageLibrary.md) | 2026-08-07 | 21 | 21 | 0 |
 | [EthernetConnectionChecker](EthernetConnectionChecker.md) | 2026-08-07 | 6 | 6 | 0 |
 | [EthernetMach2ConnectionChecker](EthernetMach2ConnectionChecker.md) | 2026-08-07 | 4 | 4 | 0 |
 | [ExtremeVariant](ExtremeVariant.md) | 2026-08-07 | 7 | 7 | 6 |
 | [FenwickTree](FenwickTree.md) | 2026-08-07 | 5 | 5 | 4 |
-| [Hashtable](Hashtable.md) | 2026-08-12 | 52 | 30 | 8 |
+| [Hashtable](Hashtable.md) | 2026-08-12 | 53 | 30 | 9 |
 | [HeapTree](HeapTree.md) | 2026-08-07 | 6 | 6 | 5 |
 | [Initializer_List](Initializer_List.md) | 2026-08-07 | 7 | 7 | 3 |
 | [IntervalTree](IntervalTree.md) | 2026-08-07 | 5 | 5 | 4 |
@@ -56,7 +56,7 @@ Auto-generated from git history for each library folder under `lib/`.
 | [Stack](Stack.md) | 2026-08-07 | 15 | 15 | 4 |
 | [String](String.md) | 2026-08-07 | 12 | 12 | 10 |
 | [SuffixTree](SuffixTree.md) | 2026-08-07 | 7 | 7 | 5 |
-| [Timer](Timer.md) | 2026-08-07 | 25 | 25 | 4 |
+| [Timer](Timer.md) | 2026-08-12 | 26 | 26 | 5 |
 | [TrieTree](TrieTree.md) | 2026-08-07 | 7 | 7 | 4 |
 | [TypeTraits](TypeTraits.md) | 2026-08-07 | 8 | 8 | 5 |
 | [UnorderedMap](UnorderedMap.md) | 2026-08-07 | 22 | 22 | 3 |

@@ -4,7 +4,7 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.8**
 - Release boundary commit: `39094be6` (2026-07-25)
-- Total commits touching this library on current history: **57**
+- Total commits touching this library on current history: **58**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
@@ -23,6 +23,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Documentation
 
+- sync library health badges (`21369d8d`, 2026-08-12)
 - sync library health badges (`3f3fbd39`, 2026-08-07)
 - sync library health badges (`915ef310`, 2026-08-07)
 
@@ -33,6 +34,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-12 | `21369d8d` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-12 | `f3480c9c` | github-actions[bot] | Back-sync ArrayList from remote PR #5 (478eac4) |
 | 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
 | 2026-08-07 | `3f3fbd39` | github-actions[bot] | chore(readme): sync library health badges |
@@ -62,5 +64,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2025-01-19 | `c6f310c8` | Brayden Anderson | Library Updates |
 | 2025-01-18 | `a1d0934e` | Brayden Anderson | ArrayList Changes |
 | 2025-01-15 | `e05a4a59` | Brayden Anderson | Update library.json |
-| 2025-01-15 | `847c1163` | Brayden Anderson | Update library.properties |
 

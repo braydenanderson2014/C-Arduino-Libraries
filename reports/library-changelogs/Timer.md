@@ -4,8 +4,8 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.2.0**
 - Release boundary commit: `ff982d11` (2026-08-03)
-- Total commits touching this library on current history: **25**
-- Recent commits shown: **25**
+- Total commits touching this library on current history: **26**
+- Recent commits shown: **26**
 
 ## Next Release (Experimental / Unreleased)
 
@@ -22,10 +22,12 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Documentation
 
+- Improve README with timer usage example (`fbb802d3`, 2026-08-12)
 - sync library health badges (`915ef310`, 2026-08-07)
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-12 | `fbb802d3` | Brayden Anderson | Improve README with timer usage example |
 | 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
 | 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-05 | `72cb3ed0` | Brayden Anderson | feat: add scripts to generate library changelogs and sync health badges |
