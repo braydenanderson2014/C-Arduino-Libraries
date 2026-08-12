@@ -20,6 +20,37 @@ A Flask-based web interface for creating and managing LED matrix animations on A
 pip install flask
 ```
 
+## File Placement (MCU vs Python)
+
+### MCU sketch (runs on board)
+
+- Use `CPP/examples/MatrixService/MatrixService.ino` as your sketch.
+- This sketch registers the `mcu_matrix_*` methods that Python calls.
+
+### Python files (run in Uno Q container)
+
+Copy these from `pythonAPI/` into your project `python/` folder:
+
+- `main.py`
+- `plugin_loader.py`
+- `matrixwebserver.py`
+- `handlers/ledmatrix.py`
+
+Keep `handlers/` as a folder under `python/`.
+
+### Library/header dependencies
+
+- `LedMatrixStory.h` must be available to the sketch include path.
+- `Arduino_RouterBridge.h` must be available in your App Lab/board environment.
+
+### Startup order
+
+1. Start Python (`main.py`) so bridge handlers/plugins are available.
+2. Run/upload `MatrixService.ino` on the MCU.
+3. Open the web UI on port 5000.
+
+---
+
 ### Setup
 
 1. Ensure `handlers/ledmatrix.py` is in your handlers folder (auto-discovered by PluginLoader)
@@ -128,7 +159,22 @@ Start animation playback.
 **Request:**
 ```json
 {
-  "delay": 300  // ms between frames
+  "delay": 300,
+  "wrap": true,
+  "count": 2
+}
+```
+
+`wrap/count` are optional. When enabled, playback repeats scenes for `count` loops.
+
+### POST `/api/wrap`
+Save playback wrap settings.
+
+**Request:**
+```json
+{
+  "enabled": true,
+  "count": 3
 }
 ```
 
@@ -154,7 +200,6 @@ Animations are stored in `matrix_animations.json`:
 
 ```json
 {
-  "name": "Matrix Animations",
   "scenes": [
     {
       "name": "All On",
@@ -165,9 +210,17 @@ Animations are stored in `matrix_animations.json`:
       "frame": [1, 0, 1, 0, ..., 0]
     }
   ],
-  "current_scene": 0,
-  "current_frame": [0, 0, 0, ...]
+  "wrap": {
+    "enabled": true,
+    "count": 2
+  }
 }
+```
+
+When wrap is enabled, export may include a loop marker scene:
+
+```json
+{ "kind": "loop", "count": 2 }
 ```
 
 ## Pixel Values

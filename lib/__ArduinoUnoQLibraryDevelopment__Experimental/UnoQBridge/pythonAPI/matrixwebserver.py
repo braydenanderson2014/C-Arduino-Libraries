@@ -56,25 +56,62 @@ if HAS_FLASK:
 
 # In-memory scene store
 _scenes: List[Dict[str, Any]] = []
+_wrap_enabled: bool = False
+_wrap_count: int = 1
 
 
-def _normalize_scenes(raw: Any) -> List[Dict[str, Any]]:
-    """Coerce legacy or malformed persisted scene data into a scene list."""
-    if isinstance(raw, list):
-        return [s for s in raw if isinstance(s, dict)]
+def _normalize_scene_payload(raw: Any) -> tuple[List[Dict[str, Any]], bool, int]:
+    """Coerce legacy or malformed persisted scene data into scenes plus wrap config."""
+    scenes: List[Dict[str, Any]] = []
+    wrap_enabled = False
+    wrap_count = 1
+
     if isinstance(raw, dict):
-        if isinstance(raw.get("scenes"), list):
-            return [s for s in raw["scenes"] if isinstance(s, dict)]
-        if all(isinstance(v, dict) for v in raw.values()):
-            return [v for v in raw.values() if isinstance(v, dict)]
-    return []
+        wrap = raw.get("wrap")
+        if isinstance(wrap, dict):
+            wrap_enabled = bool(wrap.get("enabled", False))
+            wrap_count = max(1, int(wrap.get("count", 1)))
+        raw = raw.get("scenes", raw)
+
+    if isinstance(raw, list):
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            if item.get("kind") == "loop":
+                wrap_enabled = True
+                wrap_count = max(1, int(item.get("count", 1)))
+                continue
+            frame = item.get("frame")
+            if isinstance(frame, list) and _valid_frame(frame):
+                scenes.append(item)
+
+    return scenes, wrap_enabled, wrap_count
+
+
+def _scene_payload() -> Dict[str, Any]:
+    scenes = list(_scenes)
+    if _wrap_enabled:
+        scenes.append({"kind": "loop", "count": _wrap_count})
+    return {
+        "scenes": scenes,
+        "wrap": {
+            "enabled": _wrap_enabled,
+            "count": _wrap_count,
+        },
+    }
+
+
+def _set_wrap(enabled: bool, count: int) -> None:
+    global _wrap_enabled, _wrap_count
+    _wrap_enabled = bool(enabled)
+    _wrap_count = max(1, int(count)) if _wrap_enabled else 1
 
 def _load_scenes() -> None:
-    global _scenes
+    global _scenes, _wrap_enabled, _wrap_count
     if os.path.exists(ANIMATIONS_FILE):
         try:
             with open(ANIMATIONS_FILE, "r") as f:
-                _scenes = _normalize_scenes(json.load(f))
+                _scenes, _wrap_enabled, _wrap_count = _normalize_scene_payload(json.load(f))
             print(f"[webserver] Loaded {len(_scenes)} scenes")
             _sync_ledmatrix_scenes()
         except Exception as e:
@@ -83,7 +120,7 @@ def _load_scenes() -> None:
 def _save_scenes() -> None:
     try:
         with open(ANIMATIONS_FILE, "w") as f:
-            json.dump(_scenes, f, indent=2)
+            json.dump(_scene_payload(), f, indent=2)
     except Exception as e:
         print(f"[webserver] Error saving scenes: {e}")
 
@@ -420,7 +457,13 @@ HTML_TEMPLATE = """
                             <button class="shift-btn" onclick="shiftFrame( 1, 0)" title="Shift ↓">↓</button>
                             <button class="shift-btn" onclick="shiftFrame( 1, 1)" title="Shift ↘">↘</button>
                         </div>
-                        <label style="font-size:0.8em; color:#888;">Arrows wrap around edges</label>
+                        <div style="display:flex; flex-direction:column; gap:6px;">
+                            <label style="font-size:0.8em; color:#888;">Choose how edge pixels behave while designing</label>
+                            <label style="display:flex; align-items:center; gap:6px; font-size:0.85em; color:#ddd;">
+                                <input type="checkbox" id="editWrapToggle" checked>
+                                Wrap edges during shift
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -439,6 +482,16 @@ HTML_TEMPLATE = """
                 <!-- Playback -->
                 <div class="control-section">
                     <label>Playback</label>
+                    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:12px; font-size:0.9em; color:#ddd;">
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input type="checkbox" id="wrapToggle" onchange="updateWrapSettings()">
+                            Wrap playback
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px;">
+                            Loops
+                            <input type="number" id="loopCount" min="1" max="999" value="1" style="width:84px; padding:4px 6px; border-radius:4px; border:1px solid #444; background:#111827; color:#e0e0e0;" onchange="updateWrapSettings()">
+                        </label>
+                    </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                         <button onclick="playAnimation()">Play</button>
                         <button onclick="pauseAnimation()" class="btn-secondary">Pause</button>
@@ -463,6 +516,42 @@ HTML_TEMPLATE = """
         let currentBrightness = 7;
         let currentFrame = new Array(PIXELS).fill(0);
         let scenes = [];
+        let editWrapEnabled = true;
+        let wrapEnabled = false;
+        let wrapCount = 1;
+
+        function applyWrapSettings(wrap) {
+            wrapEnabled = Boolean(wrap && wrap.enabled);
+            wrapCount = Math.max(1, parseInt((wrap && wrap.count) || 1, 10) || 1);
+            const wrapToggle = document.getElementById('wrapToggle');
+            const loopCount = document.getElementById('loopCount');
+            if (wrapToggle) wrapToggle.checked = wrapEnabled;
+            if (loopCount) {
+                loopCount.value = wrapCount;
+                loopCount.disabled = !wrapEnabled;
+            }
+        }
+
+        async function updateWrapSettings() {
+            const wrapToggle = document.getElementById('wrapToggle');
+            const loopCount = document.getElementById('loopCount');
+            wrapEnabled = !!wrapToggle.checked;
+            wrapCount = Math.max(1, parseInt(loopCount.value, 10) || 1);
+            loopCount.disabled = !wrapEnabled;
+            try {
+                const response = await fetch('/api/wrap', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled: wrapEnabled, count: wrapCount })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    updateStatus(wrapEnabled ? `Wrap enabled (${wrapCount} loop${wrapCount === 1 ? '' : 's'})` : 'Wrap disabled');
+                }
+            } catch (error) {
+                console.error('[updateWrapSettings]', error);
+            }
+        }
         
         // Initialize matrix
         function initMatrix() {
@@ -527,9 +616,15 @@ HTML_TEMPLATE = """
             const next = new Array(PIXELS).fill(0);
             for (let r = 0; r < ROWS; r++) {
                 for (let c = 0; c < COLS; c++) {
-                    const nr = (r + dRow + ROWS) % ROWS;
-                    const nc = (c + dCol + COLS) % COLS;
-                    next[nr * COLS + nc] = currentFrame[r * COLS + c];
+                    const nrRaw = r + dRow;
+                    const ncRaw = c + dCol;
+                    if (editWrapEnabled) {
+                        const nr = (nrRaw + ROWS) % ROWS;
+                        const nc = (ncRaw + COLS) % COLS;
+                        next[nr * COLS + nc] = currentFrame[r * COLS + c];
+                    } else if (nrRaw >= 0 && nrRaw < ROWS && ncRaw >= 0 && ncRaw < COLS) {
+                        next[nrRaw * COLS + ncRaw] = currentFrame[r * COLS + c];
+                    }
                 }
             }
             currentFrame = next;
@@ -563,7 +658,12 @@ HTML_TEMPLATE = """
             fetch('/api/scenes')
             .then(r => r.json())
             .then(data => {
-                const blob = new Blob([JSON.stringify({scenes: data.scenes}, null, 2)], {type: 'application/json'});
+                const payload = { scenes: data.scenes.slice() };
+                if (data.wrap && data.wrap.enabled) {
+                    payload.scenes.push({ kind: 'loop', count: Math.max(1, parseInt(data.wrap.count, 10) || 1) });
+                    payload.wrap = { enabled: true, count: Math.max(1, parseInt(data.wrap.count, 10) || 1) };
+                }
+                const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
                 a.download = 'matrix_animations.json';
@@ -580,18 +680,19 @@ HTML_TEMPLATE = """
             reader.onload = e => {
                 try {
                     const data = JSON.parse(e.target.result);
-                    // Accept either {scenes:[...]} or raw array
+                    const hasObjectPayload = !Array.isArray(data) && typeof data === 'object' && data !== null;
                     const incoming = Array.isArray(data) ? data : (data.scenes || []);
                     if (!incoming.length) { updateStatus('No scenes found in file'); return; }
                     fetch('/api/import', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ scenes: incoming })
+                        body: JSON.stringify(hasObjectPayload ? data : { scenes: incoming })
                     })
                     .then(r => r.json())
                     .then(res => {
                         if (res.success) { loadScenes(); updateStatus(`Imported ${res.count} scenes`); }
-                    });
+                    })
+                    .catch(err => console.error('[importScenes]', err));
                 } catch(err) { updateStatus('Invalid JSON file'); }
             };
             reader.readAsText(file);
@@ -603,6 +704,7 @@ HTML_TEMPLATE = """
             .then(r => r.json())
             .then(data => {
                 scenes = data.scenes;
+                applyWrapSettings(data.wrap || { enabled: false, count: 1 });
                 const list = document.getElementById('scenesList');
                 list.innerHTML = '';
                 scenes.forEach((scene, idx) => {
@@ -649,12 +751,16 @@ HTML_TEMPLATE = """
             fetch('/api/play', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ delay: parseInt(document.getElementById('delaySlider').value) })
+                body: JSON.stringify({
+                    delay: parseInt(document.getElementById('delaySlider').value),
+                    wrap: wrapEnabled,
+                    count: wrapCount
+                })
             })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    updateStatus(`Playing ${scenes.length} scenes...`);
+                    updateStatus(wrapEnabled ? `Playing ${scenes.length} scenes (${wrapCount} loop${wrapCount === 1 ? '' : 's'})...` : `Playing ${scenes.length} scenes...`);
                 }
             })
             .catch(e => console.error('[playAnimation]', e));
@@ -683,6 +789,11 @@ HTML_TEMPLATE = """
         
         document.getElementById('delaySlider').addEventListener('change', (e) => {
             document.getElementById('delayValue').textContent = e.target.value;
+        });
+
+        document.getElementById('editWrapToggle').addEventListener('change', (e) => {
+            editWrapEnabled = !!e.target.checked;
+            updateStatus(editWrapEnabled ? 'Design wrap enabled' : 'Design wrap disabled (shift clips at edges)');
         });
         
         // Init — auto-load scenes from server on startup
@@ -747,10 +858,14 @@ def api_delete_scene(idx):
 @app.route('/api/import', methods=['POST'])
 def api_import_scenes():
     """Replace all scenes with an imported set."""
-    data = request.get_json()
+    data = request.get_json() or {}
     incoming = data.get('scenes', [])
-    # Accept frames as lists of ints; skip malformed entries
-    valid = [s for s in incoming if isinstance(s.get('frame', None), list) and _valid_frame(s['frame'])]
+    valid, wrap_enabled, wrap_count = _normalize_scene_payload(incoming)
+    if isinstance(data.get('wrap'), dict):
+        wrap = data['wrap']
+        wrap_enabled = bool(wrap.get('enabled', wrap_enabled))
+        wrap_count = max(1, int(wrap.get('count', wrap_count)))
+    _set_wrap(wrap_enabled, wrap_count)
     if not valid:
         return jsonify({"success": False, "error": "No valid scenes in payload"}), 400
     _scenes[:] = valid
@@ -761,7 +876,17 @@ def api_import_scenes():
 
 @app.route('/api/scenes', methods=['GET'])
 def api_get_scenes():
-    return jsonify({"success": True, "scenes": _scenes})
+    return jsonify({"success": True, "scenes": _scenes, "wrap": {"enabled": _wrap_enabled, "count": _wrap_count}})
+
+
+@app.route('/api/wrap', methods=['POST'])
+def api_set_wrap():
+    data = request.get_json() or {}
+    enabled = bool(data.get('enabled', False))
+    count = max(1, int(data.get('count', 1)))
+    _set_wrap(enabled, count)
+    _save_scenes()
+    return jsonify({"success": True, "wrap": {"enabled": _wrap_enabled, "count": _wrap_count}})
 
 
 @app.route('/api/play', methods=['POST'])
@@ -769,7 +894,9 @@ def api_play():
     data = request.get_json() or {}
     delay = int(data.get('delay', 300))
     if HAS_LEDMATRIX:
-        return jsonify({"success": ledmatrix.matrix_play(delay, loop=True)})
+        repeat_count = max(1, int(data.get('count', _wrap_count if _wrap_enabled else 1)))
+        wrap_enabled = bool(data.get('wrap', _wrap_enabled))
+        return jsonify({"success": ledmatrix.matrix_play(delay, loop=False, repeat_count=repeat_count if wrap_enabled else 1)})
     return jsonify({"success": True})
 
 

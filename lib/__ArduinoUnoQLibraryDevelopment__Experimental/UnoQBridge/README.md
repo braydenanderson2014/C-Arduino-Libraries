@@ -42,6 +42,168 @@ the Python business-logic layer.
 
 ---
 
+## Matrix Setup (What Goes Where)
+
+Use this when you want the LED matrix web UI + bridge working end-to-end.
+
+### 1) Arduino sketch file (runs on MCU)
+
+- **Use as sketch:** `CPP/examples/MatrixService/MatrixService.ino`
+- This is the firmware you run/upload in App Lab (or Arduino sketch flow).
+- It must be the sketch that registers `mcu_matrix_*` bridge handlers.
+
+### 2) Arduino/library headers (compile-time dependencies)
+
+- `#include <Arduino_RouterBridge.h>` comes from the RouterBridge/App Lab environment.
+- `#include "LedMatrixStory.h"` comes from:
+    - `../LedMatrixStory/LedMatrixStory.h` in this repository.
+- `src/UnoQBridge.h`, `src/UnoQBridgeClient.h`, `src/UnoQFileTransferClient.h` are library-side bridge scaffolding and do **not** replace `MatrixService.ino`.
+
+### 3) Python container files (run in Uno Q Linux side)
+
+Place these under your container project `python/` folder:
+
+- `pythonAPI/main.py` -> `python/main.py` (entry point)
+- `pythonAPI/plugin_loader.py` -> `python/plugin_loader.py`
+- `pythonAPI/matrixwebserver.py` -> `python/matrixwebserver.py`
+- `pythonAPI/handlers/ledmatrix.py` -> `python/handlers/ledmatrix.py`
+- plus the rest of `pythonAPI/handlers/*.py` required by your bridge setup.
+
+### 4) What to run
+
+1. Start the Python app (runs `main.py`, which starts bridge handlers/plugins).
+2. Upload/run `MatrixService.ino` on the board.
+3. Open the web UI at `http://<UnoQ-IP>:5000`.
+
+If one side is missing (MCU sketch or Python handlers), matrix playback/preview will not work.
+
+---
+
+## Bidirectional Bridge Wiring (MCU <-> Python)
+
+Use this section when you want to build your own feature/library on top of UnoQBridge.
+
+### Direction A: MCU -> Python (Arduino calls Python)
+
+Files involved:
+
+- `python/main.py` (registers callable bridge functions via `Bridge.provide(...)`)
+- `python/handlers/*.py` (business logic called by `main.py`)
+- your sketch `.ino` (calls those functions using `Bridge.call(...).result(...)`)
+
+Minimal flow:
+
+1. Define Python function in `main.py`.
+2. Register it with `Bridge.provide("name", fn)`.
+3. Call it from Arduino sketch with `Bridge.call("name", args...).result(value)`.
+
+### Direction B: Python -> MCU (Python calls Arduino sketch)
+
+Files involved:
+
+- sketch `.ino` (registers MCU handlers with `Bridge.provide_safe("mcu_*", fn)`)
+- `python/handlers/ledmatrix.py` or your own Python module (calls `_bridge.call("mcu_*", ...)`)
+
+Minimal flow:
+
+1. In sketch, expose MCU operation using `Bridge.provide_safe("mcu_x", handler)`.
+2. In Python, call that operation with `Bridge.call("mcu_x", ...)`.
+3. Keep these calls outside `Bridge.provide()` callbacks to avoid deadlocks.
+
+### Example: Arduino-side wrapper for a dependent library
+
+If another Arduino library in this repo wants to depend on UnoQBridge, create a small wrapper class around `Bridge.call`:
+
+```cpp
+// MyBridgeClient.h
+#pragma once
+#include <Arduino.h>
+#include <Arduino_RouterBridge.h>
+
+class MyBridgeClient {
+public:
+    static bool pingHost(const String& host) {
+        bool ok = false;
+        Bridge.call("net_ping", host).result(ok);
+        return ok;
+    }
+
+    static bool writeText(const String& path, const String& content) {
+        bool ok = false;
+        Bridge.call("fs_write", path, content).result(ok);
+        return ok;
+    }
+};
+```
+
+This keeps your dependent library API clean while the bridge details stay isolated.
+
+### Example: Python-side wrapper for a dependent module
+
+If a Python feature wants bridge calls centralized, wrap bridge usage in a tiny client module:
+
+```python
+# python/clients/mcu_client.py
+from typing import Any
+
+
+class McuClient:
+    def __init__(self, bridge: Any):
+        self._bridge = bridge
+
+    def digital_write(self, pin: int, value: int) -> bool:
+        result = self._bridge.call("mcu_digital_write", pin, value)
+        return bool(result) if result is not None else False
+
+    def matrix_preview(self, csv: str) -> bool:
+        result = self._bridge.call("mcu_matrix_preview", csv)
+        return bool(result) if result is not None else False
+```
+
+Then inject this client into handlers/services instead of scattering raw bridge calls.
+
+### Example: Expose a new Python API to Arduino
+
+```python
+# in python/main.py
+def calc_crc32(data: str) -> str:
+    import zlib
+    return hex(zlib.crc32(data.encode("utf-8")) & 0xFFFFFFFF)
+
+
+Bridge.provide("util_crc32", calc_crc32)
+```
+
+Arduino sketch side:
+
+```cpp
+String crc;
+Bridge.call("util_crc32", String("hello")).result(crc);
+```
+
+### Example: Expose a new MCU API to Python
+
+Sketch side:
+
+```cpp
+int mcu_uptime_ms() {
+    return (int)millis();
+}
+
+void setup() {
+    Bridge.begin();
+    Bridge.provide_safe("mcu_uptime_ms", mcu_uptime_ms);
+}
+```
+
+Python side:
+
+```python
+uptime = bridge.call("mcu_uptime_ms")
+```
+
+---
+
 ## Bridge API Quick Reference
 
 All paths are relative to `python/unoq_files/` (sandboxed root).

@@ -30,6 +30,7 @@ The sketch must register its side with Bridge.provide_safe():
 from __future__ import annotations
 
 import queue
+import time
 from typing import Any, Dict, List, Optional
 
 MATRIX_ROWS   = 8
@@ -43,6 +44,10 @@ _scenes: List[str] = []
 _current_frame: int  = 0
 _playing: bool       = False
 _frame_delay: int    = 200
+_software_playing: bool = False
+_software_frames: List[str] = []
+_software_index: int = 0
+_software_last_tick: float = 0.0
 
 # Frames queued for MCU rendering — populated in Bridge callbacks, drained in loop()
 # Unbounded so large scene sets cannot drop the final __play__ command.
@@ -80,7 +85,7 @@ def loop() -> None:
         try:
             item = _preview_queue.get_nowait()
         except queue.Empty:
-            return
+            break
 
         if item == "__clear__":
             _mcu("mcu_matrix_clear")
@@ -106,6 +111,40 @@ def loop() -> None:
                 _mcu("mcu_matrix_play", int(parts[0]), parts[1] == "1")
         else:
             _mcu("mcu_matrix_preview", item)
+
+    _software_playback_tick()
+
+
+def _start_software_playback(frames: List[str], delay_ms: int) -> None:
+    """Play frames from Python when the MCU scene capacity is exceeded."""
+    global _software_playing, _software_frames, _software_index, _software_last_tick
+    _software_frames = list(frames)
+    _software_index = 0
+    _software_last_tick = 0.0
+    _software_playing = bool(_software_frames)
+    if _software_playing:
+        _mcu("mcu_matrix_stop")
+        _mcu("mcu_matrix_preview", _software_frames[0])
+        _software_index = 1
+        _software_last_tick = time.monotonic()
+        print(f"[ledmatrix] software playback active: {len(_software_frames)} frame(s) @ {delay_ms}ms")
+
+
+def _software_playback_tick() -> None:
+    """Advance software playback by one frame when frame delay has elapsed."""
+    global _software_playing, _software_index, _software_last_tick, _playing
+    if not _software_playing:
+        return
+    now = time.monotonic()
+    if (now - _software_last_tick) * 1000.0 < _frame_delay:
+        return
+    if _software_index >= len(_software_frames):
+        _software_playing = False
+        _playing = False
+        return
+    _mcu("mcu_matrix_preview", _software_frames[_software_index])
+    _software_index += 1
+    _software_last_tick = now
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -174,29 +213,46 @@ def matrix_preview(csv: str) -> bool:
         return False
 
 
-def matrix_play(delay: int = 200, loop: bool = True, *args) -> bool:
+def matrix_play(delay: int = 200, loop: bool = True, repeat_count: int = 1, *args) -> bool:
     """Sync all stored scenes to MCU and start playback."""
-    global _playing, _frame_delay
+    global _playing, _frame_delay, _software_playing
     _frame_delay = int(delay)
     _playing = True
+    repeat_count = max(1, int(repeat_count))
+    frames_to_play: List[str] = []
+    for _ in range(repeat_count):
+        frames_to_play.extend(_scenes)
+
+    # Uno Q story storage is capped at 64 scenes; use software timing above that.
+    if len(frames_to_play) > 64:
+        _software_playing = False
+        _start_software_playback(frames_to_play, _frame_delay)
+        print(f"[ledmatrix] matrix_play: software mode for {len(frames_to_play)} frame(s) @ {_frame_delay}ms")
+        return True
+
+    _software_playing = False
     _queue("__clear__")
-    for i, csv in enumerate(_scenes):
-        _queue(f"__load__{i}__{csv}")
-    _queue(f"__play__{delay}__{1 if loop else 0}")
-    print(f"[ledmatrix] matrix_play: queued {len(_scenes)} scene(s) @ {delay}ms, loop={loop}")
+    load_index = 0
+    for csv in frames_to_play:
+        _queue(f"__load__{load_index}__{csv}")
+        load_index += 1
+    _queue(f"__play__{delay}__{1 if loop and repeat_count == 1 else 0}")
+    print(f"[ledmatrix] matrix_play: queued {len(_scenes)} scene(s) x{repeat_count} @ {delay}ms, loop={loop}")
     return True
 
 
 def matrix_pause(*args) -> bool:
-    global _playing
+    global _playing, _software_playing
     _playing = False
+    _software_playing = False
     _queue("__pause__")
     return True
 
 
 def matrix_stop(*args) -> bool:
-    global _playing, _current_frame
+    global _playing, _current_frame, _software_playing
     _playing = False
+    _software_playing = False
     _current_frame = 0
     _queue("__stop__")
     return True
@@ -226,10 +282,11 @@ def matrix_goto(index: int, *args) -> bool:
 
 
 def matrix_clear(*args) -> bool:
-    global _scenes, _current_frame, _playing
+    global _scenes, _current_frame, _playing, _software_playing
     _scenes = []
     _current_frame = 0
     _playing = False
+    _software_playing = False
     _queue("__clear__")
     return True
 
@@ -253,9 +310,9 @@ def mcu_matrix_preview(csv: str) -> bool:
     return _mcu("matrix_preview", csv) is not False
 
 
-def mcu_matrix_play(delay: int = 200, loop: bool = True) -> bool:
+def mcu_matrix_play(delay: int = 200, loop: bool = True, repeat_count: int = 1) -> bool:
     """Python → MCU: start playing the story."""
-    return matrix_play(delay, loop)
+    return matrix_play(delay, loop, repeat_count)
 
 
 def mcu_matrix_stop() -> bool:
