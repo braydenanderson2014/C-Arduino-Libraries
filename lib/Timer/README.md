@@ -193,7 +193,10 @@ myTimer.setTargetSeconds(1);
 myTimer.setRepeating(true);
 myTimer.onTargetReached(flashLED);
 myTimer.start();
-// LED toggles every second — loop() needs no if() at all
+
+void loop() {
+    myTimer.hasReachedTarget(); // triggers callback + auto-repeat when repeating is enabled
+}
 ```
 
 ### lap() — lap/split timer
