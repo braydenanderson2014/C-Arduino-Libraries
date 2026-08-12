@@ -381,7 +381,7 @@ class SDList {
                         _count = cnt;
                         _reserved = res;
                         _ready = true;
-                        _loadBatch(0);
+                        if (!_loadBatch(0)) { _ready = false; return false; }
                         return true;
                     }
                 }
