@@ -12,9 +12,9 @@ A simple, templated linked list implementation for Arduino projects. This class 
 
 - Templated class: Can store any data type.
 - Dynamic resizing: Automatically manages memory as elements are added or removed.
-- Basic operations: `append`, `prepend`, `insert`, `remove`, `get`, `contains`, `getSize`, `isEmpty`, `clear`.
+- Basic operations: `append`, `prepend`, `insert`, `remove` (by index), `removeElement` (by value), `get`, `getElement`, `find`, `size`, `isEmpty`, `clear`, `contains`.
 
-## WARNING: This Library Utilizes POINTERS *. This is due to the Libraries ability to utilize any return type. (Bool, String, int, float, etc)
+## Warning: This library uses pointers (e.g., `get()` returns `T*`). Always check for `nullptr` before dereferencing.
 
 ## Installation
 
@@ -116,7 +116,7 @@ myList.insert(1); //Insert '1' anywhere in the List.
 int value = myList.get(1);
 ```
 ## Removing Elements
-### Remove an element by value:
+### Remove an element by index:
 
 ```cpp
 myList.remove(1);
