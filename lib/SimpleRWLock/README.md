@@ -48,6 +48,25 @@ If your board is outside these targets, this library intentionally blocks compil
 
 - New readers pause when writers are waiting.
 - This helps avoid writer starvation in read-heavy workloads.
+- A thread that already holds a read lock is exempt: it re-enters immediately
+  instead of waiting on a queued writer (which would be waiting on itself).
+
+## Reentrancy
+
+The lock is reentrant per thread:
+
+- `writeLock()` from the thread that already owns the write lock increments a
+  recursion count; the lock is released when the matching number of
+  `writeUnlock()` calls have been made.
+- `readLock()` from a thread that already holds a read lock re-enters.
+- `readLock()` from the current writer succeeds and is released by the matching
+  `readUnlock()`.
+- `writeLock()` from a thread that only holds a read lock returns `false`
+  immediately rather than deadlocking; a read-to-write upgrade is not supported.
+
+Read reentrancy is tracked in a fixed-size table (`SRWL_MAX_TRACKED_READERS`,
+default `8`). Readers beyond that limit still acquire the lock normally, they
+just cannot re-enter.
 
 ## API
 
@@ -55,8 +74,13 @@ If your board is outside these targets, this library intentionally blocks compil
 - `void readUnlock()`
 - `bool writeLock(unsigned long timeoutMs = 0)`
 - `void writeUnlock()`
+- `bool holdsReadLock() const`
+- `bool holdsWriteLock() const`
 - `uint16_t activeReaders() const`
 - `bool writerActive() const`
+- `intptr_t writerThreadId() const`
+- `SimpleRWLock::ReadGuard` / `SimpleRWLock::WriteGuard` — scoped RAII guards
+  with a `locked()` accessor.
 
 ## Timeout semantics
 
@@ -90,11 +114,24 @@ bool writeValue(int v) {
 }
 ```
 
+### Scoped guards
+
+```cpp
+int readValueGuarded() {
+	SimpleRWLock::ReadGuard guard(rwLock, 50);
+	if (!guard.locked()) {
+		return -1;
+	}
+	return sharedValue;
+}
+```
+
 ## Design notes
 
 - Always match each successful lock with the corresponding unlock.
 - Keep write sections short to reduce read blocking.
-- Avoid lock upgrades (read-to-write) within one flow unless explicitly designed.
+- Recursive acquisition is safe; read-to-write upgrades still are not, and fail
+  fast so the caller can restructure instead of hanging.
 
 ## Notes
 
