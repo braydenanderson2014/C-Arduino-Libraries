@@ -30,7 +30,7 @@ void setup() {
     
     // Access and print the elements using the [] operator
     Serial.println("Elements in the vector:");
-    for (unsigned int i = 0; i < numbers.size(); i++) { // Iterate through the vector using the [] operator
+    for (unsigned int i = 0; i < numbers.elements(); i++) { // Iterate through the vector using the [] operator ... (size() is for capacity, and elements() is for the amount of elements in the list)
         Serial.print(numbers.get(i)); // Print the value
         Serial.print(" ");
     }
