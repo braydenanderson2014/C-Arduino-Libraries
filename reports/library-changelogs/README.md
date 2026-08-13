@@ -52,7 +52,7 @@ Auto-generated from git history for each library folder under `lib/`.
 | [SimpleRWLock](SimpleRWLock.md) | 2026-08-13 | 4 | 4 | 3 |
 | [SimpleSemaphore](SimpleSemaphore.md) | 2026-08-05 | 3 | 3 | 2 |
 | [SimpleThreadManager](SimpleThreadManager.md) | 2026-08-07 | 6 | 6 | 0 |
-| [SimpleVector](SimpleVector.md) | 2026-08-13 | 51 | 30 | 14 |
+| [SimpleVector](SimpleVector.md) | 2026-08-13 | 52 | 30 | 15 |
 | [Stack](Stack.md) | 2026-08-07 | 15 | 15 | 4 |
 | [String](String.md) | 2026-08-07 | 12 | 12 | 10 |
 | [SuffixTree](SuffixTree.md) | 2026-08-07 | 7 | 7 | 5 |

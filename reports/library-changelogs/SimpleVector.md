@@ -4,7 +4,7 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.11**
 - Release boundary commit: `7e12be8d` (2025-12-10)
-- Total commits touching this library on current history: **51**
+- Total commits touching this library on current history: **52**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
@@ -19,6 +19,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Bug Fixes
 
+- Fix loop condition to use elements() method (`03694177`, 2026-08-13)
 - fix duplicate detection runtime and library metadata links (`07f70592`, 2026-08-07)
 - make count and capacity mutable for rpi core compile compatibility (`de8152af`, 2026-07-22)
 
@@ -39,6 +40,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-13 | `03694177` | Brayden Anderson | Fix loop condition to use elements() method |
 | 2026-08-13 | `1ed796a1` | Brayden Anderson | Update Example.ino |
 | 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
 | 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
@@ -68,5 +70,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2025-01-29 | `44c43bec` | Brayden Anderson | Library Updates |
 | 2025-01-22 | `826bb850` | Brayden Anderson | Fixed JSON to be more useful, and made changes to the Unordered Map Class. |
 | 2025-01-18 | `a1d0934e` | Brayden Anderson | ArrayList Changes |
-| 2025-01-07 | `69b4c081` | Brayden Anderson | Library Updates |
 
