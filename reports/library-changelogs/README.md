@@ -56,9 +56,10 @@ Auto-generated from git history for each library folder under `lib/`.
 | [Stack](Stack.md) | 2026-08-07 | 15 | 15 | 4 |
 | [String](String.md) | 2026-08-07 | 12 | 12 | 10 |
 | [SuffixTree](SuffixTree.md) | 2026-08-07 | 7 | 7 | 5 |
-| [Timer](Timer.md) | 2026-08-13 | 28 | 28 | 7 |
+| [Timer](Timer.md) | 2026-08-13 | 29 | 29 | 8 |
 | [TrieTree](TrieTree.md) | 2026-08-07 | 7 | 7 | 4 |
 | [TypeTraits](TypeTraits.md) | 2026-08-07 | 8 | 8 | 5 |
+| [UnoQBridge](UnoQBridge.md) | 2026-08-13 | 1 | 1 | 0 |
 | [UnorderedMap](UnorderedMap.md) | 2026-08-07 | 22 | 22 | 3 |
 | [Variant](Variant.md) | 2026-08-07 | 14 | 14 | 4 |
 
