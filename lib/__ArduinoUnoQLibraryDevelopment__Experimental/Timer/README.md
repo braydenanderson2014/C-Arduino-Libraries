@@ -164,6 +164,36 @@ myTimer.setTimezone(-5);  // UTC-5 (Eastern Standard Time)
 myTimer.restart();  // instead of: myTimer.clear(); myTimer.start();
 ```
 
+### UnoQ bridge support
+
+If the UnoQ App Lab bridge is enabled, you can register a Timer instance so Python can call it over `Bridge.call()`:
+
+```cpp
+#define TIMER_USE_BRIDGE
+#include "SimpleArduinoTimer.h"
+
+Timer myTimer;
+
+void setup() {
+    myTimer.setTargetSeconds(5);
+    myTimer.beginBridge();  // registers timer_start, timer_stop, timer_set_target_seconds, ...
+}
+```
+
+From Python, the sketch exposes methods such as:
+
+```python
+Bridge.call("timer_start")
+Bridge.call("timer_set_target_seconds", 5)
+Bridge.call("timer_pause")
+Bridge.call("timer_resume")
+Bridge.call("timer_elapsed_ms")
+Bridge.call("timer_remaining_ms")
+Bridge.call("timer_has_reached_target")
+```
+
+The default prefix is `timer`, but you can use a custom prefix with `myTimer.beginBridge("my_timer")` and then call `Bridge.call("my_timer_start", ...)`.
+
 ### setRepeating(bool) — auto-restart mode
 
 When enabled the timer restarts automatically from zero every time the target is reached.
@@ -286,6 +316,45 @@ Additional API when the macros are enabled:
 sketch can fall back to polling `hasReachedTarget()` from `loop()`. The target
 callback runs while the Timer lock is held; calling back into the same Timer is
 safe (the mutex is recursive), but avoid blocking on other locks inside it.
+
+### UnoQ / App Lab bridge test flow
+
+When `TIMER_USE_BRIDGE` is enabled, a Timer can register its public API with the
+Arduino Router Bridge and then be driven directly from Python:
+
+```cpp
+#include <SimpleArduinoTimer.h>
+Timer timer(false);
+
+void setup() {
+    Bridge.begin();
+    timer.beginBridge("timer");
+    timer.setTargetSeconds(5);
+    timer.setRepeating(true);
+    timer.start();
+
+#ifdef TIMER_ENABLE_THREADING
+    timer.startMonitor(100);   // background polling thread
+#endif
+}
+
+void loop() {
+    if (millis() - lastPush >= 250UL) {
+        Bridge.notify("timer_snapshot",
+                      (int)timer.elapsed(),
+                      (int)timer.getTargetDuration(),
+                      timer.isTimerRunning(),
+                      timer.isTimerPaused(),
+                      timer.getRepeating(),
+                      timer.hasReachedTarget());
+    }
+}
+```
+
+On the Python side, the bridge plugin in `UnoQBridge/python/handlers/timer.py`
+receives those snapshot notifications and exposes a compact JSON status payload.
+That lets you test the timer from the App Lab Python container without changing
+any of the C++ timer logic.
 
 ## Installation
 

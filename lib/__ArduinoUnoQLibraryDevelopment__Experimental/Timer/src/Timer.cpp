@@ -655,6 +655,218 @@ bool Timer::isThreadSafe() {
 #endif
 }
 
+#ifdef TIMER_USE_BRIDGE
+Timer* Timer::_bridgeInstance = nullptr;
+String Timer::_bridgePrefix = "timer";
+bool Timer::_bridgeRegistered = false;
+
+bool Timer::_bridgeStart() {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    _bridgeInstance->start();
+    return true;
+}
+
+bool Timer::_bridgeStop() {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    _bridgeInstance->stop();
+    return true;
+}
+
+bool Timer::_bridgeReset() {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    _bridgeInstance->reset();
+    return true;
+}
+
+bool Timer::_bridgeClear() {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    _bridgeInstance->clear();
+    return true;
+}
+
+bool Timer::_bridgePause() {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    _bridgeInstance->pause();
+    return true;
+}
+
+bool Timer::_bridgeResume() {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    _bridgeInstance->resume();
+    return true;
+}
+
+bool Timer::_bridgeRestart() {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    _bridgeInstance->restart();
+    return true;
+}
+
+bool Timer::_bridgeSetTargetDuration(unsigned long durationMs) {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    _bridgeInstance->setTargetDuration(durationMs);
+    return true;
+}
+
+bool Timer::_bridgeSetTargetSeconds(unsigned long seconds) {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    _bridgeInstance->setTargetSeconds(seconds);
+    return true;
+}
+
+bool Timer::_bridgeSetTargetMinutes(unsigned long minutes) {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    _bridgeInstance->setTargetMinutes(minutes);
+    return true;
+}
+
+bool Timer::_bridgeSetTargetHours(unsigned long hours) {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    _bridgeInstance->setTargetHours(hours);
+    return true;
+}
+
+unsigned long Timer::_bridgeElapsed() {
+    if (_bridgeInstance == nullptr) {
+        return 0;
+    }
+    return _bridgeInstance->elapsed();
+}
+
+unsigned long Timer::_bridgeElapsedSeconds() {
+    if (_bridgeInstance == nullptr) {
+        return 0;
+    }
+    return _bridgeInstance->elapsedSeconds();
+}
+
+unsigned long Timer::_bridgeElapsedMinutes() {
+    if (_bridgeInstance == nullptr) {
+        return 0;
+    }
+    return _bridgeInstance->elapsedMinutes();
+}
+
+unsigned long Timer::_bridgeElapsedHours() {
+    if (_bridgeInstance == nullptr) {
+        return 0;
+    }
+    return _bridgeInstance->elapsedHours();
+}
+
+unsigned long Timer::_bridgeRemainingTime() {
+    if (_bridgeInstance == nullptr) {
+        return 0;
+    }
+    return _bridgeInstance->remainingTime();
+}
+
+unsigned long Timer::_bridgeRemainingTimeMillis() {
+    if (_bridgeInstance == nullptr) {
+        return 0;
+    }
+    return _bridgeInstance->remainingTimeMillis();
+}
+
+bool Timer::_bridgeHasReachedTarget() {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    return _bridgeInstance->hasReachedTarget();
+}
+
+bool Timer::_bridgeIsRunning() {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    return _bridgeInstance->isTimerRunning();
+}
+
+bool Timer::_bridgeIsPaused() {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    return _bridgeInstance->isTimerPaused();
+}
+
+bool Timer::_bridgeSetRepeating(bool repeating) {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    _bridgeInstance->setRepeating(repeating);
+    return true;
+}
+
+bool Timer::_bridgeGetRepeating() {
+    if (_bridgeInstance == nullptr) {
+        return false;
+    }
+    return _bridgeInstance->getRepeating();
+}
+
+bool Timer::beginBridge(const String& prefix) {
+    _bridgeInstance = this;
+    _bridgePrefix = prefix.length() > 0 ? prefix : "timer";
+    _bridgeRegistered = true;
+
+    String base = _bridgePrefix;
+    Bridge.provide_safe((base + "_start").c_str(), &_bridgeStart);
+    Bridge.provide_safe((base + "_stop").c_str(), &_bridgeStop);
+    Bridge.provide_safe((base + "_reset").c_str(), &_bridgeReset);
+    Bridge.provide_safe((base + "_clear").c_str(), &_bridgeClear);
+    Bridge.provide_safe((base + "_pause").c_str(), &_bridgePause);
+    Bridge.provide_safe((base + "_resume").c_str(), &_bridgeResume);
+    Bridge.provide_safe((base + "_restart").c_str(), &_bridgeRestart);
+    Bridge.provide_safe((base + "_set_target_duration").c_str(), &_bridgeSetTargetDuration);
+    Bridge.provide_safe((base + "_set_target_seconds").c_str(), &_bridgeSetTargetSeconds);
+    Bridge.provide_safe((base + "_set_target_minutes").c_str(), &_bridgeSetTargetMinutes);
+    Bridge.provide_safe((base + "_set_target_hours").c_str(), &_bridgeSetTargetHours);
+    Bridge.provide_safe((base + "_elapsed_ms").c_str(), &_bridgeElapsed);
+    Bridge.provide_safe((base + "_elapsed_seconds").c_str(), &_bridgeElapsedSeconds);
+    Bridge.provide_safe((base + "_elapsed_minutes").c_str(), &_bridgeElapsedMinutes);
+    Bridge.provide_safe((base + "_elapsed_hours").c_str(), &_bridgeElapsedHours);
+    Bridge.provide_safe((base + "_remaining_ms").c_str(), &_bridgeRemainingTimeMillis);
+    Bridge.provide_safe((base + "_remaining_time").c_str(), &_bridgeRemainingTime);
+    Bridge.provide_safe((base + "_has_reached_target").c_str(), &_bridgeHasReachedTarget);
+    Bridge.provide_safe((base + "_is_running").c_str(), &_bridgeIsRunning);
+    Bridge.provide_safe((base + "_is_paused").c_str(), &_bridgeIsPaused);
+    Bridge.provide_safe((base + "_set_repeating").c_str(), &_bridgeSetRepeating);
+    Bridge.provide_safe((base + "_get_repeating").c_str(), &_bridgeGetRepeating);
+
+    return true;
+}
+
+bool Timer::isBridgeRegistered() const {
+    return _bridgeRegistered && _bridgeInstance == this;
+}
+
+String Timer::getBridgePrefix() const {
+    return _bridgePrefix;
+}
+#endif
+
 #ifdef TIMER_THREAD_SAFE
 bool Timer::lock(unsigned long timeoutMs) {
 #ifdef TIMER_LOCK_BACKEND_RWLOCK

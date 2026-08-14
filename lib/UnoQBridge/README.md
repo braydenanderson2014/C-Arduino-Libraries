@@ -110,55 +110,6 @@ Minimal flow:
 2. In Python, call that operation with `Bridge.call("mcu_x", ...)`.
 3. Keep these calls outside `Bridge.provide()` callbacks to avoid deadlocks.
 
-### Sketch-side plugin auto-registration pattern
-
-The Python side already has a `handlers/` plugin loader. For the Arduino side, the
-practical equivalent is a compile-time registry that auto-registers bridge
-handlers as soon as the sketch/library is linked.
-
-The key improvement is that the registration layer is backend-agnostic: library
-code does not need to know whether it is using RouterBridge, UnoQBridgeClient,
-or a custom bridge transport. The library only declares a function to expose, and
-`BridgePluginLoader.h` dispatches to the active backend.
-
-This is the recommended pattern for drop-in compatibility:
-
-```cpp
-#include <Arduino_RouterBridge.h>
-#include "BridgePluginLoader.h"
-
-bool mcu_led_set(bool state) {
-    digitalWrite(LED_BUILTIN, state ? HIGH : LOW);
-    return true;
-}
-
-UNOQ_BRIDGE_REGISTER_FUNCTION(mcu_led_set, mcu_led_set)
-```
-
-Then in `setup()`:
-
-```cpp
-void setup() {
-    Bridge.begin();
-    UnoQBridgePluginLoader::Registry::registerAll();
-}
-```
-
-If you want to override the bridge backend for a custom implementation, define:
-
-```cpp
-#define UNOQ_BRIDGE_CUSTOM_REGISTER(name, fn) myBridge.registerHandler(name, fn)
-#include "BridgePluginLoader.h"
-```
-
-That gives you the same basic ergonomics as the Python plugin loader: people can
-add a small handler file or library module, drop it into their sketch or lib
-folder, and it registers itself without having to hand-edit a central registry.
-
-This is the Arduino equivalent of the Python `handlers/` folder pattern because
-Arduino does not have a dynamic filesystem plugin scan at runtime in the same
-way Python does.
-
 ### Example: Arduino-side wrapper for a dependent library
 
 If another Arduino library in this repo wants to depend on UnoQBridge, create a small wrapper class around `Bridge.call`:

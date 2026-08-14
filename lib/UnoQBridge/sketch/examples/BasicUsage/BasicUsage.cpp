@@ -1,37 +1,3 @@
-/*
- * BasicUsage.cpp
- *
- * Minimal UnoQ bridge example showing the simplest possible Arduino ↔ Python
- * setup. This sketch initializes the bridge, confirms the connection is live,
- * and exercises the core RPC helpers used by the Python container.
- *
- * ═══════════════════════════════════════════════════════════════════════════════
- * WHAT THIS EXAMPLE SHOWS
- * ═══════════════════════════════════════════════════════════════════════════════
- *
- * - bridge.begin() initializes the Router Bridge transport.
- * - bridge.isReady() and bridge.lastError() confirm the link state.
- * - nextSequenceId() verifies the protocol sequencing logic.
- * - The sketch uses the same core operations that larger bridge examples build on.
- *
- * ═══════════════════════════════════════════════════════════════════════════════
- * PYTHON SIDE
- * ═══════════════════════════════════════════════════════════════════════════════
- *
- * This file is intentionally small and acts as a sanity check before using the
- * more advanced examples such as PinControl, MatrixService, or the timer bridge.
- * You can run it in App Lab and then verify the bridge from the Python side by
- * calling into the sketch or checking the serial output.
- *
- * ═══════════════════════════════════════════════════════════════════════
- * USE IT FOR
- * ═══════════════════════════════════════════════════════════════════════
- *
- * - proving the bridge is reachable
- * - validating basic protocol status and error handling
- * - using as a template for more complicated Python-controlled sketches
- */
-
 #include <UnoQBridge.h>
 #include <Arduino.h>
 

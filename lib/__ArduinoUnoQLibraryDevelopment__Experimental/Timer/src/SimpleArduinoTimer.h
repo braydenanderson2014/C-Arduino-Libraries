@@ -3,6 +3,10 @@
 
 #include <Arduino.h>
 
+#ifdef TIMER_USE_BRIDGE
+  #include <Arduino_RouterBridge.h>
+#endif
+
 // ---------------------------------------------------------------------------
 // Concurrency macros (opt-in)
 // ---------------------------------------------------------------------------
@@ -132,6 +136,35 @@ private:
     mode timerMode;
     String TimerName;
 
+#ifdef TIMER_USE_BRIDGE
+    static Timer* _bridgeInstance;
+    static String _bridgePrefix;
+    static bool _bridgeRegistered;
+
+    static bool _bridgeStart();
+    static bool _bridgeStop();
+    static bool _bridgeReset();
+    static bool _bridgeClear();
+    static bool _bridgePause();
+    static bool _bridgeResume();
+    static bool _bridgeRestart();
+    static bool _bridgeSetTargetDuration(unsigned long durationMs);
+    static bool _bridgeSetTargetSeconds(unsigned long seconds);
+    static bool _bridgeSetTargetMinutes(unsigned long minutes);
+    static bool _bridgeSetTargetHours(unsigned long hours);
+    static unsigned long _bridgeElapsed();
+    static unsigned long _bridgeElapsedSeconds();
+    static unsigned long _bridgeElapsedMinutes();
+    static unsigned long _bridgeElapsedHours();
+    static unsigned long _bridgeRemainingTime();
+    static unsigned long _bridgeRemainingTimeMillis();
+    static bool _bridgeHasReachedTarget();
+    static bool _bridgeIsRunning();
+    static bool _bridgeIsPaused();
+    static bool _bridgeSetRepeating(bool repeating);
+    static bool _bridgeGetRepeating();
+#endif
+
 #ifdef TIMER_THREAD_SAFE
 #  ifdef TIMER_LOCK_BACKEND_RWLOCK
     mutable SimpleRWLock _rwLock;
@@ -223,6 +256,14 @@ public:
 
     // Callback
     void onTargetReached(void (*callback)());
+
+#ifdef TIMER_USE_BRIDGE
+    // UnoQ / App Lab bridge helpers. Register a default timer instance so
+    // Python can call Bridge.call("timer_start", ...) and similar methods.
+    bool beginBridge(const String& prefix = "timer");
+    bool isBridgeRegistered() const;
+    String getBridgePrefix() const;
+#endif
 
     // Concurrency helpers
     static bool isThreadSafe();
