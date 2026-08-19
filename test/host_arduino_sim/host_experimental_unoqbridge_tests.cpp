@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Arduino.h"
+#include "UnoQBridge.h"
 #include "UnoQBridgeClient.h"
 
 namespace {
@@ -170,6 +171,52 @@ void testBinaryStreamTransportTimeout() {
     String response;
     const bool ok = transport.request(payload, sizeof(payload) - 1, UnoQBridgeClient::kPayloadJson, response);
     expect(!ok, "Binary stream transport should fail when no response frame arrives");
+}
+
+void testBridgeServerDispatchesJsonRequest() {
+    FakeStream fake;
+
+    UnoQBridge bridge;
+    bridge.begin(fake);
+    auto echoHandler = [](const String& payload, String& responseOut) -> bool {
+        (void)payload;
+        responseOut = "{\"id\":7,\"ok\":true,\"result\":{\"echo\":\"pong\"}}";
+        return true;
+    };
+    bridge.registerHandler("echo", echoHandler);
+
+    const std::string request = "{\"id\":7,\"op\":\"echo\",\"value\":\"hi\"}";
+    const uint8_t requestHeader[10] = {
+        static_cast<uint8_t>(UnoQBridgeClient::kMagic & 0xFF),
+        static_cast<uint8_t>((UnoQBridgeClient::kMagic >> 8) & 0xFF),
+        UnoQBridgeClient::kProtocolVersion,
+        UnoQBridgeClient::kPayloadJson,
+        0x07,
+        0x00,
+        static_cast<uint8_t>(request.size() & 0xFF),
+        static_cast<uint8_t>((request.size() >> 8) & 0xFF),
+        static_cast<uint8_t>((request.size() >> 16) & 0xFF),
+        static_cast<uint8_t>((request.size() >> 24) & 0xFF)
+    };
+
+    for (size_t i = 0; i < sizeof(requestHeader); ++i) {
+        fake.readable.push_back(requestHeader[i]);
+    }
+    for (char ch : request) {
+        fake.readable.push_back(static_cast<uint8_t>(ch));
+    }
+
+    const bool ok = bridge.poll();
+    expect(ok, "Bridge server should process one UART request");
+    expect(fake.written.size() >= 10, "Bridge server should emit a framed response");
+    expect(readLe16(&fake.written[0]) == UnoQBridgeClient::kMagic, "Response header magic mismatch");
+    expect(fake.written[2] == UnoQBridgeClient::kProtocolVersion, "Response protocol version mismatch");
+    expect(fake.written[3] == UnoQBridgeClient::kPayloadJson, "Response payload format mismatch");
+    expect(readLe16(&fake.written[4]) == 7U, "Response sequence ID should match request ID");
+
+    std::string response(fake.written.begin() + 10, fake.written.end());
+    expect(response.find("\"ok\":true") != std::string::npos, "Response payload should be successful JSON");
+    expect(response.find("\"echo\":\"pong\"") != std::string::npos, "Response payload should include handler output");
 }
 
 void testClientJsonOperations() {

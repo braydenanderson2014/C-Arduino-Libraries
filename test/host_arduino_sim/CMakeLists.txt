@@ -32,7 +32,7 @@ set(HOST_SIM_COMMON_INCLUDE_DIRS
     "${REPO_ROOT}/lib/Operators/src"
     "${REPO_ROOT}/lib/Predicates/src"
     "${REPO_ROOT}/lib/SimpleCoreRuntime/src"
-    "${REPO_ROOT}/lib/SimpleMutex"
+    "${REPO_ROOT}/lib/SimpleMutex/src"
     "${REPO_ROOT}/lib/SimpleRWLock/src"
     "${REPO_ROOT}/lib/SimpleSemaphore/src"
     "${REPO_ROOT}/lib/SimpleThreadManager"
@@ -79,7 +79,10 @@ add_executable(host_experimental_unoqbridge
 )
 target_include_directories(host_experimental_unoqbridge PRIVATE
     "${REPO_ROOT}/test/host_arduino_sim/include"
-    "${REPO_ROOT}/lib/__ArduinoUnoQLibraryDevelopment__Experimental/UnoQBridge/src"
+    "${REPO_ROOT}/lib/UnoQBridge/sketch/src"
+    "${REPO_ROOT}/lib/SimpleVector/src"
+    "${REPO_ROOT}/lib/String/src"
+    "${REPO_ROOT}/lib/SimpleThreadManager"
 )
 target_compile_definitions(host_experimental_unoqbridge PRIVATE
     AL_NO_SERIAL
