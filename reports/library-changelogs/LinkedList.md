@@ -4,7 +4,7 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.8**
 - Release boundary commit: `8b28875f` (2026-08-07)
-- Total commits touching this library on current history: **37**
+- Total commits touching this library on current history: **38**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
@@ -17,6 +17,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Documentation
 
+- sync library health badges (`9c6055a3`, 2026-08-17)
 - sync library health badges (`856c7fe0`, 2026-08-13)
 
 ### Maintenance
@@ -27,6 +28,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-08-17 | `9c6055a3` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-13 | `856c7fe0` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-12 | `66211c2e` | github-actions[bot] | Back-sync LinkedList from remote PR #4 (8df58c5) |
 | 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
@@ -56,5 +58,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2023-11-27 | `bbc31064` | Brayden Anderson | Massive Update, Check Readme Files |
 | 2023-11-12 | `658c213e` | Brayden Anderson | PlatformIO Library Updates |
 | 2023-11-12 | `e78fefe8` | Brayden Anderson | Added Iterator Support |
-| 2023-11-11 | `c6716328` | Brayden Anderson | Added Debug Statements |
 

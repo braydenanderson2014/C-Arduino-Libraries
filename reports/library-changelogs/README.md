@@ -12,13 +12,13 @@ Auto-generated from git history for each library folder under `lib/`.
 | [bTree](bTree.md) | 2026-08-07 | 6 | 6 | 5 |
 | [ColorManager](ColorManager.md) | 2026-08-07 | 5 | 5 | 4 |
 | [Dictionary](Dictionary.md) | 2026-08-07 | 14 | 14 | 7 |
-| [DoubleLinkedList](DoubleLinkedList.md) | 2026-08-13 | 23 | 23 | 8 |
+| [DoubleLinkedList](DoubleLinkedList.md) | 2026-08-17 | 24 | 24 | 9 |
 | [DynamicStorageLibrary](DynamicStorageLibrary.md) | 2026-08-07 | 21 | 21 | 0 |
 | [EthernetConnectionChecker](EthernetConnectionChecker.md) | 2026-08-07 | 6 | 6 | 0 |
 | [EthernetMach2ConnectionChecker](EthernetMach2ConnectionChecker.md) | 2026-08-07 | 4 | 4 | 0 |
 | [ExtremeVariant](ExtremeVariant.md) | 2026-08-07 | 7 | 7 | 6 |
 | [FenwickTree](FenwickTree.md) | 2026-08-07 | 5 | 5 | 4 |
-| [Hashtable](Hashtable.md) | 2026-08-13 | 54 | 30 | 10 |
+| [Hashtable](Hashtable.md) | 2026-08-17 | 55 | 30 | 11 |
 | [HeapTree](HeapTree.md) | 2026-08-07 | 6 | 6 | 5 |
 | [Initializer_List](Initializer_List.md) | 2026-08-07 | 7 | 7 | 3 |
 | [IntervalTree](IntervalTree.md) | 2026-08-07 | 5 | 5 | 4 |
@@ -26,7 +26,7 @@ Auto-generated from git history for each library folder under `lib/`.
 | [iterator](iterator.md) | 2026-08-07 | 4 | 4 | 3 |
 | [Json](Json.md) | 2026-07-26 | 17 | 17 | 0 |
 | [kdimensionalTree](kdimensionalTree.md) | 2026-08-07 | 15 | 15 | 3 |
-| [LinkedList](LinkedList.md) | 2026-08-13 | 37 | 30 | 5 |
+| [LinkedList](LinkedList.md) | 2026-08-17 | 38 | 30 | 6 |
 | [Map](Map.md) | 2026-08-07 | 16 | 16 | 8 |
 | [MathLib](MathLib.md) | 2026-08-07 | 9 | 9 | 8 |
 | [MatrixMath](MatrixMath.md) | 2026-08-07 | 10 | 10 | 3 |
@@ -56,10 +56,10 @@ Auto-generated from git history for each library folder under `lib/`.
 | [Stack](Stack.md) | 2026-08-07 | 15 | 15 | 4 |
 | [String](String.md) | 2026-08-07 | 12 | 12 | 10 |
 | [SuffixTree](SuffixTree.md) | 2026-08-07 | 7 | 7 | 5 |
-| [Timer](Timer.md) | 2026-08-13 | 29 | 29 | 8 |
+| [Timer](Timer.md) | 2026-08-17 | 30 | 30 | 9 |
 | [TrieTree](TrieTree.md) | 2026-08-07 | 7 | 7 | 4 |
 | [TypeTraits](TypeTraits.md) | 2026-08-07 | 8 | 8 | 5 |
-| [UnoQBridge](UnoQBridge.md) | 2026-08-13 | 1 | 1 | 0 |
+| [UnoQBridge](UnoQBridge.md) | 2026-08-18 | 4 | 4 | 3 |
 | [UnorderedMap](UnorderedMap.md) | 2026-08-07 | 22 | 22 | 3 |
 | [Variant](Variant.md) | 2026-08-07 | 14 | 14 | 4 |
 
