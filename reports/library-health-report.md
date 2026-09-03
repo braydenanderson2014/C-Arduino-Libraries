@@ -1,6 +1,6 @@
 # Library Health Report
 
-Generated: 2026-09-02T01:58:45.551Z
+Generated: 2026-09-03T01:53:14.300Z
 Source repo: braydenanderson2014/C-Arduino-Libraries
 Analyzer repo: braydenanderson2014/SystemCommands
 Confirmed labels: confirmed
@@ -228,7 +228,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/1389.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/1356.)
 - No confirmed source issues linked.
 
 ### AVL Tree
@@ -250,7 +250,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11884.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11905.)
 - No confirmed source issues linked.
 
 ### B Plus Tree
@@ -272,7 +272,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11887.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11908.)
 - No confirmed source issues linked.
 
 ### B Tree
@@ -294,7 +294,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11888.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11909.)
 - No confirmed source issues linked.
 
 ### Binary Search Tree
@@ -316,7 +316,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11885.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11906.)
 - No confirmed source issues linked.
 
 ### Binary Tree
@@ -338,7 +338,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11886.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11907.)
 - No confirmed source issues linked.
 
 ### Color Manager
@@ -360,7 +360,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11889.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11910.)
 - No confirmed source issues linked.
 
 ### Dictionary
@@ -382,7 +382,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/1852.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/1798.)
 - No confirmed source issues linked.
 
 ### Double Linked List
@@ -404,7 +404,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/2636.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/2644.)
 - No confirmed source issues linked.
 
 ### Dynamic Storage Library
@@ -514,7 +514,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11890.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11911.)
 - No confirmed source issues linked.
 
 ### Hashtable
@@ -536,7 +536,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/1479.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/1527.)
 - No confirmed source issues linked.
 
 ### Heap Tree
@@ -558,7 +558,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11891.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11912.)
 - No confirmed source issues linked.
 
 ### Initializer List
@@ -580,7 +580,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/1619.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/1738.)
 - No confirmed source issues linked.
 
 ### Interval Tree
@@ -602,7 +602,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11892.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11913.)
 - No confirmed source issues linked.
 
 ### Iostream
@@ -646,7 +646,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/1575.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/1528.)
 - No confirmed source issues linked.
 
 ### Json
@@ -734,7 +734,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/1787.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/1869.)
 - No confirmed source issues linked.
 
 ### Math Lib
@@ -756,7 +756,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/1786.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/1802.)
 - No confirmed source issues linked.
 
 ### Matrix Math
@@ -778,7 +778,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/4408.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/4428.)
 - No confirmed source issues linked.
 
 ### Memory Manager
@@ -822,7 +822,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11718.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11736.)
 - No confirmed source issues linked.
 
 ### Numeric Limits
@@ -844,7 +844,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/1942.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/1947.)
 - No confirmed source issues linked.
 
 ### OC Tree
@@ -866,7 +866,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11894.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11915.)
 - No confirmed source issues linked.
 
 ### Operators
@@ -888,7 +888,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/2938.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/2951.)
 - No confirmed source issues linked.
 
 ### Optional
@@ -910,7 +910,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/12439.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/12462.)
 - No confirmed source issues linked.
 
 ### Ordered Map
@@ -954,7 +954,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/2939.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/2952.)
 - No confirmed source issues linked.
 
 ### Properties
@@ -998,7 +998,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11898.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11919.)
 - No confirmed source issues linked.
 
 ### Queue
@@ -1042,7 +1042,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11901.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11922.)
 - No confirmed source issues linked.
 
 ### Red Black Tree
@@ -1064,7 +1064,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11900.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11921.)
 - No confirmed source issues linked.
 
 ### SD List
@@ -1086,7 +1086,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11717.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11735.)
 - No confirmed source issues linked.
 
 ### Segment Tree
@@ -1108,7 +1108,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11902.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11923.)
 - No confirmed source issues linked.
 
 ### Simple Mutex
@@ -1174,7 +1174,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/1478.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/1569.)
 - No confirmed source issues linked.
 
 ### Stack
@@ -1240,7 +1240,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11904.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11925.)
 - No confirmed source issues linked.
 
 ### Timer
@@ -1284,7 +1284,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/11905.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/11926.)
 - No confirmed source issues linked.
 
 ### Type Traits
@@ -1306,7 +1306,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/1727.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/1669.)
 - No confirmed source issues linked.
 
 ### Unordered Map
@@ -1328,7 +1328,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/3387.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/4392.)
 - No confirmed source issues linked.
 
 ### Variant
@@ -1350,6 +1350,6 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/12440.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/12463.)
 - No confirmed source issues linked.
 
