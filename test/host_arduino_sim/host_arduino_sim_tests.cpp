@@ -44,6 +44,7 @@
 
 #include "ArrayList.h"
 #include "AVLTree.h"
+#include "BasicLinkedList.h"
 #include "DynamicStorageLibrary.h"
 #include "Hashtable.h"
 #include "JSON.h"
@@ -348,6 +349,50 @@ void testArrayListBasicBehavior() {
 
     list.remove(5);
     expect(list.get(5) == 50, "ArrayList values should shift after remove");
+}
+
+void testLinkedListPositionalInsert() {
+    struct Object {
+        int value;
+    };
+
+    for (std::size_t position : {std::size_t(0), std::size_t(5)}) {
+        LinkedList<Object> list;
+        list.insert(Object{10}, position);
+        expect(list.size() == 1, "LinkedList insert into empty list should add one element");
+        expect(list.get(0) && list.get(0)->value == 10, "LinkedList empty insert value mismatch");
+        list.append(Object{20});
+        expect(list.size() == 2 && list.get(1) && list.get(1)->value == 20,
+               "LinkedList append after empty insert should preserve the tail");
+    }
+
+    struct InsertCase {
+        std::size_t position;
+        std::array<int, 3> expected;
+    };
+    const InsertCase cases[] = {
+        {0, {30, 10, 20}},
+        {1, {10, 30, 20}},
+        {2, {10, 20, 30}},
+        {5, {10, 20, 30}},
+        {std::numeric_limits<std::size_t>::max(), {10, 20, 30}},
+    };
+
+    for (const auto& testCase : cases) {
+        LinkedList<Object> list;
+        list.append(Object{10});
+        list.append(Object{20});
+        list.insert(Object{30}, testCase.position);
+        expect(list.size() == 3, "LinkedList positional insert should increment size once");
+        for (std::size_t i = 0; i < testCase.expected.size(); ++i) {
+            expect(list.get(i) && list.get(i)->value == testCase.expected[i],
+                   "LinkedList positional insert order mismatch");
+        }
+        list.append(Object{40});
+        expect(list.size() == 4 && list.get(3) && list.get(3)->value == 40,
+               "LinkedList append after positional insert should preserve the tail");
+        expect(list.get(4) == nullptr, "LinkedList should end after appended element");
+    }
 }
 
 void testHashtableBasicBehavior() {
@@ -1231,6 +1276,7 @@ int main() {
 
     try {
         runTestWithMemoryStats("testArrayListBasicBehavior", testArrayListBasicBehavior, memoryStats);
+        runTestWithMemoryStats("testLinkedListPositionalInsert", testLinkedListPositionalInsert, memoryStats);
         runTestWithMemoryStats("testHashtableBasicBehavior", testHashtableBasicBehavior, memoryStats);
         runTestWithMemoryStats("testSDListMemoryMode", testSDListMemoryMode, memoryStats);
         runTestWithMemoryStats(
