@@ -412,6 +412,16 @@ void testHashtableBasicBehavior() {
     expect(!table.exists(37), "Hashtable key should be removed");
 }
 
+void testHashtableEnumValueLookup() {
+    enum Auth { Denied, Allowed };
+    Hashtable<String, Auth> table;
+    const Hashtable<String, Auth>& lookup = table;
+    expect(lookup.getElement(String("missing")) == Denied, "Missing enum value should be default-initialized");
+    table.put(String("user"), Allowed);
+    expect(lookup.getElement(String("user")) == Allowed, "Hashtable should return the stored enum value");
+    expect(lookup.getElement(String("missing")) == Denied, "Missing enum value should remain default-initialized");
+}
+
 void testSDListMemoryMode() {
     SDList<int, 4> list(MEMORY, 4);
     expect(list.begin(4, "memory-mode.bin"), "SDList memory mode begin should succeed");
@@ -1278,6 +1288,7 @@ int main() {
         runTestWithMemoryStats("testArrayListBasicBehavior", testArrayListBasicBehavior, memoryStats);
         runTestWithMemoryStats("testLinkedListPositionalInsert", testLinkedListPositionalInsert, memoryStats);
         runTestWithMemoryStats("testHashtableBasicBehavior", testHashtableBasicBehavior, memoryStats);
+        runTestWithMemoryStats("testHashtableEnumValueLookup", testHashtableEnumValueLookup, memoryStats);
         runTestWithMemoryStats("testSDListMemoryMode", testSDListMemoryMode, memoryStats);
         runTestWithMemoryStats(
             "testSDListFileIOMode",

@@ -71,6 +71,17 @@ void test_get_element_missing_key_returns_default() {
     TEST_ASSERT_EQUAL_INT(0, table.getElement(999));
 }
 
+enum Auth { Denied, Allowed };
+
+void test_get_element_with_enum_value() {
+    Hashtable<String, Auth> table;
+    const Hashtable<String, Auth>& lookup = table;
+    TEST_ASSERT_EQUAL_INT(Denied, lookup.getElement(String("missing")));
+    table.put(String("user"), Allowed);
+    TEST_ASSERT_EQUAL_INT(Allowed, lookup.getElement(String("user")));
+    TEST_ASSERT_EQUAL_INT(Denied, lookup.getElement(String("missing")));
+}
+
 void test_put_string_keys() {
     Hashtable<String, int> table;
     table.put(String("alpha"), 1);
@@ -442,6 +453,7 @@ void setup() {
     RUN_TEST(test_put_and_get_element_basic);
     RUN_TEST(test_put_overwrites_existing_key);
     RUN_TEST(test_get_element_missing_key_returns_default);
+    RUN_TEST(test_get_element_with_enum_value);
     RUN_TEST(test_put_string_keys);
     RUN_TEST(test_put_string_values);
 
@@ -497,4 +509,3 @@ void setup() {
 }
 
 void loop() {}
-
