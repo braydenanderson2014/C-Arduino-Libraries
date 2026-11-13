@@ -42,6 +42,8 @@ Before diving in, please familiarise yourself with how the codebase is organised
 
 > **New contributors:** Look for issues labelled [**good first issue**](../../issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) — these are beginner-friendly tasks that are a great way to get started! Our automation will also label your first issue so maintainers know to give you extra guidance.
 
+Maintainers: pull request triage uses `GH_PROJECT_TOKEN` with read/write access to the project. Library sync requires `LIBRARY_SYNC_TOKEN` or `GH_PROJECT_TOKEN` with contents and pull request read/write access to the target library repositories. If both are configured, sync retries the second credential after an access rejection. Renew these secrets if neither can authorize the required operation.
+
 ---
 
 ## 🚀 How to Contribute Code
