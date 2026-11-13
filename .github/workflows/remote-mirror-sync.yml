@@ -27,7 +27,7 @@ jobs:
       - name: Sync mirrored issue state and PR digests
         uses: actions/github-script@v9
         with:
-          github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ github.repository == 'braydenanderson2014/C-Arduino-Libraries' && github.token || secrets.GH_PROJECT_TOKEN }}
           script: |
             const fs = require("fs");
 

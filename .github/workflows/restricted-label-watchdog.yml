@@ -23,7 +23,7 @@ jobs:
       - name: Guard Restricted Labels
         uses: actions/github-script@v9
         with:
-          github-token: ${{ secrets.GH_PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
             const action = context.payload.action;
             const label = context.payload.label;
