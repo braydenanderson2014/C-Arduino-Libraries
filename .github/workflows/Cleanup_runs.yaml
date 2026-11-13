@@ -1,0 +1,81 @@
+
+name: Monthly Workflow History Cleanup
+
+on:
+  schedule:
+    # 1st of every month at 03:00 UTC
+    - cron: "0 3 1 * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview deletions without deleting"
+        type: boolean
+        default: true
+
+permissions:
+  actions: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Delete old workflow runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Retain the last 30 days
+          CUTOFF=$(date -u -d "30 days ago" +%Y-%m-%d)
+          echo "Removing completed runs before $CUTOFF"
+
+          deleted=0
+          failed=0
+
+          # Query the oldest runs in batches.
+          # Re-query page 1 after deleting each batch.
+          while true; do
+            ids=$(gh api \
+              "repos/$GH_REPO/actions/runs" \
+              -f "created=<$CUTOFF" \
+              -f "status=completed" \
+              -f "per_page=100" \
+              --method GET \
+              --jq '.workflow_runs[].id')
+
+            [[ -z "$ids" ]] && break
+
+            while read -r id; do
+              [[ -z "$id" ]] && continue
+
+              if [[ "$DRY_RUN" == "true" ]]; then
+                echo "Would delete: $id"
+                continue
+              fi
+
+              if gh api --method DELETE \
+                "repos/$GH_REPO/actions/runs/$id"; then
+                echo "Deleted: $id"
+                ((deleted+=1))
+              else
+                echo "Failed to delete: $id"
+                ((failed+=1))
+              fi
+
+              sleep 1
+            done <<< "$ids"
+
+            # A preview only needs one batch.
+            [[ "$DRY_RUN" == "true" ]] && break
+
+            # Avoid looping forever on failed deletions.
+            [[ "$failed" -gt 0 ]] && break
+          done
+
+          echo "Deleted: $deleted"
+          echo "Failed: $failed"
