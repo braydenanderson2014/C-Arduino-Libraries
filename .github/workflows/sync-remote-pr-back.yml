@@ -20,8 +20,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Select a valid library sync credential
+        uses: actions/github-script@v9
+        env:
+          LIBRARY_SYNC_TOKEN: ${{ secrets.LIBRARY_SYNC_TOKEN }}
+          GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            // A nonempty secret may be expired; expression || does not validate credentials.
+            for (const name of ["LIBRARY_SYNC_TOKEN", "GH_PROJECT_TOKEN"]) {
+              const token = (process.env[name] || "").trim();
+              if (!token) continue;
+              core.setSecret(token);
+              try {
+                const client = new github.constructor({ auth: token });
+                await client.rest.repos.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo
+                });
+                core.exportVariable("SYNC_TOKEN", token);
+                core.info(`Using validated ${name} for library sync.`);
+                return;
+              } catch (error) {
+                if (![401, 403, 404].includes(error.status)) throw error;
+                core.warning(`${name} is invalid or cannot access the monorepo; trying the next credential.`);
+              }
+            }
+            core.setFailed("No usable library sync credential. Renew LIBRARY_SYNC_TOKEN (or GH_PROJECT_TOKEN) with Contents, Issues, and Pull requests read/write access to the monorepo and remote library repositories (classic PAT: repo scope). GITHUB_TOKEN cannot perform cross-repository writes.");
+
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          token: ${{ env.SYNC_TOKEN }}
+          persist-credentials: false
 
       - name: Discover remote sync PR activity and plan back-syncs
         id: discover
@@ -30,7 +62,7 @@ jobs:
           CONFIG_PATH: .github/library-sync-targets.json
           SPECIFIC_ISSUE: ${{ inputs.issue_number || '' }}
         with:
-          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ env.SYNC_TOKEN }}
           script: |
             const fs = require("fs");
             const path = require("path");
@@ -338,7 +370,6 @@ jobs:
         id: create_branches
         if: steps.discover.outputs.has_back_sync == 'true'
         env:
-          SYNC_TOKEN: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
           ITEMS_PATH: ${{ steps.discover.outputs.items_path }}
         run: |
           set -e
@@ -466,7 +497,7 @@ jobs:
         env:
           RESULTS_PATH: ${{ steps.create_branches.outputs.results_path }}
         with:
-          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ env.SYNC_TOKEN }}
           script: |
             const fs = require("fs");
 
@@ -574,7 +605,7 @@ jobs:
         env:
           CONFIG_PATH: .github/library-sync-targets.json
         with:
-          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ env.SYNC_TOKEN }}
           script: |
             const fs = require("fs");
             const path = require("path");
@@ -917,7 +948,6 @@ jobs:
         id: mirror_forward
         if: steps.forward_activity.outputs.has_forward_commits == 'true'
         env:
-          SYNC_TOKEN: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
           ITEMS_PATH: ${{ steps.forward_activity.outputs.forward_items_path }}
         run: |
           set -e
@@ -1038,7 +1068,7 @@ jobs:
         env:
           RESULTS_PATH: ${{ steps.mirror_forward.outputs.results_path }}
         with:
-          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ env.SYNC_TOKEN }}
           script: |
             const fs = require("fs");
 

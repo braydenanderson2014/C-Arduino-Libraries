@@ -17,8 +17,11 @@ jobs:
     steps:
       - name: Update project status based on triage count
         uses: actions/github-script@v9
+        env:
+          GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
+          LIBRARY_SYNC_TOKEN: ${{ secrets.LIBRARY_SYNC_TOKEN }}
         with:
-          github-token: ${{ secrets.GH_PROJECT_TOKEN }}  # PAT with repo + project scopes
+          github-token: ${{ github.token }}
           script: |
             // ---- CONFIG ----
             const OWNER = "braydenanderson2014"; // user/org that owns the Project
@@ -59,7 +62,7 @@ jobs:
             }
 
             // 1) Fetch project + fields
-            const proj = await github.graphql(`
+            const projectQuery = `
               query($login:String!, $num:Int!) {
                 user(login:$login) {
                   projectV2(number:$num) {
@@ -73,7 +76,37 @@ jobs:
                   }
                 }
               }
-            `, { login: OWNER, num: PROJECT_NUMBER });
+            `;
+            // User Projects v2 require a PAT with project write access, not GITHUB_TOKEN.
+            let projectGithub;
+            let projectTokenName;
+            let proj;
+            for (const name of ["GH_PROJECT_TOKEN", "LIBRARY_SYNC_TOKEN"]) {
+              const token = (process.env[name] || "").trim();
+              if (!token) continue;
+              core.setSecret(token);
+              const client = new github.constructor({ auth: token });
+              try {
+                const result = await client.graphql(projectQuery, { login: OWNER, num: PROJECT_NUMBER });
+                if (!result.user?.projectV2) {
+                  core.warning(`${name} cannot access user project ${OWNER}/${PROJECT_NUMBER}.`);
+                  continue;
+                }
+                projectGithub = client;
+                projectTokenName = name;
+                proj = result;
+                break;
+              } catch (error) {
+                const accessError = [401, 403, 404].includes(error.status) ||
+                  error.errors?.some(e => ["FORBIDDEN", "NOT_FOUND"].includes(e.type));
+                if (!accessError) throw error;
+                core.warning(`${name} is invalid or cannot access the project; trying the next credential.`);
+              }
+            }
+            if (!projectGithub) {
+              core.setFailed("No usable project credential. Renew GH_PROJECT_TOKEN (or LIBRARY_SYNC_TOKEN) with access to user project braydenanderson2014/4 and project write permission (classic PAT: project scope). GITHUB_TOKEN cannot update user Projects v2.");
+              return;
+            }
 
             const project = proj.user.projectV2;
             const projectId = project.id;
@@ -108,7 +141,7 @@ jobs:
             let after = null;
 
             do {
-              const page = await github.graphql(`
+              const page = await projectGithub.graphql(`
                 query($pid:ID!, $after:String) {
                   node(id:$pid) {
                     ... on ProjectV2 {
@@ -210,7 +243,7 @@ jobs:
              `**Tracked Statuses:** ${HEALTH_STATUSES.join(', ')}`;
 
             // ✅ Correct types: status uses ProjectV2StatusUpdateStatus, dates use Date
-            const resp = await github.graphql(`
+            const statusMutation = `
               mutation($projectId: ID!, $body: String!, $status: ProjectV2StatusUpdateStatus!, $start: Date) {
                 createProjectV2StatusUpdate(input: {
                   projectId: $projectId,
@@ -222,7 +255,28 @@ jobs:
                   statusUpdate { id status body }
                 }
               }
-            `, { projectId, body, status: statusEnum, start: today });
+            `;
+            let resp;
+            const credentialNames = [projectTokenName, ...["GH_PROJECT_TOKEN", "LIBRARY_SYNC_TOKEN"].filter(name => name !== projectTokenName)];
+            for (const name of credentialNames) {
+              const token = (process.env[name] || "").trim();
+              if (!token) continue;
+              core.setSecret(token);
+              const client = name === projectTokenName ? projectGithub : new github.constructor({ auth: token });
+              try {
+                resp = await client.graphql(statusMutation, { projectId, body, status: statusEnum, start: today });
+                break;
+              } catch (error) {
+                const accessError = [401, 403, 404].includes(error.status) ||
+                  error.errors?.some(e => ["FORBIDDEN", "NOT_FOUND"].includes(e.type));
+                if (!accessError) throw error;
+                core.warning(`${name} cannot write the project status update; trying the next credential.`);
+              }
+            }
+            if (!resp) {
+              core.setFailed("Neither project credential can write status updates. Renew GH_PROJECT_TOKEN or LIBRARY_SYNC_TOKEN with project write permission for braydenanderson2014/4 (classic PAT: project scope).");
+              return;
+            }
 
             core.info(`Posted status update: ${resp.createProjectV2StatusUpdate.statusUpdate.status}`);
             core.info(`Total items contributing to health: ${totalCount}`);
