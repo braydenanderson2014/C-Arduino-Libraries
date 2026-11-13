@@ -32,7 +32,7 @@ jobs:
         env:
           CONFIG_PATH: .github/library-sync-targets.json
         with:
-          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
             const fs = require("fs");
             const path = require("path");
@@ -324,7 +324,8 @@ jobs:
         id: sync_files
         if: steps.resolve.outputs.should_run == 'true'
         env:
-          SYNC_TOKEN: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          LIBRARY_SYNC_TOKEN: ${{ secrets.LIBRARY_SYNC_TOKEN }}
+          GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
           ISSUE_NUMBER: ${{ steps.resolve.outputs.issue_number }}
           LIBRARY_NAME: ${{ steps.resolve.outputs.library }}
           SOURCE_PATH: ${{ steps.resolve.outputs.source_path }}
@@ -335,13 +336,8 @@ jobs:
           BRANCH_NAME: ${{ steps.resolve.outputs.branch_name }}
           MANAGED_PATHS_JSON: ${{ steps.resolve.outputs.managed_paths_json }}
         run: |
-          if [ -z "$SYNC_TOKEN" ]; then
-            echo "Missing LIBRARY_SYNC_TOKEN or GH_PROJECT_TOKEN secret." >&2
-            exit 1
-          fi
-
           remote_dir="$RUNNER_TEMP/remote-repo"
-          git clone --depth 1 --branch "$BASE_BRANCH" "https://x-access-token:${SYNC_TOKEN}@github.com/${TARGET_OWNER}/${TARGET_REPO}.git" "$remote_dir"
+          node .github/scripts/library-sync-git.cjs clone --depth 1 --branch "$BASE_BRANCH" "https://github.com/${TARGET_OWNER}/${TARGET_REPO}.git" "$remote_dir"
 
           pushd "$remote_dir"
           git checkout -B "$BRANCH_NAME"
@@ -405,7 +401,7 @@ jobs:
           fi
 
           git commit -m "Sync ${LIBRARY_NAME} from monorepo (#${ISSUE_NUMBER})"
-          git push --force-with-lease origin "$BRANCH_NAME"
+          node "$GITHUB_WORKSPACE/.github/scripts/library-sync-git.cjs" push --force-with-lease origin "$BRANCH_NAME"
           echo "has_changes=true" >> "$GITHUB_OUTPUT"
           echo "remote_branch_url=https://github.com/${TARGET_OWNER}/${TARGET_REPO}/tree/${BRANCH_NAME}" >> "$GITHUB_OUTPUT"
           popd
@@ -414,6 +410,9 @@ jobs:
         if: steps.resolve.outputs.should_run == 'true' && steps.sync_files.outputs.has_changes == 'true'
         uses: actions/github-script@v9
         env:
+          LIBRARY_SYNC_TOKEN: ${{ secrets.LIBRARY_SYNC_TOKEN }}
+          GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
+          REPOSITORY_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.resolve.outputs.issue_number }}
           LIBRARY_NAME: ${{ steps.resolve.outputs.library }}
           TARGET_OWNER: ${{ steps.resolve.outputs.target_owner }}
@@ -423,8 +422,11 @@ jobs:
           PR_TITLE: ${{ steps.resolve.outputs.pr_title }}
           PR_BODY: ${{ steps.resolve.outputs.pr_body }}
         with:
-          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
+            const { enableCredentialFallback } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/library-sync-credentials.cjs`);
+            enableCredentialFallback(github, core);
+            const repositoryGithub = getOctokit(process.env.REPOSITORY_TOKEN);
             const issueNumber = Number.parseInt(process.env.ISSUE_NUMBER, 10);
             const targetOwner = process.env.TARGET_OWNER;
             const targetRepo = process.env.TARGET_REPO;
@@ -456,7 +458,7 @@ jobs:
               pullRequest = created.data;
             }
 
-            await github.rest.issues.createComment({
+            await repositoryGithub.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issueNumber,
@@ -478,7 +480,7 @@ jobs:
           TARGET_REPO: ${{ steps.resolve.outputs.target_repo }}
           BRANCH_NAME: ${{ steps.resolve.outputs.branch_name }}
         with:
-          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
             await github.rest.issues.createComment({
               owner: context.repo.owner,

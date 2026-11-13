@@ -17,8 +17,10 @@ jobs:
     steps:
       - name: Process Pull Request
         uses: actions/github-script@v9
+        env:
+          PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
         with:
-          github-token: ${{ secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
             const CONFIG = {
               PROJECT_OWNER: "braydenanderson2014",
@@ -115,7 +117,7 @@ jobs:
 
               const welcomeMessage =
                 "👋 **Thank you for opening this pull request!**\n\n" +
-                "Your contribution has been automatically labeled and added to the project triage queue for review.\n\n" +
+                "Your contribution has been automatically labeled for review.\n\n" +
                 "**What happens next?**\n" +
                 "- A maintainer will review the proposed changes\n" +
                 "- Feedback or requested updates will be posted here\n" +
@@ -137,6 +139,10 @@ jobs:
             }
 
             async function ensureProjectTriageStatus() {
+              if (!process.env.PROJECT_TOKEN) {
+                throw new Error("Configure GH_PROJECT_TOKEN with read and write access to the project.");
+              }
+              const projectGithub = getOctokit(process.env.PROJECT_TOKEN);
               const query = `
                 query($login: String!, $projectNumber: Int!, $owner: String!, $repo: String!, $pullNumber: Int!) {
                   user(login: $login) {
@@ -168,7 +174,7 @@ jobs:
                 }
               `;
 
-              const data = await github.graphql(query, {
+              const data = await projectGithub.graphql(query, {
                 login: CONFIG.PROJECT_OWNER,
                 projectNumber: CONFIG.PROJECT_NUMBER,
                 owner,
@@ -217,7 +223,7 @@ jobs:
                     }
                   `;
 
-                  const itemResult = await github.graphql(itemQuery, {
+                  const itemResult = await projectGithub.graphql(itemQuery, {
                     projectId,
                     cursor
                   });
@@ -259,7 +265,7 @@ jobs:
                   }
                 `;
 
-                const addResult = await github.graphql(addMutation, {
+                const addResult = await projectGithub.graphql(addMutation, {
                   projectId: project.id,
                   contentId: pullRequestNodeId
                 });
@@ -297,7 +303,7 @@ jobs:
                 }
               `;
 
-              await github.graphql(updateMutation, {
+              await projectGithub.graphql(updateMutation, {
                 projectId: project.id,
                 itemId,
                 fieldId: statusField.id,

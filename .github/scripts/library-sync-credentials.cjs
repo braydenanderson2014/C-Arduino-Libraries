@@ -46,7 +46,7 @@ function withGitCredential(credentials, operation) {
     try {
       return operation(token);
     } catch (error) {
-      if (!/Authentication failed|Invalid username or token|Repository not found|requested URL returned error: (401|403)|Permission to .+ denied|Write access to repository not granted/i.test(error.message)) {
+      if (!/Authentication failed|Invalid username or token|Repository not found|requested URL returned error: (401|403)|Permission to .+ denied|Write access to repository not granted|could not read Username for .+: terminal prompts disabled/i.test(error.message)) {
         throw error;
       }
       lastError = error;
