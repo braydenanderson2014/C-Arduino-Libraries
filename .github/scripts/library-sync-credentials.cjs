@@ -12,32 +12,24 @@ function getCredentials(env = process.env) {
   return credentials;
 }
 
-function enableCredentialFallback(github, core, env = process.env) {
+async function withApiCredentialFallback(createClient, operation, core, env = process.env) {
   const credentials = getCredentials(env);
   for (const { token } of credentials) core.setSecret(token);
   let preferred = credentials.find(credential => credential.token === env.SYNC_TOKEN) || credentials[0];
-  github.hook.wrap("request", async (request, options) => {
-    const candidates = [preferred, ...credentials.filter(credential => credential !== preferred)];
-    let lastError;
-    for (const credential of candidates) {
-      try {
-        const response = await request({
-          ...options,
-          headers: { ...options.headers, authorization: `token ${credential.token}` }
-        });
-        preferred = credential;
-        return response;
-      } catch (error) {
-        // Retry only definitive access rejections, never ambiguous network/write failures.
-        if (![401, 403, 404].includes(error.status)) throw error;
-        lastError = error;
-        core.warning(`${credential.name} could not authorize this API operation (HTTP ${error.status}); trying the next credential.`);
-      }
+  const candidates = [preferred, ...credentials.filter(credential => credential !== preferred)];
+  let lastError;
+  for (const credential of candidates) {
+    try {
+      return await operation(createClient(credential.token));
+    } catch (error) {
+      // Retry only definitive access rejections, never ambiguous network/write failures.
+      if (![401, 403, 404].includes(error.status)) throw error;
+      lastError = error;
+      core.warning(`${credential.name} could not authorize this API operation (HTTP ${error.status}); trying the next credential.`);
     }
-    core.error("Neither library sync credential can authorize the requested operation. Renew the secrets and grant the required repository read/write permissions.");
-    throw lastError;
-  });
-  return () => preferred.token;
+  }
+  core.error("Neither library sync credential can authorize the requested operation. Renew the secrets and grant the required repository read/write permissions.");
+  throw lastError;
 }
 
 function withGitCredential(credentials, operation) {
@@ -64,4 +56,4 @@ function redactCredentials(value, credentials) {
   return result;
 }
 
-module.exports = { getCredentials, enableCredentialFallback, withGitCredential, redactCredentials };
+module.exports = { getCredentials, withApiCredentialFallback, withGitCredential, redactCredentials };
