@@ -1,0 +1,10 @@
+{
+  "targetsConfig": ".github/library-sync-targets.json",
+  "files": [
+    ".github/workflows/forward-issues-to-main.yml",
+    ".github/workflows/remote-mirror-sync.yml",
+    ".github/workflows/check-arduino.yml",
+    ".github/workflows/Cleanup_runs.yaml",
+    ".github/remote-mirror-sync-config.json"
+  ]
+}
