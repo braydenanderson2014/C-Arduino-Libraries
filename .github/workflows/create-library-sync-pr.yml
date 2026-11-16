@@ -427,8 +427,7 @@ jobs:
         with:
           github-token: ${{ github.token }}
           script: |
-            const { enableCredentialFallback } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/library-sync-credentials.cjs`);
-            enableCredentialFallback(github, core);
+            const { withApiCredentialFallback } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/library-sync-credentials.cjs`);
             const repositoryGithub = getOctokit(process.env.REPOSITORY_TOKEN);
             const issueNumber = Number.parseInt(process.env.ISSUE_NUMBER, 10);
             const targetOwner = process.env.TARGET_OWNER;
@@ -439,18 +438,21 @@ jobs:
             const prBody = process.env.PR_BODY;
             const marker = `<!-- library-sync-pr: ${targetOwner}/${targetRepo};branch=${branchName} -->`;
 
-            const existingPulls = await github.paginate(github.rest.pulls.list, {
-              owner: targetOwner,
-              repo: targetRepo,
-              state: "open",
-              head: `${targetOwner}:${branchName}`,
-              base: baseBranch,
-              per_page: 100
-            });
+            const pullRequest = await withApiCredentialFallback(getOctokit, async remoteGithub => {
+              const existingPulls = await remoteGithub.paginate(remoteGithub.rest.pulls.list, {
+                owner: targetOwner,
+                repo: targetRepo,
+                state: "open",
+                head: `${targetOwner}:${branchName}`,
+                base: baseBranch,
+                per_page: 100
+              });
 
-            let pullRequest = existingPulls[0];
-            if (!pullRequest) {
-              const created = await github.rest.pulls.create({
+              if (existingPulls[0]) {
+                return existingPulls[0];
+              }
+
+              const created = await remoteGithub.rest.pulls.create({
                 owner: targetOwner,
                 repo: targetRepo,
                 title: prTitle,
@@ -458,8 +460,8 @@ jobs:
                 base: baseBranch,
                 body: prBody
               });
-              pullRequest = created.data;
-            }
+              return created.data;
+            }, core);
 
             await repositoryGithub.rest.issues.createComment({
               owner: context.repo.owner,

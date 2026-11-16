@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
-const { enableCredentialFallback } = require("../../.github/scripts/library-sync-credentials.cjs");
+const { withApiCredentialFallback } = require("../../.github/scripts/library-sync-credentials.cjs");
 
 const root = path.resolve(__dirname, "../..");
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
@@ -82,20 +82,22 @@ test("library request resolution uses the repository client", async () => {
   }
 });
 
-test("remote API retries an access rejection with the alternate token", async () => {
-  let hook;
+test("remote API retries an access rejection with a separately authenticated client", async () => {
   const warnings = [];
-  const github = { hook: { wrap: (_, fn) => { hook = fn; } } };
-  enableCredentialFallback(github, { setSecret() {}, warning: message => warnings.push(message), error() {} },
-    { LIBRARY_SYNC_TOKEN: "expired", GH_PROJECT_TOKEN: "working" });
+  const clients = [];
   const attempted = [];
-  const response = await hook(async options => {
-    attempted.push(options.headers.authorization);
-    if (attempted.length === 1) throw Object.assign(new Error("Bad credentials"), { status: 401 });
+  const response = await withApiCredentialFallback(token => {
+    clients.push(token);
+    return { token };
+  }, async client => {
+    attempted.push(client.token);
+    if (client.token === "expired") throw Object.assign(new Error("Bad credentials"), { status: 401 });
     return "success";
-  }, { headers: {} });
+  }, { setSecret() {}, warning: message => warnings.push(message), error() {} },
+  { LIBRARY_SYNC_TOKEN: "expired", GH_PROJECT_TOKEN: "working" });
   assert.equal(response, "success");
-  assert.deepEqual(attempted, ["token expired", "token working"]);
+  assert.deepEqual(clients, ["expired", "working"]);
+  assert.deepEqual(attempted, ["expired", "working"]);
   assert.equal(warnings.length, 1);
 });
 
@@ -109,27 +111,34 @@ test("remote PR creation reports to the source issue using its repository token"
     TARGET_OWNER: "owner", TARGET_REPO: "ArduinoArrayList", BASE_BRANCH: "main",
     BRANCH_NAME: "sync/17", PR_TITLE: "sync", PR_BODY: "body"
   });
-  let hook;
   const attempts = [];
   let comment;
-  const remoteRequest = async () => hook(async options => {
-    attempts.push(options.headers.authorization);
-    if (options.headers.authorization === "token expired") throw Object.assign(new Error("Bad credentials"), { status: 401 });
-    return { data: { html_url: "https://github.com/owner/ArduinoArrayList/pull/1" } };
-  }, { headers: {} });
-  const github = {
-    hook: { wrap: (_, fn) => { hook = fn; } },
-    paginate: async () => [],
-    rest: { pulls: { list() {}, create: remoteRequest } }
-  };
+  const credentialClients = [];
+  const core = { setSecret() {}, warning() {}, error() {} };
+  const github = {};
   try {
     await script(github, { repo: { owner: "owner", repo: "monorepo" } },
-      { setSecret() {}, warning() {}, error() {} },
+      core,
       token => {
-        assert.equal(token, "repository");
-        return { rest: { issues: { createComment: async options => { comment = options; } } } };
+        if (token === "repository") {
+          return { rest: { issues: { createComment: async options => { comment = options; } } } };
+        }
+        credentialClients.push(token);
+        const client = {
+          paginate: async () => {
+            attempts.push(token);
+            if (token === "expired") throw Object.assign(new Error("Bad credentials"), { status: 401 });
+            return [];
+          },
+          rest: { pulls: {
+            list() {},
+            create: async () => ({ data: { html_url: "https://github.com/owner/ArduinoArrayList/pull/1" } })
+          } }
+        };
+        return client;
       }, require);
-    assert.deepEqual(attempts, ["token expired", "token working"]);
+    assert.deepEqual(credentialClients, ["expired", "working"]);
+    assert.deepEqual(attempts, ["expired", "working"]);
     assert.equal(comment.repo, "monorepo");
     assert.equal(comment.issue_number, 17);
     assert.match(comment.body, /ArduinoArrayList\/pull\/1/);
