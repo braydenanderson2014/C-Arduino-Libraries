@@ -61,6 +61,15 @@ test("sync plan reuses library defaults and overrides, skips disabled targets, a
   assert.throws(() => loadPlan(dir, source), /source repository/);
 });
 
+test("configured workflow sync targets include the available library repositories", () => {
+  const { targets } = loadPlan(root, "braydenanderson2014/C-Arduino-Libraries");
+  assert.deepEqual(targets.map(target => target.repo).sort(), [
+    "ArduinoArrayList", "ArduinoDoubleLinkedList", "ArduinoHashtable", "ArduinoLinkedList",
+    "ArduinoSDList", "ArduinoTimer", "ExtremeVariant", "Optional", "SimpleProperties",
+    "SimpleVector", "UnorderedMap", "Variant"
+  ].sort());
+});
+
 test("missing configured source files fail before contacting any remote", async t => {
   const { dir } = fixture(t);
   fs.unlinkSync(path.join(dir, ".github/workflows/shared.yml"));
