@@ -44,6 +44,16 @@ Before diving in, please familiarise yourself with how the codebase is organised
 
 Maintainers: pull request triage uses `GH_PROJECT_TOKEN` with read/write access to the project. Library sync requires `LIBRARY_SYNC_TOKEN` or `GH_PROJECT_TOKEN` with contents and pull request read/write access to the target library repositories. If both are configured, sync retries the second credential after an access rejection. Renew these secrets if neither can authorize the required operation.
 
+### Shared workflow synchronization
+
+`Sync Remote Workflows` runs after changes under `.github/` reach the canonical repository's default branch. It can also be run manually from that branch to bootstrap or repair remote copies. Each run reads the latest default-branch contents and pushes directly to each enabled library's `baseBranch` from `.github/library-sync-targets.json`, using the configured default owner and branch when not overridden. Disabled libraries are skipped.
+
+Edit `.github/workflow-sync-config.json` to choose the files to distribute at the same paths in each remote. The defaults are Forward Issues To Main Repository, Remote Mirror Sync, Check Arduino, Monthly Workflow History Cleanup, and Remote Mirror Sync's required JSON configuration. Keep supporting files in this list; source deletions are not propagated (remove obsolete remote files manually). Files outside the list are left untouched, and unchanged repositories receive no commit. Remote edits to listed files are overwritten on the next sync.
+
+Configure `LIBRARY_SYNC_TOKEN` or `GH_PROJECT_TOKEN` in the canonical repository with access to every target, **Contents: read/write** and **Workflows: read/write** for fine-grained tokens, or `repo` and `workflow` scopes for classic tokens. The normal `GITHUB_TOKEN` cannot write across repositories. Target branch protection must permit these direct updates; missing branches, authorization failures, and concurrent updates fail visibly without force-pushing, while other targets are still attempted. Rerun after resolving the failure.
+
+This distributes files, not secrets. Each remote still needs `GH_PROJECT_TOKEN` for forwarding/mirror synchronization and Check Arduino's private health-repository updates. Run the local workflow tests with `node --test test/workflows/*.test.cjs`.
+
 ---
 
 ## 🚀 How to Contribute Code
