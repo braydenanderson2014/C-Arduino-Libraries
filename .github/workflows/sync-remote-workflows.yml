@@ -35,9 +35,12 @@ jobs:
           GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
           SOURCE_SHA: ${{ steps.source.outputs.commit }}
         with:
-          github-token: ${{ secrets.LIBRARY_SYNC_TOKEN || secrets.GH_PROJECT_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
-            const { enableCredentialFallback } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/library-sync-credentials.cjs`);
+            const { withApiCredentialFallback } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/library-sync-credentials.cjs`);
             const { syncWorkflows } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/sync-remote-workflows.cjs`);
-            enableCredentialFallback(github, core);
-            await syncWorkflows({ github, core, context: { ...context, sha: process.env.SOURCE_SHA } });
+            await syncWorkflows({
+              core,
+              context: { ...context, sha: process.env.SOURCE_SHA },
+              request: operation => withApiCredentialFallback(getOctokit, operation, core)
+            });

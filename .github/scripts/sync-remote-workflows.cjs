@@ -46,14 +46,14 @@ function loadPlan(root, sourceRepository) {
   return { files, targets: [...targets.values()] };
 }
 
-async function syncTarget(github, target, files, source) {
+async function syncTarget(github, target, files, source, request = operation => operation(github)) {
   const { owner, repo, branch } = target;
   const repository = { owner, repo };
-  const { data: ref } = await github.rest.git.getRef({ ...repository, ref: `heads/${branch}` });
-  const { data: parent } = await github.rest.git.getCommit({ ...repository, commit_sha: ref.object.sha });
-  const { data: tree } = await github.rest.git.getTree({
+  const { data: ref } = await request(client => client.rest.git.getRef({ ...repository, ref: `heads/${branch}` }));
+  const { data: parent } = await request(client => client.rest.git.getCommit({ ...repository, commit_sha: ref.object.sha }));
+  const { data: tree } = await request(client => client.rest.git.getTree({
     ...repository, tree_sha: parent.tree.sha, recursive: "1"
-  });
+  }));
   if (tree.truncated) throw new Error("Remote tree is truncated; refusing an incomplete comparison.");
   const existing = new Map(tree.tree.map(entry => [entry.path, entry]));
   const changed = files.filter(file => {
@@ -64,35 +64,35 @@ async function syncTarget(github, target, files, source) {
 
   const entries = [];
   for (const file of changed) {
-    const { data: blob } = await github.rest.git.createBlob({
+    const { data: blob } = await request(client => client.rest.git.createBlob({
       ...repository, content: file.content, encoding: "base64"
-    });
+    }));
     entries.push({ path: file.path, mode: "100644", type: "blob", sha: blob.sha });
   }
-  const { data: nextTree } = await github.rest.git.createTree({
+  const { data: nextTree } = await request(client => client.rest.git.createTree({
     ...repository, base_tree: parent.tree.sha, tree: entries
-  });
-  const { data: commit } = await github.rest.git.createCommit({
+  }));
+  const { data: commit } = await request(client => client.rest.git.createCommit({
     ...repository,
     message: `chore(ci): sync shared workflows from ${source}\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>`,
     tree: nextTree.sha,
     parents: [ref.object.sha]
-  });
+  }));
   // A concurrent remote update must fail rather than overwrite unrelated work.
-  await github.rest.git.updateRef({
+  await request(client => client.rest.git.updateRef({
     ...repository, ref: `heads/${branch}`, sha: commit.sha, force: false
-  });
+  }));
   return true;
 }
 
-async function syncWorkflows({ github, core, context, root = process.env.GITHUB_WORKSPACE || process.cwd() }) {
+async function syncWorkflows({ github, core, context, request, root = process.env.GITHUB_WORKSPACE || process.cwd() }) {
   const sourceRepository = `${context.repo.owner}/${context.repo.repo}`;
   const { targets, files } = loadPlan(root, sourceRepository);
   const failures = [];
   for (const target of targets) {
     const name = `${target.owner}/${target.repo}@${target.branch}`;
     try {
-      const changed = await syncTarget(github, target, files, `${sourceRepository}@${context.sha}`);
+      const changed = await syncTarget(github, target, files, `${sourceRepository}@${context.sha}`, request);
       core.info(`${name}: ${changed ? "synced" : "already up to date"}`);
     } catch (error) {
       core.error(`${name}: ${error.message}`);
