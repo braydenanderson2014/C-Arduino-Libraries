@@ -124,6 +124,62 @@ test("one inaccessible target does not prevent attempts to sync the remaining ta
   assert.equal(calls.at(-1).name, "updateRef");
 });
 
+test("workflow uses credential fallback for individual remote API calls", async t => {
+  const workflow = fs.readFileSync(path.join(root, ".github/workflows/sync-remote-workflows.yml"), "utf8");
+  const section = workflow.split("      - name: Sync configured files to library repositories\n")[1];
+  const script = section.split("          script: |\n")[1].split("\n").map(line => line.slice(12)).join("\n");
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  const run = new AsyncFunction("github", "context", "core", "getOctokit", "require", script);
+
+  for (const scenario of ["authorization", "network"]) {
+    await t.test(scenario, async t => {
+      const { dir } = fixture(t);
+      fs.symlinkSync(path.join(root, ".github/scripts"), path.join(dir, ".github/scripts"), "dir");
+      const keys = ["GITHUB_WORKSPACE", "LIBRARY_SYNC_TOKEN", "GH_PROJECT_TOKEN", "SYNC_TOKEN", "SOURCE_SHA"];
+      const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]));
+      Object.assign(process.env, {
+        GITHUB_WORKSPACE: dir, LIBRARY_SYNC_TOKEN: "expired", GH_PROJECT_TOKEN: "working",
+        SYNC_TOKEN: "", SOURCE_SHA: "source-sha"
+      });
+      t.after(() => {
+        for (const key of keys) {
+          if (previous[key] === undefined) delete process.env[key];
+          else process.env[key] = previous[key];
+        }
+      });
+
+      const { github, calls } = mockGithub();
+      const attempts = [];
+      const secrets = [];
+      const core = { setSecret: token => secrets.push(token), warning() {}, error() {}, info() {} };
+      const getOctokit = token => ({ rest: { git: Object.fromEntries(
+        Object.entries(github.rest.git).map(([name, method]) => [name, async options => {
+          attempts.push(`${token}:${name}`);
+          if (token === "expired" && (name === "getRef" || name === "updateRef")) {
+            const error = new Error(scenario === "network" && name === "updateRef" ? "Network error" : "Forbidden");
+            if (error.message === "Forbidden") error.status = 403;
+            throw error;
+          }
+          return method(options);
+        }])
+      ) } });
+      const execute = () => run({}, { repo: { owner: "owner", repo: "monorepo" } }, core, getOctokit, require);
+      if (scenario === "authorization") {
+        await execute();
+        assert.deepEqual(attempts.slice(0, 3), ["expired:getRef", "working:getRef", "expired:getCommit"]);
+        assert.deepEqual(attempts.slice(-2), ["expired:updateRef", "working:updateRef"]);
+        assert.equal(calls.filter(call => call.name === "createCommit").length, 1);
+        assert.match(calls.find(call => call.name === "createCommit").message, /owner\/monorepo@source-sha/);
+      } else {
+        await assert.rejects(execute(), /Workflow sync failed/);
+        assert.equal(attempts.at(-1), "expired:updateRef");
+        assert.ok(!attempts.includes("working:updateRef"));
+      }
+      assert.ok(secrets.includes("expired") && secrets.includes("working"));
+    });
+  }
+});
+
 test("Arduino lint supports standalone roots, monorepo libraries, empty repositories, and nonzero exits", async t => {
   const workflow = fs.readFileSync(path.join(root, ".github/workflows/check-arduino.yml"), "utf8");
   const section = workflow.split("      - name: Run Arduino Lint and capture logs\n")[1].split("\n      - name: ")[0];
