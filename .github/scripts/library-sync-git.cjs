@@ -3,9 +3,9 @@ const { getCredentials, withGitCredential, redactCredentials } = require("./libr
 
 try {
   const credentials = getCredentials();
-  withGitCredential(credentials, token => {
+  const output = withGitCredential(credentials, token => {
     try {
-      execFileSync("git", process.argv.slice(2), {
+      return execFileSync("git", process.argv.slice(2), {
         stdio: ["ignore", "pipe", "pipe"],
         env: {
           ...process.env,
@@ -19,6 +19,7 @@ try {
       throw new Error(redactCredentials(error.message, credentials));
     }
   });
+  process.stdout.write(output);
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;
