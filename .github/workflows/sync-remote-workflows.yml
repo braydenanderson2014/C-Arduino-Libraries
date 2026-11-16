@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: sync-remote-workflows
+  group: sync-remote-workflows-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
