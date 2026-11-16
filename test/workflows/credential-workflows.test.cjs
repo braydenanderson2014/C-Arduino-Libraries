@@ -179,3 +179,94 @@ if (value.endsWith(":expired")) { console.error("fatal: could not read Username 
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("library sync pushes lease against the observed remote branch", async t => {
+  const workflow = fs.readFileSync(path.join(root, ".github/workflows/create-library-sync-pr.yml"), "utf8");
+  const section = workflow.split("      - name: Mirror library files into remote branch\n")[1].split("\n      - name: ")[0];
+  const script = section.split("        run: |\n")[1].split("\n").map(line => line.slice(10)).join("\n");
+  for (const scenario of ["new branch", "existing branch", "concurrent update"]) {
+    await t.test(scenario, () => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), "library-sync-lease-test-"));
+      const git = (args, cwd = dir) => {
+        const result = spawnSync("git", args, { cwd, encoding: "utf8", env: {
+          ...process.env, GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1",
+          GIT_AUTHOR_NAME: "Test", GIT_AUTHOR_EMAIL: "test@example.com",
+          GIT_COMMITTER_NAME: "Test", GIT_COMMITTER_EMAIL: "test@example.com"
+        } });
+        assert.equal(result.status, 0, result.stderr);
+        return result.stdout.trim();
+      };
+      try {
+        const remote = path.join(dir, "remote.git");
+        const seed = path.join(dir, "seed");
+        const workspace = path.join(dir, "workspace");
+        const runnerTemp = path.join(dir, "runner");
+        const branch = "sync-library/hashtable/issue-287";
+        git(["init", "--bare", remote]);
+        git(["init", "--initial-branch=main", seed]);
+        fs.writeFileSync(path.join(seed, "library.h"), "base\n");
+        git(["add", "."], seed);
+        git(["commit", "-m", "base"], seed);
+        const base = git(["rev-parse", "HEAD"], seed);
+        git(["remote", "add", "origin", remote], seed);
+        git(["push", "origin", "main"], seed);
+        let previous;
+        if (scenario !== "new branch") {
+          git(["checkout", "-b", branch], seed);
+          fs.writeFileSync(path.join(seed, "library.h"), "previous sync\n");
+          git(["commit", "-am", "previous sync"], seed);
+          previous = git(["rev-parse", "HEAD"], seed);
+          git(["push", "origin", branch], seed);
+        }
+        fs.mkdirSync(path.join(workspace, "library"), { recursive: true });
+        fs.mkdirSync(runnerTemp);
+        fs.symlinkSync(path.join(root, ".github"), path.join(workspace, ".github"));
+        fs.writeFileSync(path.join(workspace, "library/library.h"), "new sync\n");
+        const config = path.join(dir, "gitconfig");
+        fs.writeFileSync(config, `[url "file://${remote}"]\n\tinsteadOf = https://github.com/test/ArduinoHashtable.git\n`);
+        const env = {
+          ...process.env, GIT_CONFIG_GLOBAL: config, GIT_CONFIG_NOSYSTEM: "1",
+          GITHUB_WORKSPACE: workspace, RUNNER_TEMP: runnerTemp,
+          GITHUB_OUTPUT: path.join(dir, "output"), LIBRARY_SYNC_TOKEN: "test-token",
+          GH_PROJECT_TOKEN: "", SOURCE_PATH: "library", TARGET_OWNER: "test",
+          TARGET_REPO: "ArduinoHashtable", TARGET_PATH: ".", BASE_BRANCH: "main",
+          BRANCH_NAME: branch, MANAGED_PATHS_JSON: '["library.h"]',
+          LIBRARY_NAME: "Hashtable", ISSUE_NUMBER: "287"
+        };
+        if (scenario === "concurrent update") {
+          const realGit = spawnSync("which", ["git"], { encoding: "utf8" }).stdout.trim();
+          const bin = path.join(dir, "bin");
+          fs.mkdirSync(bin);
+          fs.writeFileSync(path.join(bin, "git"), `#!/usr/bin/env node
+const { spawnSync } = require("node:child_process");
+if (process.argv[2] === "push") {
+  const update = spawnSync(${JSON.stringify(realGit)}, ["--git-dir", ${JSON.stringify(remote)}, "update-ref", ${JSON.stringify(`refs/heads/${branch}`)}, ${JSON.stringify(base)}]);
+  if (update.status !== 0) process.exit(1);
+}
+const result = spawnSync(${JSON.stringify(realGit)}, process.argv.slice(2), { stdio: "inherit" });
+process.exit(result.status ?? 1);
+`, { mode: 0o755 });
+          env.PATH = `${bin}:${process.env.PATH}`;
+        }
+        const result = spawnSync("bash", ["-e", "-o", "pipefail", "-c", script], {
+          cwd: workspace, env, encoding: "utf8"
+        });
+        const head = git(["--git-dir", remote, "rev-parse", `refs/heads/${branch}`]);
+        if (scenario === "concurrent update") {
+          assert.notEqual(result.status, 0);
+          assert.match(result.stderr, /stale info/);
+          assert.equal(head, base);
+          assert.ok(!fs.existsSync(env.GITHUB_OUTPUT));
+        } else {
+          assert.equal(result.status, 0, result.stderr);
+          assert.notEqual(head, previous);
+          assert.equal(git(["--git-dir", remote, "show", `${head}:library.h`]), "new sync");
+          assert.equal(git(["--git-dir", remote, "rev-parse", `${head}^`]), base);
+          assert.match(fs.readFileSync(env.GITHUB_OUTPUT, "utf8"), /has_changes=true/);
+        }
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+  }
+});

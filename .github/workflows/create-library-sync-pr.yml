@@ -340,6 +340,9 @@ jobs:
           node .github/scripts/library-sync-git.cjs clone --depth 1 --branch "$BASE_BRANCH" "https://github.com/${TARGET_OWNER}/${TARGET_REPO}.git" "$remote_dir"
 
           pushd "$remote_dir"
+          # A base-only clone has no tracking ref for an existing sync branch.
+          remote_branch=$(node "$GITHUB_WORKSPACE/.github/scripts/library-sync-git.cjs" ls-remote --heads origin "refs/heads/$BRANCH_NAME")
+          expected_oid="${remote_branch%%[[:space:]]*}"
           git checkout -B "$BRANCH_NAME"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -401,7 +404,7 @@ jobs:
           fi
 
           git commit -m "Sync ${LIBRARY_NAME} from monorepo (#${ISSUE_NUMBER})"
-          node "$GITHUB_WORKSPACE/.github/scripts/library-sync-git.cjs" push --force-with-lease origin "$BRANCH_NAME"
+          node "$GITHUB_WORKSPACE/.github/scripts/library-sync-git.cjs" push "--force-with-lease=refs/heads/$BRANCH_NAME:$expected_oid" origin "$BRANCH_NAME"
           echo "has_changes=true" >> "$GITHUB_OUTPUT"
           echo "remote_branch_url=https://github.com/${TARGET_OWNER}/${TARGET_REPO}/tree/${BRANCH_NAME}" >> "$GITHUB_OUTPUT"
           popd
