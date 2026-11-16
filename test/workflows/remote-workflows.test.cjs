@@ -163,7 +163,14 @@ test("workflow uses credential fallback for individual remote API calls", async 
           return method(options);
         }])
       ) } });
-      const execute = () => run({}, { repo: { owner: "owner", repo: "monorepo" } }, core, getOctokit, require);
+      class Context {
+        get repo() {
+          return { owner: "owner", repo: "monorepo" };
+        }
+      }
+      const context = new Context();
+      context.sha = "event-sha";
+      const execute = () => run({}, context, core, getOctokit, require);
       if (scenario === "authorization") {
         await execute();
         assert.deepEqual(attempts.slice(0, 3), ["expired:getRef", "working:getRef", "expired:getCommit"]);

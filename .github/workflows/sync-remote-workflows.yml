@@ -41,6 +41,6 @@ jobs:
             const { syncWorkflows } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/sync-remote-workflows.cjs`);
             await syncWorkflows({
               core,
-              context: { ...context, sha: process.env.SOURCE_SHA },
+              context: { repo: context.repo, sha: process.env.SOURCE_SHA },
               request: operation => withApiCredentialFallback(getOctokit, operation, core)
             });
