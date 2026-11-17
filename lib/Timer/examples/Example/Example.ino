@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "SimpleArduinoTimer.h"
+#include "SuperTimers.h"
 
 // ---------------------------------------------------------------------------
 // Non-blocking example: all timer sequences are driven from loop() using a
