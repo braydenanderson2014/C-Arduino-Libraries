@@ -34,7 +34,7 @@ The `Timer` class is a C++ class for managing time-related operations and timers
 ## Usage
 
 ```cpp
-#include "SimpleArduinoTimer.h"
+#include "SuperTimers.h"
 
 Timer myTimer;   // debug off
 
@@ -74,7 +74,7 @@ Install the **Adafruit RTClib** library, then:
 ```cpp
 #define useRTCModule
 #define RTC_CHIP_PCF8523        // omit for default DS3231
-#include "SimpleArduinoTimer.h"
+#include "SuperTimers.h"
 
 Timer myTimer;
 
@@ -95,7 +95,7 @@ Install the **Makuna RTC** library (`Makuna/RTC`), then define pin assignments b
 #define RTC_DS1302_IO    4      // default 4  — override as needed
 #define RTC_DS1302_SCLK  5      // default 5
 #define RTC_DS1302_CE    2      // default 2
-#include "SimpleArduinoTimer.h"
+#include "SuperTimers.h"
 
 Timer myTimer;
 
@@ -170,7 +170,7 @@ If the UnoQ App Lab bridge is enabled, you can register a Timer instance so Pyth
 
 ```cpp
 #define TIMER_USE_BRIDGE
-#include "SimpleArduinoTimer.h"
+#include "SuperTimers.h"
 
 Timer myTimer;
 
@@ -286,7 +286,7 @@ lib_deps =
 ```
 
 ```cpp
-#include <SimpleArduinoTimer.h>
+#include <SuperTimers.h>
 
 Timer myTimer;
 
@@ -326,7 +326,7 @@ git clone "https://github.com/braydenanderson2014/C-Arduino-Libraries.git"
 ## Header
 
 ```cpp
-#include <SimpleArduinoTimer.h>
+#include <SuperTimers.h>
 ```
 
 # Arduino
