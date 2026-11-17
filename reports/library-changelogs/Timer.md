@@ -4,7 +4,7 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.2.0**
 - Release boundary commit: `ff982d11` (2026-08-03)
-- Total commits touching this library on current history: **32**
+- Total commits touching this library on current history: **33**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
@@ -31,11 +31,13 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Maintenance
 
+- Rename header guard from SIMPLEARDUINOTIMER to SUPERTIMERS (`7f28e57f`, 2026-11-16)
 - Rename library and update dependencies (`b1c3119e`, 2026-11-16)
 - Rename library from SimpleArduinoTimer to ArduinoTimer (`1d625b8e`, 2026-11-16)
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-11-16 | `7f28e57f` | Brayden Anderson | Rename header guard from SIMPLEARDUINOTIMER to SUPERTIMERS |
 | 2026-11-16 | `b1c3119e` | Brayden Anderson | Rename library and update dependencies |
 | 2026-11-16 | `1d625b8e` | Brayden Anderson | Rename library from SimpleArduinoTimer to ArduinoTimer |
 | 2026-08-17 | `9c6055a3` | github-actions[bot] | chore(readme): sync library health badges |
@@ -65,5 +67,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2024-02-15 | `2c9358ff` | Brayden Anderson | GithubAdjustments |
 | 2023-11-27 | `bbc31064` | Brayden Anderson | Massive Update, Check Readme Files |
 | 2023-11-12 | `658c213e` | Brayden Anderson | PlatformIO Library Updates |
-| 2023-11-11 | `c6716328` | Brayden Anderson | Added Debug Statements |
 
