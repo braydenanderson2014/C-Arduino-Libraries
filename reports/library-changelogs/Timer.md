@@ -4,7 +4,7 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.2.0**
 - Release boundary commit: `ff982d11` (2026-08-03)
-- Total commits touching this library on current history: **30**
+- Total commits touching this library on current history: **31**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
@@ -29,8 +29,13 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 - Improve README with timer usage example (`fbb802d3`, 2026-08-12)
 - sync library health badges (`915ef310`, 2026-08-07)
 
+### Maintenance
+
+- Rename library from SimpleArduinoTimer to ArduinoTimer (`1d625b8e`, 2026-11-16)
+
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-11-16 | `1d625b8e` | Brayden Anderson | Rename library from SimpleArduinoTimer to ArduinoTimer |
 | 2026-08-17 | `9c6055a3` | github-actions[bot] | chore(readme): sync library health badges |
 | 2026-08-13 | `24723cb6` | Brayden Anderson | Add UnoQBridge library and related components |
 | 2026-08-13 | `95c4f1cb` | Brayden Anderson | Copied SimpleArduinoTimer library with non-blocking timer functionality to experimental folder to modify and add features according to the new thread classes and bridge classes |
@@ -60,5 +65,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2023-11-12 | `658c213e` | Brayden Anderson | PlatformIO Library Updates |
 | 2023-11-11 | `c6716328` | Brayden Anderson | Added Debug Statements |
 | 2023-11-06 | `7734c287` | Brayden Anderson | Update to Library Structure |
-| 2023-10-29 | `c02689db` | Brayden Anderson | Update To the Repository |
 
