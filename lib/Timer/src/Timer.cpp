@@ -1,4 +1,4 @@
-#include "SimpleArduinoTimer.h"
+#include "SuperTimers.h"
 
 // ---------------------------------------------------------------------------
 // Locking helpers
