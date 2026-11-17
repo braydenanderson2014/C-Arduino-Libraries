@@ -5,9 +5,62 @@ const os = require("node:os");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const { loadPlan, syncTarget, syncWorkflows } = require("../../.github/scripts/sync-remote-workflows.cjs");
+const { libraryManagerMode } = require("../../.github/scripts/arduino-lint-mode.cjs");
 
 const root = path.resolve(__dirname, "../..");
 const source = "owner/monorepo";
+
+test("Arduino lint exceptions disable only the selected repository and library path", () => {
+  const options = { root, repository: "owner/monorepo", libraryDirectory: "lib/Optional" };
+  assert.equal(libraryManagerMode(options), "update");
+  const config = { skipLibraryManager: {
+    "owner/monorepo": ["lib/Optional"], "owner/Optional": ["."]
+  } };
+  assert.equal(libraryManagerMode({ ...options, config }), "false");
+  assert.equal(libraryManagerMode({ ...options, libraryDirectory: "lib/Variant", config }), "update");
+  assert.equal(libraryManagerMode({ ...options, repository: "another/monorepo", config }), "update");
+  assert.equal(libraryManagerMode({ root, repository: "owner/Optional", libraryDirectory: root, config }), "false");
+  assert.equal(libraryManagerMode({ root, repository: "owner/Variant", libraryDirectory: root, config }), "update");
+});
+
+test("Arduino lint rejects malformed exception configuration and paths outside the repository", () => {
+  const options = { root, repository: "owner/monorepo", libraryDirectory: "lib/Optional" };
+  for (const config of [null, [], { skipLibraryManager: [] },
+    { skipLibraryManager: { "owner/monorepo": true } },
+    { skipLibraryManager: { "owner/monorepo": ["../Optional"] } },
+    { skipLibraryManager: { "owner/monorepo": ["/lib/Optional"] } }
+  ]) {
+    assert.throws(() => libraryManagerMode({ ...options, config }), /configuration|skipLibraryManager|exception/);
+  }
+  assert.throws(() => libraryManagerMode({ ...options, libraryDirectory: "../outside" }), /inside the repository/);
+});
+
+test("Arduino lint exception configuration and helper are distributed with the lint workflow", () => {
+  const { files } = loadPlan(root, "braydenanderson2014/C-Arduino-Libraries");
+  for (const file of [".github/arduino-lint-config.json", ".github/scripts/arduino-lint-mode.cjs"]) {
+    assert.ok(files.some(entry => entry.path === file), file);
+  }
+  const workflow = fs.readFileSync(path.join(root, ".github/workflows/check-arduino.yml"), "utf8");
+  assert.match(workflow, /--library-manager "\$library_manager_mode"/);
+  assert.match(workflow, /--compliance specification/);
+});
+
+test("Arduino lint CLI reads repository configuration and rejects invalid JSON", t => {
+  const { dir } = fixture(t);
+  const helper = path.join(root, ".github/scripts/arduino-lint-mode.cjs");
+  const configPath = path.join(dir, ".github/arduino-lint-config.json");
+  const run = () => spawnSync(process.execPath, [helper, dir], {
+    cwd: dir, encoding: "utf8", env: { ...process.env, GITHUB_REPOSITORY: "owner/Optional" }
+  });
+  assert.equal(run().stdout, "update");
+  fs.writeFileSync(configPath, JSON.stringify({ skipLibraryManager: { "owner/Optional": ["."] } }));
+  assert.equal(run().stdout, "false");
+  fs.writeFileSync(configPath, "invalid JSON");
+  const result = run();
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /Arduino lint configuration error/);
+});
 
 function fixture(t) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "workflow-sync-test-"));
@@ -252,21 +305,32 @@ test("workflow uses credential fallback for individual remote API calls", async 
   }
 });
 
-test("Arduino lint supports standalone roots, monorepo libraries, empty repositories, and nonzero exits", async t => {
-  const workflow = fs.readFileSync(path.join(root, ".github/workflows/check-arduino.yml"), "utf8");
+test("Arduino lint supports standalone roots, monorepo libraries, empty repositories, and nonzero exits", {
+  skip: process.platform === "win32" ? "Requires POSIX shell fixtures and executable permissions" : false
+}, async t => {
+  const workflow = fs.readFileSync(path.join(root, ".github/workflows/check-arduino.yml"), "utf8").replace(/\r/g, "");
   const section = workflow.split("      - name: Run Arduino Lint and capture logs\n")[1].split("\n      - name: ")[0];
   const script = section.split("        run: |\n")[1].split("\n").map(line => line.slice(10)).join("\n");
-  for (const scenario of ["root", "root-json", "monorepo", "empty", "failure"]) {
+  for (const scenario of ["root", "root-json", "monorepo", "empty", "failure", "root-skip", "monorepo-skip", "skip-failure", "invalid-config"]) {
     await t.test(scenario, t => {
       const { dir } = fixture(t);
       if (scenario !== "empty") {
-        const library = scenario === "monorepo" ? path.join(dir, "lib/Example") : dir;
+        const library = scenario.startsWith("monorepo") ? path.join(dir, "lib/Example") : dir;
         fs.mkdirSync(library, { recursive: true });
         if (scenario === "root-json") {
           fs.writeFileSync(path.join(library, "library.json"), '{"name":"Example"}\n');
         } else {
           fs.writeFileSync(path.join(library, "library.properties"), "name=Example\n");
         }
+      }
+      fs.mkdirSync(path.join(dir, ".github/scripts"));
+      fs.copyFileSync(path.join(root, ".github/scripts/arduino-lint-mode.cjs"), path.join(dir, ".github/scripts/arduino-lint-mode.cjs"));
+      if (scenario.includes("skip")) {
+        fs.writeFileSync(path.join(dir, ".github/arduino-lint-config.json"), JSON.stringify({
+          skipLibraryManager: { "owner/library": [scenario.startsWith("monorepo") ? "lib/Example" : "."] }
+        }));
+      } else if (scenario === "invalid-config") {
+        fs.writeFileSync(path.join(dir, ".github/arduino-lint-config.json"), "invalid JSON");
       }
       const bin = path.join(dir, "bin");
       fs.mkdirSync(bin);
@@ -276,26 +340,30 @@ test("Arduino lint supports standalone roots, monorepo libraries, empty reposito
       const result = spawnSync("bash", ["-e", "-o", "pipefail", "-c", script], {
         cwd: dir, encoding: "utf8", env: {
           ...process.env, PATH: `${bin}:${process.env.PATH}`, GITHUB_OUTPUT: output,
-          LINT_ARGS: args, LINT_EXIT: scenario === "failure" ? "2" : "0"
+          GITHUB_REPOSITORY: "owner/library",
+          LINT_ARGS: args, LINT_EXIT: scenario.endsWith("failure") ? "2" : "0"
         }
       });
       assert.equal(result.status, 0, result.stderr);
-      const failed = scenario === "failure" || scenario === "empty";
+      const failed = scenario.endsWith("failure") || scenario === "empty" || scenario === "invalid-config";
       assert.match(fs.readFileSync(output, "utf8"), new RegExp(`has_errors=${failed}`));
-      if (scenario !== "empty") {
+      if (scenario === "invalid-config") assert.equal(fs.existsSync(args), false);
+      if (scenario !== "empty" && scenario !== "invalid-config") {
         assert.deepEqual(fs.readFileSync(args, "utf8").trim().split("\n"), [
           "--compliance", "specification",
-          "--library-manager", "update",
+          "--library-manager", scenario.includes("skip") ? "false" : "update",
           "--project-type", "library",
-          scenario === "monorepo" ? "lib/Example" : dir
+          scenario.startsWith("monorepo") ? "lib/Example" : dir
         ]);
       }
     });
   }
 });
 
-test("Arduino lint installation uses the upstream script and fails on download or missing binary", t => {
-  const workflow = fs.readFileSync(path.join(root, ".github/workflows/check-arduino.yml"), "utf8");
+test("Arduino lint installation uses the upstream script and fails on download or missing binary", {
+  skip: process.platform === "win32" ? "Requires POSIX shell fixtures and executable permissions" : false
+}, t => {
+  const workflow = fs.readFileSync(path.join(root, ".github/workflows/check-arduino.yml"), "utf8").replace(/\r/g, "");
   const section = workflow.split("      - name: Install Arduino Lint\n")[1].split("\n      - name: ")[0];
   assert.match(section, /shell: bash/);
   const script = section.split("        run: |\n")[1].split("\n").map(line => line.slice(10)).join("\n");

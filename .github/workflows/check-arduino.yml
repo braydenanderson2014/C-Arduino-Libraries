@@ -67,10 +67,15 @@ jobs:
           LINT_EXIT_CODE=0
 
           for lib_dir in "${libraries[@]}"; do
-            echo "Linting ${lib_dir}" | tee -a arduino-lint.log
+            if ! library_manager_mode="$(node .github/scripts/arduino-lint-mode.cjs "$lib_dir" 2>> arduino-lint.log)"; then
+              echo "ERROR: Could not resolve Library Manager checks for ${lib_dir}; refusing to skip lint checks." | tee -a arduino-lint.log
+              LINT_EXIT_CODE=1
+              continue
+            fi
+            echo "Linting ${lib_dir} (library-manager=${library_manager_mode})" | tee -a arduino-lint.log
             arduino-lint \
               --compliance specification \
-              --library-manager update \
+              --library-manager "$library_manager_mode" \
               --project-type library \
               "$lib_dir" \
               2>&1 | tee -a arduino-lint.log

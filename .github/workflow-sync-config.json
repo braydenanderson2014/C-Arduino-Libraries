@@ -11,6 +11,8 @@
     ".github/remote-mirror-sync-config.json",
     ".github/scripts/library-release.cjs",
     ".github/scripts/library-sync-credentials.cjs",
+    ".github/scripts/arduino-lint-mode.cjs",
+    ".github/arduino-lint-config.json",
     ".github/library-sync-targets.json"
   ],
   "directories": [

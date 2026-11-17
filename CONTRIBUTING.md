@@ -77,6 +77,23 @@ Configure `LIBRARY_SYNC_TOKEN` or `GH_PROJECT_TOKEN` in the canonical repository
 
 This distributes files, not secrets. Each remote still needs `GH_PROJECT_TOKEN` for forwarding/mirror synchronization and Check Arduino's private health-repository updates. Run the local workflow tests with `node --test test/workflows/*.test.cjs`.
 
+### Arduino lint Library Manager exceptions
+
+Check Arduino normally runs specification lint with `--library-manager update`. For libraries not yet registered with Library Manager, edit `.github/arduino-lint-config.json`. Its `skipLibraryManager` object maps full `owner/repository` names to arrays of repository-relative library directories. Use `.` for a standalone library at the repository root. For example, to exempt Optional in both the monorepo and its remote:
+
+```json
+{
+  "skipLibraryManager": {
+    "braydenanderson2014/C-Arduino-Libraries": ["lib/Optional"],
+    "braydenanderson2014/Optional": ["."]
+  }
+}
+```
+
+This example is illustrative; the committed exception list starts empty. Listed libraries run with `--library-manager false`, disabling all Library Manager-specific rules, not specification lint or other checks. Unlisted repositories and library paths retain `update` checks. Missing configuration also retains the default; malformed JSON or invalid entries report a lint failure rather than silently bypassing checks. Normal lint errors still fail even for exempt libraries. Remove an exception after the library is registered.
+
+The shared workflow sync distributes this configuration and its helper alongside Check Arduino. Maintain the repository-specific entries in this primary repository so the same file can serve every remote without disabling unrelated libraries. Changes reach remotes after the default-branch workflow sync, or a manual Sync Remote Workflows run.
+
 ### Maintainer-requested library releases
 
 Use the **Library Release Request** issue form to build and publish in an enabled remote from `.github/library-sync-targets.json`. The form is publicly visible (GitHub cannot restrict form visibility), but the workflow checks both the issue author's and triggering actor's current maintain or admin permission before using cross-repository credentials. Write-only collaborators cannot request releases. The Restricted Label Watchdog removes unauthorized `library-release-request` additions (including labels supplied when opening an issue) and restores unauthorized removals. Bots must meet the same permission requirement for this label. Workflow authorization is checked independently of the label watchdog, so a race between workflows cannot authorize a release. Requests do not sync code or bump versions: first sync and merge the desired library changes and version into the configured remote `baseBranch`.
