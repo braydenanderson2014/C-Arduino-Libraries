@@ -1,5 +1,5 @@
-#ifndef SIMPLEARDUINOTIMER_h
-#define SIMPLEARDUINOTIMER_h
+#ifndef SUPERTIMERS_h
+#define SUPERTIMERS_h
 
 #include <Arduino.h>
 
@@ -298,4 +298,4 @@ public:
 #endif
 };
 
-#endif // SIMPLEARDUINOTIMER_h
+#endif // SUPERTIMERS_h
