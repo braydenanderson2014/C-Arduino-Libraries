@@ -136,7 +136,7 @@ jobs:
                 if (!cfg || cfg.enabled === false || !cfg.sourcePath || !cfg.targetRepo) {
                   return false;
                 }
-                return String(cfg.targetRepo).startsWith("Arduino");
+                return true;
               });
 
             const libraryChanges = new Map();
@@ -154,7 +154,7 @@ jobs:
 
               const targetOwner = cfg.targetOwner || defaults.targetOwner || context.repo.owner;
               const targetRepo = cfg.targetRepo;
-              const variant = "arduino";
+              const variant = "configured";
               const commitSubjects = getCommitSubjectsForPath(sourcePath, baseRef, headRef);
 
               libraryChanges.set(libraryName, {
@@ -233,7 +233,7 @@ jobs:
 
             for (const [libraryName, details] of libraryChanges.entries()) {
               const body = makeBody(libraryName, details);
-              const titlePrefix = "[Library Sync][Arduino]";
+              const titlePrefix = "[Library Sync]";
               const title = `${titlePrefix} ${libraryName} -> ${details.targetOwner}/${details.targetRepo}`;
 
               const existing = openIssues.find((issue) => {

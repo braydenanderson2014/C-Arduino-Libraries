@@ -18,7 +18,7 @@ body:
       multiple: true          # set to true if users should be able to pick more than one
       options:
         - AVLTree
-        - Arraylist
+        - ArrayList
         - BinarySearchTree
         - BinaryTree
         - bPlusTree

@@ -1,5 +1,5 @@
 name: Library Sync Request
-description: Maintainers only. Publish one Arduino-target library from this monorepo to its mapped remote repository.
+description: Maintainers only. Publish one configured library from this monorepo to its mapped remote repository.
 title: "[Library Sync] "
 labels: ["library-sync-request"]
 projects: ["braydenanderson2014/4"]
@@ -9,22 +9,27 @@ body:
     attributes:
       value: |
         <!-- library-sync-request -->
-        <!-- sync-template-variant: arduino -->
-        Use this form to push one Arduino-target library folder to its configured remote repository.
+        Use this form to push one enabled library folder to its configured remote repository.
 
   - type: dropdown
     id: library
     attributes:
       label: Library
-      description: Select the Arduino-target library folder that should be pushed to its remote repository.
+      description: Select the library folder mapped in .github/library-sync-targets.json.
       multiple: false
       options:
         - ArrayList
         - DoubleLinkedList
+        - ExtremeVariant
         - Hashtable
         - LinkedList
+        - Optional
+        - Properties
         - SDList
+        - SimpleVector
         - Timer
+        - UnorderedMap
+        - Variant
     validations:
       required: true
 
@@ -33,7 +38,7 @@ body:
     attributes:
       label: Pull request title
       description: Optional override for the remote pull request title.
-      placeholder: e.g., Sync AVLTree from monorepo
+      placeholder: e.g., Sync Variant from monorepo
     validations:
       required: false
 

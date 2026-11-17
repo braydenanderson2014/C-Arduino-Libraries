@@ -50,6 +50,25 @@ Maintainers: pull request triage uses `GH_PROJECT_TOKEN` with read/write access 
 
 Targets without an accessible remote repository are disabled in that shared configuration, which also skips library issue and PR sync. Once a repository and its configured branch exist and the sync credential has access, remove `enabled: false` to enable all library sync workflows for that target.
 
+All 12 configured remotes are enabled for workflow distribution, library sync requests, and release requests. Issue forms use local library names; the configuration maps these to repository names under `braydenanderson2014`:
+
+| Library choice | Remote repository |
+| --- | --- |
+| ArrayList | ArduinoArrayList |
+| DoubleLinkedList | ArduinoDoubleLinkedList |
+| ExtremeVariant | ExtremeVariant |
+| Hashtable | ArduinoHashtable |
+| LinkedList | ArduinoLinkedList |
+| Optional | Optional |
+| Properties | SimpleProperties |
+| SDList | ArduinoSDList |
+| SimpleVector | SimpleVector |
+| Timer | ArduinoTimer |
+| UnorderedMap | UnorderedMap |
+| Variant | Variant |
+
+Library sync eligibility is controlled by the enabled configuration entries, not an `Arduino` repository-name prefix. Automatic sync issue creation uses the same enabled entries.
+
 Edit `.github/workflow-sync-config.json` to choose the files to distribute at the same paths in each remote. The `files` list includes Forward Issues To Main Repository, Remote Mirror Sync, Check Arduino, Build Library Release, Request Library Release, Restricted Label Watchdog, Monthly Workflow History Cleanup, and their supporting release scripts and JSON configuration. The optional `directories` list recursively includes every regular file in each configured directory; `.github/ISSUE_TEMPLATE` is included by default, so all issue forms and their `config.yml` are copied unchanged and newly added forms are picked up automatically. Missing source files or directories fail before any remote writes. Keep required supporting files in the configuration; source deletions are not propagated (remove obsolete remote files manually). Files outside the configured paths are left untouched, and unchanged repositories receive no commit. Remote edits to included files are overwritten on the next sync.
 
 Remote issue forms therefore produce the same Markdown headings and fields as the primary repository. Forward Issues To Main Repository preserves the original body beneath its source metadata when creating a primary tracker issue. This preserves form structure, not the original issue author or privileged labels: mirroring does not automatically authorize release or library-sync requests. Request Library Release remains guarded to run only in the primary repository, and maintainers should file release requests there under their own identity. The remote watchdog enforces its repository's maintainer permissions. Issue templates and event-driven workflows must also be present on each remote's default branch; when a configured `baseBranch` differs, arrange that merge before relying on them.

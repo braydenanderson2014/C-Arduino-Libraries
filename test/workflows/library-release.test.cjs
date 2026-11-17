@@ -111,11 +111,86 @@ test("receiver resolves new tags to an immutable commit", async () => {
   assert.deepEqual(outputs, { sha: "exact-sha", tag: "v1.2.3" });
 });
 
-test("issue form library choices match the enabled configuration", () => {
-  const template = fs.readFileSync(path.join(root, ".github/ISSUE_TEMPLATE/library_release_request.yml"), "utf8");
-  const choices = [...template.matchAll(/^        - ([A-Za-z0-9_]+)$/gm)].map(match => match[1]);
-  assert.deepEqual(choices.sort(), Object.entries(config.libraries)
-    .filter(([, target]) => target.enabled !== false && target.targetRepo).map(([name]) => name).sort());
+test("every issue form includes all enabled remote libraries", () => {
+  const enabled = Object.entries(config.libraries)
+    .filter(([, target]) => target.enabled !== false && target.targetRepo).map(([name]) => name).sort();
+  for (const file of [
+    "library_release_request.yml", "library_sync_request.yml", "bug_report.yml",
+    "feature_request.yml", "documentation-request.yml", "general-question.yml"
+  ]) {
+    const template = fs.readFileSync(path.join(root, ".github/ISSUE_TEMPLATE", file), "utf8").replace(/\r/g, "");
+    const choices = [...template.matchAll(/^        - ([A-Za-z0-9_]+)$/gm)].map(match => match[1]);
+    for (const library of enabled) assert.ok(choices.includes(library), `${file} is missing ${library}`);
+    if (file.startsWith("library_")) assert.deepEqual(choices.sort(), enabled);
+  }
+});
+
+test("sync request resolution supports every enabled remote repository", async context => {
+  const previous = { CONFIG_PATH: process.env.CONFIG_PATH, GITHUB_WORKSPACE: process.env.GITHUB_WORKSPACE };
+  process.env.CONFIG_PATH = path.join(root, ".github/library-sync-targets.json");
+  process.env.GITHUB_WORKSPACE = root;
+  context.after(() => {
+    for (const [name, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+  });
+  const run = receiverScript("Resolve library sync request", "create-library-sync-pr.yml");
+  for (const [library, target] of Object.entries(config.libraries)) {
+    if (target.enabled === false || !target.targetRepo) continue;
+    const outputs = {};
+    await run({ rest: {
+      repos: { getCollaboratorPermissionLevel: async () => ({ data: { permission: "admin" } }) }
+    } }, {
+      repo: { owner: "owner", repo: "source" }, eventName: "issues",
+      payload: { issue: {
+        number: 1, user: { login: "maintainer" }, labels: [{ name: "library-sync-request" }],
+        body: `### Library\n${library}\n`
+      } }
+    }, {
+      info() {}, setFailed: message => assert.fail(message),
+      setOutput: (name, value) => { outputs[name] = value; }
+    }, require);
+    assert.equal(outputs.should_run, "true", library);
+    assert.equal(outputs.target_repo, target.targetRepo, library);
+    assert.equal(outputs.source_path, target.sourcePath, library);
+  }
+});
+
+test("automatic sync requests include all twelve configured remotes and skip disabled libraries", async context => {
+  const previous = process.env.CONFIG_PATH;
+  process.env.CONFIG_PATH = path.join(root, ".github/library-sync-targets.json");
+  context.after(() => {
+    if (previous === undefined) delete process.env.CONFIG_PATH;
+    else process.env.CONFIG_PATH = previous;
+  });
+  const enabled = Object.entries(config.libraries).filter(([, target]) => target.enabled !== false && target.targetRepo);
+  assert.equal(enabled.length, 12);
+  const created = [];
+  const mockedRequire = name => name === "child_process"
+    ? { execFileSync: () => "Update library" } : require(name);
+  await receiverScript("Create or update sync request issues for changed libraries", "auto-library-sync-issues.yml")({
+    rest: {
+      repos: { compareCommitsWithBasehead: async () => ({ data: { files: [
+        ...enabled.map(([, target]) => ({ filename: `${target.sourcePath}/src/library.h` })),
+        { filename: "lib/Queue/src/library.h" }
+      ] } }) },
+      issues: { listForRepo() {}, create: async options => {
+        created.push(options);
+        return { data: { number: created.length } };
+      } }
+    },
+    paginate: async () => []
+  }, {
+    repo: { owner: "owner", repo: "source" }, eventName: "push", ref: "refs/heads/main",
+    payload: { before: "base", after: "head" }
+  }, { info() {}, warning: message => assert.fail(message) }, mockedRequire);
+  assert.equal(created.length, enabled.length);
+  for (const [library, target] of enabled) {
+    const issue = created.find(item => item.body.includes(`### Library\n${library}\n`));
+    assert.ok(issue, library);
+    assert.ok(issue.title.endsWith(`/${target.targetRepo}`), library);
+  }
 });
 
 test("manifest mismatches block publication and missing notes are generated remotely", async () => {
