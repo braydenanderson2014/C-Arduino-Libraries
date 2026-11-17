@@ -200,13 +200,17 @@ test("Arduino lint supports standalone roots, monorepo libraries, empty reposito
   const workflow = fs.readFileSync(path.join(root, ".github/workflows/check-arduino.yml"), "utf8");
   const section = workflow.split("      - name: Run Arduino Lint and capture logs\n")[1].split("\n      - name: ")[0];
   const script = section.split("        run: |\n")[1].split("\n").map(line => line.slice(10)).join("\n");
-  for (const scenario of ["root", "monorepo", "empty", "failure"]) {
+  for (const scenario of ["root", "root-json", "monorepo", "empty", "failure"]) {
     await t.test(scenario, t => {
       const { dir } = fixture(t);
       if (scenario !== "empty") {
         const library = scenario === "monorepo" ? path.join(dir, "lib/Example") : dir;
         fs.mkdirSync(library, { recursive: true });
-        fs.writeFileSync(path.join(library, "library.properties"), "name=Example\n");
+        if (scenario === "root-json") {
+          fs.writeFileSync(path.join(library, "library.json"), '{"name":"Example"}\n');
+        } else {
+          fs.writeFileSync(path.join(library, "library.properties"), "name=Example\n");
+        }
       }
       const bin = path.join(dir, "bin");
       fs.mkdirSync(bin);
@@ -227,7 +231,7 @@ test("Arduino lint supports standalone roots, monorepo libraries, empty reposito
           "--compliance", "specification",
           "--library-manager", "update",
           "--project-type", "library",
-          scenario === "monorepo" ? "lib/Example" : "."
+          scenario === "monorepo" ? "lib/Example" : dir
         ]);
       }
     });

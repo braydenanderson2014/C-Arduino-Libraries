@@ -199,7 +199,7 @@ CI automatically runs:
 - **compile-examples** — compiles representative sketches
 - **arduino-host-sim-tests** — builds and runs host simulation correctness and stress tests
 - **host-sim-memory-profiles** — memory profiling on the host sim suite
-- **check-arduino** — verifies Arduino compatibility
+- **check-arduino** — lints standalone repository-root libraries using their absolute folder path, or libraries under `lib/`
 - **spell-check** — catches typos in documentation
 
 ---
