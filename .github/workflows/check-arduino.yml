@@ -70,7 +70,6 @@ jobs:
             arduino-lint \
               --compliance specification \
               --library-manager update \
-              --official \
               --project-type library \
               "$lib_dir" \
               2>&1 | tee -a arduino-lint.log

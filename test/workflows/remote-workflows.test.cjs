@@ -223,8 +223,12 @@ test("Arduino lint supports standalone roots, monorepo libraries, empty reposito
       const failed = scenario === "failure" || scenario === "empty";
       assert.match(fs.readFileSync(output, "utf8"), new RegExp(`has_errors=${failed}`));
       if (scenario !== "empty") {
-        assert.equal(fs.readFileSync(args, "utf8").trim().split("\n").at(-1),
-          scenario === "monorepo" ? "lib/Example" : ".");
+        assert.deepEqual(fs.readFileSync(args, "utf8").trim().split("\n"), [
+          "--compliance", "specification",
+          "--library-manager", "update",
+          "--project-type", "library",
+          scenario === "monorepo" ? "lib/Example" : "."
+        ]);
       }
     });
   }
