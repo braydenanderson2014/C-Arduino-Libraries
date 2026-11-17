@@ -1,6 +1,6 @@
 # Library Health Report
 
-Generated: 2026-11-16T01:42:42.532Z
+Generated: 2026-11-17T01:40:06.079Z
 Source repo: braydenanderson2014/C-Arduino-Libraries
 Analyzer repo: braydenanderson2014/SystemCommands
 Confirmed labels: confirmed
@@ -77,7 +77,7 @@ Confirmed labels: confirmed
 
 | Library Label | Lint | Compilation |
 |---|---|---|
-| Array List | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Array List | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | AVL Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | B Plus Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | B Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
@@ -85,13 +85,13 @@ Confirmed labels: confirmed
 | Binary Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Color Manager | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Dictionary | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Unknown](https://img.shields.io/badge/Compilation-Unknown-9e9e9e?style=flat-square) |
-| Double Linked List | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Double Linked List | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Dynamic Storage Library | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Ethernet Connection Checker | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Ethernet Mach2 Connection Checker | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| Extreme Variant | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Extreme Variant | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Fenwick Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| Hashtable | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Hashtable | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Heap Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Initializer List | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Interval Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
@@ -99,7 +99,7 @@ Confirmed labels: confirmed
 | Iterator | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Unknown](https://img.shields.io/badge/Compilation-Unknown-9e9e9e?style=flat-square) |
 | Json | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Unknown](https://img.shields.io/badge/Compilation-Unknown-9e9e9e?style=flat-square) |
 | K Dimensional Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| Linked List | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Linked List | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Map | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Math Lib | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Matrix Math | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
@@ -108,7 +108,7 @@ Confirmed labels: confirmed
 | Numeric Limits | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | OC Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Operators | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Unknown](https://img.shields.io/badge/Compilation-Unknown-9e9e9e?style=flat-square) |
-| Optional | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Optional | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Ordered Map | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Predicates | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Unknown](https://img.shields.io/badge/Compilation-Unknown-9e9e9e?style=flat-square) |
 | Properties | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
@@ -116,19 +116,19 @@ Confirmed labels: confirmed
 | Queue | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | R Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Red Black Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| SD List | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| SD List | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Segment Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Simple Mutex | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Simple Thread Manager | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| Simple Vector | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Simple Vector | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Stack | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | String | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Suffix Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| Timer | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Timer | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Trie Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Type Traits | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| Unordered Map | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| Variant | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Unordered Map | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Variant | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 
 ### Issue Counts
 
@@ -215,8 +215,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Passed (#26)
-- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
+- Lint status: Failed (#27)
+- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -228,7 +228,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/2230.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/2127.)
 - No confirmed source issues linked.
 
 ### AVL Tree
@@ -250,7 +250,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15498.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15451.)
 - No confirmed source issues linked.
 
 ### B Plus Tree
@@ -272,7 +272,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15501.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15454.)
 - No confirmed source issues linked.
 
 ### B Tree
@@ -294,7 +294,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15502.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15455.)
 - No confirmed source issues linked.
 
 ### Binary Search Tree
@@ -316,7 +316,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15499.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15452.)
 - No confirmed source issues linked.
 
 ### Binary Tree
@@ -338,7 +338,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15500.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15453.)
 - No confirmed source issues linked.
 
 ### Color Manager
@@ -360,7 +360,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15503.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15456.)
 - No confirmed source issues linked.
 
 ### Dictionary
@@ -382,7 +382,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/4374.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/3982.)
 - No confirmed source issues linked.
 
 ### Double Linked List
@@ -391,8 +391,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Passed (#26)
-- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
+- Lint status: Failed (#27)
+- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -404,7 +404,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/5296.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/4829.)
 - No confirmed source issues linked.
 
 ### Dynamic Storage Library
@@ -479,8 +479,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Passed (#26)
-- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
+- Lint status: Failed (#27)
+- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -514,7 +514,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15504.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15457.)
 - No confirmed source issues linked.
 
 ### Hashtable
@@ -523,8 +523,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Passed (#26)
-- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
+- Lint status: Failed (#27)
+- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -536,7 +536,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/2229.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/2240.)
 - No confirmed source issues linked.
 
 ### Heap Tree
@@ -558,7 +558,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15505.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15458.)
 - No confirmed source issues linked.
 
 ### Initializer List
@@ -580,7 +580,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/2234.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/2243.)
 - No confirmed source issues linked.
 
 ### Interval Tree
@@ -602,7 +602,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15506.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15459.)
 - No confirmed source issues linked.
 
 ### Iostream
@@ -646,7 +646,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/4373.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/3981.)
 - No confirmed source issues linked.
 
 ### Json
@@ -699,8 +699,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Passed (#26)
-- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
+- Lint status: Failed (#27)
+- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -734,7 +734,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/5325.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/6426.)
 - No confirmed source issues linked.
 
 ### Math Lib
@@ -756,7 +756,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/4401.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/4002.)
 - No confirmed source issues linked.
 
 ### Matrix Math
@@ -778,7 +778,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15520.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15473.)
 - No confirmed source issues linked.
 
 ### Memory Manager
@@ -822,7 +822,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15240.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15195.)
 - No confirmed source issues linked.
 
 ### Numeric Limits
@@ -844,7 +844,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/6604.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/6427.)
 - No confirmed source issues linked.
 
 ### OC Tree
@@ -866,7 +866,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15508.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15461.)
 - No confirmed source issues linked.
 
 ### Operators
@@ -888,7 +888,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15325.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15278.)
 - No confirmed source issues linked.
 
 ### Optional
@@ -897,8 +897,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Passed (#26)
-- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
+- Lint status: Failed (#27)
+- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -910,7 +910,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/5389.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/4991.)
 - No confirmed source issues linked.
 
 ### Ordered Map
@@ -954,7 +954,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15326.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15279.)
 - No confirmed source issues linked.
 
 ### Properties
@@ -998,7 +998,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15512.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15465.)
 - No confirmed source issues linked.
 
 ### Queue
@@ -1042,7 +1042,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15515.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15468.)
 - No confirmed source issues linked.
 
 ### Red Black Tree
@@ -1064,7 +1064,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15514.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15467.)
 - No confirmed source issues linked.
 
 ### SD List
@@ -1073,8 +1073,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Passed (#26)
-- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
+- Lint status: Failed (#27)
+- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -1086,7 +1086,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15239.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15194.)
 - No confirmed source issues linked.
 
 ### Segment Tree
@@ -1108,7 +1108,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15516.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15469.)
 - No confirmed source issues linked.
 
 ### Simple Mutex
@@ -1161,8 +1161,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Passed (#26)
-- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
+- Lint status: Failed (#27)
+- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -1174,7 +1174,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/2014.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/2124.)
 - No confirmed source issues linked.
 
 ### Stack
@@ -1240,7 +1240,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15518.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15471.)
 - No confirmed source issues linked.
 
 ### Timer
@@ -1249,8 +1249,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Passed (#26)
-- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
+- Lint status: Failed (#27)
+- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -1284,7 +1284,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/15519.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/15472.)
 - No confirmed source issues linked.
 
 ### Type Traits
@@ -1306,7 +1306,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/3873.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/3084.)
 - No confirmed source issues linked.
 
 ### Unordered Map
@@ -1315,8 +1315,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Passed (#26)
-- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
+- Lint status: Failed (#27)
+- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -1328,7 +1328,7 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/3121.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/3075.)
 - No confirmed source issues linked.
 
 ### Variant
@@ -1337,8 +1337,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Passed (#26)
-- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
+- Lint status: Failed (#27)
+- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -1350,6 +1350,6 @@ Confirmed labels: confirmed
 - Raw open unconfirmed issues: 0
 - Confirmed issues: 0
 - Raw confirmed issues: 0
-- PlatformIO: Likely Healthy (Rank N/A, trends 0/3904.)
+- PlatformIO: Likely Healthy (Rank N/A, trends 0/4064.)
 - No confirmed source issues linked.
 
