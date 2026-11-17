@@ -230,6 +230,118 @@ test("Arduino lint supports standalone roots, monorepo libraries, empty reposito
   }
 });
 
+test("Arduino lint installation uses the upstream script and fails on download or missing binary", t => {
+  const workflow = fs.readFileSync(path.join(root, ".github/workflows/check-arduino.yml"), "utf8");
+  const section = workflow.split("      - name: Install Arduino Lint\n")[1].split("\n      - name: ")[0];
+  assert.match(section, /shell: bash/);
+  const script = section.split("        run: |\n")[1].split("\n").map(line => line.slice(10)).join("\n");
+  assert.match(script, /arduino-lint\/main\/etc\/install\.sh/);
+  for (const scenario of ["success", "download-failure", "missing-binary"]) {
+    const { dir } = fixture(t);
+    const args = path.join(dir, "args");
+    fs.writeFileSync(path.join(dir, "curl"), `#!/bin/sh\nexit ${scenario === "download-failure" ? 22 : 0}\n`, { mode: 0o755 });
+    fs.writeFileSync(path.join(dir, "arduino-lint"),
+      `#!/bin/sh\nprintf '%s' "$*" > "$LINT_ARGS"\nexit ${scenario === "missing-binary" ? 127 : 0}\n`, { mode: 0o755 });
+    const result = spawnSync("bash", ["-e", "-o", "pipefail", "-c", script], {
+      encoding: "utf8", env: { ...process.env, PATH: `${dir}:${process.env.PATH}`, LINT_ARGS: args }
+    });
+    assert.equal(result.status, scenario === "success" ? 0 : scenario === "download-failure" ? 22 : 127, result.stderr);
+    if (scenario === "download-failure") assert.equal(fs.existsSync(args), false);
+    else assert.equal(fs.readFileSync(args, "utf8"), "--version");
+  }
+});
+
+test("lint issue creation and updates include source library, project, run, and logs", async () => {
+  const workflow = fs.readFileSync(path.join(root, ".github/workflows/check-arduino.yml"), "utf8");
+  const section = workflow.split("      - name: Create or update lint issue on errors\n")[1].split("\n      - name: ")[0];
+  const script = section.split("          script: |\n")[1].split("\n").map(line => line.slice(12)).join("\n");
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  const run = new AsyncFunction("github", "context", "require", "process", script);
+  for (const existing of [false, true]) {
+    const reports = [];
+    await run({ rest: { issues: {
+      listForRepo: async () => ({ data: existing ? [{ title: "Arduino Lint errors detected", number: 12 }] : [] }),
+      create: async options => reports.push(options),
+      createComment: async options => reports.push(options)
+    } } }, {
+      repo: { owner: "braydenanderson2014", repo: "ArduinoLinkedList" },
+      serverUrl: "https://github.com", runId: 123, sha: "abc123", eventName: "push"
+    }, () => ({ readFileSync: () => "Linting .\nERROR: example finding" }),
+    { env: { ISSUE_TITLE: "Arduino Lint errors detected" } });
+    assert.equal(reports.length, 1);
+    assert.match(reports[0].body, /### Repository \/ Library\nLinkedList/);
+    assert.match(reports[0].body, /Source repository: braydenanderson2014\/ArduinoLinkedList/);
+    assert.match(reports[0].body, /Project: https:\/\/github.com\/users\/braydenanderson2014\/projects\/4/);
+    assert.match(reports[0].body, /ArduinoLinkedList\/actions\/runs\/123/);
+    assert.match(reports[0].body, /Commit: abc123/);
+    assert.match(reports[0].body, /ERROR: example finding/);
+    if (existing) assert.equal(reports[0].issue_number, 12);
+    else assert.deepEqual(reports[0].labels, ["bug", "ci"]);
+  }
+});
+
+test("scheduled and manual forwarding recover missed bot issues without duplicating mirrors", async () => {
+  const workflow = fs.readFileSync(path.join(root, ".github/workflows/forward-issues-to-main.yml"), "utf8");
+  const job = workflow.split("  forward-issue:\n")[1].split("\n  sync-mirrors:")[0];
+  assert.match(job.split("    runs-on:")[0], /github\.event_name == 'schedule'/);
+  const script = job.split("          script: |\n")[1].split("\n").map(line => line.slice(12)).join("\n");
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  const run = new AsyncFunction("github", "context", "core", "process", script);
+  for (const eventName of ["schedule", "workflow_dispatch", "issues"]) {
+    const source = {
+      number: 12, node_id: "source", title: "Arduino Lint errors detected",
+      body: "### Repository / Library\nLinkedList", html_url: "https://github.com/owner/remote/issues/12",
+      user: { login: "github-actions[bot]" }, labels: [{ name: "ci" }]
+    };
+    const created = [];
+    const comments = [];
+    const updates = [];
+    let mirrored = false;
+    const listIssues = () => {};
+    const listPulls = () => {};
+    const github = {
+      paginate: async (method, options) => {
+        assert.equal(options.state, "open");
+        if (method === listIssues) return [source, { ...source, number: 13, pull_request: {} }];
+        assert.equal(method, listPulls);
+        return [];
+      },
+      graphql: async () => ({}),
+      rest: {
+        pulls: { list: listPulls },
+        search: { issuesAndPullRequests: async () => ({ data: { items: mirrored ? [{ number: 99 }] : [] } }) },
+        issues: {
+          listForRepo: listIssues,
+          create: async options => {
+            created.push(options);
+            return { data: { number: 99, node_id: "mirror", html_url: "https://github.com/target/issues/99" } };
+          },
+          addLabels: async () => {},
+          createComment: async options => comments.push(options),
+          update: async options => updates.push(options)
+        }
+      }
+    };
+    const core = { getInput: () => "", info() {}, warning() {} };
+    const context = { repo: { owner: "owner", repo: "remote" }, eventName, payload: { issue: source } };
+    const process = { env: { GH_PROJECT_TOKEN_VALUE: "configured" } };
+    await run(github, context, core, process);
+    assert.equal(created.length, 1);
+    assert.equal(created[0].repo, "C-Arduino-Libraries");
+    assert.match(created[0].body, /mirror-source: owner\/remote#12;type=issue/);
+    assert.match(created[0].body, /### Repository \/ Library\nLinkedList/);
+    assert.equal(updates[0].issue_number, 12);
+    assert.equal(updates[0].state, "closed");
+    mirrored = true;
+    await run(github, context, core, process);
+    assert.equal(created.length, 1);
+    assert.equal(comments.length, eventName === "issues" ? 3 : 2);
+    await run(github, { ...context, repo: { owner: "braydenanderson2014", repo: "C-Arduino-Libraries" } }, core, process);
+    await run(github, context, core, { env: {} });
+    assert.equal(created.length, 1);
+  }
+});
+
 test("distributed workflows contain syntactically valid github-script steps", () => {
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
   const { files } = loadPlan(root, "braydenanderson2014/C-Arduino-Libraries");

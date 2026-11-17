@@ -56,6 +56,7 @@ jobs:
     if: |
       github.event_name == 'issues' ||
       github.event_name == 'pull_request' ||
+      github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && inputs.run_sync != 'true')
     runs-on: ubuntu-latest
 
@@ -326,6 +327,7 @@ jobs:
             const isIssueEvent = context.eventName === "issues";
             const isPullRequestEvent = context.eventName === "pull_request";
             const isManualDispatch = context.eventName === "workflow_dispatch";
+            const isScheduledRun = context.eventName === "schedule";
 
             const isMainRepository = SOURCE_OWNER === TARGET_OWNER && SOURCE_REPO === TARGET_REPO;
             const hasProjectToken = Boolean((process.env.GH_PROJECT_TOKEN_VALUE || "").trim());
@@ -341,19 +343,30 @@ jobs:
               return;
             }
 
-            if (!isIssueEvent && !isPullRequestEvent && !isManualDispatch) {
+            if (!isIssueEvent && !isPullRequestEvent && !isManualDispatch && !isScheduledRun) {
               core.info(`Unsupported event '${context.eventName}'. Skipping.`);
               return;
             }
 
             const workItems = [];
 
+            const sourceIssues = [];
             if (isIssueEvent) {
-              const issue = context.payload.issue;
+              sourceIssues.push(context.payload.issue);
+            } else if (isScheduledRun || (isManualDispatch && !core.getInput("pull_request_number").trim())) {
+              sourceIssues.push(...await github.paginate(github.rest.issues.listForRepo, {
+                owner: SOURCE_OWNER,
+                repo: SOURCE_REPO,
+                state: "open",
+                per_page: 100
+              }));
+            }
+
+            for (const issue of sourceIssues) {
               // Guard against converted edge cases on issue events.
               if (issue?.pull_request) {
                 core.info("Issue payload references a pull request. Skipping issue-flow forwarding.");
-                return;
+                continue;
               }
 
               workItems.push({
@@ -539,6 +552,7 @@ jobs:
               if ((existingMirror.data.items || []).length > 0) {
                 const existingIssue = existingMirror.data.items[0];
                 core.info(`Mirror already exists for ${sourceIssueRef}: ${existingIssue.html_url}`);
+                if (isScheduledRun || isManualDispatch) continue;
                 await github.rest.issues.createComment({
                   owner: SOURCE_OWNER,
                   repo: SOURCE_REPO,
