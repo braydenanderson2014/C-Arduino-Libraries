@@ -1,6 +1,6 @@
 # Library Health Report
 
-Generated: 2026-11-17T01:40:06.079Z
+Generated: 2026-11-17T06:46:17.936Z
 Source repo: braydenanderson2014/C-Arduino-Libraries
 Analyzer repo: braydenanderson2014/SystemCommands
 Confirmed labels: confirmed
@@ -77,7 +77,7 @@ Confirmed labels: confirmed
 
 | Library Label | Lint | Compilation |
 |---|---|---|
-| Array List | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Array List | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | AVL Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | B Plus Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | B Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
@@ -85,13 +85,13 @@ Confirmed labels: confirmed
 | Binary Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Color Manager | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Dictionary | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Unknown](https://img.shields.io/badge/Compilation-Unknown-9e9e9e?style=flat-square) |
-| Double Linked List | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Double Linked List | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Dynamic Storage Library | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Ethernet Connection Checker | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Ethernet Mach2 Connection Checker | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| Extreme Variant | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Extreme Variant | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Fenwick Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| Hashtable | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Hashtable | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Heap Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Initializer List | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Interval Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
@@ -99,7 +99,7 @@ Confirmed labels: confirmed
 | Iterator | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Unknown](https://img.shields.io/badge/Compilation-Unknown-9e9e9e?style=flat-square) |
 | Json | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Unknown](https://img.shields.io/badge/Compilation-Unknown-9e9e9e?style=flat-square) |
 | K Dimensional Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| Linked List | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Linked List | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Map | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Math Lib | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Matrix Math | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
@@ -108,7 +108,7 @@ Confirmed labels: confirmed
 | Numeric Limits | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | OC Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Operators | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Unknown](https://img.shields.io/badge/Compilation-Unknown-9e9e9e?style=flat-square) |
-| Optional | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Optional | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Ordered Map | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Predicates | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Unknown](https://img.shields.io/badge/Compilation-Unknown-9e9e9e?style=flat-square) |
 | Properties | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
@@ -116,19 +116,19 @@ Confirmed labels: confirmed
 | Queue | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | R Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Red Black Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| SD List | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| SD List | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Segment Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Simple Mutex | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Simple Thread Manager | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| Simple Vector | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Simple Vector | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Stack | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | String | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Suffix Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| Timer | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Timer | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Trie Tree | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Type Traits | ![Lint: Unknown](https://img.shields.io/badge/Lint-Unknown-9e9e9e?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 | Unordered Map | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
-| Variant | ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
+| Variant | ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square) | ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square) |
 
 ### Issue Counts
 
@@ -215,8 +215,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Failed (#27)
-- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
+- Lint status: Passed (#26)
+- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -391,8 +391,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Failed (#27)
-- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
+- Lint status: Passed (#26)
+- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -479,8 +479,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Failed (#27)
-- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
+- Lint status: Passed (#26)
+- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -523,8 +523,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Failed (#27)
-- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
+- Lint status: Passed (#26)
+- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -699,8 +699,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Failed (#27)
-- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
+- Lint status: Passed (#26)
+- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -897,8 +897,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Failed (#27)
-- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
+- Lint status: Passed (#26)
+- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -1073,8 +1073,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Failed (#27)
-- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
+- Lint status: Passed (#26)
+- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -1161,8 +1161,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Failed (#27)
-- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
+- Lint status: Passed (#26)
+- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -1249,8 +1249,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Unsure](https://img.shields.io/badge/Health-Unsure-9e9e9e?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Failed (#27)
-- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
+- Lint status: Passed (#26)
+- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
@@ -1337,8 +1337,8 @@ Confirmed labels: confirmed
 - Health badge: ![Health: Stable](https://img.shields.io/badge/Health-Stable-2ea44f?style=flat-square)
 - Testing status: Tested (#22)
 - Testing badge: ![Testing: Tested](https://img.shields.io/badge/Testing-Tested-2ea44f?style=flat-square)
-- Lint status: Failed (#27)
-- Lint badge: ![Lint: Failed](https://img.shields.io/badge/Lint-Failed-d73a49?style=flat-square)
+- Lint status: Passed (#26)
+- Lint badge: ![Lint: Passed](https://img.shields.io/badge/Lint-Passed-2ea44f?style=flat-square)
 - Compilation status: Passed (#28)
 - Compilation badge: ![Compilation: Passed](https://img.shields.io/badge/Compilation-Passed-2ea44f?style=flat-square)
 - Failed testing bucket (#33): No
