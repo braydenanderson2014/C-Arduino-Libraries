@@ -4,7 +4,7 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.2.0**
 - Release boundary commit: `ff982d11` (2026-08-03)
-- Total commits touching this library on current history: **34**
+- Total commits touching this library on current history: **35**
 - Recent commits shown: **30**
 
 ## Next Release (Experimental / Unreleased)
@@ -31,6 +31,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Maintenance
 
+- Replace SimpleArduinoTimer with SuperTimers (`c6de5c4d`, 2026-11-16)
 - Replace SimpleArduinoTimer with SuperTimers (`127d2b8f`, 2026-11-16)
 - Rename header guard from SIMPLEARDUINOTIMER to SUPERTIMERS (`7f28e57f`, 2026-11-16)
 - Rename library and update dependencies (`b1c3119e`, 2026-11-16)
@@ -38,6 +39,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-11-16 | `c6de5c4d` | Brayden Anderson | Replace SimpleArduinoTimer with SuperTimers |
 | 2026-11-16 | `127d2b8f` | Brayden Anderson | Replace SimpleArduinoTimer with SuperTimers |
 | 2026-11-16 | `7f28e57f` | Brayden Anderson | Rename header guard from SIMPLEARDUINOTIMER to SUPERTIMERS |
 | 2026-11-16 | `b1c3119e` | Brayden Anderson | Rename library and update dependencies |
@@ -67,5 +69,4 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 | 2024-02-19 | `85294804` | Brayden Anderson | Updates |
 | 2024-02-17 | `b9fc99af` | Brayden Anderson | Adding Library.properties for each Library |
 | 2024-02-15 | `2c9358ff` | Brayden Anderson | GithubAdjustments |
-| 2023-11-27 | `bbc31064` | Brayden Anderson | Massive Update, Check Readme Files |
 
