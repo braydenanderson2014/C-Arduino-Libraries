@@ -1,0 +1,55 @@
+name: Library Release Request
+description: Maintainers only. Build, package, and publish a release in a mapped remote repository.
+title: "[Library Release] "
+labels: ["library-release-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Maintainers only (maintain or admin permission required).
+        Sync and merge the library changes into the remote branch first, including its manifest version.
+        Remote targets are defined in .github/library-sync-targets.json.
+        Leaving release notes blank uses the library changelog, or generates notes from remote release history.
+  - type: dropdown
+    id: library
+    attributes:
+      label: Library
+      options:
+        - ArrayList
+        - DoubleLinkedList
+        - ExtremeVariant
+        - Hashtable
+        - LinkedList
+        - Optional
+        - Properties
+        - SDList
+        - SimpleVector
+        - Timer
+        - UnorderedMap
+        - Variant
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Must match the remote manifests. A prerelease suffix publishes a prerelease.
+      placeholder: "1.2.3 or 1.2.3-beta.1 (no v prefix)"
+    validations:
+      required: true
+  - type: textarea
+    id: release_notes
+    attributes:
+      label: Release notes
+      description: Optional override. Leave blank to fill notes automatically.
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I verified the remote branch contains the intended library changes and version.
+          required: true
+        - label: I understand that a successful remote build publishes a GitHub release and ZIP package.
+          required: true

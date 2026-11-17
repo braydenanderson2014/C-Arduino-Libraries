@@ -70,6 +70,62 @@ test("configured workflow sync targets include the available library repositorie
   ].sort());
 });
 
+test("shared sync includes release workflows, their dependencies, and every issue template unchanged", () => {
+  const { files } = loadPlan(root, "braydenanderson2014/C-Arduino-Libraries");
+  const byPath = new Map(files.map(file => [file.path, file]));
+  for (const file of [
+    ".github/workflows/build-library-release.yml",
+    ".github/workflows/request-library-release.yml",
+    ".github/workflows/restricted-label-watchdog.yml",
+    ".github/scripts/library-release.cjs",
+    ".github/scripts/library-sync-credentials.cjs",
+    ".github/library-sync-targets.json",
+    ...fs.readdirSync(path.join(root, ".github/ISSUE_TEMPLATE")).map(name => `.github/ISSUE_TEMPLATE/${name}`)
+  ]) {
+    assert.ok(byPath.has(file), `Missing shared file: ${file}`);
+    assert.deepEqual(Buffer.from(byPath.get(file).content, "base64"), fs.readFileSync(path.join(root, file)));
+  }
+});
+
+test("sync directories discover new nested templates and deduplicate explicit file entries", t => {
+  const { dir } = fixture(t);
+  fs.mkdirSync(path.join(dir, ".github/ISSUE_TEMPLATE/nested"), { recursive: true });
+  fs.writeFileSync(path.join(dir, ".github/ISSUE_TEMPLATE/new.yml"), "name: New form\n");
+  fs.writeFileSync(path.join(dir, ".github/ISSUE_TEMPLATE/nested/another.md"), "# Another form\n");
+  const configPath = path.join(dir, ".github/workflow-sync-config.json");
+  const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  config.files.push(".github/ISSUE_TEMPLATE/new.yml");
+  config.directories = [".github/ISSUE_TEMPLATE"];
+  fs.writeFileSync(configPath, JSON.stringify(config));
+  const { files } = loadPlan(dir, source);
+  assert.deepEqual(files.map(file => file.path).sort(), [
+    ".github/ISSUE_TEMPLATE/nested/another.md", ".github/ISSUE_TEMPLATE/new.yml", ".github/workflows/shared.yml"
+  ].sort());
+  config.directories = [".github/../outside"];
+  fs.writeFileSync(configPath, JSON.stringify(config));
+  assert.throws(() => loadPlan(dir, source), /repository-relative/);
+  config.directories = [".github/missing"];
+  fs.writeFileSync(configPath, JSON.stringify(config));
+  assert.throws(() => loadPlan(dir, source), /ENOENT/);
+});
+
+test("forwarded issue bodies retain the original form fields beneath source metadata", () => {
+  const workflow = fs.readFileSync(path.join(root, ".github/workflows/forward-issues-to-main.yml"), "utf8");
+  const bodyBuilder = /const mirroredBody = \[[\s\S]*?\]\.join\("\\n"\);/.exec(workflow);
+  assert.ok(bodyBuilder, "Missing forwarded issue body builder");
+  const buildBody = new Function("item", "sourceIssueRef", "sourceMarker", "labelsText",
+    `${bodyBuilder[0]}\nreturn mirroredBody;`);
+  const original = "### Library\n\nArrayList\n\n### Version\n\n1.2.3\n\n### Release notes\n\n- Fixed resize.\n";
+  const body = buildBody({
+    sourceTypeLabel: "issue", sourceContextLines: ["Opened by: @maintainer"], sourceBody: original
+  }, "owner/remote#1", "<!-- mirror-source: owner/remote#1;type=issue -->", "- library-release-request");
+  assert.ok(body.endsWith(original));
+  const { parseSections } = require("../../.github/scripts/library-release.cjs");
+  assert.equal(parseSections(body).Library, "ArrayList");
+  assert.equal(parseSections(body).Version, "1.2.3");
+  assert.equal(parseSections(body)["Release notes"], "- Fixed resize.");
+});
+
 test("missing configured source files fail before contacting any remote", async t => {
   const { dir } = fixture(t);
   fs.unlinkSync(path.join(dir, ".github/workflows/shared.yml"));

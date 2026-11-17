@@ -1,0 +1,156 @@
+name: Build Library Release
+run-name: Release ${{ github.event.client_payload.library }} v${{ github.event.client_payload.version }}
+
+on:
+  repository_dispatch:
+    types: [library-release-request]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: library-release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.repository != 'braydenanderson2014/C-Arduino-Libraries'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Validate release request
+        id: request
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const payload = context.payload.client_payload || {};
+            if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/.test(payload.version || "")) {
+              throw new Error("Invalid release version.");
+            }
+            if (typeof payload.branch !== "string" || !payload.branch.trim()) throw new Error("Missing release branch.");
+            const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+              ...context.repo, username: context.actor
+            });
+            if (!["admin", "maintain"].includes(permission.permission)) throw new Error("Release permission denied.");
+            const tag = `v${payload.version}`;
+            try {
+              await github.rest.git.getRef({ ...context.repo, ref: `tags/${tag}` });
+              throw new Error(`Tag ${tag} already exists; choose a new version.`);
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            const { data: branch } = await github.rest.repos.getBranch({ ...context.repo, branch: payload.branch });
+            core.setOutput("sha", branch.commit.sha);
+            core.setOutput("tag", tag);
+
+      - name: Checkout exact remote commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.request.outputs.sha }}
+          persist-credentials: false
+
+      - name: Validate manifests and prepare release notes
+        uses: actions/github-script@v9
+        env:
+          RELEASE_SHA: ${{ steps.request.outputs.sha }}
+          RELEASE_TAG: ${{ steps.request.outputs.tag }}
+          BUILD_DIR: ${{ runner.temp }}/library-release
+        with:
+          script: |
+            const fs = require("node:fs");
+            const path = require("node:path");
+            const payload = context.payload.client_payload;
+            const versions = [];
+            if (fs.existsSync("library.properties")) {
+              versions.push(/^version\s*=\s*(.+)$/m.exec(fs.readFileSync("library.properties", "utf8"))?.[1].trim());
+            }
+            if (fs.existsSync("library.json")) versions.push(JSON.parse(fs.readFileSync("library.json", "utf8")).version);
+            if (!versions.length || versions.some(version => version !== payload.version)) {
+              throw new Error("Every remote library manifest must match the requested version. Sync and merge the version change first.");
+            }
+            let notes = String(payload.notes || "").trim();
+            if (!notes) {
+              const { data } = await github.rest.repos.generateReleaseNotes({
+                ...context.repo, tag_name: process.env.RELEASE_TAG, target_commitish: process.env.RELEASE_SHA
+              });
+              notes = data.body;
+            }
+            if (/^https:\/\/github\.com\/braydenanderson2014\/C-Arduino-Libraries\/issues\/\d+$/.test(payload.source_issue || "")) {
+              notes += `\n\nRequested via ${payload.source_issue}`;
+            }
+            fs.mkdirSync(process.env.BUILD_DIR, { recursive: true });
+            fs.writeFileSync(path.join(process.env.BUILD_DIR, "release-notes.md"), notes);
+
+      - name: Install Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Compile library examples
+        shell: bash
+        env:
+          RELEASE_CORE: ${{ vars.ARDUINO_RELEASE_CORE || 'arduino:avr' }}
+          RELEASE_FQBN: ${{ vars.ARDUINO_RELEASE_FQBN || 'arduino:avr:uno' }}
+          RELEASE_LIBRARIES: ${{ vars.ARDUINO_RELEASE_LIBRARIES }}
+          RELEASE_BOARD_URLS: ${{ vars.ARDUINO_RELEASE_BOARD_URLS }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$RELEASE_BOARD_URLS" ]]; then
+            arduino-cli config init
+            arduino-cli config set board_manager.additional_urls "$RELEASE_BOARD_URLS"
+          fi
+          arduino-cli core update-index
+          arduino-cli core install "$RELEASE_CORE"
+          while IFS= read -r dependency; do
+            if [[ -n "$dependency" ]]; then arduino-cli lib install "$dependency"; fi
+          done <<< "$RELEASE_LIBRARIES"
+          mapfile -d '' sketches < <(find examples -type f -name '*.ino' -print0)
+          if [[ ${#sketches[@]} -eq 0 ]]; then
+            echo 'No example sketches found; refusing an untested release.' >&2
+            exit 1
+          fi
+          declare -A compiled=()
+          for sketch in "${sketches[@]}"; do
+            directory="$(dirname "$sketch")"
+            if [[ -z "${compiled[$directory]:-}" ]]; then
+              arduino-cli compile --fqbn "$RELEASE_FQBN" --library "$GITHUB_WORKSPACE" "$directory"
+              compiled[$directory]=1
+            fi
+          done
+
+      - name: Package exact source revision
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.request.outputs.tag }}
+          BUILD_DIR: ${{ runner.temp }}/library-release
+        run: |
+          set -euo pipefail
+          package="${GITHUB_REPOSITORY#*/}-${RELEASE_TAG}"
+          git archive --format=zip --prefix="${package}/" --output="$BUILD_DIR/${package}.zip" HEAD
+          cd "$BUILD_DIR"
+          sha256sum "${package}.zip" > "${package}.zip.sha256"
+
+      - name: Publish release and package
+        uses: actions/github-script@v9
+        env:
+          RELEASE_SHA: ${{ steps.request.outputs.sha }}
+          RELEASE_TAG: ${{ steps.request.outputs.tag }}
+          BUILD_DIR: ${{ runner.temp }}/library-release
+        with:
+          script: |
+            const fs = require("node:fs");
+            const path = require("node:path");
+            const payload = context.payload.client_payload;
+            const { data: release } = await github.rest.repos.createRelease({
+              ...context.repo, tag_name: process.env.RELEASE_TAG,
+              target_commitish: process.env.RELEASE_SHA,
+              name: `${payload.library} ${process.env.RELEASE_TAG}`,
+              body: fs.readFileSync(path.join(process.env.BUILD_DIR, "release-notes.md"), "utf8"),
+              draft: true, prerelease: payload.version.includes("-")
+            });
+            for (const name of fs.readdirSync(process.env.BUILD_DIR).filter(name => name !== "release-notes.md")) {
+              await github.rest.repos.uploadReleaseAsset({
+                ...context.repo, release_id: release.id, name,
+                data: fs.readFileSync(path.join(process.env.BUILD_DIR, name))
+              });
+            }
+            await github.rest.repos.updateRelease({ ...context.repo, release_id: release.id, draft: false });
+            await core.summary.addLink("Published release", release.html_url).write();

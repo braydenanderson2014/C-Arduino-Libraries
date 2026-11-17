@@ -15,7 +15,22 @@ function loadPlan(root, sourceRepository) {
   if (!Array.isArray(config.files) || !config.files.length) {
     throw new Error("workflow-sync-config.json must contain a nonempty files array.");
   }
-  const files = [...new Set(config.files.map(localPath))].map(file => {
+  if (config.directories !== undefined && !Array.isArray(config.directories)) {
+    throw new Error("workflow-sync-config.json directories must be an array.");
+  }
+  const collectDirectory = directory => fs.readdirSync(path.join(root, directory), { withFileTypes: true })
+    .sort((first, second) => first.name.localeCompare(second.name))
+    .flatMap(entry => {
+      const file = localPath(`${directory}/${entry.name}`);
+      if (entry.isDirectory()) return collectDirectory(file);
+      if (!entry.isFile()) throw new Error(`Expected a regular sync source file: ${file}`);
+      return [file];
+    });
+  const sourceFiles = [
+    ...config.files.map(localPath),
+    ...(config.directories || []).map(localPath).flatMap(collectDirectory)
+  ];
+  const files = [...new Set(sourceFiles)].map(file => {
     const content = fs.readFileSync(path.join(root, file));
     const sha = createHash("sha1").update(`blob ${content.length}\0`).update(content).digest("hex");
     return { path: file, content: content.toString("base64"), sha };

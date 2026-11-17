@@ -2,7 +2,7 @@ name: Restricted Label Watchdog
 
 on:
   issues:
-    types: [labeled, unlabeled]
+    types: [opened, reopened, labeled, unlabeled]
   pull_request_target:
     types: [labeled, unlabeled]
 
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Enforce Restricted Label Policy
     env:
-      RESTRICTED_LABELS: adminduplicate,adminduplicatenegative,challenge-upheld,challenge-failed,challenge-complete,parent,child,ai-training,ai-data,ai-verified,training-data,auto-processed
+      RESTRICTED_LABELS: adminduplicate,adminduplicatenegative,challenge-upheld,challenge-failed,challenge-complete,parent,child,ai-training,ai-data,ai-verified,training-data,auto-processed,library-release-request
       TRUSTED_SYSTEM_ACTORS: github-actions[bot],dependabot[bot]
 
     steps:
@@ -26,10 +26,13 @@ jobs:
           github-token: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
           script: |
             const action = context.payload.action;
-            const label = context.payload.label;
+            const isIssueOpening = action === 'opened' || action === 'reopened';
+            const label = context.payload.label || (isIssueOpening
+              ? context.payload.issue?.labels?.find(item => item.name.toLowerCase() === 'library-release-request')
+              : null);
             const sender = context.payload.sender;
 
-            if (!label || (action !== 'labeled' && action !== 'unlabeled')) {
+            if (!label || (!isIssueOpening && action !== 'labeled' && action !== 'unlabeled')) {
               console.log('ℹ️ No relevant label action to process');
               return;
             }
@@ -52,7 +55,8 @@ jobs:
 
             const actorLogin = (sender?.login || '').toLowerCase();
             const actorType = (sender?.type || '').toLowerCase();
-            const isSystemActor = actorType === 'bot' || trustedSystemActors.includes(actorLogin);
+            const isSystemActor = labelName !== 'library-release-request' &&
+              (actorType === 'bot' || trustedSystemActors.includes(actorLogin));
 
             let isMaintainer = false;
             let actorPermission = 'unknown';
@@ -84,7 +88,7 @@ jobs:
               return;
             }
 
-            if (action === 'labeled') {
+            if (action === 'labeled' || isIssueOpening) {
               try {
                 await github.rest.issues.removeLabel({
                   owner: context.repo.owner,

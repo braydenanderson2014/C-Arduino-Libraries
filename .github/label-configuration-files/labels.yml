@@ -9,3 +9,7 @@
 - name: "pull-request"
   color: "5319e7"
   description: "Marks pull requests that have been automatically triaged."
+
+- name: "library-release-request"
+  color: "0e8a16"
+  description: "Maintainer request to build, package, and publish a mapped remote library release."

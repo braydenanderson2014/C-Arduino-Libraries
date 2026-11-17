@@ -4,7 +4,16 @@
     ".github/workflows/forward-issues-to-main.yml",
     ".github/workflows/remote-mirror-sync.yml",
     ".github/workflows/check-arduino.yml",
+    ".github/workflows/build-library-release.yml",
+    ".github/workflows/request-library-release.yml",
+    ".github/workflows/restricted-label-watchdog.yml",
     ".github/workflows/Cleanup_runs.yaml",
-    ".github/remote-mirror-sync-config.json"
+    ".github/remote-mirror-sync-config.json",
+    ".github/scripts/library-release.cjs",
+    ".github/scripts/library-sync-credentials.cjs",
+    ".github/library-sync-targets.json"
+  ],
+  "directories": [
+    ".github/ISSUE_TEMPLATE"
   ]
 }
