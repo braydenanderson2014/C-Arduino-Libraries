@@ -266,6 +266,31 @@ jobs:
               return Array.from(uniqueByNumber.values());
             };
 
+            const commentLimitReachedIssues = new Set();
+            const commentLimitReached = (error) =>
+              Number(error?.status) === 403 &&
+              /commenting is disabled on issues with more than 2500 comments/i.test(String(error?.message || ""));
+
+            const createIssueComment = async ({ owner, repo, issueNumber, body }) => {
+              const issueRef = `${owner}/${repo}#${issueNumber}`;
+              if (commentLimitReachedIssues.has(issueRef)) {
+                return false;
+              }
+
+              try {
+                await github.rest.issues.createComment({ owner, repo, issue_number: issueNumber, body });
+                return true;
+              } catch (error) {
+                if (!commentLimitReached(error)) {
+                  throw error;
+                }
+
+                commentLimitReachedIssues.add(issueRef);
+                core.warning(`Skipping comments on ${issueRef}: GitHub disables commenting after 2,500 comments.`);
+                return false;
+              }
+            };
+
             const upsertCommentWithMarker = async ({ owner, repo, issueNumber, markerNeedle, body }) => {
               const comments = await github.paginate(github.rest.issues.listComments, {
                 owner,
@@ -286,10 +311,10 @@ jobs:
                 return existing.body || "";
               }
 
-              await github.rest.issues.createComment({
+              await createIssueComment({
                 owner,
                 repo,
-                issue_number: issueNumber,
+                issueNumber,
                 body
               });
               return "";
@@ -427,6 +452,16 @@ jobs:
                 pull_number: sourceNumber
               });
 
+              const targetIssue = await github.rest.issues.get({
+                owner: TARGET_OWNER,
+                repo: TARGET_REPO,
+                issue_number: targetNumber
+              });
+
+              if (pr.data.state !== "open" || targetIssue.data.state !== "open") {
+                return false;
+              }
+
               const commits = await github.paginate(github.rest.pulls.listCommits, {
                 owner: SOURCE_OWNER,
                 repo: SOURCE_REPO,
@@ -468,10 +503,10 @@ jobs:
               const previousHead = previousHeadMatch ? previousHeadMatch[1] : "";
 
               if (headSha && previousHead !== headSha) {
-                await github.rest.issues.createComment({
+                await createIssueComment({
                   owner: SOURCE_OWNER,
                   repo: SOURCE_REPO,
-                  issue_number: sourceNumber,
+                  issueNumber: sourceNumber,
                   body: [
                     `Mirror update: commit/file digest was refreshed on ${TARGET_OWNER}/${TARGET_REPO}#${targetNumber}.`,
                     `Target URL: https://github.com/${TARGET_OWNER}/${TARGET_REPO}/issues/${targetNumber}`,
@@ -607,6 +642,10 @@ jobs:
                 continue;
               }
 
+              if (targetIssue.state === "closed" && sourceIssue.state === "closed") {
+                continue;
+              }
+
               const syncMarkerNeedle = `<!-- ${MARKER_SYNC}: target=${targetRef};`;
               const previousSyncBody = await upsertCommentWithMarker({
                 owner: SOURCE_OWNER,
@@ -653,10 +692,10 @@ jobs:
                   .map((label) => label.trim())
                   .filter(Boolean);
 
-                await github.rest.issues.createComment({
+                await createIssueComment({
                   owner: SOURCE_OWNER,
                   repo: SOURCE_REPO,
-                  issue_number: sourceNumber,
+                  issueNumber: sourceNumber,
                   body: [
                     `Mirror update: labels changed on ${targetRef}.`,
                     `Previous labels: ${previousLabels.length > 0 ? previousLabels.join(", ") : "(none)"}`,
@@ -700,10 +739,10 @@ jobs:
                   }
                 }
 
-                await github.rest.issues.createComment({
+                await createIssueComment({
                   owner: SOURCE_OWNER,
                   repo: SOURCE_REPO,
-                  issue_number: sourceNumber,
+                  issueNumber: sourceNumber,
                   body: [
                     `Mirror update: ${targetRef} was closed, so this source ${sourceType === "pull_request" ? "pull request" : "issue"} was closed to match.`,
                     `Target URL: ${targetIssue.html_url}`
@@ -738,10 +777,10 @@ jobs:
                   }
 
                   if (!reopenedPullRequest) {
-                    await github.rest.issues.createComment({
+                    await createIssueComment({
                       owner: SOURCE_OWNER,
                       repo: SOURCE_REPO,
-                      issue_number: sourceNumber,
+                      issueNumber: sourceNumber,
                       body: [
                         `Mirror update: ${targetRef} was reopened, but this source pull request cannot be reopened by GitHub.`,
                         `Source PR remains closed.`,
@@ -759,10 +798,10 @@ jobs:
                   });
                 }
 
-                await github.rest.issues.createComment({
+                await createIssueComment({
                   owner: SOURCE_OWNER,
                   repo: SOURCE_REPO,
-                  issue_number: sourceNumber,
+                  issueNumber: sourceNumber,
                   body: [
                     `Mirror update: ${targetRef} was reopened, so this source ${sourceType === "pull_request" ? "pull request" : "issue"} was reopened to match.`,
                     `Target URL: ${targetIssue.html_url}`
@@ -772,13 +811,15 @@ jobs:
               }
 
               if (relevantNewComments.length > 0) {
-                await github.rest.issues.createComment({
+                const commentCreated = await createIssueComment({
                   owner: SOURCE_OWNER,
                   repo: SOURCE_REPO,
-                  issue_number: sourceNumber,
+                  issueNumber: sourceNumber,
                   body: summarizeTargetComments(relevantNewComments, targetRef, targetIssue.html_url)
                 });
-                activityComments += 1;
+                if (commentCreated) {
+                  activityComments += 1;
+                }
               }
 
               await upsertCommentWithMarker({
