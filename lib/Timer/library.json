@@ -34,7 +34,7 @@
         "Arduino": "*"
     },
     "Notes": "RTC support is optional. Define useRTCModule and a chip macro (e.g. RTC_CHIP_DS3231) before including SimpleArduinoTimer.h. RTClib chips require the Adafruit RTClib library; DS1302 requires the Makuna RTC library. Thread safety is also optional: define TIMER_THREAD_SAFE (requires SimpleMutex) to guard every public method with a recursive mutex, TIMER_LOCK_BACKEND_RWLOCK (requires SimpleRWLock) to use shared read locks for read-only methods instead, or TIMER_ENABLE_THREADING (additionally requires SimpleThreadManager) to enable the background monitor thread.",
-    "header": "SimpleArduinoTimer.h",
+    "header": "SuperTimers.h",
     "cpp": "Timer.cpp",
     "examples": [
         {
