@@ -43,7 +43,8 @@ jobs:
 
           libraries=()
           if [[ -f library.properties || -f library.json ]]; then
-            libraries=(.)
+            # LS003 checks the supplied folder name, so do not pass ".".
+            libraries=("$PWD")
           elif [[ -d lib ]]; then
             mapfile -t libraries < <(
               find lib -mindepth 1 -maxdepth 1 -type d \
