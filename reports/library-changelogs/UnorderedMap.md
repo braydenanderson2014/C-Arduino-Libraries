@@ -4,8 +4,8 @@
 - Branch analyzed: `main`
 - Current manifest version: **1.0.5**
 - Release boundary commit: `45acb524` (2026-07-29)
-- Total commits touching this library on current history: **23**
-- Recent commits shown: **23**
+- Total commits touching this library on current history: **24**
+- Recent commits shown: **24**
 
 ## Next Release (Experimental / Unreleased)
 
@@ -17,6 +17,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 ### Bug Fixes
 
+- Fix UnorderedMap example and remove legacy remote directory (`09df36e1`, 2026-11-18)
 - Fix UnorderedMap examples directory name (`877b32da`, 2026-11-18)
 - fix duplicate detection runtime and library metadata links (`07f70592`, 2026-08-07)
 
@@ -26,6 +27,7 @@ Changes listed here are auto-generated from commits after the latest manifest ve
 
 | Date | Commit | Author | Summary |
 | --- | --- | --- | --- |
+| 2026-11-18 | `09df36e1` | braydenanderson2014 | Fix UnorderedMap example and remove legacy remote directory |
 | 2026-11-18 | `877b32da` | braydenanderson2014 | Fix UnorderedMap examples directory name |
 | 2026-08-07 | `07f70592` | copilot-swe-agent[bot] | fix duplicate detection runtime and library metadata links |
 | 2026-08-07 | `915ef310` | github-actions[bot] | chore(readme): sync library health badges |
