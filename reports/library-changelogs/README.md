@@ -60,6 +60,6 @@ Auto-generated from git history for each library folder under `lib/`.
 | [TrieTree](TrieTree.md) | 2026-08-07 | 7 | 7 | 4 |
 | [TypeTraits](TypeTraits.md) | 2026-08-07 | 8 | 8 | 5 |
 | [UnoQBridge](UnoQBridge.md) | 2026-08-18 | 4 | 4 | 3 |
-| [UnorderedMap](UnorderedMap.md) | 2026-08-07 | 22 | 22 | 3 |
+| [UnorderedMap](UnorderedMap.md) | 2026-11-18 | 23 | 23 | 4 |
 | [Variant](Variant.md) | 2026-08-07 | 14 | 14 | 4 |
 
