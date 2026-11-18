@@ -33,7 +33,7 @@
     "examples": [
         {
             "name": "Example",
-            "base": "Example",
+            "base": "examples/Example",
             "files": [
                 "Example.cpp"
             ]
