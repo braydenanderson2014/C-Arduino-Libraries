@@ -16,6 +16,9 @@ jobs:
     name: Handle Sponsoring Requests
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v7
+
     - name: Handle Sponsoring Label/Comment
       uses: actions/github-script@v9
       with:
@@ -26,6 +29,8 @@ jobs:
 
           // Get the event details
           const issue = context.payload.issue;
+          const { isAutomationIssue } = require('./.github/scripts/automation-issue.cjs');
+          if (isAutomationIssue(issue)) return;
           const comment = context.payload.comment;
           const isLabelEvent = context.payload.action === 'labeled';
           const isCommentEvent = context.payload.action === 'created' && comment;

@@ -20,6 +20,9 @@ jobs:
     name: Send Welcome Messages and Add to Project
     
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v7
+
     - name: Send Welcome Message and Add to Project
       uses: actions/github-script@v9
       with:
@@ -574,7 +577,8 @@ jobs:
           }
           
           // Send welcome message for all issues
-          if (messageContent) {
+          const { isAutomationIssue } = require('./.github/scripts/automation-issue.cjs');
+          if (messageContent && !isAutomationIssue(issue)) {
             console.log(`📨 Sending ${messageType} welcome message for issue #${issue.number}`);
             
             try {

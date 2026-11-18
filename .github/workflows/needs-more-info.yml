@@ -12,6 +12,9 @@ jobs:
       contents: read
       
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
       - name: Handle Needs More Info Label Changes
         uses: actions/github-script@v9
         with:
@@ -75,6 +78,8 @@ jobs:
             
             // Get issue details
             const issue = context.payload.issue;
+            const { isAutomationIssue } = require("./.github/scripts/automation-issue.cjs");
+            if (isAutomationIssue(issue)) return;
             const action = context.payload.action;
             const label = context.payload.label;
             
