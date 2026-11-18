@@ -67,7 +67,11 @@
     "Timer": { "sourcePath": "lib/Timer", "targetRepo": "ArduinoTimer" },
     "TrieTree": { "enabled": false, "sourcePath": "lib/TrieTree", "targetRepo": "TrieTree" },
     "TypeTraits": { "enabled": false, "sourcePath": "lib/TypeTraits", "targetRepo": "TypeTraits" },
-    "UnorderedMap": { "sourcePath": "lib/UnorderedMap", "targetRepo": "UnorderedMap" },
+    "UnorderedMap": {
+      "sourcePath": "lib/UnorderedMap",
+      "targetRepo": "UnorderedMap",
+      "managedPaths": ["src", "examples", "library.json", "library.properties", "README.md", "keywords.txt", "LICENSE", "extras", "Example"]
+    },
     "Variant": { "sourcePath": "lib/Variant", "targetRepo": "Variant" },
     "littlefs-master": {
       "enabled": false,

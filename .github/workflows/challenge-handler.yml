@@ -16,6 +16,9 @@ jobs:
     name: Handle Challenge System
     
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v7
+
     - name: Delay For Restricted Label Watchdog
       if: ${{ github.event_name == 'issues' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') }}
       run: sleep 15
@@ -588,6 +591,8 @@ jobs:
           
           // Main workflow logic
           const issue = context.payload.issue;
+          const { isAutomationIssue } = require('./.github/scripts/automation-issue.cjs');
+          if (isAutomationIssue(issue)) return;
           const label = context.payload.label;
           const comment = context.payload.comment;
           const action = context.payload.action;

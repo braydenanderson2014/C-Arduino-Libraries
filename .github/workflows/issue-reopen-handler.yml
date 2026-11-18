@@ -59,6 +59,9 @@ jobs:
           // Update project status to REOPENED!!!
           await updateProjectStatus(issue, CONFIG.LABELS.REOPENED_STATUS);
 
+          const { isAutomationIssue } = require('./.github/scripts/automation-issue.cjs');
+          if (isAutomationIssue(issue)) return;
+
           // Add reopen comment
           const reopenComment = [
             '🔄 **Issue Reopened**',

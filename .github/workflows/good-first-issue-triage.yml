@@ -14,6 +14,9 @@ jobs:
     name: Label first-time issue reporters and add good-first-issue tag
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
       - name: Process new issue
         uses: actions/github-script@v9
         with:
@@ -48,9 +51,9 @@ jobs:
             const issueNumber = issue.number;
             const reporter = issue.user.login;
 
-            // Skip bots
-            if (issue.user.type === "Bot") {
-              console.log(`ℹ️ Issue #${issueNumber} was opened by a bot (${reporter}) - skipping.`);
+            const { isAutomationIssue } = require("./.github/scripts/automation-issue.cjs");
+            if (isAutomationIssue(issue)) {
+              console.log(`ℹ️ Issue #${issueNumber} was created by automation - skipping.`);
               return;
             }
 

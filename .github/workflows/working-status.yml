@@ -12,6 +12,9 @@ jobs:
       contents: read
       
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
       - name: Handle Working Label Changes
         uses: actions/github-script@v9
         with:
@@ -42,6 +45,7 @@ jobs:
             
             // Get issue details
             const issue = context.payload.issue;
+            const { isAutomationIssue } = require("./.github/scripts/automation-issue.cjs");
             const action = context.payload.action;
             const label = context.payload.label;
             
@@ -273,7 +277,7 @@ jobs:
                 // Update status to appropriate In Progress status
                 const success = await updateProjectStatus(projectItemId, inProgressStatus);
                 
-                if (success) {
+                if (success && !isAutomationIssue(issue)) {
                   // Add a comment to document the status change
                   try {
                     await github.rest.issues.createComment({
@@ -320,7 +324,7 @@ jobs:
               if (projectItemId) {
                 const success = await updateProjectStatus(projectItemId, newStatus);
                 
-                if (success) {
+                if (success && !isAutomationIssue(issue)) {
                   // Add a comment to document the status change
                   try {
                     await github.rest.issues.createComment({

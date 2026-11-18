@@ -315,6 +315,11 @@ jobs:
           
           // Main duplicate detection logic
           async function checkForDuplicates(issue) {
+            const { isAutomationIssue } = require('./.github/scripts/automation-issue.cjs');
+            if (isAutomationIssue(issue)) {
+              console.log(`⏭️ Skipping automation-created issue #${issue.number}`);
+              return;
+            }
             try {
               console.log(`🔍 Checking for duplicates of issue #${issue.number}: ${issue.title}`);
               
