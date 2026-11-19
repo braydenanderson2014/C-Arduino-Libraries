@@ -607,7 +607,6 @@ jobs:
             const privateRepoLabels = await listAllRepoLabels(privateGh, privateOwner, privateRepo);
 
             const configuredLibraryLabels = [];
-            const unresolvedTemplateLabels = [];
             for (const templateName of templateLibraryLabels) {
               const normalizedTemplate = normalize(templateName);
               let resolved = null;
@@ -623,12 +622,16 @@ jobs:
               if (resolved) {
                 configuredLibraryLabels.push(resolved);
               } else {
-                unresolvedTemplateLabels.push(templateName);
+                const { data } = await privateGh.rest.issues.createLabel({
+                  owner: privateOwner,
+                  repo: privateRepo,
+                  name: templateName,
+                  color: '1D76DB',
+                  description: `Library: ${templateName}`
+                });
+                configuredLibraryLabels.push(data.name);
+                core.info(`Created missing library label: ${data.name}`);
               }
-            }
-
-            if (unresolvedTemplateLabels.length) {
-              core.warning(`Skipping template libraries with no matching existing private label: ${unresolvedTemplateLabels.join(', ')}`);
             }
 
             const uniqueConfiguredLibraryLabels = Array.from(new Set(configuredLibraryLabels));
