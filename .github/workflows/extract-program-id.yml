@@ -12,9 +12,11 @@ jobs:
     steps:
       - name: Extract Program ID from Issue
         id: extract_id
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           # Extract Program ID from issue body
-          issue_body='${{ github.event.issue.body }}'
+          issue_body="$ISSUE_BODY"
           
           # Pattern 1: For bug reports - ### Program Unique ID (optional) followed by ID on next line
           bug_id=$(echo "$issue_body" | grep -A 1 "### Program Unique ID (optional)" | tail -n 1 | grep -o 'PDF-UTIL-[A-Z0-9-]*' | head -n 1)
